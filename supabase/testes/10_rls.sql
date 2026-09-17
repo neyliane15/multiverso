@@ -161,17 +161,20 @@ begin
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000aa', true);
 
-  select count(*) into n from restaurantes;
-  perform conferir('master ve os 2 restaurantes', n = 2);
+  -- Contagem exata acoplaria o teste a presenca da seed. O que importa e que
+  -- o master alcance os dois restaurantes deste cenario, e nao so o proprio.
+  select count(*) into n from restaurantes where slug in ('casa-a', 'casa-b');
+  perform conferir('master ve os 2 restaurantes do cenario', n = 2);
 
   select count(*) into n from perfis;
   perform conferir('master ve os 4 usuarios', n = 4);
 
-  select count(*) into n from vw_panorama_restaurantes;
+  select count(*) into n from vw_panorama_restaurantes where slug in ('casa-a', 'casa-b');
   perform conferir('panorama da rede traz os 2 restaurantes', n = 2);
 
+  select count(*) into n from restaurantes;
   insert into restaurantes (nome, slug) values ('Casa C', 'casa-c');
-  perform conferir('master cria restaurante', (select count(*) from restaurantes) = 3);
+  perform conferir('master cria restaurante', (select count(*) from restaurantes) = n + 1);
   reset role;
 end $$;
 
