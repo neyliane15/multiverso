@@ -55,8 +55,8 @@ export function SimboloDoMultiverso({
         cx="16"
         cy="16"
         rx="13.2"
-        ry="6.4"
-        transform="rotate(-32 16 16)"
+        ry="7.6"
+        transform="rotate(-36 16 16)"
         stroke={orbita}
         strokeWidth="2.4"
         opacity={marca ? 0.55 : 0.45}
@@ -65,8 +65,8 @@ export function SimboloDoMultiverso({
         cx="16"
         cy="16"
         rx="13.2"
-        ry="6.4"
-        transform="rotate(32 16 16)"
+        ry="7.6"
+        transform="rotate(36 16 16)"
         stroke={orbita}
         strokeWidth="2.4"
         opacity={marca ? 0.9 : 0.8}
@@ -74,7 +74,7 @@ export function SimboloDoMultiverso({
       {/* o núcleo fecha o cruzamento — é o que segura o desenho em 24px */}
       <circle cx="16" cy="16" r="4.6" fill={nucleo} />
       {/* um mundo na trajetória */}
-      <circle cx="27.19" cy="9" r="2.5" fill={satelite} />
+      <circle cx="26.68" cy="8.24" r="2.5" fill={satelite} />
     </svg>
   )
 }

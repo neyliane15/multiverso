@@ -33,26 +33,26 @@
   --mv-sobre-primaria: #0b0d10;
   --mv-sobre-secundaria: #ffffff;
   --mv-sobre-acento: #0b0d10;
-  --mv-primaria-legivel: #f07a56;
+  --mv-primaria-legivel: #e4572e;
   --mv-primaria-06: rgb(228 87 46 / 0.06);
-  --mv-primaria-10: rgb(228 87 46 / 0.10);
+  --mv-primaria-10: rgb(228 87 46 / 0.1);
   --mv-primaria-16: rgb(228 87 46 / 0.16);
   --mv-primaria-24: rgb(228 87 46 / 0.24);
-  --mv-primaria-40: rgb(228 87 46 / 0.40);
+  --mv-primaria-40: rgb(228 87 46 / 0.4);
   --mv-primaria-64: rgb(228 87 46 / 0.64);
-  --mv-superficie-1: #1c2029;
-  --mv-superficie-2: #222733;
-  --mv-superficie-3: #2a303d;
-  --mv-borda: #2a303a;
-  --mv-borda-forte: #3c4450;
-  --mv-texto-suave: #b6bdc9;
-  --mv-texto-fraco: #8b93a1;
+  --mv-superficie-1: #212329;
+  --mv-superficie-2: #2b2b31;
+  --mv-superficie-3: #353338;
+  --mv-borda: #2d3138;
+  --mv-borda-forte: #484c53;
+  --mv-texto-suave: #afb1b6;
+  --mv-texto-fraco: #888b90;
   --mv-foco: #f5b700;
   --mv-raio-p: 8px;
   --mv-raio-g: 20px;
-  --mv-grafico-1: #ce6f5e; --mv-grafico-2: #8f5900; --mv-grafico-3: #83972e;
-  --mv-grafico-4: #007546; --mv-grafico-5: #009db8; --mv-grafico-6: #3666bb;
-  --mv-grafico-7: #9d7bd2; --mv-grafico-8: #9a487d;
+  --mv-grafico-1: #cd4010; --mv-grafico-2: #9a487d; --mv-grafico-3: #9d7bd2;
+  --mv-grafico-4: #3666bb; --mv-grafico-5: #009db8; --mv-grafico-6: #007546;
+  --mv-grafico-7: #83972e; --mv-grafico-8: #8f5900;
 
   /* --- escala neutra própria: grafite frio (matiz 248, croma mínimo).
          Não é o cinza do Tailwind: é o aço de cozinha sob luz fria. ---------- */

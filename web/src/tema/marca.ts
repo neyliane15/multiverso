@@ -427,22 +427,24 @@ export function derivarMarca(marca: Marca): DerivadasDaMarca {
   const extremo = claro ? TINTA_ESCURA : TINTA_CLARA
   const raio = numeroDoRaio(marca.raio_borda)
 
-  // Superfície elevada = superfície + um passo na direção do extremo do tema,
-  // com um fio da primária dentro. É a "tingimento": mesmo o cinza do app é do
-  // restaurante, sem que nenhum componente saiba a cor dele.
+  // Superfície elevada: um passo para longe do lado em que a própria superfície
+  // já está (clara sobe para escuro, escura sobe para claro), com um fio da
+  // primária dentro. É o "tingimento": mesmo o cinza do app é do restaurante,
+  // sem que nenhum componente precise saber a cor dele.
+  const rumo = oklch(marca.cor_superficie).L > 0.5 ? TINTA_ESCURA : TINTA_CLARA
   const degrau = (passo: number): string => {
-    const base = misturar(marca.cor_superficie, extremo, passo * 0.055)
-    return misturar(base, marca.cor_primaria, passo * 0.02)
+    const base = misturar(marca.cor_superficie, rumo, passo * 0.038)
+    return misturar(base, marca.cor_primaria, passo * 0.015)
   }
 
-  const candidatosFoco = [marca.cor_acento, marca.cor_primaria, extremo]
-  let foco = candidatosFoco[0] ?? marca.cor_acento
-  let melhor = -1
+  // O anel de foco é do acento — é para isso que o acento existe. Só troca
+  // quando o acento não aparece contra o fundo daquele restaurante.
+  const candidatosFoco: string[] = [marca.cor_acento, marca.cor_primaria, extremo]
+  let foco: string = extremo
   for (const c of candidatosFoco) {
-    const razao = contraste(c, marca.cor_fundo)
-    if (razao > melhor) {
-      melhor = razao
+    if (contraste(c, marca.cor_fundo) >= 4.5) {
       foco = c
+      break
     }
   }
 
@@ -462,8 +464,8 @@ export function derivarMarca(marca: Marca): DerivadasDaMarca {
     superficie3: degrau(3),
     borda: misturar(marca.cor_superficie, marca.cor_texto, claro ? 0.16 : 0.12),
     bordaForte: misturar(marca.cor_superficie, marca.cor_texto, claro ? 0.34 : 0.26),
-    textoSuave: misturar(marca.cor_texto, marca.cor_fundo, 0.28),
-    textoFraco: misturar(marca.cor_texto, marca.cor_fundo, 0.46),
+    textoSuave: misturar(marca.cor_texto, marca.cor_fundo, 0.26),
+    textoFraco: misturar(marca.cor_texto, marca.cor_fundo, 0.42),
     foco,
     raioP: `${Math.max(4, Math.round(raio * 0.55))}px`,
     raioG: `${Math.round(raio * 1.45)}px`,

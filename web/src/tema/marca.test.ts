@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Marca } from '@/tipos/banco'
 import {
@@ -12,6 +13,7 @@ import {
   oklch,
   paletaDeGraficos,
   validarMarca,
+  variaveisDaMarca,
 } from './marca'
 
 /* -------------------------------------------------------------------------- */
@@ -316,14 +318,26 @@ describe('derivarMarca', () => {
     }
   })
 
-  it('as superfícies elevadas sobem em degraus visíveis e na direção do tema', () => {
-    const d = derivarMarca(MARCA_PADRAO)
-    const passos = [MARCA_PADRAO.cor_superficie, d.superficie1, d.superficie2, d.superficie3]
-    for (let i = 0; i < passos.length - 1; i += 1) {
-      const atual = passos[i]
-      const proximo = passos[i + 1]
-      if (atual === undefined || proximo === undefined) throw new Error('degrau ausente')
-      expect(oklch(proximo).L, `degrau ${i}`).toBeGreaterThan(oklch(atual).L)
+  it.each(MARCAS_DE_TESTE)(
+    '%s: as superfícies elevadas sobem em degraus visíveis, para longe da própria superfície',
+    (_nome, marca) => {
+      const d = derivarMarca(marca)
+      const passos = [marca.cor_superficie, d.superficie1, d.superficie2, d.superficie3]
+      const sentido = oklch(marca.cor_superficie).L > 0.5 ? -1 : 1
+      for (let i = 0; i < passos.length - 1; i += 1) {
+        const atual = passos[i]
+        const proximo = passos[i + 1]
+        if (atual === undefined || proximo === undefined) throw new Error('degrau ausente')
+        const salto = (oklch(proximo).L - oklch(atual).L) * sentido
+        expect(salto, `degrau ${i}`).toBeGreaterThan(0.015)
+      }
+    },
+  )
+
+  it('o texto fraco continua passando AA sobre a superfície', () => {
+    for (const [, marca] of MARCAS_DE_TESTE) {
+      const d = derivarMarca(marca)
+      expect(contraste(d.textoFraco, marca.cor_superficie), marca.cor_primaria).toBeGreaterThanOrEqual(4.5)
     }
   })
 
@@ -339,9 +353,66 @@ describe('derivarMarca', () => {
     expect(d.raioG).toBe('29px')
   })
 
-  it('o anel de foco escolhe a cor de maior contraste contra o fundo', () => {
+  it('o anel de foco é o acento quando o acento aparece', () => {
+    expect(derivarMarca(MARCA_PADRAO).foco).toBe(MARCA_PADRAO.cor_acento)
+  })
+
+  it('o anel de foco troca quando o acento some no fundo', () => {
     const marca = marcaCom({ cor_acento: '#101319' }) // acento apagado no escuro
     const d = derivarMarca(marca)
-    expect(contraste(d.foco, marca.cor_fundo)).toBeGreaterThanOrEqual(3)
+    expect(d.foco).not.toBe(marca.cor_acento)
+    expect(contraste(d.foco, marca.cor_fundo)).toBeGreaterThanOrEqual(4.5)
+  })
+})
+
+/* -------------------------------------------------------------------------- */
+/* estilos.css                                                                 */
+/* -------------------------------------------------------------------------- */
+
+describe('estilos.css', () => {
+  const css = readFileSync(new URL('../estilos.css', import.meta.url), 'utf8')
+  const raiz = css.slice(css.indexOf(':root {'), css.indexOf('/* --- escala neutra'))
+
+  it('o :root repete exatamente as derivadas da marca padrão', () => {
+    // Esses valores existem só para o primeiro quadro, antes do provedor montar.
+    // Se divergirem do que marca.ts calcula, a tela pisca na primeira pintura.
+    for (const [nome, valor] of Object.entries(variaveisDaMarca(MARCA_PADRAO))) {
+      if (nome.startsWith('--mv-fonte-')) continue // no CSS vão sem aspas duplicadas
+      const achado = new RegExp(`${nome}:\\s*([^;]+);`).exec(raiz)?.[1]
+      expect(achado?.trim().toLowerCase(), nome).toBe(valor.trim().toLowerCase())
+    }
+  })
+
+  it('declara a escala neutra própria e os quatro estados nos dois temas', () => {
+    for (const passo of ['0', '50', '400', '500', '950', '1000']) {
+      expect(css).toContain(`--mv-neutro-${passo}:`)
+    }
+    const claro = css.slice(css.indexOf(":root[data-tema='claro']"))
+    for (const estado of ['sucesso', 'alerta', 'erro', 'info']) {
+      for (const papel of ['', '-texto', '-suave', '-borda']) {
+        expect(css, `escuro: ${estado}${papel}`).toContain(`--mv-${estado}${papel}:`)
+        expect(claro, `claro: ${estado}${papel}`).toContain(`--mv-${estado}${papel}:`)
+      }
+    }
+  })
+
+  it('trata movimento reduzido e foco visível', () => {
+    expect(css).toContain('prefers-reduced-motion: reduce')
+    expect(css).toContain(':focus-visible')
+    expect(css).toMatch(/--mv-toque:\s*44px/)
+  })
+
+  it('mapeia os tokens de marca para o Tailwind sem congelar o valor', () => {
+    // `@theme inline` é o que faz o utilitário apontar para var(--mv-*): sem ele,
+    // trocar de restaurante não repintaria nada.
+    expect(css).toContain('@theme inline')
+    for (const par of [
+      ['--color-primaria', '--mv-primaria'],
+      ['--color-acento', '--mv-acento'],
+      ['--radius-marca', '--mv-raio'],
+      ['--font-titulo', '--mv-pilha-titulo'],
+    ]) {
+      expect(css).toContain(`${par[0]}: var(${par[1]});`)
+    }
   })
 })
