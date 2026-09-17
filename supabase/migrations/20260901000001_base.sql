@@ -9,6 +9,16 @@
 create extension if not exists "pgcrypto";
 create extension if not exists "unaccent";
 
+-- unaccent() e STABLE, e o Postgres recusa funcao nao-IMMUTABLE em expressao
+-- de indice. A forma de dois argumentos fixa o dicionario, o que torna o
+-- resultado deterministico e o wrapper honestamente IMMUTABLE. E disto que
+-- dependem os indices unicos de nome em categorias, setores e produtos.
+create or replace function mv_sem_acento(texto text)
+returns text
+language sql immutable strict parallel safe set search_path = public, extensions as $$
+  select unaccent('unaccent', texto)
+$$;
+
 -- ---------------------------------------------------------------- enums ----
 do $$ begin
   create type papel_usuario as enum ('master', 'admin', 'gerente', 'operador');

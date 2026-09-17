@@ -22,7 +22,7 @@ create table if not exists categorias (
 );
 
 create unique index if not exists categorias_nome_unico
-  on categorias (restaurante_id, lower(unaccent(nome)));
+  on categorias (restaurante_id, lower(mv_sem_acento(nome)));
 create index if not exists categorias_restaurante_idx on categorias (restaurante_id, ordem);
 
 -- ----------------------------------------------------------------- setores -
@@ -40,7 +40,7 @@ create table if not exists setores (
 );
 
 create unique index if not exists setores_nome_unico
-  on setores (restaurante_id, lower(unaccent(nome)));
+  on setores (restaurante_id, lower(mv_sem_acento(nome)));
 create index if not exists setores_restaurante_idx on setores (restaurante_id, ordem);
 
 -- ---------------------------------------------------------------- produtos -
@@ -63,7 +63,7 @@ create table if not exists produtos (
 );
 
 create unique index if not exists produtos_nome_unico
-  on produtos (restaurante_id, lower(unaccent(nome)));
+  on produtos (restaurante_id, lower(mv_sem_acento(nome)));
 create index if not exists produtos_categoria_idx on produtos (restaurante_id, categoria_id);
 create index if not exists produtos_busca_idx
   on produtos using gin (to_tsvector('portuguese', nome));

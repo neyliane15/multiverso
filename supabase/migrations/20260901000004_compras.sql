@@ -133,7 +133,7 @@ create table if not exists produto_apelidos (
 );
 
 create unique index if not exists produto_apelidos_unico
-  on produto_apelidos (restaurante_id, lower(unaccent(apelido)), coalesce(fornecedor_id, '00000000-0000-0000-0000-000000000000'::uuid));
+  on produto_apelidos (restaurante_id, lower(mv_sem_acento(apelido)), coalesce(fornecedor_id, '00000000-0000-0000-0000-000000000000'::uuid));
 
 -- Quando um item da nota e vinculado a um produto, o apelido fica registrado.
 create or replace function mv_aprende_apelido()
@@ -150,7 +150,7 @@ begin
                                 codigo_fornecedor, fator_conversao, unidade)
   values (v_restaurante, new.produto_id, v_fornecedor, new.descricao,
           new.codigo_fornecedor, new.fator_conversao, new.unidade)
-  on conflict (restaurante_id, lower(unaccent(apelido)),
+  on conflict (restaurante_id, lower(mv_sem_acento(apelido)),
                coalesce(fornecedor_id, '00000000-0000-0000-0000-000000000000'::uuid))
   do update set produto_id = excluded.produto_id,
                 fator_conversao = excluded.fator_conversao,
