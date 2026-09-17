@@ -36,20 +36,6 @@
  ],
  "produtos": [
   {
-   "nome": ",",
-   "categoria": "DESCARTÁVEIS",
-   "setores": [
-    {
-     "setor": "Estoque Geral",
-     "categoria": "DESCARTÁVEIS",
-     "unidade": "UND",
-     "custo": 0.0,
-     "quantidade": 0.0,
-     "total": 0.0
-    }
-   ]
-  },
-  {
    "nome": "ABACATE AVOCADO",
    "categoria": "HORTIFRUTI",
    "setores": [
@@ -14534,16 +14520,6 @@
    "custo_unitario": 8.9,
    "total": 53.4,
    "origem": "Geral!V62"
-  },
-  {
-   "setor": "Estoque Geral",
-   "categoria": "DESCARTÁVEIS",
-   "produto": ",",
-   "quantidade": 0.0,
-   "unidade": "UND",
-   "custo_unitario": 0.0,
-   "total": 0.0,
-   "origem": "Geral!V63"
   },
   {
    "setor": "Estoque Geral",

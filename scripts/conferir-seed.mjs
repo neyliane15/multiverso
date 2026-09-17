@@ -26,7 +26,7 @@ export const TOLERANCIA = '0.01'
 
 // ------------------------------------------------------- aritmetica exata --
 // Comparar dinheiro com ponto flutuante e pedir para um centavo sumir no meio
-// de 867 multiplicacoes. Tudo aqui anda em BigInt numa escala fixa, do mesmo
+// de 866 multiplicacoes. Tudo aqui anda em BigInt numa escala fixa, do mesmo
 // jeito que o numeric do Postgres.
 
 const ESCALA = 4n // casas do total, como em contagem_itens.total
@@ -64,14 +64,22 @@ const formata = (valor) => {
 function lerTupla(texto, inicio) {
   const valores = []
   let atual = ''
-  let i = inicio + 1 // pula o '('
+  let foiTexto = false
   let emTexto = false
+  let i = inicio + 1 // pula o '('
+
+  const fecha = () => {
+    // Literal de texto sai como veio; numero, true e null saem sem espacos.
+    valores.push(foiTexto ? atual : atual.trim())
+    atual = ''
+    foiTexto = false
+  }
 
   while (i < texto.length) {
     const ch = texto[i]
     if (emTexto) {
       if (ch === "'") {
-        if (texto[i + 1] === "'") { atual += "'"; i += 2; continue }
+        if (texto[i + 1] === "'") { atual += "'"; i += 2; continue } // aspa escapada
         emTexto = false
         i += 1
         continue
@@ -80,20 +88,22 @@ function lerTupla(texto, inicio) {
       i += 1
       continue
     }
-    if (ch === "'") { emTexto = true; atual += ''; i += 1; continue } // marca "isto e texto"
-    if (ch === ',') { valores.push(atual); atual = ''; i += 1; continue }
-    if (ch === ')') { valores.push(atual); return { valores: valores.map(limpa), fim: i + 1 } }
+    if (ch === "'") {
+      // So pode haver espaco entre a virgula e a abertura do literal; qualquer
+      // outra coisa e sinal de que a leitura saiu do lugar.
+      if (atual.trim() !== '') throw new Error(`lixo antes de um literal de texto: ${atual.trim()}`)
+      atual = ''
+      emTexto = true
+      foiTexto = true
+      i += 1
+      continue
+    }
+    if (ch === ',') { fecha(); i += 1; continue }
+    if (ch === ')') { fecha(); return { valores, fim: i + 1 } }
     atual += ch
     i += 1
   }
   throw new Error('tupla sem fechamento: o arquivo tem aspas desbalanceadas')
-}
-
-/** Devolve texto sem a marca, ou o literal cru (numero, true, null). */
-function limpa(bruto) {
-  const s = bruto.trim()
-  if (s.startsWith('')) return s.slice(1)
-  return s
 }
 
 /** Todos os INSERTs de um trecho, com colunas e linhas ja separadas. */
@@ -142,11 +152,19 @@ export function conferirSeed({ sqlPath = SQL_PADRAO, jsonPath = JSON_PADRAO } = 
   const erros = []
   const exige = (condicao, mensagem) => { if (!condicao) erros.push(mensagem) }
 
-  const categorias = linhasDoBloco(sql, 'categorias')
-  const setores = linhasDoBloco(sql, 'setores')
-  const produtos = linhasDoBloco(sql, 'produtos')
-  const vinculos = linhasDoBloco(sql, 'produto_setores')
-  const itens = linhasDoBloco(sql, 'contagem_itens')
+  // Aspa mal escapada nao produz um erro sutil mais adiante: ela quebra a
+  // leitura do arquivo aqui mesmo. Vira relatorio em vez de excecao para o
+  // conferente falar a mesma lingua nos dois casos.
+  let categorias, setores, produtos, vinculos, itens
+  try {
+    categorias = linhasDoBloco(sql, 'categorias')
+    setores = linhasDoBloco(sql, 'setores')
+    produtos = linhasDoBloco(sql, 'produtos')
+    vinculos = linhasDoBloco(sql, 'produto_setores')
+    itens = linhasDoBloco(sql, 'contagem_itens')
+  } catch (erro) {
+    return { ok: false, erros: [`SQL ilegivel: ${erro.message}`], resumo: null }
+  }
 
   // ------------------------------------------------------------- o total --
   const total = itens.reduce((acc, i) => acc + totalDaLinha(i.quantidade, i.custo_unitario), 0n)
@@ -280,7 +298,7 @@ export function conferirSeed({ sqlPath = SQL_PADRAO, jsonPath = JSON_PADRAO } = 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { ok, erros, resumo } = conferirSeed()
   console.log(`conferindo ${SQL_PADRAO}`)
-  for (const [chave, valor] of Object.entries(resumo)) {
+  for (const [chave, valor] of Object.entries(resumo ?? {})) {
     console.log(`  ${chave.padEnd(20, '.')} ${valor}`)
   }
   if (ok) {

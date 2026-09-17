@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Extrai a contagem de Agosto do Bar do Zeca - Norte Shopping.
 Cada item e conferido contra o total da propria planilha."""
-import json, re, unicodedata
+import json, os, re, unicodedata
 import openpyxl
 
-SRC = '/root/.claude/uploads/ea7223e1-0cfd-5570-ae56-c7244317aec2/6cb3361a-Contagem_BDZ_NS_08_Agosto_2026_okk.xlsx'
+AQUI = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(AQUI, 'Contagem_BDZ_NS_08_Agosto_2026_okk.xlsx')
 wb = openpyxl.load_workbook(SRC, data_only=True)
 
 def num(v):
@@ -104,7 +105,7 @@ aba_simples('Bebidas não Álcoolicas', 'Bar', 'BEBIDAS NAO ALCOOLICAS', dupla=F
 
 out = {'restaurante': 'Bar do Zeca - Norte Shopping', 'competencia': '2026-08',
        'itens': itens, 'avisos': avisos, 'conferencia': conferencia}
-dest = '/tmp/claude-0/-home-user/ea7223e1-0cfd-5570-ae56-c7244317aec2/scratchpad/contagem.json'
+dest = os.path.join(AQUI, 'contagem-bruta.json')
 json.dump(out, open(dest, 'w'), ensure_ascii=False, indent=1)
 
 print('itens:', len(itens))

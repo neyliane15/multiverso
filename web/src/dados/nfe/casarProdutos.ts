@@ -10,7 +10,7 @@
  * incômodo de dois cliques; ficar errado é um número falso no dashboard.
  */
 
-import { chaveBusca } from '../../util/formato'
+import { chaveBusca } from '@/util/formato'
 
 // --------------------------------------------------------------- tipos ----
 
@@ -111,10 +111,10 @@ function prefixoComum(a: string, b: string): number {
 /**
  * Similaridade 0..1 entre duas descrições.
  *
- * Jaccard sobre as palavras (ordem não importa: "FILE MIGNON BOV" e
- * "MIGNON BOVINO FILE" são o mesmo bicho) com bônus de prefixo comum, que é o
- * que separa "COCA COLA 2L" de "COCA COLA 600ML" — as duas dividem palavras,
- * mas a nota costuma começar igual quando é o mesmo item.
+ * Jaccard sobre as palavras — a parte que não liga para a ordem, porque a nota
+ * escreve "FILE MIGNON" e o cadastro "MIGNON FILE" — mais um bônus de prefixo
+ * comum, que é o que separa "COCA COLA 2L" de "COCA COLA 600ML": as duas
+ * dividem quase todas as palavras, mas só o mesmo item começa igual.
  *
  * Medidas (2L, 600ML, 1KG) contam como palavra de propósito: apagá-las faria
  * embalagens diferentes do mesmo produto marcarem 100%.

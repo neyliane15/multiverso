@@ -250,6 +250,16 @@ function centavos(valor: number): number {
   return Math.round(valor * 100) / 100
 }
 
+const REAIS = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+/** Aviso é texto de tela: dinheiro vai com vírgula, como manda o contrato. */
+function emReais(valor: number): string {
+  return `R$ ${REAIS.format(valor)}`
+}
+
 // ------------------------------------------------------------ parser ------
 
 const LEITOR = new XMLParser({
@@ -433,8 +443,8 @@ export function parsearXml(xml: string, opcoes: OpcoesParse = {}): NotaImportada
   const diferenca = centavos(Math.abs(somaItens - totais.valorProdutos))
   if (icmsTot && diferenca > tolerancia) {
     avisos.push(
-      `A soma dos itens (R$ ${somaItens.toFixed(2)}) não bate com o total de produtos da nota ` +
-        `(R$ ${totais.valorProdutos.toFixed(2)}): diferença de R$ ${diferenca.toFixed(2)}.`,
+      `A soma dos itens (${emReais(somaItens)}) não bate com o total de produtos da nota ` +
+        `(${emReais(totais.valorProdutos)}): diferença de ${emReais(diferenca)}.`,
     )
   }
 

@@ -1,0 +1,29 @@
+descartadas (linhas de titulo): ["',' (Geral!V63)", "'HORTIFRUTI BAR DO ZECA' (Hortifruti!A1)", "'CONTROLE DE ESTOQUE MASSAS' (Massas!A1)", "'PORCIONADOS BAR DO ZECA' (Porcionados!A1)", "'CONTROLE DE ESTOQUE MOLHOS BAR DO ZECA' (Molhos!A1)", "'CONTROLE DE ESTOQUE BEBIDAS BAR DO ZECA' (Bebidas Álcoolicas!A1)"]
+linhas de contagem: 869
+produtos unicos  : 852
+total            : 78681.3573  (planilha: 78681.3573)  diferenca: 0.000000
+setores          : ['Bar', 'Estoque Geral', 'Hortifruti', 'Massas e Panificacao', 'Molhos e Caldos', 'Porcionados']
+categorias       : 21
+   APARAS                       7 itens  R$        0.00
+   BEBIDAS ALCOÓLICAS         209 itens  R$    38905.45
+   BEBIDAS NÃO ALCOÓLICAS      69 itens  R$     7234.55
+   CARNES                      52 itens  R$     1184.53
+   CONGELADOS                   6 itens  R$     2070.57
+   DESCARTÁVEIS                60 itens  R$     3757.90
+   EMBUTIDOS                    9 itens  R$      785.26
+   FEIJOADA                    14 itens  R$     2117.15
+   HORTIFRUTI                 103 itens  R$     1349.43
+   LATICÍNIOS                  30 itens  R$     1954.50
+   MASSAS                      46 itens  R$     1058.56
+   MATERIAL DE LIMPEZA         76 itens  R$     4256.87
+   MERCEARIA                   74 itens  R$     6331.60
+   MOLHOS                      27 itens  R$      443.93
+   PEIXES E FRUTOS DO MAR      15 itens  R$      990.88
+   PROCESSADOS                  3 itens  R$       23.42
+   PROTEÍNAS CLIENTE           30 itens  R$     4985.83
+   PROTEÍNAS FUNCIONÁRIO        2 itens  R$        0.00
+   SORVETES                     2 itens  R$        0.00
+   SUÍNOS                      13 itens  R$      331.41
+   TEMPEROS E AFINS            22 itens  R$      899.52
+unidades         : Counter({'UND': 474, 'KG': 339, 'CX': 25, 'LTS': 11, 'PCT': 11, 'FD': 6, 'BDJ': 3})
+produtos em >1 setor: 14

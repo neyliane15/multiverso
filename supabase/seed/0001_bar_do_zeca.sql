@@ -13,16 +13,16 @@
 -- O que este arquivo carrega:
 --    21 categorias
 --     6 setores
---   853 produtos
---   867 vinculos produto x setor
---   867 itens de contagem (351 com quantidade maior que zero)
+--   852 produtos
+--   866 vinculos produto x setor
+--   866 itens de contagem (351 com quantidade maior que zero)
 --
 -- DIVERGENCIA CONHECIDA DA PLANILHA
--- A planilha traz 870 linhas, mas 3 delas repetem um par produto x setor
+-- A planilha traz 869 linhas, mas 3 delas repetem um par produto x setor
 -- que ja aparecera antes (o mesmo item listado em dois blocos da mesma aba). O
 -- schema so admite um vinculo por par — primary key (produto_id, setor_id) e
 -- unique (contagem_id, produto_id, setor_id) — entao vale a primeira ocorrencia
--- e a carga fica com 867 vinculos e 867 itens. As 3 linhas descartadas
+-- e a carga fica com 866 vinculos e 866 itens. As 3 linhas descartadas
 -- estao com quantidade zero, logo o total da contagem nao muda:
 --   · BACON / Porcionados: 2a ocorrencia em Porcionados!A95 descartada (custo 25.99, quantidade 0)
 --   · BARRIGA SUÍNA / Porcionados: 2a ocorrencia em Porcionados!A103 descartada (custo 29.75, quantidade 0)
@@ -115,7 +115,6 @@ on conflict (id) do update set
 -- fica no vinculo logo abaixo — e e ele que a contagem usa.
 -- @bloco:produtos
 insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_medio) values
-  ('ab941ff1-eb22-59dd-bdb6-f5bd51117eb3', 'b0a12eca-0000-4000-8000-000000000001', '82bef36a-513d-59a8-91f2-780ed1f1ae38', ',', 'UND', 0),
   ('a8c733b4-2707-51ab-8ea7-b4deb3f28b4f', 'b0a12eca-0000-4000-8000-000000000001', '3a614052-826e-58a0-856b-bbfe118fe9f8', 'ABACATE AVOCADO', 'KG', 49.9),
   ('19f33bd4-f067-5ce9-a218-b7ebda5cef98', 'b0a12eca-0000-4000-8000-000000000001', '3a614052-826e-58a0-856b-bbfe118fe9f8', 'ABACAXI', 'KG', 9.58),
   ('657ffb10-fb06-500d-a889-cb76f6a7de37', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'ABACAXI EM CONSERVA (400g)', 'UND', 7.98),
@@ -314,13 +313,13 @@ insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_med
   ('e3223713-1c4d-5d01-809e-fe1b30f278f2', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA AMSTEL ULTRA LONG NECK 330ML', 'UND', 6.16),
   ('ea3d443f-becf-58b9-aefc-300d1857d4d4', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA ANTARCTICA ORIGINAL (600ml)', 'UND', 6.68),
   ('10764213-ff56-5399-b851-e5d219839896', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA BECKS LONG NECK (330ml)', 'UND', 4.1247),
-  ('3fcdd3ff-5266-505f-860f-0c03702494a6', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA BRAHMA (600ml)', 'UND', 6.36)
+  ('3fcdd3ff-5266-505f-860f-0c03702494a6', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA BRAHMA (600ml)', 'UND', 6.36),
+  ('eba54626-041f-52ec-aefa-e36b3bd6e273', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA BRAHMA DUPLO MALTE (330ml)', 'UND', 3.29)
 on conflict (id) do update set
   categoria_id = excluded.categoria_id, nome = excluded.nome,
   unidade = excluded.unidade, custo_medio = excluded.custo_medio, ativo = true;
 
 insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_medio) values
-  ('eba54626-041f-52ec-aefa-e36b3bd6e273', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA BRAHMA DUPLO MALTE (330ml)', 'UND', 3.29),
   ('36bab6af-7202-5350-943f-8ad0507e07f9', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA BRAHMA DUPLO MALTE (600ml)', 'UND', 4.89),
   ('014e0594-4782-5311-bfb2-5f1945142434', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA BRAHMA MALZBEER LONG NECK (355ml)', 'UND', 2.9358),
   ('2c5b4bdb-49bb-598c-8359-82cb0fee80e7', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'CERVEJA BRAHMA ZERO ÁLCOOL LONG NECK (355ml)', 'UND', 3.58),
@@ -519,13 +518,13 @@ insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_med
   ('06e66558-23e7-5ad2-bc83-ab611ebc7d46', 'b0a12eca-0000-4000-8000-000000000001', '9618a2f7-9060-53c6-bedb-7bd318fad75a', 'HIBISCUS', 'KG', 62),
   ('1ec2486f-ef4c-55cc-af4b-2f9c9c403054', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'HONDASHI (500g)', 'KG', 40.98),
   ('4ad13e22-af16-5dee-aaf6-3ba379ab04f2', 'b0a12eca-0000-4000-8000-000000000001', '3a614052-826e-58a0-856b-bbfe118fe9f8', 'HORTELÃ', 'UND', 15.2),
-  ('b4a456db-b698-56b6-9235-138803e55a55', 'b0a12eca-0000-4000-8000-000000000001', '3a614052-826e-58a0-856b-bbfe118fe9f8', 'INHAME', 'KG', 12.5)
+  ('b4a456db-b698-56b6-9235-138803e55a55', 'b0a12eca-0000-4000-8000-000000000001', '3a614052-826e-58a0-856b-bbfe118fe9f8', 'INHAME', 'KG', 12.5),
+  ('bb5f7e74-da8c-54c9-8a21-e9a863a1dfa8', 'b0a12eca-0000-4000-8000-000000000001', 'b60937b9-20ba-5cc3-9055-b2362fd781ad', 'ISCA DE FRANGO', 'UND', 10.3)
 on conflict (id) do update set
   categoria_id = excluded.categoria_id, nome = excluded.nome,
   unidade = excluded.unidade, custo_medio = excluded.custo_medio, ativo = true;
 
 insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_medio) values
-  ('bb5f7e74-da8c-54c9-8a21-e9a863a1dfa8', 'b0a12eca-0000-4000-8000-000000000001', 'b60937b9-20ba-5cc3-9055-b2362fd781ad', 'ISCA DE FRANGO', 'UND', 10.3),
   ('c3122578-3c5a-57c7-addc-d1e615180844', 'b0a12eca-0000-4000-8000-000000000001', 'b60937b9-20ba-5cc3-9055-b2362fd781ad', 'ISCA DE FRANGO INFANTIL', 'UND', 1.66),
   ('7367caea-7cab-5fee-b883-b75011490ec3', 'b0a12eca-0000-4000-8000-000000000001', 'cd858e96-acbd-5202-b034-29678b4466c4', 'ISCA DE TILÁPIA (200g)', 'UND', 8.76),
   ('cd3b8831-8cdb-5f4d-8e11-f6cd2bf05394', 'b0a12eca-0000-4000-8000-000000000001', '2c58bf88-d1a5-5462-98a0-b658fb5f1492', 'KALYCLEN ALLKALY CL', 'UND', 397.5),
@@ -724,13 +723,13 @@ insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_med
   ('a7639c5c-268f-57c3-8949-72f9ab6cabea', 'b0a12eca-0000-4000-8000-000000000001', '2c58bf88-d1a5-5462-98a0-b658fb5f1492', 'PÁ DE LIXO', 'UND', 39.32),
   ('f4d6e460-4b11-5a9e-a94e-20d66d8df4ff', 'b0a12eca-0000-4000-8000-000000000001', '9618a2f7-9060-53c6-bedb-7bd318fad75a', 'PÁPRICA DEFUMADA', 'KG', 19),
   ('b5736345-6650-5b2e-9fbc-92d831d1d7b7', 'b0a12eca-0000-4000-8000-000000000001', '3290fd5a-65e0-5322-a040-9961052eb7f3', 'PÃO DE HAMBURGUER SMASH', 'KG', 1.37),
-  ('d738d7f2-0083-58b4-a2a1-da6ecd5de1cc', 'b0a12eca-0000-4000-8000-000000000001', '3290fd5a-65e0-5322-a040-9961052eb7f3', 'PÃO DE HOT DOG', 'KG', 1.55)
+  ('d738d7f2-0083-58b4-a2a1-da6ecd5de1cc', 'b0a12eca-0000-4000-8000-000000000001', '3290fd5a-65e0-5322-a040-9961052eb7f3', 'PÃO DE HOT DOG', 'KG', 1.55),
+  ('3dc7b9c1-e239-56fb-8fc7-5d27466c5fab', 'b0a12eca-0000-4000-8000-000000000001', '3290fd5a-65e0-5322-a040-9961052eb7f3', 'PÃO DE QUEIJO', 'KG', 0.78)
 on conflict (id) do update set
   categoria_id = excluded.categoria_id, nome = excluded.nome,
   unidade = excluded.unidade, custo_medio = excluded.custo_medio, ativo = true;
 
 insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_medio) values
-  ('3dc7b9c1-e239-56fb-8fc7-5d27466c5fab', 'b0a12eca-0000-4000-8000-000000000001', '3290fd5a-65e0-5322-a040-9961052eb7f3', 'PÃO DE QUEIJO', 'KG', 0.78),
   ('e171c771-3b01-5c32-842c-afc2e0495c83', 'b0a12eca-0000-4000-8000-000000000001', '3290fd5a-65e0-5322-a040-9961052eb7f3', 'PÃO HOT DOG BRIOCHE', 'KG', 1.55),
   ('74c98cf2-f61c-5610-8b7e-64c3735bbe6b', 'b0a12eca-0000-4000-8000-000000000001', 'a384c88a-08b3-516a-9336-b08527a69b48', 'PÉ DE PORCO', 'KG', 9.7),
   ('ad47d27a-c4dc-5df6-b398-0566fcdb8099', 'b0a12eca-0000-4000-8000-000000000001', '3a614052-826e-58a0-856b-bbfe118fe9f8', 'PÊRA', 'KG', 14.9),
@@ -929,13 +928,13 @@ insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_med
   ('503455b6-1736-5712-87c2-15d7057ee1fd', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY JW RED LABEL (1000ml)', 'UND', 70.07),
   ('e32baf83-71b3-5194-a223-5a325254e2f4', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY LOGAN HERITAGE BELND (700ml)', 'UND', 99.46),
   ('e345ecf2-ae80-5f66-b37c-314923c6632a', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY MACALLAN 12 ANOS', 'UND', 658.99),
-  ('e6866507-3fbb-5ed7-9560-d9306dd7ef2f', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY MAKER''S MARK (750ml)', 'UND', 139.98)
+  ('e6866507-3fbb-5ed7-9560-d9306dd7ef2f', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY MAKER''S MARK (750ml)', 'UND', 139.98),
+  ('ab00bd58-2ce8-5be7-98c4-b6521b6be595', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY OLD PARR 12 ANOS (1000ml)', 'UND', 109)
 on conflict (id) do update set
   categoria_id = excluded.categoria_id, nome = excluded.nome,
   unidade = excluded.unidade, custo_medio = excluded.custo_medio, ativo = true;
 
 insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_medio) values
-  ('ab00bd58-2ce8-5be7-98c4-b6521b6be595', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY OLD PARR 12 ANOS (1000ml)', 'UND', 109),
   ('1d7acac2-a2f0-5e80-8c50-790f9e8abb39', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY OLD PARR SILVER (1000ml)', 'UND', 95.51),
   ('32f55ab7-a8b3-5121-a8a7-f26e013c7885', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY THE DALMORE 12 ANOS (700ml)', 'UND', 557),
   ('a48c65b9-6ebf-5e9f-80ad-f27d801031fd', 'b0a12eca-0000-4000-8000-000000000001', '2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'WHISKY THE DALMORE 15 ANOS (700ml)', 'UND', 442.44),
@@ -997,7 +996,6 @@ on conflict (id) do update set
 -- O N:N com unidade e custo POR SETOR, coracao do modulo de cadastros.
 -- @bloco:produto_setores
 insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
-  ('ab941ff1-eb22-59dd-bdb6-f5bd51117eb3', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 0, 2),
   ('a8c733b4-2707-51ab-8ea7-b4deb3f28b4f', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'KG', 49.9, 3),
   ('19f33bd4-f067-5ce9-a218-b7ebda5cef98', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'KG', 9.58, 3),
   ('657ffb10-fb06-500d-a889-cb76f6a7de37', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 7.98, 2),
@@ -1196,12 +1194,12 @@ insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
   ('c033c738-c3af-5c68-b4b4-521315ae456e', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'UND', 2.4, 3),
   ('3ab5d361-fb99-54c0-a09d-f5def2ddb5bb', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'UND', 16.87, 3),
   ('ba4b9abe-d7ce-5863-9e50-c245ceca069c', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'KG', 7.21, 3),
-  ('2af8a044-91c7-5812-8180-e8c43960e982', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 16.57, 2)
+  ('2af8a044-91c7-5812-8180-e8c43960e982', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 16.57, 2),
+  ('daa065e6-66b4-544f-bfc6-99ef825dfcd1', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 89.99, 2)
 on conflict (produto_id, setor_id) do update set
   unidade = excluded.unidade, custo = excluded.custo, ordem = excluded.ordem, ativo = true;
 
 insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
-  ('daa065e6-66b4-544f-bfc6-99ef825dfcd1', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 89.99, 2),
   ('8ae8f590-e32b-5e98-a3dd-44bba09a014e', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 5.55, 1),
   ('e3223713-1c4d-5d01-809e-fe1b30f278f2', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 6.16, 1),
   ('ea3d443f-becf-58b9-aefc-300d1857d4d4', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 6.68, 1),
@@ -1400,12 +1398,12 @@ insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
   ('8cc5fd8a-6f16-5ee9-8e79-b78a396164b0', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 2.83, 1),
   ('2ca5fa6d-643f-57e4-95e1-44c0dcd4d6de', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 2.83, 1),
   ('d539294a-be7a-5b8e-ba0e-25f168a22db6', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 5.58, 1),
-  ('aae64b26-de1c-5590-98f4-f119ec529275', '19a7379f-949c-565a-b11d-16eaf91dab37', 'CX', 110.85, 2)
+  ('aae64b26-de1c-5590-98f4-f119ec529275', '19a7379f-949c-565a-b11d-16eaf91dab37', 'CX', 110.85, 2),
+  ('fcec0353-b262-5f26-942f-5f1c612dee10', '19a7379f-949c-565a-b11d-16eaf91dab37', 'CX', 99, 2)
 on conflict (produto_id, setor_id) do update set
   unidade = excluded.unidade, custo = excluded.custo, ordem = excluded.ordem, ativo = true;
 
 insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
-  ('fcec0353-b262-5f26-942f-5f1c612dee10', '19a7379f-949c-565a-b11d-16eaf91dab37', 'CX', 99, 2),
   ('1822e218-70f4-5c28-bcfc-137dd571a99b', '19a7379f-949c-565a-b11d-16eaf91dab37', 'CX', 108.9, 2),
   ('79d94fdc-1688-5a74-b663-3a44b56042d6', '19a7379f-949c-565a-b11d-16eaf91dab37', 'PCT', 36.45, 2),
   ('1f47cb48-270f-5129-bb0a-e297f215990f', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 13.45, 2),
@@ -1604,12 +1602,12 @@ insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
   ('b0fc77f3-8ced-5bbb-af87-72e94514e30a', '19a7379f-949c-565a-b11d-16eaf91dab37', 'CX', 38, 2),
   ('e1fca14d-fb7e-579a-a51a-749e8f502c7f', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'KG', 24.06, 3),
   ('57d134e4-de61-5617-b512-f1b0dc2360cf', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'KG', 8.55, 3),
-  ('d29b88cf-cdcd-5c34-aa04-d09b4ac8c68c', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'KG', 24.06, 3)
+  ('d29b88cf-cdcd-5c34-aa04-d09b4ac8c68c', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 'KG', 24.06, 3),
+  ('f53822cd-9937-5f75-817b-00abd1882c4d', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 0, 1)
 on conflict (produto_id, setor_id) do update set
   unidade = excluded.unidade, custo = excluded.custo, ordem = excluded.ordem, ativo = true;
 
 insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
-  ('f53822cd-9937-5f75-817b-00abd1882c4d', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 0, 1),
   ('f9c6fc12-8faf-5da5-8256-303f9c7acbea', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 0, 2),
   ('b14078e0-c535-5e86-9254-40e20642fdc8', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 4.66, 1),
   ('97bd03f8-3939-5355-9ef4-fc245b2566c1', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 19.5, 2),
@@ -1808,12 +1806,12 @@ insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
   ('4eac033e-b13e-522c-8466-90426274bb12', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 1020, 1),
   ('aec137c5-740f-5882-92c8-9aea349b1c13', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 59.9, 1),
   ('1fa15862-e6d2-5d12-ad8f-73bf5469845d', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 76.58, 1),
-  ('da751684-55a1-5e6a-afc0-e8cc647340d5', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 118.88, 1)
+  ('da751684-55a1-5e6a-afc0-e8cc647340d5', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 118.88, 1),
+  ('0fe06ef7-86c1-5143-acbe-b85d8de30b53', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 129.9, 1)
 on conflict (produto_id, setor_id) do update set
   unidade = excluded.unidade, custo = excluded.custo, ordem = excluded.ordem, ativo = true;
 
 insert into produto_setores (produto_id, setor_id, unidade, custo, ordem) values
-  ('0fe06ef7-86c1-5143-acbe-b85d8de30b53', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 129.9, 1),
   ('4dd0f67c-0d79-5260-ba97-c3056ba8d1cb', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 132.9, 1),
   ('ea59fa98-c226-5982-aa98-1a27758e5b13', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 122, 1),
   ('160d2101-9645-59b9-a648-7687fb733eee', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 'UND', 87.2, 1),
@@ -2164,7 +2162,6 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '765508b6-eb28-5096-8981-007ce9802b64', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 0),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '3f78b566-57bb-5865-ae45-beeae113fa12', '19a7379f-949c-565a-b11d-16eaf91dab37', 2, 'PCT', 8.46),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'bb3e7ceb-63bc-5ec1-ba4a-b04ee39a2c8c', '19a7379f-949c-565a-b11d-16eaf91dab37', 6, 'PCT', 8.9),
-  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'ab941ff1-eb22-59dd-bdb6-f5bd51117eb3', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 0),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'e83bfcd4-95b4-5376-8b7b-becdef906769', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 17.9),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'f35ed8dd-dc54-5ca7-9047-3df4a29b4f86', '19a7379f-949c-565a-b11d-16eaf91dab37', 15, 'LTS', 7.58),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '6581014c-3cc1-5e1c-bcb8-db8acae8039c', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 70),
@@ -2321,13 +2318,13 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '87bdd654-3a6c-5c5e-b646-25eca574e8f6', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 1.15, 'KG', 73.53),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'e1fca14d-fb7e-579a-a51a-749e8f502c7f', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0.52, 'KG', 24.06),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '57d134e4-de61-5617-b512-f1b0dc2360cf', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'KG', 8.55),
-  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'd29b88cf-cdcd-5c34-aa04-d09b4ac8c68c', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'KG', 24.06)
+  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'd29b88cf-cdcd-5c34-aa04-d09b4ac8c68c', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'KG', 24.06),
+  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'f78c8a93-25de-50dd-8b21-f53d39176037', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'KG', 8.02)
 on conflict (contagem_id, produto_id, setor_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario;
 
 insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario) values
-  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'f78c8a93-25de-50dd-8b21-f53d39176037', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'KG', 8.02),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'b21c78c9-1d89-54a6-9861-e25d9447a4a4', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0.37, 'UND', 4.5),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'cac229a1-92e6-5cc7-b630-a4bd811e4f58', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'UND', 2.3),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'f5503f51-b7d3-56b9-89d7-0703c1748c0c', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 6.21, 'KG', 10.4),
@@ -2526,13 +2523,13 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'd7652807-853f-57d2-bf29-bcbe18a82c1a', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 22.9, 'UND', 47),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '0fd5196b-0deb-5895-918b-929458be492e', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 16),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'ad598144-b7d6-53c0-857f-93b88bd6747f', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 43.92),
-  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'addab1e1-f266-5997-b81b-7d34779e2946', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 152.9)
+  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'addab1e1-f266-5997-b81b-7d34779e2946', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 152.9),
+  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '7fff057c-93bc-5393-834e-000f1a304825', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 7.9067)
 on conflict (contagem_id, produto_id, setor_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario;
 
 insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario) values
-  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '7fff057c-93bc-5393-834e-000f1a304825', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 7.9067),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '1970db91-2eb8-5566-b5b0-341b2a320cd4', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 9.5, 'UND', 49.2),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '57143922-9fb1-5873-889b-c7160e879247', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0.5, 'UND', 39.9),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '60eb55d4-06ab-51b8-a593-641b1ea8c538', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 26.26),
@@ -2731,13 +2728,13 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '32f55ab7-a8b3-5121-a8a7-f26e013c7885', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 557),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'a48c65b9-6ebf-5e9f-80ad-f27d801031fd', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 442.44),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'b93e219f-64db-57ab-b70f-feab6bbc9b81', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 3),
-  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'd10e4dd7-c874-5d9a-aba8-1e93bae40540', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 3)
+  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'd10e4dd7-c874-5d9a-aba8-1e93bae40540', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 3),
+  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '2d9be38d-b257-55c1-b331-d703c08a51ff', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 235, 'UND', 1.19)
 on conflict (contagem_id, produto_id, setor_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario;
 
 insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario) values
-  ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '2d9be38d-b257-55c1-b331-d703c08a51ff', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 235, 'UND', 1.19),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'a2b607aa-a696-57ae-9d57-d8ebfad7b405', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 132, 'UND', 1.19),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '3dbca9d8-f698-5805-a823-a185dbcbedfd', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 6, 'UND', 2.08),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '93872b33-7ccb-5939-9d0b-016abff71374', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 7.68),
@@ -2859,18 +2856,18 @@ begin
       v_total, abs(v_total - 78681.3573);
   end if;
 
-  if v_produtos <> 853 then
-    raise exception 'seed: % produtos cadastrados, esperado 853', v_produtos;
+  if v_produtos <> 852 then
+    raise exception 'seed: % produtos cadastrados, esperado 852', v_produtos;
   end if;
 
-  -- 867 e nao 870: ver a divergencia explicada no cabecalho
+  -- 866 e nao 869: ver a divergencia explicada no cabecalho
   -- (3 pares produto x setor repetidos na planilha, todos com quantidade zero).
-  if v_vinculos <> 867 then
-    raise exception 'seed: % vinculos produto x setor, esperado 867', v_vinculos;
+  if v_vinculos <> 866 then
+    raise exception 'seed: % vinculos produto x setor, esperado 866', v_vinculos;
   end if;
 
-  if v_itens <> 867 then
-    raise exception 'seed: % itens na contagem, esperado 867', v_itens;
+  if v_itens <> 866 then
+    raise exception 'seed: % itens na contagem, esperado 866', v_itens;
   end if;
 
   if v_categorias <> 21 then

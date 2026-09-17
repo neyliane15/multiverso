@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Limpa a extracao bruta e monta o catalogo final do Bar do Zeca."""
-import json, re, unicodedata, collections
+import json, os, re, unicodedata, collections
 
-BASE = '/tmp/claude-0/-home-user/ea7223e1-0cfd-5570-ae56-c7244317aec2/scratchpad'
-d = json.load(open(f'{BASE}/contagem.json'))
+BASE = os.path.dirname(os.path.abspath(__file__))
+d = json.load(open(f'{BASE}/contagem-bruta.json'))
 
 TITULOS = re.compile(r'^(CONTROLE DE ESTOQUE|HORTIFRUTI\s+BAR DO ZECA|PORCIONADOS BAR DO ZECA|PERDAS)', re.I)
 UNIDADES = {'UN': 'UND', 'UND.': 'UND', 'CXS': 'CX', 'BD': 'BDJ'}
@@ -18,8 +18,8 @@ def chave(s):
 
 limpos, descartados = [], []
 for i in d['itens']:
-    if TITULOS.match(i['produto']):
-        descartados.append(i['produto']); continue
+    if TITULOS.match(i['produto']) or not any(c.isalnum() for c in i['produto']):
+        descartados.append(f"{i['produto']!r} ({i['origem']})"); continue
     i['unidade'] = UNIDADES.get(i['unidade'], i['unidade'])
     i['categoria'] = CATEGORIAS.get(i['categoria'], i['categoria'])
     limpos.append(i)
@@ -53,7 +53,7 @@ saida = {
     'produtos': sorted(produtos.values(), key=lambda p: p['nome']),
     'linhas': linhas,
 }
-json.dump(saida, open(f'{BASE}/catalogo.json', 'w'), ensure_ascii=False, indent=1)
+json.dump(saida, open(f'{BASE}/contagem-bar-do-zeca-2026-08.json', 'w'), ensure_ascii=False, indent=1)
 
 print('descartadas (linhas de titulo):', descartados)
 print('linhas de contagem:', len(linhas))

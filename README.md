@@ -118,12 +118,29 @@ docs/IDENTIDADE.md     a direção visual
 
 | | |
 |---|---|
-| Produtos | 853 |
-| Vínculos produto × setor | 870 |
+| Produtos | 852 |
+| Vínculos produto × setor | 866 |
 | Setores | 6 — Bar, Estoque Geral, Hortifrúti, Massas e Panificação, Molhos e Caldos, Porcionados |
 | Categorias | 21 |
 | Valor do estoque | **R$ 78.681,36** |
 
 A extração foi conferida item a item contra os totais da própria planilha:
-cada bloco, cada aba e o total geral fecham com **diferença zero**. O script
-que faz isso está em `dados/` e pode ser rodado de novo a qualquer momento.
+cada bloco, cada aba e o total geral fecham com **diferença zero**.
+
+Duas coisas foram limpas no caminho, e as duas estão documentadas em
+`supabase/seed/README.md`:
+
+- A célula `Geral!V63` contém só uma vírgula, numa linha inteiramente vazia —
+  um toque de tecla perdido, não um produto. Descartada.
+- Três pares produto × setor aparecem duas vezes, porque o mesmo item está em
+  dois blocos da mesma aba (BACON e BARRIGA SUÍNA em `SUÍNOS` e de novo em
+  `FEIJOADA`; POLIFLOR em `DESCARTÁVEIS` e em `MATERIAL DE LIMPEZA`). Vale a
+  primeira ocorrência. As três repetições estão zeradas, então o total não se
+  move.
+
+O pipeline inteiro — planilha, extração, conferência, carga — está em `dados/`
+e roda de novo a qualquer momento:
+
+```bash
+python3 dados/extrair.py && python3 dados/normalizar.py && npm run seed:gerar
+```
