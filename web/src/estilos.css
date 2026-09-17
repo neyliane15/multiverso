@@ -266,6 +266,34 @@
     letter-spacing: -0.01em;
   }
 
+  /* Esqueleto de carregamento. Vive na superfície elevada, com um brilho que
+     atravessa devagar — e que some por inteiro em prefers-reduced-motion,
+     porque animação em loop na tela toda é o pior caso para quem tem
+     sensibilidade vestibular. */
+  .mv-esqueleto {
+    background:
+      linear-gradient(
+        90deg,
+        var(--mv-superficie-2) 0%,
+        var(--mv-superficie-3) 40%,
+        var(--mv-superficie-2) 80%
+      )
+      0 0 / 300% 100%;
+    animation: mv-brilho 1.6s ease-in-out infinite;
+  }
+
+  @keyframes mv-brilho {
+    from { background-position: 150% 0; }
+    to   { background-position: -50% 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mv-esqueleto {
+      animation: none;
+      background: var(--mv-superficie-2);
+    }
+  }
+
   /* Rótulo de campo e cabeçalho de tabela: caixa alta curta, travada, sem peso.
      É o vocabulário da etiqueta de prateleira. */
   .mv-rotulo {
