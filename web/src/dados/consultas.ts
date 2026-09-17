@@ -1,0 +1,613 @@
+/**
+ * Acesso ao Supabase, um hook por pergunta que a interface faz.
+ *
+ * Regra do arquivo: nenhuma tela monta query solta. Tudo passa por aqui, para
+ * que chave de cache, invalidação e tratamento de erro sejam um só.
+ */
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query'
+import { supabase } from './supabase'
+import type {
+  Categoria,
+  CmvCategoria,
+  CmvPeriodo,
+  CmvSerie,
+  CompraHistorico,
+  Contagem,
+  ContagemItem,
+  ContagemPorSetor,
+  ContagemResumo,
+  Fornecedor,
+  ListaCompras,
+  ListaComprasItem,
+  NotaItem,
+  PanoramaRestaurante,
+  Perfil,
+  Produto,
+  ProdutoCompleto,
+  Restaurante,
+  Setor,
+  TipoContagem,
+} from '@/tipos/banco'
+
+/** Erro do PostgREST vira mensagem legível em português. */
+function erro(e: { message: string; code?: string } | null): never | void {
+  if (!e) return
+  const traducao: Record<string, string> = {
+    '23505': 'Já existe um registro com esse nome ou código.',
+    '23503': 'Este registro está em uso e não pode ser removido.',
+    '42501': 'Você não tem permissão para esta operação.',
+  }
+  throw new Error(traducao[e.code ?? ''] ?? e.message)
+}
+
+async function buscar<T>(consulta: PromiseLike<{ data: unknown; error: unknown }>): Promise<T> {
+  const { data, error } = await consulta
+  erro(error as { message: string; code?: string } | null)
+  return data as T
+}
+
+export const chaves = {
+  restaurantes: ['restaurantes'] as const,
+  panorama: ['panorama'] as const,
+  equipe: (r: string) => ['equipe', r] as const,
+  categorias: (r: string) => ['categorias', r] as const,
+  setores: (r: string) => ['setores', r] as const,
+  produtos: (r: string) => ['produtos', r] as const,
+  contagens: (r: string) => ['contagens', r] as const,
+  contagem: (id: string) => ['contagem', id] as const,
+  contagemItens: (id: string) => ['contagem-itens', id] as const,
+  contagemSetores: (id: string) => ['contagem-setores', id] as const,
+  fornecedores: (r: string) => ['fornecedores', r] as const,
+  compras: (r: string) => ['compras', r] as const,
+  notaItens: (id: string) => ['nota-itens', id] as const,
+  listas: (r: string) => ['listas', r] as const,
+  listaItens: (id: string) => ['lista-itens', id] as const,
+  cmv: (r: string, i: string, f: string) => ['cmv', r, i, f] as const,
+  cmvSerie: (r: string, g: string, n: number) => ['cmv-serie', r, g, n] as const,
+  cmvCategorias: (r: string, i: string, f: string) => ['cmv-cat', r, i, f] as const,
+}
+
+// ─────────────────────────────────────────────────────── administração ─────
+
+export function usePanorama(): UseQueryResult<PanoramaRestaurante[]> {
+  return useQuery({
+    queryKey: chaves.panorama,
+    queryFn: () =>
+      buscar<PanoramaRestaurante[]>(
+        supabase.from('vw_panorama_restaurantes').select('*').order('nome'),
+      ),
+  })
+}
+
+export function useEquipe(restauranteId: string | null) {
+  return useQuery({
+    queryKey: chaves.equipe(restauranteId ?? 'rede'),
+    enabled: true,
+    queryFn: () => {
+      const q = supabase.from('perfis').select('*').order('nome')
+      return buscar<Perfil[]>(restauranteId ? q.eq('restaurante_id', restauranteId) : q)
+    },
+  })
+}
+
+export function useSalvarRestaurante() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (dados: Partial<Restaurante> & { id?: string }) => {
+      const { id, ...resto } = dados
+      const consulta = id
+        ? supabase.from('restaurantes').update(resto).eq('id', id).select().single()
+        : supabase.from('restaurantes').insert(resto).select().single()
+      return buscar<Restaurante>(consulta)
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.restaurantes })
+      void qc.invalidateQueries({ queryKey: chaves.panorama })
+    },
+  })
+}
+
+export function useSalvarPerfil() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: Partial<Perfil> & { id: string }) =>
+      buscar<Perfil>(
+        supabase.from('perfis').update(dados).eq('id', dados.id).select().single(),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['equipe'] }),
+  })
+}
+
+// ────────────────────────────────────────────── módulo 1 · cadastros ────────
+
+export function useCategorias(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.categorias(restauranteId),
+    queryFn: () =>
+      buscar<Categoria[]>(
+        supabase
+          .from('categorias')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('ordem')
+          .order('nome'),
+      ),
+  })
+}
+
+export function useSetores(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.setores(restauranteId),
+    queryFn: () =>
+      buscar<Setor[]>(
+        supabase
+          .from('setores')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('ordem')
+          .order('nome'),
+      ),
+  })
+}
+
+export function useProdutos(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.produtos(restauranteId),
+    queryFn: () =>
+      buscar<ProdutoCompleto[]>(
+        supabase
+          .from('vw_produtos_completos')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('nome'),
+      ),
+  })
+}
+
+function invalidarCadastros(qc: ReturnType<typeof useQueryClient>, r: string) {
+  void qc.invalidateQueries({ queryKey: chaves.produtos(r) })
+  void qc.invalidateQueries({ queryKey: chaves.categorias(r) })
+  void qc.invalidateQueries({ queryKey: chaves.setores(r) })
+}
+
+export function useSalvarCategoria(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: Partial<Categoria> & { id?: string }) => {
+      const { id, ...resto } = dados
+      return buscar<Categoria>(
+        id
+          ? supabase.from('categorias').update(resto).eq('id', id).select().single()
+          : supabase
+              .from('categorias')
+              .insert({ ...resto, restaurante_id: restauranteId })
+              .select()
+              .single(),
+      )
+    },
+    onSuccess: () => invalidarCadastros(qc, restauranteId),
+  })
+}
+
+export function useSalvarSetor(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: Partial<Setor> & { id?: string }) => {
+      const { id, ...resto } = dados
+      return buscar<Setor>(
+        id
+          ? supabase.from('setores').update(resto).eq('id', id).select().single()
+          : supabase
+              .from('setores')
+              .insert({ ...resto, restaurante_id: restauranteId })
+              .select()
+              .single(),
+      )
+    },
+    onSuccess: () => invalidarCadastros(qc, restauranteId),
+  })
+}
+
+export interface VinculoSetor {
+  setor_id: string
+  unidade: string
+  custo: number
+}
+
+/**
+ * Salva o produto e os setores dele numa tacada. Os vínculos são reescritos
+ * por diferença — apagar tudo e reinserir derrubaria histórico de ordem.
+ */
+export function useSalvarProduto(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (entrada: {
+      produto: Partial<Produto> & { id?: string }
+      setores: VinculoSetor[]
+    }) => {
+      const { id, ...resto } = entrada.produto
+      const produto = await buscar<Produto>(
+        id
+          ? supabase.from('produtos').update(resto).eq('id', id).select().single()
+          : supabase
+              .from('produtos')
+              .insert({ ...resto, restaurante_id: restauranteId })
+              .select()
+              .single(),
+      )
+
+      const atuais = await buscar<{ setor_id: string }[]>(
+        supabase.from('produto_setores').select('setor_id').eq('produto_id', produto.id),
+      )
+      const desejados = new Set(entrada.setores.map((s) => s.setor_id))
+      const remover = atuais.map((a) => a.setor_id).filter((s) => !desejados.has(s))
+
+      if (remover.length > 0) {
+        await buscar(
+          supabase
+            .from('produto_setores')
+            .delete()
+            .eq('produto_id', produto.id)
+            .in('setor_id', remover),
+        )
+      }
+      if (entrada.setores.length > 0) {
+        await buscar(
+          supabase.from('produto_setores').upsert(
+            entrada.setores.map((s, i) => ({ ...s, produto_id: produto.id, ordem: i })),
+            { onConflict: 'produto_id,setor_id' },
+          ),
+        )
+      }
+      return produto
+    },
+    onSuccess: () => invalidarCadastros(qc, restauranteId),
+  })
+}
+
+export function useArquivarProduto(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: { id: string; ativo: boolean }) =>
+      buscar<Produto>(
+        supabase
+          .from('produtos')
+          .update({ ativo: entrada.ativo })
+          .eq('id', entrada.id)
+          .select()
+          .single(),
+      ),
+    onSuccess: () => invalidarCadastros(qc, restauranteId),
+  })
+}
+
+// ───────────────────────────────────────────── módulo 2 · contagem ─────────
+
+export function useContagens(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.contagens(restauranteId),
+    queryFn: () =>
+      buscar<ContagemResumo[]>(
+        supabase
+          .from('vw_contagens_resumo')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('referencia', { ascending: false }),
+      ),
+  })
+}
+
+export function useContagem(contagemId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.contagem(contagemId ?? ''),
+    enabled: Boolean(contagemId),
+    queryFn: () =>
+      buscar<Contagem>(
+        supabase.from('contagens').select('*').eq('id', contagemId!).single(),
+      ),
+  })
+}
+
+export interface ItemDeContagem extends ContagemItem {
+  produto: { nome: string; categoria_id: string | null } | null
+}
+
+export function useItensDaContagem(contagemId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.contagemItens(contagemId ?? ''),
+    enabled: Boolean(contagemId),
+    queryFn: () =>
+      buscar<ItemDeContagem[]>(
+        supabase
+          .from('contagem_itens')
+          .select('*, produto:produtos(nome, categoria_id)')
+          .eq('contagem_id', contagemId!),
+      ),
+  })
+}
+
+export function useTotaisPorSetor(contagemId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.contagemSetores(contagemId ?? ''),
+    enabled: Boolean(contagemId),
+    queryFn: () =>
+      buscar<ContagemPorSetor[]>(
+        supabase
+          .from('vw_contagem_por_setor')
+          .select('*')
+          .eq('contagem_id', contagemId!)
+          .order('setor_nome'),
+      ),
+  })
+}
+
+export function useAbrirContagem(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: {
+      referencia: string
+      tipo: TipoContagem
+      titulo?: string
+      setores?: string[]
+    }) =>
+      buscar<string>(
+        supabase.rpc('mv_abrir_contagem', {
+          p_restaurante: restauranteId,
+          p_referencia: entrada.referencia,
+          p_tipo: entrada.tipo,
+          p_titulo: entrada.titulo ?? null,
+          p_setores: entrada.setores ?? null,
+        }),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: chaves.contagens(restauranteId) }),
+  })
+}
+
+/** Lançar quantidade item a item. O total é coluna gerada — não mandamos. */
+export function useLancarQuantidade(contagemId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: { itemId: string; quantidade: number }) =>
+      buscar<ContagemItem>(
+        supabase
+          .from('contagem_itens')
+          .update({
+            quantidade: entrada.quantidade,
+            contado_em: new Date().toISOString(),
+          })
+          .eq('id', entrada.itemId)
+          .select()
+          .single(),
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.contagemItens(contagemId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagemSetores(contagemId) })
+    },
+  })
+}
+
+export function useFecharContagem(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (contagemId: string) =>
+      buscar<Contagem>(supabase.rpc('mv_fechar_contagem', { p_contagem: contagemId })),
+    onSuccess: (_d, contagemId) => {
+      void qc.invalidateQueries({ queryKey: chaves.contagens(restauranteId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagem(contagemId) })
+      void qc.invalidateQueries({ queryKey: ['cmv'] })
+      void qc.invalidateQueries({ queryKey: ['cmv-serie'] })
+    },
+  })
+}
+
+export function useReabrirContagem(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (contagemId: string) =>
+      buscar<Contagem>(supabase.rpc('mv_reabrir_contagem', { p_contagem: contagemId })),
+    onSuccess: (_d, contagemId) => {
+      void qc.invalidateQueries({ queryKey: chaves.contagens(restauranteId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagem(contagemId) })
+    },
+  })
+}
+
+// ────────────────────────────────────────────── módulo 3 · compras ─────────
+
+export function useFornecedores(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.fornecedores(restauranteId),
+    queryFn: () =>
+      buscar<Fornecedor[]>(
+        supabase
+          .from('fornecedores')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('nome'),
+      ),
+  })
+}
+
+export function useCompras(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.compras(restauranteId),
+    queryFn: () =>
+      buscar<CompraHistorico[]>(
+        supabase
+          .from('vw_compras_historico')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('emitida_em', { ascending: false }),
+      ),
+  })
+}
+
+export interface ItemDeNota extends NotaItem {
+  produto: { nome: string } | null
+}
+
+export function useItensDaNota(notaId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.notaItens(notaId ?? ''),
+    enabled: Boolean(notaId),
+    queryFn: () =>
+      buscar<ItemDeNota[]>(
+        supabase
+          .from('nota_itens')
+          .select('*, produto:produtos(nome)')
+          .eq('nota_id', notaId!)
+          .order('ordem'),
+      ),
+  })
+}
+
+export function useVincularItemDaNota(notaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: { itemId: string; produtoId: string | null; fator?: number }) =>
+      buscar<NotaItem>(
+        supabase
+          .from('nota_itens')
+          .update({
+            produto_id: entrada.produtoId,
+            ...(entrada.fator !== undefined ? { fator_conversao: entrada.fator } : {}),
+          })
+          .eq('id', entrada.itemId)
+          .select()
+          .single(),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: chaves.notaItens(notaId) }),
+  })
+}
+
+export function useLancarNota(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (notaId: string) =>
+      buscar(supabase.rpc('mv_lancar_nota', { p_nota: notaId })),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.compras(restauranteId) })
+      void qc.invalidateQueries({ queryKey: chaves.produtos(restauranteId) })
+      void qc.invalidateQueries({ queryKey: ['cmv'] })
+      void qc.invalidateQueries({ queryKey: ['cmv-serie'] })
+    },
+  })
+}
+
+export function useListasDeCompras(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.listas(restauranteId),
+    queryFn: () =>
+      buscar<ListaCompras[]>(
+        supabase
+          .from('listas_compras')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('referencia', { ascending: false }),
+      ),
+  })
+}
+
+export interface ItemDeLista extends ListaComprasItem {
+  produto: { nome: string; categoria_id: string | null } | null
+}
+
+export function useItensDaLista(listaId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.listaItens(listaId ?? ''),
+    enabled: Boolean(listaId),
+    queryFn: () =>
+      buscar<ItemDeLista[]>(
+        supabase
+          .from('lista_compras_itens')
+          .select('*, produto:produtos(nome, categoria_id)')
+          .eq('lista_id', listaId!),
+      ),
+  })
+}
+
+export function useGerarListaDeCompras(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: { nome?: string; categorias?: string[] }) =>
+      buscar<string>(
+        supabase.rpc('mv_gerar_lista_compras', {
+          p_restaurante: restauranteId,
+          p_nome: entrada.nome ?? null,
+          p_categorias: entrada.categorias ?? null,
+        }),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: chaves.listas(restauranteId) }),
+  })
+}
+
+export function useLancarItemDaLista(listaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: { itemId: string; quantidade: number }) =>
+      buscar<ListaComprasItem>(
+        supabase
+          .from('lista_compras_itens')
+          .update({ quantidade: entrada.quantidade })
+          .eq('id', entrada.itemId)
+          .select()
+          .single(),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: chaves.listaItens(listaId) }),
+  })
+}
+
+// ─────────────────────────────────────────────── módulo 4 · CMV ────────────
+
+export function useCmv(restauranteId: string, inicio: string, fim: string) {
+  return useQuery({
+    queryKey: chaves.cmv(restauranteId, inicio, fim),
+    queryFn: async () => {
+      const linhas = await buscar<CmvPeriodo[]>(
+        supabase.rpc('mv_cmv_periodo', {
+          p_restaurante: restauranteId,
+          p_inicio: inicio,
+          p_fim: fim,
+        }),
+      )
+      return linhas[0] ?? null
+    },
+  })
+}
+
+export function useCmvSerie(
+  restauranteId: string,
+  granularidade: 'semanal' | 'mensal',
+  periodos = 6,
+) {
+  return useQuery({
+    queryKey: chaves.cmvSerie(restauranteId, granularidade, periodos),
+    queryFn: () =>
+      buscar<CmvSerie[]>(
+        supabase.rpc('mv_cmv_serie', {
+          p_restaurante: restauranteId,
+          p_granularidade: granularidade,
+          p_periodos: periodos,
+        }),
+      ),
+  })
+}
+
+export function useCmvPorCategoria(restauranteId: string, inicio: string, fim: string) {
+  return useQuery({
+    queryKey: chaves.cmvCategorias(restauranteId, inicio, fim),
+    queryFn: () =>
+      buscar<CmvCategoria[]>(
+        supabase.rpc('mv_cmv_por_categoria', {
+          p_restaurante: restauranteId,
+          p_inicio: inicio,
+          p_fim: fim,
+        }),
+      ),
+  })
+}
