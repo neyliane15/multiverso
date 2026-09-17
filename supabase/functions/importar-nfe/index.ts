@@ -12,6 +12,12 @@
  *
  *   supabase functions deploy importar-nfe
  *
+ * Plano B, se o bundler recusar os imports para fora de `supabase/functions/`:
+ * copie `web/src/dados/nfe/{parsearXml,conversaoUnidade,casarProdutos}.ts` e
+ * `web/src/util/formato.ts` para `supabase/functions/_compartilhado/`, troque os
+ * três imports abaixo por `../_compartilhado/<arquivo>.ts` e faça o front
+ * reexportar de lá — os testes continuam valendo, é o mesmo código.
+ *
  * Como chamar:
  *
  *   POST https://<projeto>.supabase.co/functions/v1/importar-nfe
@@ -20,7 +26,7 @@
  *   { "restauranteId": "<uuid>", "arquivoUrl": "<restaurante>/<nome>.xml" }
  *
  * ---------------------------------------------------------------------------
- * Duas decisões que valem explicação:
+ * Três decisões que valem explicação:
  *
  * 1. O cliente Supabase é criado com o **token de quem chamou**, nunca com a
  *    service role. Assim a RLS continua valendo: se o usuário não pode operar
@@ -29,6 +35,16 @@
  *
  * 2. Item com casamento fraco entra com `produto_id` nulo, de propósito.
  *    Pendência é um incômodo de dois cliques; vínculo errado é CMV errado.
+ *
+ * 3. **Cabeçalho e item guardam números diferentes, e isso é intencional.**
+ *    `notas_fiscais.valor_produtos` = `ICMSTot/vProd` e `notas_fiscais.valor_total`
+ *    = `ICMSTot/vNF`: a nota é a verdade contábil e não se reescreve.
+ *    Já `nota_itens.valor_total` recebe o **custo desembolsado** do item
+ *    (vProd − desconto + ICMS-ST/IPI/II + frete e despesas rateadas), porque é
+ *    dele que a coluna gerada `custo_convertido` tira o custo que
+ *    `mv_atualiza_custo_medio` empurra para `produtos.custo_medio`. Num bar,
+ *    onde quase toda bebida é ICMS-ST, usar `vProd` aqui subestimaria metade
+ *    das compras e entregaria um CMV falso.
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -56,6 +72,8 @@ interface CorpoRequisicao {
   arquivoNome?: string
   /** Quando true, chave com DV errado aborta a importação em vez de virar aviso. */
   exigirChaveValida?: boolean
+  /** Quando true, nota cancelada/denegada entra mesmo assim (só para conferência). */
+  aceitarNaoAutorizada?: boolean
 }
 
 function responder(corpo: unknown, status = 200): Response {
@@ -188,7 +206,10 @@ Deno.serve(async (requisicao: Request): Promise<Response> => {
 
   let nota: NotaImportada
   try {
-    nota = parsearXml(xml, { exigirChaveValida: corpo.exigirChaveValida === true })
+    nota = parsearXml(xml, {
+      exigirChaveValida: corpo.exigirChaveValida === true,
+      aceitarNaoAutorizada: corpo.aceitarNaoAutorizada === true,
+    })
   } catch (falha) {
     if (falha instanceof ErroNfe) return erro(falha.message, 422, { codigo: falha.codigo })
     return erro(falha instanceof Error ? falha.message : 'Não foi possível ler o XML.', 422)
@@ -239,6 +260,8 @@ Deno.serve(async (requisicao: Request): Promise<Response> => {
       valor_desconto: nota.totais.valorDesconto,
       valor_outros: nota.totais.valorOutros,
       valor_total: nota.totais.valorTotal,
+      // O cabeçalho é cópia fiel do ICMSTot: não recebe imposto de item nem
+      // rateio. Quem carrega o desembolso é nota_itens.valor_total.
       arquivo_url: corpo.arquivoUrl ?? null,
       arquivo_nome: corpo.arquivoNome ?? null,
       xml_bruto: xml,
@@ -314,7 +337,9 @@ Deno.serve(async (requisicao: Request): Promise<Response> => {
         quantidade: item.quantidade,
         valor_unitario: item.valorUnitario,
         valor_desconto: item.valorDesconto,
-        valor_total: item.valorTotal,
+        // Desembolso, não vProd: é daqui que sai custo_convertido e, depois,
+        // produtos.custo_medio. Ver a decisão 3 no cabeçalho.
+        valor_total: item.custoDesembolsado,
         fator_conversao: fator,
         ordem: item.ordem,
       },
@@ -326,6 +351,9 @@ Deno.serve(async (requisicao: Request): Promise<Response> => {
         motivo: casamento.motivo,
         explicacao: casamento.explicacao,
         fatorConversao: fator,
+        valorProdutos: item.valorTotal,
+        impostos: item.impostos,
+        custoDesembolsado: item.custoDesembolsado,
         sugestoes: casamento.sugestoes,
       },
     }
@@ -345,7 +373,10 @@ Deno.serve(async (requisicao: Request): Promise<Response> => {
     chaveValida: nota.chaveValida,
     fornecedorId,
     emitidaEm: nota.emitidaEm,
+    situacao: nota.situacao,
     valorTotal: nota.totais.valorTotal,
+    impostosItens: nota.totais.impostosItens,
+    custoDesembolsado: nota.totais.custoDesembolsado,
     itens,
     total: itens.length,
     vinculados: itens.filter((i) => i.produtoId !== null).length,

@@ -1,0 +1,371 @@
+/* ===========================================================================
+   Multiverso · folha de entrada
+   ---------------------------------------------------------------------------
+   Direção: "Aço e etiqueta". O sistema é operacional — alguém conta estoque de
+   celular dentro de uma câmara fria, o gerente confere nota, o dono olha CMV.
+   A tela é um painel de instrumento: superfície fria de aço, número em primeiro
+   plano, cor usada como sinal e não como enfeite.
+
+   Tudo que é da marca do restaurante vive em --mv-*, escrito em tempo de
+   execução por web/src/tema/marca.ts. Nada aqui, e nada em componente nenhum,
+   escreve hexadecimal de marca. Cinza e estado são fixos de propósito: um erro
+   não vira rosa porque o cliente escolheu rosa.
+   =========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ raiz -- */
+:root {
+  /* --- marca do próprio Multiverso (master, e enquanto nada carregou) ------ */
+  --mv-primaria: #e4572e;
+  --mv-secundaria: #17255a;
+  --mv-acento: #f5b700;
+  --mv-fundo: #0e1116;
+  --mv-superficie: #171b22;
+  --mv-texto: #f2f4f8;
+  --mv-fonte-titulo: 'Sora';
+  --mv-fonte-texto: 'Inter';
+  --mv-raio: 14px;
+
+  /* --- derivadas: marca.ts reescreve todas; os valores abaixo são o fallback
+         do primeiro quadro, para a tela não piscar antes do provedor montar --- */
+  --mv-sobre-primaria: #0b0d10;
+  --mv-sobre-secundaria: #ffffff;
+  --mv-sobre-acento: #0b0d10;
+  --mv-primaria-legivel: #f07a56;
+  --mv-primaria-06: rgb(228 87 46 / 0.06);
+  --mv-primaria-10: rgb(228 87 46 / 0.10);
+  --mv-primaria-16: rgb(228 87 46 / 0.16);
+  --mv-primaria-24: rgb(228 87 46 / 0.24);
+  --mv-primaria-40: rgb(228 87 46 / 0.40);
+  --mv-primaria-64: rgb(228 87 46 / 0.64);
+  --mv-superficie-1: #1c2029;
+  --mv-superficie-2: #222733;
+  --mv-superficie-3: #2a303d;
+  --mv-borda: #2a303a;
+  --mv-borda-forte: #3c4450;
+  --mv-texto-suave: #b6bdc9;
+  --mv-texto-fraco: #8b93a1;
+  --mv-foco: #f5b700;
+  --mv-raio-p: 8px;
+  --mv-raio-g: 20px;
+  --mv-grafico-1: #ce6f5e; --mv-grafico-2: #8f5900; --mv-grafico-3: #83972e;
+  --mv-grafico-4: #007546; --mv-grafico-5: #009db8; --mv-grafico-6: #3666bb;
+  --mv-grafico-7: #9d7bd2; --mv-grafico-8: #9a487d;
+
+  /* --- escala neutra própria: grafite frio (matiz 248, croma mínimo).
+         Não é o cinza do Tailwind: é o aço de cozinha sob luz fria. ---------- */
+  --mv-neutro-0:    #fcfeff;
+  --mv-neutro-50:   #f4f7fb;
+  --mv-neutro-100:  #e9edf2;
+  --mv-neutro-200:  #d7dde3;
+  --mv-neutro-300:  #bdc3ca;
+  --mv-neutro-400:  #989fa7;
+  --mv-neutro-500:  #767e87;
+  --mv-neutro-600:  #565f67;
+  --mv-neutro-700:  #3c454d;
+  --mv-neutro-800:  #272f37;
+  --mv-neutro-900:  #161d24;
+  --mv-neutro-950:  #091016;
+  --mv-neutro-1000: #03060a;
+
+  /* --- estados semânticos: FIXOS. Não seguem a marca, nunca. ---------------
+         Cada estado tem três papéis: marca (o traço no gráfico, o ponto, a
+         barra — ≥3:1 na superfície), texto (≥4,5:1, AA) e suave (a faixa de
+         fundo). Os valores de tema claro e escuro são escolhidos, não
+         invertidos. ---------------------------------------------------------- */
+  --mv-sucesso:       #2fbe86;
+  --mv-sucesso-texto: #58d6a4;
+  --mv-sucesso-suave: #10261d;
+  --mv-sucesso-borda: #1e4a38;
+  --mv-alerta:        #e0a020;
+  --mv-alerta-texto:  #f0be54;
+  --mv-alerta-suave:  #2c2109;
+  --mv-alerta-borda:  #5a4415;
+  --mv-erro:          #f0605f;
+  --mv-erro-texto:    #ff8a86;
+  --mv-erro-suave:    #2e1616;
+  --mv-erro-borda:    #5c2a28;
+  --mv-info:          #4b9bf2;
+  --mv-info-texto:    #7fbafb;
+  --mv-info-suave:    #10202f;
+  --mv-info-borda:    #22415f;
+
+  /* --- tipografia: três papéis. Título carrega a personalidade, texto carrega
+         a leitura, e o numérico carrega o trabalho — é um sistema em que quase
+         tudo na tela é um número que precisa alinhar em coluna. ------------- */
+  --mv-fonte-numero: 'JetBrains Mono';
+  --mv-pilha-titulo: var(--mv-fonte-titulo), 'Sora', ui-sans-serif, system-ui, sans-serif;
+  --mv-pilha-texto:  var(--mv-fonte-texto), 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --mv-pilha-numero: var(--mv-fonte-numero), ui-monospace, 'SFMono-Regular', monospace;
+
+  /* --- alvo de toque: o mínimo, em qualquer lugar do sistema -------------- */
+  --mv-toque: 44px;
+
+  color-scheme: dark;
+}
+
+/* Tema claro por restaurante. marca.ts marca o <html> com data-tema="claro";
+   as cores de marca vêm do banco, os estados e o contorno vêm daqui. */
+:root[data-tema='claro'] {
+  --mv-sucesso:       #0e9f6e;
+  --mv-sucesso-texto: #05714b;
+  --mv-sucesso-suave: #e4f7ee;
+  --mv-sucesso-borda: #a7e3c9;
+  --mv-alerta:        #c77700;
+  --mv-alerta-texto:  #8a5300;
+  --mv-alerta-suave:  #fdf0da;
+  --mv-alerta-borda:  #f0ce8e;
+  --mv-erro:          #dc2f35;
+  --mv-erro-texto:    #b01c22;
+  --mv-erro-suave:    #fde9e9;
+  --mv-erro-borda:    #f3b6b6;
+  --mv-info:          #1f7ae0;
+  --mv-info-texto:    #14599f;
+  --mv-info-suave:    #e6f0fe;
+  --mv-info-borda:    #afcdf5;
+  color-scheme: light;
+}
+
+/* -------------------------------------------------------- tokens Tailwind -- */
+/* `inline` de propósito: os utilitários apontam para var(--mv-*) diretamente,
+   então trocar de restaurante repinta o app sem recompilar CSS nenhum.        */
+@theme inline {
+  --color-primaria: var(--mv-primaria);
+  --color-secundaria: var(--mv-secundaria);
+  --color-acento: var(--mv-acento);
+  --color-fundo: var(--mv-fundo);
+  --color-superficie: var(--mv-superficie);
+  --color-superficie-1: var(--mv-superficie-1);
+  --color-superficie-2: var(--mv-superficie-2);
+  --color-superficie-3: var(--mv-superficie-3);
+  --color-texto: var(--mv-texto);
+  --color-texto-suave: var(--mv-texto-suave);
+  --color-texto-fraco: var(--mv-texto-fraco);
+  --color-sobre-primaria: var(--mv-sobre-primaria);
+  --color-sobre-secundaria: var(--mv-sobre-secundaria);
+  --color-sobre-acento: var(--mv-sobre-acento);
+  --color-primaria-legivel: var(--mv-primaria-legivel);
+  --color-borda: var(--mv-borda);
+  --color-borda-forte: var(--mv-borda-forte);
+
+  --color-sucesso: var(--mv-sucesso);
+  --color-sucesso-texto: var(--mv-sucesso-texto);
+  --color-sucesso-suave: var(--mv-sucesso-suave);
+  --color-sucesso-borda: var(--mv-sucesso-borda);
+  --color-alerta: var(--mv-alerta);
+  --color-alerta-texto: var(--mv-alerta-texto);
+  --color-alerta-suave: var(--mv-alerta-suave);
+  --color-alerta-borda: var(--mv-alerta-borda);
+  --color-erro: var(--mv-erro);
+  --color-erro-texto: var(--mv-erro-texto);
+  --color-erro-suave: var(--mv-erro-suave);
+  --color-erro-borda: var(--mv-erro-borda);
+  --color-info: var(--mv-info);
+  --color-info-texto: var(--mv-info-texto);
+  --color-info-suave: var(--mv-info-suave);
+  --color-info-borda: var(--mv-info-borda);
+
+  --color-neutro-0: var(--mv-neutro-0);
+  --color-neutro-50: var(--mv-neutro-50);
+  --color-neutro-100: var(--mv-neutro-100);
+  --color-neutro-200: var(--mv-neutro-200);
+  --color-neutro-300: var(--mv-neutro-300);
+  --color-neutro-400: var(--mv-neutro-400);
+  --color-neutro-500: var(--mv-neutro-500);
+  --color-neutro-600: var(--mv-neutro-600);
+  --color-neutro-700: var(--mv-neutro-700);
+  --color-neutro-800: var(--mv-neutro-800);
+  --color-neutro-900: var(--mv-neutro-900);
+  --color-neutro-950: var(--mv-neutro-950);
+  --color-neutro-1000: var(--mv-neutro-1000);
+
+  --color-grafico-1: var(--mv-grafico-1);
+  --color-grafico-2: var(--mv-grafico-2);
+  --color-grafico-3: var(--mv-grafico-3);
+  --color-grafico-4: var(--mv-grafico-4);
+  --color-grafico-5: var(--mv-grafico-5);
+  --color-grafico-6: var(--mv-grafico-6);
+  --color-grafico-7: var(--mv-grafico-7);
+  --color-grafico-8: var(--mv-grafico-8);
+
+  --radius-marca: var(--mv-raio);
+  --radius-marca-p: var(--mv-raio-p);
+  --radius-marca-g: var(--mv-raio-g);
+
+  --font-titulo: var(--mv-pilha-titulo);
+  --font-texto: var(--mv-pilha-texto);
+  --font-numero: var(--mv-pilha-numero);
+
+  --spacing-toque: var(--mv-toque);
+}
+
+/* Degraus de tipo fixos — a escala não é da marca, é do sistema. Proporção 1,2
+   entre corpo e título; nada acima de 32px, porque não existe capa aqui, existe
+   cabeçalho de tela. */
+@theme {
+  --text-micro: 0.6875rem;   /* 11px — rótulo de eixo, unidade, carimbo    */
+  --text-micro--line-height: 1rem;
+  --text-rotulo: 0.75rem;    /* 12px — rótulo de campo, cabeçalho de tabela */
+  --text-rotulo--line-height: 1.125rem;
+  --text-apoio: 0.8125rem;   /* 13px — texto secundário, ajuda             */
+  --text-apoio--line-height: 1.25rem;
+  --text-corpo: 0.9375rem;   /* 15px — leitura, célula de tabela           */
+  --text-corpo--line-height: 1.5rem;
+  --text-destaque: 1.125rem; /* 18px — título de cartão                    */
+  --text-destaque--line-height: 1.625rem;
+  --text-secao: 1.375rem;    /* 22px — título de seção                     */
+  --text-secao--line-height: 1.875rem;
+  --text-tela: 1.75rem;      /* 28px — título de tela                      */
+  --text-tela--line-height: 2.125rem;
+  --text-numero: 2rem;       /* 32px — o número que a tela existe para dar */
+  --text-numero--line-height: 2.25rem;
+}
+
+/* --------------------------------------------------------------- base ----- */
+@layer base {
+  * {
+    border-color: var(--mv-borda);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* o app inteiro é uma tela de trabalho: nada de rolagem elástica no corpo */
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--mv-fundo);
+    color: var(--mv-texto);
+    font-family: var(--mv-pilha-texto);
+    font-size: var(--text-corpo);
+    line-height: var(--text-corpo--line-height);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--mv-pilha-titulo);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  /* Todo número que entra em coluna usa a face numérica e larguras fixas.
+     Estoque, custo, CMV: se a coluna não alinha, ninguém confere. */
+  .mv-numero,
+  td.mv-numero,
+  th.mv-numero {
+    font-family: var(--mv-pilha-numero);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+    letter-spacing: -0.01em;
+  }
+
+  /* Rótulo de campo e cabeçalho de tabela: caixa alta curta, travada, sem peso.
+     É o vocabulário da etiqueta de prateleira. */
+  .mv-rotulo {
+    font-family: var(--mv-pilha-texto);
+    font-size: var(--text-rotulo);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mv-texto-fraco);
+  }
+
+  /* Faixa de marca: o fio de 3px que diz de quem é a tela. Em um sistema em que
+     o master pula de restaurante em restaurante, saber onde você está não é
+     decoração. */
+  .mv-faixa {
+    background-image: linear-gradient(
+      90deg,
+      var(--mv-primaria) 0%,
+      var(--mv-primaria) 62%,
+      var(--mv-acento) 62%,
+      var(--mv-acento) 100%
+    );
+  }
+
+  /* Foco: um anel só, sempre visível, sempre com o mesmo desenho, em cima de
+     qualquer fundo (a cor de foco é escolhida por contraste em marca.ts). */
+  :focus-visible {
+    outline: 2px solid var(--mv-foco);
+    outline-offset: 2px;
+    border-radius: var(--mv-raio-p);
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Alvo de toque: qualquer controle sem texto encosta nos 44px, inclusive
+     quando o desenho é menor — a área cresce sem empurrar o layout. */
+  .mv-toque {
+    position: relative;
+    min-inline-size: var(--mv-toque);
+    min-block-size: var(--mv-toque);
+  }
+
+  ::selection {
+    background-color: var(--mv-primaria-40);
+    color: var(--mv-texto);
+  }
+
+  ::placeholder {
+    color: var(--mv-texto-fraco);
+    opacity: 1;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Barra de rolagem discreta: a tela é densa, a barra não compete. */
+  * {
+    scrollbar-color: var(--mv-borda-forte) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+/* --------------------------------------------------------- movimento ------ */
+/* O padrão já é contido: 120–180ms, só opacidade e deslocamento curto. Quem
+   pediu menos movimento recebe zero — inclusive rolagem suave e transição de
+   troca de restaurante. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+  .mv-entra {
+    animation: mv-entra 180ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+}
+
+@keyframes mv-entra {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Contraste forçado (Windows): as variáveis de marca somem; o desenho tem que
+   continuar de pé com as cores do sistema. */
+@media (forced-colors: active) {
+  .mv-faixa { background: CanvasText; }
+  :focus-visible { outline-color: Highlight; }
+}

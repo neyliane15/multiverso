@@ -166,6 +166,12 @@ export const XML_ITEM_UNICO = `<?xml version="1.0" encoding="UTF-8"?>
       <pag><detPag><tPag>01</tPag><vPag>337.50</vPag></detPag></pag>
     </infNFe>
   </NFe>
+  <protNFe versao="4.00">
+    <infProt>
+      <chNFe>${CHAVE_UNICA}</chNFe><nProt>135260000012346</nProt>
+      <cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo>
+    </infProt>
+  </protNFe>
 </nfeProc>`
 
 /**
@@ -255,6 +261,12 @@ export const XML_TOTAL_DIVERGENTE = `<?xml version="1.0" encoding="UTF-8"?>
       </total>
     </infNFe>
   </NFe>
+  <protNFe versao="4.00">
+    <infProt>
+      <chNFe>${CHAVE_DIVERGENTE}</chNFe><nProt>135260000012347</nProt>
+      <cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo>
+    </infProt>
+  </protNFe>
 </nfeProc>`
 
 /** NFC-e (modelo 65): compra de reposição feita no mercado, também é aceita. */
@@ -287,6 +299,12 @@ export const XML_NFCE = `<?xml version="1.0" encoding="UTF-8"?>
       </total>
     </infNFe>
   </NFe>
+  <protNFe versao="4.00">
+    <infProt>
+      <chNFe>${CHAVE_NFCE}</chNFe><nProt>141260000000777</nProt>
+      <cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo>
+    </infProt>
+  </protNFe>
 </nfeProc>`
 
 /** A mesma nota do XML_MULTIPLOS_ITENS com o último dígito da chave trocado. */
@@ -318,3 +336,213 @@ export const XML_MODELO_NAO_SUPORTADO = XML_NFCE.replace('<mod>65</mod>', '<mod>
 /** Arquivo truncado no meio do download. */
 export const XML_MAL_FORMADO = `<?xml version="1.0" encoding="UTF-8"?>
 <nfeProc versao="4.00"><NFe><infNFe Id="NFe${CHAVE_MULTI}"><ide><mod>55</mod>`
+
+/**
+ * Cerveja com ICMS-ST — o caso que decide o CMV de um bar.
+ *
+ * Item 1: `vProd` 1.000,00 com `vICMSST` 230,00 devido nesta operação (grupo
+ * ICMS10): o desembolso é 1.230,00.
+ * Item 2: grupo ICMS60, com `vICMSSTRet` 88,00 — ST **já retido antes**, que
+ * está embutido no preço e não pode ser somado de novo.
+ */
+export const CHAVE_ST = '35260812345678000195550010000201011445566770'
+
+export const XML_CERVEJA_ST = `<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="NFe${CHAVE_ST}" versao="4.00">
+      <ide>
+        <cUF>35</cUF><cNF>44556677</cNF><mod>55</mod><serie>1</serie>
+        <nNF>20101</nNF><dhEmi>2026-08-14T15:05:00-03:00</dhEmi>
+        <tpNF>1</tpNF><tpEmis>1</tpEmis><cDV>0</cDV><tpAmb>1</tpAmb>
+      </ide>
+      <emit>
+        <CNPJ>12345678000195</CNPJ>
+        <xNome>DISTRIBUIDORA DE BEBIDAS SAO PAULO LTDA</xNome>
+        <IE>123456789012</IE>
+      </emit>
+      <det nItem="1">
+        <prod>
+          <cProd>CERV12</cProd><cEAN>7891991010016</cEAN>
+          <xProd>CERVEJA PILSEN LATA 350ML CX C/12</xProd>
+          <NCM>22030000</NCM><CFOP>5401</CFOP><uCom>CX</uCom>
+          <qCom>10.0000</qCom><vUnCom>100.0000000000</vUnCom><vProd>1000.00</vProd>
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS>
+            <ICMS10>
+              <orig>0</orig><CST>10</CST><modBC>3</modBC><vBC>1000.00</vBC>
+              <pICMS>18.00</pICMS><vICMS>180.00</vICMS>
+              <modBCST>4</modBCST><pMVAST>40.00</pMVAST><vBCST>1400.00</vBCST>
+              <pICMSST>18.00</pICMSST><vICMSST>230.00</vICMSST>
+            </ICMS10>
+          </ICMS>
+          <PIS><PISAliq><CST>01</CST><vBC>1000.00</vBC><pPIS>1.65</pPIS><vPIS>16.50</vPIS></PISAliq></PIS>
+        </imposto>
+      </det>
+      <det nItem="2">
+        <prod>
+          <cProd>CERVLN</cProd><cEAN>7896045506873</cEAN>
+          <xProd>CERVEJA LONG NECK 330ML CX C/24</xProd>
+          <NCM>22030000</NCM><CFOP>5405</CFOP><uCom>CX</uCom>
+          <qCom>5.0000</qCom><vUnCom>100.0000000000</vUnCom><vProd>500.00</vProd>
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS>
+            <ICMS60>
+              <orig>0</orig><CST>60</CST>
+              <vBCSTRet>600.00</vBCSTRet><pST>18.00</pST><vICMSSTRet>88.00</vICMSSTRet>
+            </ICMS60>
+          </ICMS>
+        </imposto>
+      </det>
+      <total>
+        <ICMSTot>
+          <vBC>1000.00</vBC><vICMS>180.00</vICMS><vBCST>1400.00</vBCST><vST>230.00</vST>
+          <vProd>1500.00</vProd><vFrete>0.00</vFrete><vSeg>0.00</vSeg>
+          <vDesc>0.00</vDesc><vIPI>0.00</vIPI><vOutro>0.00</vOutro>
+          <vNF>1730.00</vNF>
+        </ICMSTot>
+      </total>
+    </infNFe>
+  </NFe>
+  <protNFe versao="4.00">
+    <infProt>
+      <chNFe>${CHAVE_ST}</chNFe><nProt>135260000020101</nProt>
+      <cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo>
+    </infProt>
+  </protNFe>
+</nfeProc>`
+
+/** Frete de 100,00 no cabeçalho para três itens iguais: 100/3 não fecha redondo. */
+export const CHAVE_FRETE = '35260812345678000195550010000201021445566786'
+
+export const XML_FRETE_CABECALHO = `<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="NFe${CHAVE_FRETE}" versao="4.00">
+      <ide>
+        <cUF>35</cUF><cNF>44556678</cNF><mod>55</mod><serie>1</serie>
+        <nNF>20102</nNF><dhEmi>2026-08-15T09:00:00-03:00</dhEmi>
+        <tpNF>1</tpNF><tpEmis>1</tpEmis><cDV>6</cDV><tpAmb>1</tpAmb>
+      </ide>
+      <emit>
+        <CNPJ>12345678000195</CNPJ><xNome>DISTRIBUIDORA DE BEBIDAS SAO PAULO LTDA</xNome>
+        <IE>123456789012</IE>
+      </emit>
+      <det nItem="1">
+        <prod><cProd>T1</cProd><cEAN>SEM GTIN</cEAN><xProd>WHISKY NACIONAL 1L</xProd>
+          <NCM>22083000</NCM><CFOP>5102</CFOP><uCom>UN</uCom>
+          <qCom>1.0000</qCom><vUnCom>10.0000000000</vUnCom><vProd>10.00</vProd></prod>
+      </det>
+      <det nItem="2">
+        <prod><cProd>T2</cProd><cEAN>SEM GTIN</cEAN><xProd>VODKA NACIONAL 1L</xProd>
+          <NCM>22086000</NCM><CFOP>5102</CFOP><uCom>UN</uCom>
+          <qCom>1.0000</qCom><vUnCom>10.0000000000</vUnCom><vProd>10.00</vProd></prod>
+      </det>
+      <det nItem="3">
+        <prod><cProd>T3</cProd><cEAN>SEM GTIN</cEAN><xProd>GIN NACIONAL 1L</xProd>
+          <NCM>22085000</NCM><CFOP>5102</CFOP><uCom>UN</uCom>
+          <qCom>1.0000</qCom><vUnCom>10.0000000000</vUnCom><vProd>10.00</vProd></prod>
+      </det>
+      <total>
+        <ICMSTot><vProd>30.00</vProd><vFrete>100.00</vFrete><vSeg>0.00</vSeg>
+          <vDesc>0.00</vDesc><vOutro>0.00</vOutro><vNF>130.00</vNF></ICMSTot>
+      </total>
+    </infNFe>
+  </NFe>
+  <protNFe versao="4.00">
+    <infProt><chNFe>${CHAVE_FRETE}</chNFe><nProt>135260000020102</nProt>
+      <cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo></infProt>
+  </protNFe>
+</nfeProc>`
+
+/**
+ * Frete misto: o item 1 declara o seu (`prod/vFrete` 10,00) e o cabeçalho traz
+ * 30,00. Só o resíduo (20,00) é rateado, e só para quem não declarou nada.
+ */
+export const CHAVE_FRETE_ITEM = '35260812345678000195550010000201031445566791'
+
+export const XML_FRETE_NO_ITEM = `<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="NFe${CHAVE_FRETE_ITEM}" versao="4.00">
+      <ide>
+        <cUF>35</cUF><cNF>44556679</cNF><mod>55</mod><serie>1</serie>
+        <nNF>20103</nNF><dhEmi>2026-08-16T11:20:00-03:00</dhEmi>
+        <tpNF>1</tpNF><tpEmis>1</tpEmis><cDV>1</cDV><tpAmb>1</tpAmb>
+      </ide>
+      <emit>
+        <CNPJ>12345678000195</CNPJ><xNome>DISTRIBUIDORA DE BEBIDAS SAO PAULO LTDA</xNome>
+        <IE>123456789012</IE>
+      </emit>
+      <det nItem="1">
+        <prod><cProd>F1</cProd><cEAN>SEM GTIN</cEAN><xProd>REFRIGERANTE COLA 2L</xProd>
+          <NCM>22021000</NCM><CFOP>5102</CFOP><uCom>UN</uCom>
+          <qCom>10.0000</qCom><vUnCom>10.0000000000</vUnCom><vProd>100.00</vProd>
+          <vFrete>10.00</vFrete></prod>
+      </det>
+      <det nItem="2">
+        <prod><cProd>F2</cProd><cEAN>SEM GTIN</cEAN><xProd>AGUA MINERAL 500ML</xProd>
+          <NCM>22011000</NCM><CFOP>5102</CFOP><uCom>UN</uCom>
+          <qCom>10.0000</qCom><vUnCom>10.0000000000</vUnCom><vProd>100.00</vProd></prod>
+      </det>
+      <total>
+        <ICMSTot><vProd>200.00</vProd><vFrete>30.00</vFrete><vSeg>0.00</vSeg>
+          <vDesc>0.00</vDesc><vOutro>0.00</vOutro><vNF>230.00</vNF></ICMSTot>
+      </total>
+    </infNFe>
+  </NFe>
+  <protNFe versao="4.00">
+    <infProt><chNFe>${CHAVE_FRETE_ITEM}</chNFe><nProt>135260000020103</nProt>
+      <cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo></infProt>
+  </protNFe>
+</nfeProc>`
+
+/** Lote de envio com duas notas: o importador tem de recusar, não escolher uma. */
+export const XML_LOTE_DUAS_NOTAS = `<?xml version="1.0" encoding="UTF-8"?>
+<enviNFe xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <idLote>202608150001</idLote><indSinc>0</indSinc>
+  <NFe>
+    <infNFe Id="NFe35260812345678000195550010000201041445566802" versao="4.00">
+      <ide><cUF>35</cUF><mod>55</mod><serie>1</serie><nNF>20104</nNF>
+        <dhEmi>2026-08-15T09:00:00-03:00</dhEmi></ide>
+      <emit><CNPJ>12345678000195</CNPJ><xNome>DISTRIBUIDORA DE BEBIDAS SAO PAULO LTDA</xNome></emit>
+      <det nItem="1"><prod><cProd>L1</cProd><xProd>CERVEJA LATA 350ML</xProd>
+        <uCom>CX</uCom><qCom>1.0000</qCom><vUnCom>50.00</vUnCom><vProd>50.00</vProd></prod></det>
+      <total><ICMSTot><vProd>50.00</vProd><vNF>50.00</vNF></ICMSTot></total>
+    </infNFe>
+  </NFe>
+  <NFe>
+    <infNFe Id="NFe35260812345678000195550010000201051445566818" versao="4.00">
+      <ide><cUF>35</cUF><mod>55</mod><serie>1</serie><nNF>20105</nNF>
+        <dhEmi>2026-08-15T09:05:00-03:00</dhEmi></ide>
+      <emit><CNPJ>12345678000195</CNPJ><xNome>DISTRIBUIDORA DE BEBIDAS SAO PAULO LTDA</xNome></emit>
+      <det nItem="1"><prod><cProd>L2</cProd><xProd>REFRIGERANTE 2L</xProd>
+        <uCom>UN</uCom><qCom>6.0000</qCom><vUnCom>8.00</vUnCom><vProd>48.00</vProd></prod></det>
+      <total><ICMSTot><vProd>48.00</vProd><vNF>48.00</vNF></ICMSTot></total>
+    </infNFe>
+  </NFe>
+</enviNFe>`
+
+const PROTOCOLO_AUTORIZADO = '<cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo>'
+
+/** Mesma nota, cancelada na SEFAZ: não é compra, é papel. */
+export const XML_NOTA_CANCELADA = XML_MULTIPLOS_ITENS.replace(
+  PROTOCOLO_AUTORIZADO,
+  '<cStat>101</cStat><xMotivo>Cancelamento de NF-e homologado</xMotivo>',
+)
+
+/** Denegada por irregularidade fiscal do destinatário. */
+export const XML_NOTA_DENEGADA = XML_MULTIPLOS_ITENS.replace(
+  PROTOCOLO_AUTORIZADO,
+  '<cStat>302</cStat><xMotivo>Rejeicao: Uso Denegado por irregularidade fiscal do destinatario</xMotivo>',
+)
+
+/** Autorizada fora do prazo (cStat 150): vale igual, só entrou atrasada. */
+export const XML_AUTORIZADA_FORA_DE_PRAZO = XML_MULTIPLOS_ITENS.replace(
+  PROTOCOLO_AUTORIZADO,
+  '<cStat>150</cStat><xMotivo>Autorizado o uso da NF-e, autorizacao fora de prazo</xMotivo>',
+)

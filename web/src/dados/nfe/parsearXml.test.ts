@@ -6,6 +6,7 @@ import {
   dataEmissaoParaIso,
   parsearXml,
   partesDaChave,
+  ratearDespesa,
   validarChaveAcesso,
 } from './parsearXml'
 import {
@@ -14,7 +15,14 @@ import {
   CHAVE_MULTI,
   CHAVE_NFCE,
   CHAVE_UNICA,
+  XML_AUTORIZADA_FORA_DE_PRAZO,
+  XML_CERVEJA_ST,
   XML_CHAVE_DV_ERRADO,
+  XML_FRETE_CABECALHO,
+  XML_FRETE_NO_ITEM,
+  XML_LOTE_DUAS_NOTAS,
+  XML_NOTA_CANCELADA,
+  XML_NOTA_DENEGADA,
   XML_EVENTO_CANCELAMENTO,
   XML_ITEM_UNICO,
   XML_LEGADO_DEMI,
@@ -112,7 +120,19 @@ describe('parsearXml — nota com vários itens', () => {
       valorFrete: 45,
       valorDesconto: 6.25,
       valorOutros: 0,
+      valorSeguro: 0,
       valorTotal: 1814,
+      impostosItens: 0,
+      custoDesembolsado: 1814,
+    })
+  })
+
+  it('confere o protocolo de autorização', () => {
+    expect(nota.situacao).toEqual({
+      cStat: '100',
+      xMotivo: 'Autorizado o uso da NF-e',
+      protocolo: '135260000012345',
+      autorizada: true,
     })
   })
 
@@ -130,6 +150,12 @@ describe('parsearXml — nota com vários itens', () => {
       valorUnitario: 89.9,
       valorDesconto: 0,
       valorTotal: 899,
+      // 45,00 de frete rateados na proporção de vProd: 899 / 1775,25.
+      valorFrete: 22.79,
+      valorSeguro: 0,
+      valorOutros: 0,
+      impostos: { icmsSt: 0, fcpSt: 0, ipi: 0, ii: 0, total: 0 },
+      custoDesembolsado: 921.79,
     })
   })
 
@@ -267,6 +293,158 @@ describe('parsearXml — erros', () => {
       parsearXml(XML_EVENTO_CANCELAMENTO)
     } catch (erro) {
       expect((erro as Error).message).toMatch(/não é uma NFe/)
+    }
+  })
+})
+
+describe('parsearXml — custo desembolsado (imposto por item)', () => {
+  const nota = parsearXml(XML_CERVEJA_ST)
+
+  it('soma o ICMS-ST devido na operação ao custo do item', () => {
+    const cerveja = nota.itens[0]
+    expect(cerveja?.valorTotal).toBe(1000)
+    expect(cerveja?.impostos).toEqual({ icmsSt: 230, fcpSt: 0, ipi: 0, ii: 0, total: 230 })
+    expect(cerveja?.custoDesembolsado).toBe(1230)
+  })
+
+  it('ignora ST já retido antes (ICMS60), que está embutido no preço', () => {
+    const longNeck = nota.itens[1]
+    expect(longNeck?.valorTotal).toBe(500)
+    // vICMSSTRet de 88,00 no XML: somá-lo cobraria o ST duas vezes.
+    expect(longNeck?.impostos.total).toBe(0)
+    expect(longNeck?.custoDesembolsado).toBe(500)
+  })
+
+  it('o custo unitário do estoque muda de verdade por causa do ST', () => {
+    const cerveja = nota.itens[0]
+    // Réplica da coluna gerada custo_convertido de nota_itens:
+    // round(valor_total / (quantidade * fator_conversao), 6), com fator 12 (CX C/12).
+    const fator = 12
+    const convertido = (valor: number): number =>
+      Math.round((valor / ((cerveja?.quantidade ?? 0) * fator)) * 1e6) / 1e6
+    const custoComSt = convertido(cerveja?.custoDesembolsado ?? 0)
+    const custoSoVProd = convertido(cerveja?.valorTotal ?? 0)
+    expect(custoSoVProd).toBeCloseTo(8.333333, 6)
+    expect(custoComSt).toBeCloseTo(10.25, 6)
+    // 23% de diferença no custo da lata: é isso que o CMV estava perdendo.
+    expect(custoComSt / custoSoVProd).toBeCloseTo(1.23, 4)
+  })
+
+  it('leva os impostos para os totais da nota', () => {
+    expect(nota.totais.impostosItens).toBe(230)
+    expect(nota.totais.valorProdutos).toBe(1500)
+    expect(nota.totais.custoDesembolsado).toBe(1730)
+  })
+})
+
+describe('parsearXml — rateio de despesas', () => {
+  it('rateia o frete do cabeçalho na proporção de vProd e fecha no centavo', () => {
+    const nota = parsearXml(XML_FRETE_CABECALHO)
+    const fretes = nota.itens.map((item) => item.valorFrete)
+    // 100 / 3 não fecha: os centavos que sobram vão para um item só.
+    expect(fretes).toEqual([33.34, 33.33, 33.33])
+    const somaFretes = Math.round(fretes.reduce((soma, valor) => soma + valor, 0) * 100) / 100
+    expect(somaFretes).toBe(nota.totais.valorFrete)
+    expect(nota.itens.map((item) => item.custoDesembolsado)).toEqual([43.34, 43.33, 43.33])
+  })
+
+  it('item que traz o próprio frete não recebe rateio do cabeçalho', () => {
+    const nota = parsearXml(XML_FRETE_NO_ITEM)
+    const [primeiro, segundo] = nota.itens
+    expect(primeiro?.valorFrete).toBe(10)
+    // Resíduo do cabeçalho (30 − 10) inteiro para quem não declarou nada.
+    expect(segundo?.valorFrete).toBe(20)
+    expect(primeiro?.custoDesembolsado).toBe(110)
+    expect(segundo?.custoDesembolsado).toBe(120)
+  })
+
+  it('o desconto do item continua sendo dele e abate o custo', () => {
+    const nota = parsearXml(XML_MULTIPLOS_ITENS)
+    const picanha = nota.itens[2]
+    expect(picanha?.valorDesconto).toBe(6.25)
+    // 786,25 − 6,25 de desconto + 19,93 de frete rateado.
+    expect(picanha?.custoDesembolsado).toBe(799.93)
+  })
+
+  it('a soma dos custos desembolsados fecha no valor da nota', () => {
+    for (const xml of [XML_MULTIPLOS_ITENS, XML_CERVEJA_ST, XML_FRETE_CABECALHO, XML_FRETE_NO_ITEM]) {
+      const nota = parsearXml(xml)
+      const soma = Math.round(
+        nota.itens.reduce((total, item) => total + item.custoDesembolsado, 0) * 100,
+      ) / 100
+      expect(soma).toBe(nota.totais.valorTotal)
+    }
+  })
+
+  it('ratearDespesa não divide por zero quando a nota inteira é bonificação', () => {
+    const { rateios } = ratearDespesa(30, [0, 0, 0], [0, 0, 0])
+    expect(rateios).toEqual([10, 10, 10])
+    const soma = rateios.reduce((total, valor) => total + valor, 0)
+    expect(soma).toBe(30)
+  })
+
+  it('ratearDespesa não inventa despesa quando o cabeçalho já foi coberto', () => {
+    const { rateios } = ratearDespesa(10, [6, 4], [100, 100])
+    expect(rateios).toEqual([0, 0])
+  })
+})
+
+describe('parsearXml — situação na SEFAZ', () => {
+  it('deixa passar a nota autorizada (100) e a autorizada fora de prazo (150)', () => {
+    expect(parsearXml(XML_MULTIPLOS_ITENS).situacao?.autorizada).toBe(true)
+    const foraDePrazo = parsearXml(XML_AUTORIZADA_FORA_DE_PRAZO)
+    expect(foraDePrazo.situacao?.cStat).toBe('150')
+    expect(foraDePrazo.situacao?.autorizada).toBe(true)
+    expect(foraDePrazo.avisos).toEqual([])
+  })
+
+  it('recusa nota cancelada (101) dizendo o cStat e o motivo', () => {
+    try {
+      parsearXml(XML_NOTA_CANCELADA)
+      expect.unreachable('nota cancelada não pode ser importada')
+    } catch (erro) {
+      expect(erro).toBeInstanceOf(ErroNfe)
+      expect((erro as ErroNfe).codigo).toBe('nota_nao_autorizada')
+      expect((erro as ErroNfe).message).toContain('101')
+      expect((erro as ErroNfe).message).toContain('Cancelamento de NF-e homologado')
+      expect((erro as ErroNfe).message).toMatch(/não pode entrar no CMV/)
+    }
+  })
+
+  it('recusa nota denegada (302)', () => {
+    try {
+      parsearXml(XML_NOTA_DENEGADA)
+      expect.unreachable('nota denegada não pode ser importada')
+    } catch (erro) {
+      expect((erro as ErroNfe).codigo).toBe('nota_nao_autorizada')
+      expect((erro as ErroNfe).message).toContain('302')
+    }
+  })
+
+  it('com aceitarNaoAutorizada a nota cancelada passa, mas avisando', () => {
+    const nota = parsearXml(XML_NOTA_CANCELADA, { aceitarNaoAutorizada: true })
+    expect(nota.situacao?.cStat).toBe('101')
+    expect(nota.situacao?.autorizada).toBe(false)
+    expect(nota.avisos.join(' ')).toMatch(/não está autorizada/)
+    expect(nota.itens).toHaveLength(3)
+  })
+
+  it('XML sem protNFe não é erro: importa avisando que não deu para conferir', () => {
+    const nota = parsearXml(XML_LEGADO_DEMI)
+    expect(nota.situacao).toBeNull()
+    expect(nota.avisos.join(' ')).toMatch(/protocolo de autorização/)
+  })
+})
+
+describe('parsearXml — lote', () => {
+  it('recusa arquivo de lote dizendo quantas notas ele tem', () => {
+    try {
+      parsearXml(XML_LOTE_DUAS_NOTAS)
+      expect.unreachable('lote não pode ser importado pela metade')
+    } catch (erro) {
+      expect(erro).toBeInstanceOf(ErroNfe)
+      expect((erro as ErroNfe).codigo).toBe('lote_nao_suportado')
+      expect((erro as ErroNfe).message).toContain('2 notas')
     }
   })
 })

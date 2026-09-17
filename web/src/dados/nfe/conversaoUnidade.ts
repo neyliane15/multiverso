@@ -356,3 +356,40 @@ export function converterUnidade(entrada: EntradaConversao): ResultadoConversao 
       'são grandezas diferentes, então o fator 1 é só um palpite. Ajuste à mão.',
   }
 }
+
+// -------------------------------------------- vínculo manual na tela -------
+
+/** O mínimo que a tela precisa passar do item da nota. */
+export interface ItemVinculavel {
+  descricao: string
+  /** `nota_itens.unidade` — a unidade comercial que veio na nota. */
+  unidade: string
+}
+
+/** O mínimo que a tela precisa passar do produto escolhido. */
+export interface ProdutoVinculado {
+  /** `produtos.unidade` — a unidade em que o estoque conta. */
+  unidade: string | null
+}
+
+/**
+ * Recalcula o `fator_conversao` quando alguém vincula o item a um produto.
+ *
+ * **Chame sempre no vínculo manual** (e ao trocar o produto de um item já
+ * vinculado). Na importação o item pendente recebe um fator calculado sem
+ * saber a unidade do cadastro — "CX C/24" vira 24 peças, mas se o produto for
+ * contado em litro o fator certo é outro. O banco não refaz essa conta
+ * sozinho: o trigger `mv_aprende_apelido` apenas memoriza o fator que estiver
+ * gravado na linha, então um fator errado aqui é aprendido e repetido nas
+ * próximas notas.
+ */
+export function recalcularFatorAoVincular(
+  item: ItemVinculavel,
+  produto: ProdutoVinculado,
+): ResultadoConversao {
+  return converterUnidade({
+    unidadeComercial: item.unidade,
+    descricao: item.descricao,
+    unidadeCadastro: produto.unidade,
+  })
+}

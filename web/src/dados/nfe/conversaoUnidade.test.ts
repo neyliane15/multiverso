@@ -5,6 +5,7 @@ import {
   extrairEmbalagem,
   fatorEntreUnidades,
   normalizarUnidade,
+  recalcularFatorAoVincular,
 } from './conversaoUnidade'
 
 function fator(unidadeComercial: string, descricao: string, unidadeCadastro: string | null): number {
@@ -204,5 +205,39 @@ describe('converterUnidade — quando não dá para saber', () => {
     for (const entrada of entradas) {
       expect(converterUnidade(entrada).fator).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('recalcularFatorAoVincular', () => {
+  it('corrige o fator que a importação chutou sem saber a unidade do cadastro', () => {
+    const item = { descricao: 'REFRIGERANTE COLA CX 12X1L', unidade: 'CX' }
+
+    // Na importação, item pendente: sem produto, sem unidade de cadastro.
+    const naImportacao = converterUnidade({
+      unidadeComercial: item.unidade,
+      descricao: item.descricao,
+      unidadeCadastro: null,
+    })
+    expect(naImportacao.fator).toBe(12) // 12 garrafas
+
+    // No vínculo manual, o produto é contado em litro: 12 garrafas de 1 L.
+    expect(recalcularFatorAoVincular(item, { unidade: 'L' }).fator).toBe(12)
+    // E se o cadastro contasse em mililitro, o fator teria de mudar.
+    expect(recalcularFatorAoVincular(item, { unidade: 'ML' }).fator).toBe(12000)
+  })
+
+  it('devolve o mesmo resultado de converterUnidade, com o aviso junto', () => {
+    const item = { descricao: 'CAIXA MISTERIOSA', unidade: 'CX' }
+    const resultado = recalcularFatorAoVincular(item, { unidade: 'UN' })
+    expect(resultado.fator).toBe(1)
+    expect(resultado.aviso).toMatch(/caixa/)
+  })
+
+  it('aceita produto sem unidade cadastrada', () => {
+    const resultado = recalcularFatorAoVincular(
+      { descricao: 'OVOS CAIXA COM 30', unidade: 'CX' },
+      { unidade: null },
+    )
+    expect(resultado.fator).toBe(30)
   })
 })
