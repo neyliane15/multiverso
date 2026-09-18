@@ -49,13 +49,13 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-import { ErroNfe, parsearXml, type NotaImportada } from '../../../web/src/dados/nfe/parsearXml.ts'
-import { converterUnidade } from '../../../web/src/dados/nfe/conversaoUnidade.ts'
+import { ErroNfe, parsearXml, type NotaImportada } from './_compartilhado/parsearXml.ts'
+import { converterUnidade } from './_compartilhado/conversaoUnidade.ts'
 import {
   casarItem,
   type ApelidoConhecido,
   type ProdutoCandidato,
-} from '../../../web/src/dados/nfe/casarProdutos.ts'
+} from './_compartilhado/casarProdutos.ts'
 
 const CABECALHOS_CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',

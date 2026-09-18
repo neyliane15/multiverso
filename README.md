@@ -81,12 +81,17 @@ cp .env.example .env        # preencha com a URL e a anon key do seu projeto
 npm run dev
 ```
 
-O banco:
+Para colocar num projeto Supabase de verdade, o passo a passo completo está em
+**[`docs/IMPLANTACAO.md`](docs/IMPLANTACAO.md)** — o resumo é:
 
 ```bash
-supabase db push                                   # aplica as migrações
-psql "$DATABASE_URL" -f supabase/seed/0001_bar_do_zeca.sql   # carga do 1º cliente
+npm i -g supabase && supabase login
+ferramentas/implantar.sh <referencia-do-projeto> --com-carga
 ```
+
+Isso aplica as migrações, carrega os 854 produtos e publica a função que lê
+NFe. Depois sobram três coisas que só você pode fazer: copiar as chaves para o
+`.env`, semear o primeiro master e publicar a pasta `dist/`.
 
 A carga termina com um bloco que **aborta** se o total da contagem não bater
 com os R$ 78.681,3573 da planilha de origem.

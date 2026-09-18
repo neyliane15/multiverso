@@ -17,7 +17,9 @@
     "seed:gerar": "node scripts/gerar-seed.mjs",
     "seed:conferir": "node scripts/conferir-seed.mjs",
     "test:banco": "supabase/testes/preparar-postgres.sh > /dev/null && supabase/testes/executar.sh",
-    "verificar": "npm run typecheck && npm test && npm run build && npm run test:banco"
+    "verificar": "npm run typecheck && npm test && npm run build && npm run test:banco",
+    "funcao:preparar": "node ferramentas/preparar-funcao.mjs",
+    "implantar": "ferramentas/implantar.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",

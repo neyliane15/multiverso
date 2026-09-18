@@ -18,7 +18,12 @@ export default defineConfig({
   build: { outDir: '../dist', emptyOutDir: true },
   test: {
     environment: 'node',
-    include: ['web/src/**/*.test.ts', 'web/src/**/*.test.tsx', 'scripts/**/*.test.mjs'],
+    include: [
+      'web/src/**/*.test.ts',
+      'web/src/**/*.test.tsx',
+      'scripts/**/*.test.mjs',
+      'ferramentas/**/*.test.mjs',
+    ],
     root: '.',
   },
 })

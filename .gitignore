@@ -8,3 +8,6 @@ supabase/.temp/
 
 # artefato de build do TypeScript
 *.tsbuildinfo
+
+# gerado por ferramentas/preparar-funcao.mjs antes do deploy
+supabase/functions/*/_compartilhado/

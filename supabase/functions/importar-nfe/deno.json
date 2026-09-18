@@ -1,14 +1,14 @@
 {
   "//": [
     "Mapa de importação da edge function importar-nfe.",
-    "O de-para de '@/util/formato' existe porque o parser é compartilhado com o",
-    "front (web/src/dados/nfe/): lá o alias '@' vem do tsconfig/vite, aqui ele",
-    "precisa apontar para o arquivo com extensão, que é o que o Deno exige.",
-    "Publicação: supabase functions deploy importar-nfe (na raiz do repositório)."
+    "O parser vive em web/src/dados/nfe/ e e COPIADO para _compartilhado/ por",
+    "ferramentas/preparar-funcao.mjs antes do deploy. O bundler do Supabase nao",
+    "e confiavel para seguir import que sai de supabase/functions/, e descobrir",
+    "isso no primeiro deploy e o pior momento possivel.",
+    "Publicacao: ferramentas/implantar.sh (ou npm run implantar)."
   ],
   "imports": {
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2.47.10",
-    "fast-xml-parser": "npm:fast-xml-parser@4.5.1",
-    "@/util/formato": "../../../web/src/util/formato.ts"
+    "fast-xml-parser": "npm:fast-xml-parser@4.5.1"
   }
 }
