@@ -177,15 +177,18 @@ export interface CategoriaDeCmv {
   categoria_id: string
   categoria_nome: string
   categoria_cor: string
-  estoque_inicial: number
+  /** Nulo quando não há contagem de abertura no período. */
+  estoque_inicial: number | null
   compras: number
-  estoque_final: number
-  cmv: number
+  /** Nulo quando não há contagem de fechamento no período. */
+  estoque_final: number | null
+  /** Nulo quando falta qualquer uma das duas contagens. */
+  cmv: number | null
 }
 
 export interface LinhaDeCategoria extends CategoriaDeCmv {
-  /** Fatia do CMV total do período, de 0 a 100. */
-  participacao: number
+  /** Fatia do CMV total do período, de 0 a 100. Nula quando não há CMV. */
+  participacao: number | null
   /** Largura da barra na tabela, de 0 a 100, relativa ao maior CMV. */
   proporcao: number
 }
@@ -198,17 +201,31 @@ export interface LinhaDeCategoria extends CategoriaDeCmv {
  * mês, ou item contado a mais) e é justamente o que alguém precisa ver.
  * `participacao` usa a soma dos positivos como base — misturar negativo no
  * denominador devolveria porcentagens acima de 100.
+ *
+ * CMV nulo é outra coisa: o período não tem as duas contagens e o número não
+ * existe. Essa categoria vai para o fim da lista, sem fatia e sem barra. Tratar
+ * nulo como zero a colocaria entre as que menos consumiram, que é uma
+ * afirmação — e uma afirmação que ninguém fez.
  */
 export function ordenarCategorias(categorias: readonly CategoriaDeCmv[]): LinhaDeCategoria[] {
-  const base = categorias.reduce((total, c) => total + Math.max(c.cmv, 0), 0)
-  const maior = categorias.reduce((maximo, c) => Math.max(maximo, Math.abs(c.cmv)), 0)
+  const base = categorias.reduce((total, c) => total + Math.max(c.cmv ?? 0, 0), 0)
+  const maior = categorias.reduce((maximo, c) => Math.max(maximo, Math.abs(c.cmv ?? 0)), 0)
 
   return [...categorias]
-    .sort((a, b) => b.cmv - a.cmv)
+    .sort((a, b) => {
+      if (a.cmv === null && b.cmv === null) return a.categoria_nome.localeCompare(b.categoria_nome)
+      if (a.cmv === null) return 1
+      if (b.cmv === null) return -1
+      return b.cmv - a.cmv
+    })
     .map((categoria) => ({
       ...categoria,
-      participacao: base === 0 ? 0 : (Math.max(categoria.cmv, 0) / base) * 100,
-      proporcao: maior === 0 ? 0 : (Math.abs(categoria.cmv) / maior) * 100,
+      // Nulo so quando o CMV nao existe. Base zero (ninguem consumiu nada no
+      // periodo) continua dando 0%: ali o numero existe e e zero mesmo.
+      participacao:
+        categoria.cmv === null ? null : base === 0 ? 0 : (Math.max(categoria.cmv, 0) / base) * 100,
+      proporcao:
+        categoria.cmv === null || maior === 0 ? 0 : (Math.abs(categoria.cmv) / maior) * 100,
     }))
 }
 

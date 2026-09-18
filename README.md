@@ -86,6 +86,18 @@ com os R$ 78.681,3573 da planilha de origem.
 npm run verificar   # typecheck + testes + build + suíte de banco
 ```
 
+Para **abrir o sistema de verdade**, com os 854 produtos do Bar do Zeca dentro
+e sem depender de um projeto na nuvem:
+
+```bash
+ferramentas/local/subir.sh   # Postgres + PostgREST + portão de autenticação
+npm run dev
+```
+
+Entra com `admin@bardozeca.com.br` e senha `multiverso`. A RLS vale de verdade
+ali: entrar como operador e como master dá telas diferentes porque o banco
+devolve linhas diferentes. Detalhes e limites em `ferramentas/local/README.md`.
+
 Ou cada peça de uma vez:
 
 ```bash

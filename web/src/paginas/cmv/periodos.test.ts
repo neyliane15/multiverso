@@ -167,7 +167,7 @@ describe('ordenarCategorias', () => {
 
   it('a participação soma 100% entre as categorias que consumiram', () => {
     const linhas = ordenarCategorias(categorias)
-    const soma = linhas.reduce((total, l) => total + l.participacao, 0)
+    const soma = linhas.reduce((total, l) => total + (l.participacao ?? 0), 0)
     expect(soma).toBeCloseTo(100, 6)
   })
 
@@ -175,6 +175,33 @@ describe('ordenarCategorias', () => {
     const negativa = ordenarCategorias(categorias).find((c) => c.categoria_id === 'm')
     expect(negativa?.participacao).toBe(0)
     expect(negativa?.proporcao).toBeGreaterThan(0)
+  })
+
+  it('categoria sem as duas contagens vai para o fim, sem fatia e sem barra', () => {
+    // Nulo nao e zero. Tratar como zero colocaria a categoria entre as que
+    // menos consumiram — uma afirmacao que ninguem fez. O caso real: periodo
+    // sem contagem de fechamento, em que o CMV nao existe para ninguem.
+    const comNulo = [
+      ...categorias,
+      {
+        categoria_id: 'x',
+        categoria_nome: 'HORTIFRUTI',
+        categoria_cor: '#3FAE86',
+        estoque_inicial: 4_000,
+        compras: 900,
+        estoque_final: null,
+        cmv: null,
+      },
+    ]
+    const linhas = ordenarCategorias(comNulo)
+
+    expect(linhas[linhas.length - 1]?.categoria_id).toBe('x')
+    expect(linhas[linhas.length - 1]?.participacao).toBeNull()
+    expect(linhas[linhas.length - 1]?.proporcao).toBe(0)
+
+    // E nao contamina o resto: a fatia das que tem CMV continua somando 100%.
+    const soma = linhas.reduce((total, l) => total + (l.participacao ?? 0), 0)
+    expect(soma).toBeCloseTo(100, 6)
   })
 
   it('a barra é relativa ao maior valor absoluto', () => {

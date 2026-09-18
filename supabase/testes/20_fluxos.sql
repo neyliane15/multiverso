@@ -188,6 +188,19 @@ begin
   perform conferir('a abertura por categoria soma o mesmo CMV',
     (select sum(cmv) from mv_cmv_por_categoria(r, date '2026-08-01', date '2026-08-31')) = 600);
 
+  -- Periodo sem contagem de fechamento: a abertura por categoria tem de voltar
+  -- nula, e nao com estoque final zero. Zero ali afirmaria que a casa consumiu
+  -- o estoque inteiro — o erro teria o tamanho do estoque.
+  perform conferir('sem contagem final, o CMV por categoria e nulo',
+    (select count(*) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30')
+      where cmv is not null) = 0);
+  perform conferir('sem contagem final, o estoque final por categoria e nulo',
+    (select count(*) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30')
+      where estoque_final is not null) = 0);
+  perform conferir('mas o estoque inicial de setembro existe (a foto de agosto)',
+    (select count(*) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30')
+      where estoque_inicial is not null) > 0);
+
   -- Granularidade invalida tem de gritar, nao devolver vazio.
   begin
     perform count(*) from mv_cmv_serie(r, 'diaria', 3);

@@ -312,10 +312,13 @@ export interface CmvCategoria {
   categoria_id: string
   categoria_nome: string
   categoria_cor: string
-  estoque_inicial: number
+  /** Nulo sem contagem de abertura — ver a migração 0007. */
+  estoque_inicial: number | null
   compras: number
-  estoque_final: number
-  cmv: number
+  /** Nulo sem contagem de fechamento. */
+  estoque_final: number | null
+  /** Nulo faltando qualquer uma das duas contagens. */
+  cmv: number | null
 }
 
 export interface PanoramaRestaurante {
