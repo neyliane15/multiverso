@@ -117,7 +117,7 @@ export function TelaDeCadastro({
       />
 
       <Cartao>
-        <div className="flex flex-wrap items-center gap-3 border-b border-borda p-4">
+        <div className="flex flex-wrap items-center gap-3 border-b border-borda px-5 py-4">
           <Campo
             type="search"
             className="w-full sm:w-72"
@@ -147,7 +147,7 @@ export function TelaDeCadastro({
           <ErroDaConsulta erro={erro} aoTentar={aoTentarDeNovo} />
         ) : itens.length === 0 ? (
           <EstadoVazio
-            icone={<Icone className="size-8" aria-hidden />}
+            icone={<Icone />}
             titulo={rotulos.nenhumCadastrado}
             acao={
               podeEditar && (
@@ -218,7 +218,6 @@ export function TelaDeCadastro({
                         <Botao
                           tom="fantasma"
                           tamanho="p"
-                          className="mv-toque px-1.5"
                           disabled={!podeEditar || indice === 0 || busca !== ''}
                           aria-label={`Subir ${item.nome}`}
                           onClick={(e) => {
@@ -231,7 +230,6 @@ export function TelaDeCadastro({
                         <Botao
                           tom="fantasma"
                           tamanho="p"
-                          className="mv-toque px-1.5"
                           disabled={!podeEditar || indice === visiveis.length - 1 || busca !== ''}
                           aria-label={`Descer ${item.nome}`}
                           onClick={(e) => {

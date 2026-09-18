@@ -71,11 +71,11 @@ export function PainelLateral({
         aria-labelledby={idDoTitulo}
         tabIndex={-1}
         className={[
-          'relative flex h-dvh w-full flex-col border-l border-borda bg-superficie shadow-2xl outline-none',
+          'relative flex h-dvh w-full flex-col border-l border-borda bg-superficie shadow-alta outline-none',
           largura === 'larga' ? 'sm:max-w-[680px]' : 'sm:max-w-[520px]',
         ].join(' ')}
       >
-        <div className="mv-faixa h-[3px] shrink-0" aria-hidden />
+        <div className="mv-faixa h-0.75 shrink-0" aria-hidden />
         <header className="flex items-start gap-4 border-b border-borda px-5 py-4">
           <div className="min-w-0 flex-1">
             <h2 id={idDoTitulo} className="font-titulo text-destaque font-semibold text-texto">
@@ -85,15 +85,17 @@ export function PainelLateral({
               <div className="mt-1 text-apoio leading-relaxed text-texto-fraco">{descricao}</div>
             )}
           </div>
-          <Botao tom="fantasma" tamanho="p" onClick={aoFechar} aria-label="Fechar" className="px-2">
+          <Botao tom="fantasma" tamanho="p" onClick={aoFechar} aria-label="Fechar">
             <X className="size-5" aria-hidden />
           </Botao>
         </header>
 
-        <div className="mv-entra min-h-0 flex-1 overflow-y-auto px-5 py-5">{children}</div>
+        <div className="mv-entra min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
 
+        {/* O rodapé é onde ficam Salvar e Cancelar, e no celular ele encosta na
+            barra de gesto do aparelho — daí a área segura. */}
         {rodape && (
-          <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-borda px-5 py-4">
+          <footer className="mv-segura-b flex flex-wrap items-center justify-end gap-2 border-t border-borda px-5 pt-4 [--mv-folga-b:1rem]">
             {rodape}
           </footer>
         )}

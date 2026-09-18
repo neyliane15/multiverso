@@ -113,7 +113,7 @@ function ThOrdenavel({
         onClick={() => aoOrdenar(coluna)}
         aria-label={`Ordenar por ${String(children)}`}
         className={[
-          'inline-flex items-center gap-1.5 rounded-marca-p py-1 uppercase tracking-[.07em]',
+          'inline-flex items-center gap-1.5 rounded-marca-p py-1',
           numerico ? 'flex-row-reverse' : '',
           ativa ? 'text-primaria-legivel' : 'hover:text-texto',
         ].join(' ')}
@@ -287,7 +287,7 @@ export function Produtos(): JSX.Element {
 
       <Cartao>
         {/* ────────────────────────────────────────────────── filtros ──── */}
-        <div className="grid gap-3 border-b border-borda p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 border-b border-borda px-5 py-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-fraco"
@@ -347,7 +347,7 @@ export function Produtos(): JSX.Element {
         </div>
 
         {/* ─────────────────────────────────────────────────── resumo ──── */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-borda px-4 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-borda px-5 py-3">
           <p role="status" className="text-apoio text-texto-fraco">
             <span className="mv-numero text-texto">{quantidade(visiveis.length)}</span>{' '}
             {visiveis.length === 1 ? 'produto' : 'produtos'} na tela
@@ -384,7 +384,7 @@ export function Produtos(): JSX.Element {
           <ErroDaConsulta erro={produtos.error} aoTentar={() => void produtos.refetch()} />
         ) : lista.length === 0 ? (
           <EstadoVazio
-            icone={<Package className="size-8" aria-hidden />}
+            icone={<Package />}
             titulo="O catálogo está vazio"
             acao={
               podeAdministrar && (
@@ -399,7 +399,7 @@ export function Produtos(): JSX.Element {
           </EstadoVazio>
         ) : visiveis.length === 0 ? (
           <EstadoVazio
-            icone={<Search className="size-8" aria-hidden />}
+            icone={<Search />}
             titulo="Nenhum produto com esses filtros"
             acao={
               <Botao tom="secundario" onClick={() => setFiltro(FILTRO_INICIAL)}>
@@ -420,7 +420,7 @@ export function Produtos(): JSX.Element {
                 componente Tabela, porque o cabeçalho grudado depende de este
                 div ser o único contêiner de rolagem da tabela. */}
             {telaLarga ? (
-              <table className="w-full border-collapse text-sm">
+              <table className="w-full border-collapse text-corpo [&_tbody_tr:last-child>td]:border-b-0">
                 <thead>
                   <tr>
                     <ThOrdenavel coluna="nome" atual={ordem} aoOrdenar={(c) => setOrdem(alternarOrdem(ordem, c))}>
@@ -518,7 +518,7 @@ export function Produtos(): JSX.Element {
                         type="button"
                         onClick={() => setEditando({ produto: p })}
                         className={[
-                          'flex h-full w-full flex-col justify-center gap-1.5 px-4 text-left',
+                          'flex h-full w-full flex-col justify-center gap-1.5 px-5 text-left',
                           p.ativo ? '' : 'opacity-60',
                         ].join(' ')}
                       >

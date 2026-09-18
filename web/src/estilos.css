@@ -103,6 +103,20 @@
   /* --- alvo de toque: o mínimo, em qualquer lugar do sistema -------------- */
   --mv-toque: 44px;
 
+  /* --- movimento: uma duração e uma curva para todo o sistema. Antes cada
+         peça escolhia a sua (150ms aqui, 200ms no irmão do lado), e o app
+         parecia ter dois relógios. ---------------------------------------- */
+  --mv-duracao: 150ms;
+  --mv-curva: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* --- escala de sombra: três degraus, e só. A sombra do tema escuro é preta
+         e profunda porque o fundo é quase preto; a do tema claro é o azul do
+         grafite a 8–14%, porque preto puro sobre branco vira sujeira. Por isso
+         os dois temas têm valores escolhidos, não a mesma opacidade. ------- */
+  --mv-sombra-1: 0 1px 2px rgb(0 0 0 / 0.32);
+  --mv-sombra-2: 0 4px 12px -2px rgb(0 0 0 / 0.42);
+  --mv-sombra-3: 0 16px 40px -8px rgb(0 0 0 / 0.56);
+
   color-scheme: dark;
 }
 
@@ -125,6 +139,11 @@
   --mv-info-texto:    #14599f;
   --mv-info-suave:    #e6f0fe;
   --mv-info-borda:    #afcdf5;
+
+  --mv-sombra-1: 0 1px 2px rgb(9 16 22 / 0.08);
+  --mv-sombra-2: 0 4px 12px -2px rgb(9 16 22 / 0.12);
+  --mv-sombra-3: 0 16px 40px -8px rgb(9 16 22 / 0.18);
+
   color-scheme: light;
 }
 
@@ -149,6 +168,18 @@
   --color-primaria-legivel: var(--mv-primaria-legivel);
   --color-borda: var(--mv-borda);
   --color-borda-forte: var(--mv-borda-forte);
+
+  /* A escada de lavagem da primária, com papel definido:
+     06 = repouso tingido · 10 = passagem do ponteiro · 16 = selecionado ·
+     24 = disco/avatar · 40 = borda sobre fundo tingido · 64 = véu.
+     Ter os degraus como cor (e não como `/opacidade` escrita à mão em cada
+     tela) é o que impede o oitavo tom de aparecer na próxima tela. */
+  --color-primaria-06: var(--mv-primaria-06);
+  --color-primaria-10: var(--mv-primaria-10);
+  --color-primaria-16: var(--mv-primaria-16);
+  --color-primaria-24: var(--mv-primaria-24);
+  --color-primaria-40: var(--mv-primaria-40);
+  --color-primaria-64: var(--mv-primaria-64);
 
   --color-sucesso: var(--mv-sucesso);
   --color-sucesso-texto: var(--mv-sucesso-texto);
@@ -193,6 +224,23 @@
   --radius-marca: var(--mv-raio);
   --radius-marca-p: var(--mv-raio-p);
   --radius-marca-g: var(--mv-raio-g);
+  /* Raio de um filho encostado na borda interna do pai: o do pai menos a folga.
+     Sem isto o canto de dentro fica mais redondo que o de fora e os dois não
+     encaixam. */
+  --radius-marca-interno: calc(var(--mv-raio-p) - 2px);
+
+  /* Três degraus de profundidade, um por papel: `baixa` é o cartão pousado na
+     página, `media` é o que flutua por cima dela (dica, menu), `alta` é o que
+     cobre a página (painel, diálogo). Nada fora daqui. */
+  --shadow-baixa: var(--mv-sombra-1);
+  --shadow-media: var(--mv-sombra-2);
+  --shadow-alta: var(--mv-sombra-3);
+
+  /* Toda transição do app nasce com esta duração e esta curva — a mesma de
+     `.mv-entra`. Um botão não anima em 150ms enquanto o irmão dele anima em
+     300ms. */
+  --default-transition-duration: var(--mv-duracao);
+  --default-transition-timing-function: var(--mv-curva);
 
   --font-titulo: var(--mv-pilha-titulo);
   --font-texto: var(--mv-pilha-texto);
@@ -295,7 +343,11 @@
   }
 
   /* Rótulo de campo e cabeçalho de tabela: caixa alta curta, travada, sem peso.
-     É o vocabulário da etiqueta de prateleira. */
+     É o vocabulário da etiqueta de prateleira.
+
+     Um desenho só, e é este: `Rotulo`, `Th` e todo rótulo solto passam por
+     aqui. Três etiquetas com três espaçamentos diferentes na mesma tela é
+     exatamente o que faz um sistema parecer montado por duas equipes. */
   .mv-rotulo {
     font-family: var(--mv-pilha-texto);
     font-size: var(--text-rotulo);
@@ -319,11 +371,21 @@
   }
 
   /* Foco: um anel só, sempre visível, sempre com o mesmo desenho, em cima de
-     qualquer fundo (a cor de foco é escolhida por contraste em marca.ts). */
+     qualquer fundo (a cor de foco é escolhida por contraste em marca.ts).
+
+     Duas coisas que o anel não pode fazer, e por isso estão escritas aqui:
+
+     · não forçar raio. O `outline` já acompanha o `border-radius` do próprio
+       elemento; cravar um raio aqui deixava o anel quadrado em volta do avatar
+       redondo e do selo em pílula.
+     · não depender do que está atrás. O fio interno na cor do fundo separa o
+       anel do elemento, então ele continua visível sobre a primária, sobre um
+       selo colorido e sobre a linha selecionada — casos em que a cor de foco
+       podia encostar numa cor parecida e desaparecer. */
   :focus-visible {
     outline: 2px solid var(--mv-foco);
     outline-offset: 2px;
-    border-radius: var(--mv-raio-p);
+    box-shadow: 0 0 0 2px var(--mv-fundo);
   }
   :focus:not(:focus-visible) {
     outline: none;
@@ -335,6 +397,19 @@
     position: relative;
     min-inline-size: var(--mv-toque);
     min-block-size: var(--mv-toque);
+  }
+
+  /* Área segura do aparelho. O entalhe e a barra de gesto do iPhone comem a
+     faixa de baixo da tela: sem isto, o total da contagem — o número que a
+     pessoa está conferindo — fica embaixo da barrinha de gesto.
+     `.mv-segura-b` é para o que gruda no rodapé, `.mv-segura-x` para o que
+     encosta nas laterais em paisagem. */
+  .mv-segura-b {
+    padding-block-end: calc(var(--mv-folga-b, 0.75rem) + env(safe-area-inset-bottom));
+  }
+  .mv-segura-x {
+    padding-inline-start: max(var(--mv-folga-x, 0px), env(safe-area-inset-left));
+    padding-inline-end: max(var(--mv-folga-x, 0px), env(safe-area-inset-right));
   }
 
   ::selection {
@@ -353,6 +428,18 @@
   button {
     font: inherit;
     color: inherit;
+  }
+
+  /* Quando o teclado do celular abre, o navegador rola o campo em foco para
+     dentro da área que sobrou — e o encosta na borda. Aqui ele passa a reservar
+     a altura da barra de cima (4rem) e a da barra de totais (que é onde se
+     confere o número enquanto se digita). Vale para a folha de contagem e para
+     a lista de compras, que são as duas telas usadas com o teclado aberto o
+     tempo todo. */
+  input,
+  select,
+  textarea {
+    scroll-margin-block: 5rem 6rem;
   }
 
   /* Barra de rolagem discreta: a tela é densa, a barra não compete. */
@@ -382,7 +469,7 @@
     scroll-behavior: smooth;
   }
   .mv-entra {
-    animation: mv-entra 180ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation: mv-entra var(--mv-duracao) var(--mv-curva) both;
   }
 }
 

@@ -13,7 +13,7 @@
  *   tela é pior do que operação lenta.
  * - Total do setor e total geral sempre à vista, grudados no rodapé.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -23,7 +23,6 @@ import {
   LockOpen,
   Search,
   Store,
-  X,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useSessao } from '@/dados/sessao'
@@ -42,17 +41,23 @@ import {
 import type { TipoContagem } from '@/tipos/banco'
 import {
   Aviso,
+  BarraDeTotais,
   Botao,
   CabecalhoDePagina,
   Campo,
   CampoNumero,
   Carregando,
   Cartao,
+  Chip,
+  Dialogo,
   ErroDaConsulta,
   EstadoVazio,
+  Ponto,
   Rotulo,
   Selecao,
   Selo,
+  TotalDaBarra,
+  plural,
 } from '@/componentes/base'
 import { data as formatarData, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
 import {
@@ -82,7 +87,7 @@ export function Contagem() {
       <>
         <CabecalhoDePagina titulo="Contagem" />
         <Cartao>
-          <EstadoVazio icone={<Store className="size-7" />} titulo="Nenhum restaurante em foco">
+          <EstadoVazio icone={<Store />} titulo="Nenhum restaurante em foco">
             Escolha um restaurante na barra de cima para abrir a folha de contagem.
           </EstadoVazio>
         </Cartao>
@@ -167,7 +172,7 @@ function AbrirContagem({ restauranteId }: { restauranteId: string }) {
 
       <Cartao>
         <EstadoVazio
-          icone={<ClipboardList className="size-8" />}
+          icone={<ClipboardList />}
           titulo="Sem contagem aberta"
         >
           A contagem monta a folha a partir do cadastro: cada produto ativo, em cada
@@ -228,11 +233,10 @@ function AbrirContagem({ restauranteId }: { restauranteId: string }) {
                   {ativos.map((setor) => {
                     const marcado = escolhidos.has(setor.id)
                     return (
-                      <button
+                      <Chip
                         key={setor.id}
-                        type="button"
-                        aria-pressed={marcado}
-                        onClick={() =>
+                        marcado={marcado}
+                        aoAlternar={() =>
                           setEscolhidos((atual) => {
                             const novo = new Set(atual)
                             if (novo.has(setor.id)) novo.delete(setor.id)
@@ -240,29 +244,18 @@ function AbrirContagem({ restauranteId }: { restauranteId: string }) {
                             return novo
                           })
                         }
-                        className={clsx(
-                          'inline-flex min-h-toque items-center gap-2 rounded-marca-p border px-3 text-corpo',
-                          'transition-colors',
-                          marcado
-                            ? 'border-primaria bg-primaria/16 text-primaria-legivel'
-                            : 'border-borda bg-superficie-2 text-texto-suave hover:border-borda-forte',
-                        )}
                       >
-                        <span
-                          className="size-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: setor.cor }}
-                          aria-hidden
-                        />
+                        <Ponto cor={setor.cor} />
                         {setor.nome}
                         {marcado && <CheckCircle2 className="size-4" aria-hidden />}
-                      </button>
+                      </Chip>
                     )
                   })}
                 </div>
                 <p className="text-apoio text-texto-fraco" role="status">
                   {todosOsSetores
                     ? 'Nenhum setor marcado: a folha vai nascer com todos.'
-                    : `${escolhidos.size} setor(es) na folha.`}
+                    : `${escolhidos.size} ${plural(escolhidos.size, 'setor', 'setores')} na folha.`}
                 </p>
               </>
             )}
@@ -361,16 +354,6 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   const totalGeral = useMemo(() => totalDosItens(todos, rascunhos), [todos, rascunhos])
   const resumo = useMemo(() => resumoDoFechamento(todos, rascunhos), [todos, rascunhos])
   const visiveis = grupos.reduce((soma, g) => soma + g.itens.length, 0)
-
-  // Esc fecha a confirmação: o diálogo cobre a tela e precisa de saída rápida.
-  useEffect(() => {
-    if (!confirmando) return
-    function aoTeclar(evento: KeyboardEvent) {
-      if (evento.key === 'Escape') setConfirmando(false)
-    }
-    window.addEventListener('keydown', aoTeclar)
-    return () => window.removeEventListener('keydown', aoTeclar)
-  }, [confirmando])
 
   async function lancarQuantidade(item: ItemContavel, valor: number) {
     if (somenteLeitura) return
@@ -519,7 +502,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
 
       {abas.length === 0 ? (
         <Cartao>
-          <EstadoVazio icone={<ClipboardList className="size-7" />} titulo="Folha vazia">
+          <EstadoVazio icone={<ClipboardList />} titulo="Folha vazia">
             Esta contagem nasceu sem nenhuma linha — provavelmente não havia produto ativo
             vinculado aos setores escolhidos. Confira o cadastro de produtos.
           </EstadoVazio>
@@ -546,16 +529,12 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                       className={clsx(
                         'flex min-h-toque w-full min-w-[168px] flex-col justify-center gap-1 rounded-marca-p border px-3 py-2 text-left transition-colors',
                         ativo
-                          ? 'border-primaria bg-primaria/16'
-                          : 'border-borda bg-superficie-1 hover:border-borda-forte',
+                          ? 'border-primaria bg-primaria-16 active:brightness-95'
+                          : 'border-borda bg-superficie-1 hover:border-borda-forte hover:bg-primaria-06 active:bg-primaria-16',
                       )}
                     >
                       <span className="flex items-center gap-2">
-                        <span
-                          className="size-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: aba.cor }}
-                          aria-hidden
-                        />
+                        <Ponto cor={aba.cor} />
                         <span
                           className={clsx(
                             'truncate text-corpo font-medium',
@@ -573,7 +552,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                         aria-hidden
                       >
                         <span
-                          className="block h-full rounded-full bg-primaria transition-[width] duration-150"
+                          className="block h-full rounded-full bg-primaria transition-[width]"
                           style={{ width: `${progresso}%` }}
                         />
                       </span>
@@ -615,7 +594,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
             {visiveis === 0 ? (
               <Cartao>
                 <EstadoVazio
-                  icone={<CheckCircle2 className="size-7" />}
+                  icone={<CheckCircle2 />}
                   titulo={soNaoContados ? 'Nada pendente neste setor' : 'Nenhum item encontrado'}
                 >
                   {soNaoContados
@@ -626,7 +605,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
             ) : (
               grupos.map((grupo) => (
                 <Cartao key={grupo.categoriaId ?? 'sem-categoria'}>
-                  <header className="flex items-center justify-between gap-3 border-b border-borda px-4 py-3">
+                  <header className="flex items-center justify-between gap-3 border-b border-borda px-5 py-4">
                     <Selo cor={grupo.cor ?? undefined}>{grupo.nome}</Selo>
                     <span className="mv-numero text-apoio text-texto-fraco">
                       {dinheiro(grupo.total)}
@@ -639,7 +618,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                       return (
                         <li
                           key={item.id}
-                          className="flex items-center gap-3 px-4 py-2.5"
+                          className="flex items-center gap-3 px-5 py-3"
                         >
                           <div className="min-w-0 flex-1">
                             <label
@@ -683,29 +662,14 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
       )}
 
       {/* ─────────────────────────────────── os totais, sempre à vista ──── */}
-      <div
-        role="status"
-        className={clsx(
-          'sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-1',
-          'border-t border-borda bg-fundo/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6',
-        )}
-      >
-        <div>
-          <div className="mv-rotulo">Setor</div>
-          <div className="mv-numero text-destaque font-semibold text-texto">
-            {dinheiro(totalDoSetor)}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="mv-rotulo">Total da contagem</div>
-          <div className="mv-numero text-secao font-semibold text-primaria-legivel">
-            {dinheiro(totalGeral)}
-          </div>
-        </div>
+      <BarraDeTotais>
+        <TotalDaBarra rotulo="Setor" valor={dinheiro(totalDoSetor)} />
+        <TotalDaBarra rotulo="Total da contagem" valor={dinheiro(totalGeral)} destaque alinharADireita />
         <div className="w-full text-apoio text-texto-fraco sm:w-auto">
-          {resumo.comQuantidade} de {resumo.itens} itens com quantidade
+          <span className="mv-numero">{resumo.comQuantidade}</span> de{' '}
+          <span className="mv-numero">{resumo.itens}</span> itens com quantidade
         </div>
-      </div>
+      </BarraDeTotais>
 
       {confirmando && (
         <ConfirmarFechamento
@@ -733,74 +697,64 @@ function ConfirmarFechamento({
   aoConfirmar: () => void
 }) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="titulo-fechamento"
-      className="fixed inset-0 z-50 grid items-end justify-items-center bg-neutro-1000/70 p-0 sm:place-items-center sm:p-4"
+    <Dialogo
+      titulo="Fechar a contagem?"
+      descricao="Depois de fechada, quantidade e custo não mudam mais."
+      aoFechar={aoCancelar}
+      rodape={
+        <>
+          <Botao tom="secundario" onClick={aoCancelar}>
+            Voltar e conferir
+          </Botao>
+          <Botao
+            tom="primario"
+            icone={<AlertTriangle className="size-4" aria-hidden />}
+            carregando={salvando}
+            onClick={aoConfirmar}
+          >
+            Fechar mesmo assim
+          </Botao>
+        </>
+      }
     >
-      <div className="w-full max-w-lg">
-        <Cartao
-          titulo={<span id="titulo-fechamento">Fechar a contagem?</span>}
-          descricao="Depois de fechada, quantidade e custo não mudam mais."
-          acao={
-            <Botao tom="fantasma" tamanho="p" onClick={aoCancelar} aria-label="Cancelar fechamento">
-              <X className="size-4" aria-hidden />
-            </Botao>
-          }
-          className="max-h-[90dvh] overflow-y-auto"
-        >
-          <div className="space-y-4 p-5">
-            <dl className="grid grid-cols-2 gap-3">
-              <div className="rounded-marca-p border border-borda bg-superficie-2 px-3 py-2">
-                <dt className="mv-rotulo">Com quantidade</dt>
-                <dd className="mv-numero text-destaque font-semibold text-texto">
-                  {formatarQuantidade(resumo.comQuantidade)}
-                </dd>
-              </div>
-              <div className="rounded-marca-p border border-borda bg-superficie-2 px-3 py-2">
-                <dt className="mv-rotulo">Vão congelar zerados</dt>
-                <dd className="mv-numero text-destaque font-semibold text-texto">
-                  {formatarQuantidade(resumo.zerados)}
-                </dd>
-              </div>
-            </dl>
-
-            {resumo.nuncaTocados > 0 ? (
-              <Aviso tom="alerta" titulo={`${resumo.nuncaTocados} item(ns) que ninguém abriu`}>
-                Destes {resumo.zerados} zerados, {resumo.nuncaTocados} nunca receberam nenhum
-                valor — nem zero. Item esquecido vira estoque final menor, e o CMV do período
-                sai maior sem que ninguém entenda por quê. Vale conferir antes de congelar.
-              </Aviso>
-            ) : (
-              <Aviso tom="sucesso" titulo="Todos os itens foram trabalhados">
-                Os {resumo.zerados} itens zerados foram abertos e confirmados em zero.
-              </Aviso>
-            )}
-
-            <div className="flex items-center justify-between rounded-marca-p border border-borda bg-superficie-2 px-3 py-2">
-              <span className="mv-rotulo">Total que vai ser congelado</span>
-              <span className="mv-numero text-destaque font-semibold text-texto">
-                {dinheiro(resumo.total)}
-              </span>
-            </div>
-
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Botao tom="secundario" onClick={aoCancelar}>
-                Voltar e conferir
-              </Botao>
-              <Botao
-                tom="primario"
-                icone={<AlertTriangle className="size-4" aria-hidden />}
-                carregando={salvando}
-                onClick={aoConfirmar}
-              >
-                Fechar mesmo assim
-              </Botao>
-            </div>
+      <div className="space-y-4">
+        <dl className="grid grid-cols-2 gap-3">
+          <div className="rounded-marca-p border border-borda bg-superficie-2 px-3 py-2">
+            <dt className="mv-rotulo">Com quantidade</dt>
+            <dd className="mv-numero text-destaque font-semibold text-texto">
+              {formatarQuantidade(resumo.comQuantidade)}
+            </dd>
           </div>
-        </Cartao>
+          <div className="rounded-marca-p border border-borda bg-superficie-2 px-3 py-2">
+            <dt className="mv-rotulo">Vão congelar zerados</dt>
+            <dd className="mv-numero text-destaque font-semibold text-texto">
+              {formatarQuantidade(resumo.zerados)}
+            </dd>
+          </div>
+        </dl>
+
+        {resumo.nuncaTocados > 0 ? (
+          <Aviso
+            tom="alerta"
+            titulo={`${resumo.nuncaTocados} ${plural(resumo.nuncaTocados, 'item que ninguém abriu', 'itens que ninguém abriu')}`}
+          >
+            Destes {resumo.zerados} zerados, {resumo.nuncaTocados} nunca receberam nenhum
+            valor — nem zero. Item esquecido vira estoque final menor, e o CMV do período
+            sai maior sem que ninguém entenda por quê. Vale conferir antes de congelar.
+          </Aviso>
+        ) : (
+          <Aviso tom="sucesso" titulo="Todos os itens foram trabalhados">
+            Os {resumo.zerados} itens zerados foram abertos e confirmados em zero.
+          </Aviso>
+        )}
+
+        <div className="flex items-center justify-between rounded-marca-p border border-borda bg-superficie-2 px-3 py-2">
+          <span className="mv-rotulo">Total que vai ser congelado</span>
+          <span className="mv-numero text-destaque font-semibold text-texto">
+            {dinheiro(resumo.total)}
+          </span>
+        </div>
       </div>
-    </div>
+    </Dialogo>
   )
 }

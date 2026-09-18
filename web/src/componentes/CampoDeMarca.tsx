@@ -19,7 +19,7 @@ import {
   type CSSProperties,
   type DragEvent,
 } from 'react'
-import { AlertTriangle, Check, Image as Icone, Loader2, Trash2, Upload } from 'lucide-react'
+import { Check, Image as Icone, Trash2, Upload } from 'lucide-react'
 import type { Marca } from '@/tipos/banco'
 import { supabase } from '@/dados/supabase'
 import {
@@ -30,6 +30,7 @@ import {
   variaveisDaMarca,
 } from '@/tema/marca'
 import { carregarFonte } from '@/tema/ProvedorDeMarca'
+import { Aviso, Botao } from './base'
 import { LogoDoRestaurante } from './LogoDoRestaurante'
 
 /* ========================================================================== */
@@ -119,7 +120,7 @@ export function SeletorDeCor({
         <div className="relative shrink-0">
           <label
             htmlFor={id}
-            className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-marca border border-borda-forte sm:h-20 sm:w-20"
+            className="flex size-16 cursor-pointer items-center justify-center rounded-marca border border-borda-forte sm:size-20"
             style={{ backgroundColor: valor }}
           >
             <span className="mv-rotulo" style={{ color: sobre, letterSpacing: '0.04em' }}>
@@ -184,12 +185,8 @@ export function SeletorDeCor({
       {avisos.length > 0 ? (
         <ul className="mt-4 space-y-2">
           {avisos.map((aviso) => (
-            <li
-              key={aviso}
-              className="flex gap-2 rounded-marca-p border border-alerta-borda bg-alerta-suave p-3 text-apoio text-alerta-texto"
-            >
-              <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{aviso}</span>
+            <li key={aviso}>
+              <Aviso tom="alerta">{aviso}</Aviso>
             </li>
           ))}
         </ul>
@@ -335,7 +332,7 @@ export function EnvioDeLogo({
         style={sobre ? { backgroundColor: 'var(--mv-primaria-10)' } : undefined}
       >
         <div
-          className="flex h-20 w-20 shrink-0 items-center justify-center rounded-marca border border-borda"
+          className="flex size-20 shrink-0 items-center justify-center rounded-marca border border-borda"
           style={{ backgroundColor: fundo }}
         >
           {valor ? (
@@ -345,7 +342,7 @@ export function EnvioDeLogo({
               className="max-h-16 max-w-16 object-contain"
             />
           ) : (
-            <Icone aria-hidden className="h-6 w-6 text-texto-fraco" />
+            <Icone aria-hidden className="size-6 text-texto-fraco" />
           )}
         </div>
 
@@ -365,36 +362,26 @@ export function EnvioDeLogo({
           <p className="mt-1 text-micro text-texto-fraco">PNG, JPG, WEBP ou SVG, até 2 MB.</p>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
+            <Botao
+              tom="primario"
               onClick={() => entrada.current?.click()}
-              disabled={enviando}
-              className="mv-toque inline-flex items-center gap-2 rounded-marca-p px-4 text-rotulo font-semibold disabled:opacity-60"
-              style={{
-                backgroundColor: 'var(--mv-primaria)',
-                color: 'var(--mv-sobre-primaria)',
-              }}
+              carregando={enviando}
+              icone={<Upload aria-hidden className="size-4" />}
             >
-              {enviando ? (
-                <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
-              ) : (
-                <Upload aria-hidden className="h-4 w-4" />
-              )}
               {enviando ? 'Enviando…' : 'Enviar arquivo'}
-            </button>
+            </Botao>
 
             {valor ? (
-              <button
-                type="button"
+              <Botao
+                tom="secundario"
                 onClick={() => {
                   setErro(null)
                   aoMudar(null)
                 }}
-                className="mv-toque inline-flex items-center gap-2 rounded-marca-p border border-borda px-4 text-rotulo font-semibold text-texto-suave"
+                icone={<Trash2 aria-hidden className="size-4" />}
               >
-                <Trash2 aria-hidden className="h-4 w-4" />
                 Remover
-              </button>
+              </Botao>
             ) : null}
           </div>
         </div>
@@ -415,13 +402,9 @@ export function EnvioDeLogo({
       </div>
 
       {erro ? (
-        <p
-          role="alert"
-          className="mt-3 flex gap-2 rounded-marca-p border border-erro-borda bg-erro-suave p-3 text-apoio text-erro-texto"
-        >
-          <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{erro}</span>
-        </p>
+        <div className="mt-3">
+          <Aviso tom="erro">{erro}</Aviso>
+        </div>
       ) : null}
     </div>
   )
@@ -518,14 +501,14 @@ export function SeletorDeFonte({
               />
               <span
                 aria-hidden
-                className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border"
+                className="mt-1 flex size-4 shrink-0 items-center justify-center rounded-full border"
                 style={{
                   borderColor: escolhida ? 'var(--mv-primaria)' : 'var(--mv-borda-forte)',
                   backgroundColor: escolhida ? 'var(--mv-primaria)' : 'transparent',
                   color: 'var(--mv-sobre-primaria)',
                 }}
               >
-                {escolhida ? <Check className="h-3 w-3" /> : null}
+                {escolhida ? <Check className="size-3" /> : null}
               </span>
               <span className="min-w-0">
                 <span
@@ -582,13 +565,11 @@ function GraficoDaPrevia({ cor }: { cor: string }): JSX.Element {
         {SEMANAS.map((s) => (
           <div key={s.rotulo} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
             <div
-              className="w-full max-w-6 rounded-t"
+              className="w-full max-w-6 rounded-t-marca-interno"
               style={{
                 height: `${(s.valor / maximo) * 72}px`,
                 backgroundColor: cor,
                 opacity: s.rotulo === menor.rotulo ? 1 : 0.62,
-                borderTopLeftRadius: 4,
-                borderTopRightRadius: 4,
               }}
             />
             <span className="text-micro text-texto-fraco">{s.rotulo}</span>
@@ -712,7 +693,7 @@ export function PreviaDaMarca({ marca, nome = 'Seu restaurante' }: PropsDaPrevia
                 {Array.from({ length: 8 }, (_, i) => i + 1).map((n) => (
                   <li
                     key={n}
-                    className="h-6 w-6 rounded"
+                    className="size-6 rounded-marca-interno"
                     style={{ backgroundColor: `var(--mv-grafico-${n})` }}
                     title={`Série ${n}`}
                   />
@@ -752,7 +733,7 @@ export function PreviaDaMarca({ marca, nome = 'Seu restaurante' }: PropsDaPrevia
 
       {resultado.ok ? (
         <p className="flex items-center gap-2 text-apoio text-sucesso-texto">
-          <Check aria-hidden className="h-4 w-4" />
+          <Check aria-hidden className="size-4" />
           A combinação passa em contraste AA. Pode salvar.
         </p>
       ) : (

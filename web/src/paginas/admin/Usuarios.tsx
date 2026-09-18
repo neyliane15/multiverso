@@ -16,7 +16,7 @@
  *    pior que instrução que funciona.
  */
 import { useMemo, useState } from 'react'
-import { Check, Info, Mail, Save, Search, ShieldAlert, Users as Icone } from 'lucide-react'
+import { Check, Info, Mail, Save, Search, Users as Icone } from 'lucide-react'
 import {
   Aviso,
   Botao,
@@ -97,7 +97,7 @@ export function Usuarios(): JSX.Element {
       )}
 
       <Cartao>
-        <div className="grid gap-3 border-b border-borda p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 border-b border-borda px-5 py-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="relative">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-fraco"
@@ -163,7 +163,7 @@ export function Usuarios(): JSX.Element {
           </Selecao>
         </div>
 
-        <div className="border-b border-borda px-4 py-2.5">
+        <div className="border-b border-borda px-5 py-3">
           <p role="status" className="text-apoio text-texto-fraco">
             <span className="mv-numero text-texto">{visiveis.length}</span>{' '}
             {visiveis.length === 1 ? 'usuário' : 'usuários'}
@@ -176,7 +176,7 @@ export function Usuarios(): JSX.Element {
         ) : equipe.isError ? (
           <ErroDaConsulta erro={equipe.error} aoTentar={() => void equipe.refetch()} />
         ) : lista.length === 0 ? (
-          <EstadoVazio icone={<Icone className="size-8" aria-hidden />} titulo="Nenhum usuário ainda">
+          <EstadoVazio icone={<Icone />} titulo="Nenhum usuário ainda">
             O primeiro acesso de cada pessoa nasce de um convite feito no painel do Supabase — as
             instruções estão logo abaixo.
           </EstadoVazio>
@@ -204,7 +204,7 @@ export function Usuarios(): JSX.Element {
                 >
                   <Td>
                     <span className="flex items-center gap-3">
-                      <span className="mv-numero grid size-8 shrink-0 place-items-center rounded-full bg-primaria/20 text-micro font-semibold text-primaria-legivel">
+                      <span className="mv-numero grid size-8 shrink-0 place-items-center rounded-full bg-primaria-24 text-micro font-semibold text-primaria-legivel">
                         {iniciais(p.nome)}
                       </span>
                       <span className="min-w-0">
@@ -277,8 +277,7 @@ function ComoConvidar(): JSX.Element {
     >
       <div className="space-y-4 p-5">
         <Aviso tom="info" titulo="Por que não existe um botão “Convidar”">
-          <p className="mt-1 flex gap-2">
-            <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+          <p className="mt-1">
             <span>
               Criar usuário no Supabase é <code className="mv-numero">auth.admin</code>, e{' '}
               <code className="mv-numero">auth.admin</code> só funciona com a chave{' '}
@@ -445,7 +444,7 @@ function FormularioDeUsuario({
                   <label
                     className={[
                       'flex cursor-pointer items-start gap-3 rounded-marca border p-3 transition-colors',
-                      escolhido ? 'border-primaria bg-primaria/6' : 'border-borda',
+                      escolhido ? 'border-primaria bg-primaria-06' : 'border-borda',
                       o.disponivel ? 'hover:border-borda-forte' : 'cursor-not-allowed opacity-70',
                     ].join(' ')}
                   >

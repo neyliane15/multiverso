@@ -56,10 +56,12 @@ import {
   ErroDaConsulta,
   EstadoVazio,
   Indicador,
+  Ponto,
   Selecao,
   Tabela,
   Td,
   Th,
+  plural,
 } from '@/componentes/base'
 import {
   data as formatarData,
@@ -86,7 +88,7 @@ export function DashboardCmv() {
       <>
         <CabecalhoDePagina titulo="Dashboard CMV" />
         <Cartao>
-          <EstadoVazio icone={<Store className="size-7" />} titulo="Nenhum restaurante em foco">
+          <EstadoVazio icone={<Store />} titulo="Nenhum restaurante em foco">
             Escolha um restaurante na barra de cima para ver o CMV.
           </EstadoVazio>
         </Cartao>
@@ -146,7 +148,7 @@ function CmvDoRestaurante({ restauranteId }: { restauranteId: string }) {
                 setPeriodoEscolhido(null)
               }}
               className={clsx(
-                'min-h-toque rounded-marca-p px-4 text-corpo font-medium capitalize transition-colors',
+                'min-h-toque rounded-marca-interno px-4 text-corpo font-medium capitalize transition-colors',
                 granularidade === opcao
                   ? 'bg-primaria text-sobre-primaria'
                   : 'text-texto-suave hover:text-texto',
@@ -186,7 +188,7 @@ function CmvDoRestaurante({ restauranteId }: { restauranteId: string }) {
         {cabecalho}
         <Cartao>
           <EstadoVazio
-            icone={<TrendingUp className="size-7" />}
+            icone={<TrendingUp />}
             titulo="Ainda não há série para mostrar"
             acao={
               <Botao tom="primario" onClick={() => navegar('/contagem')}>
@@ -500,7 +502,7 @@ function DetalheDoPeriodo({
                   rotulo="Compras"
                   valor={dinheiro(dados.compras)}
                   icone={<Ponto cor={cores.compras} />}
-                  apoio={`${quantidade(dados.compras_notas)} nota(s) lançada(s) no período.`}
+                  apoio={`${quantidade(dados.compras_notas)} ${plural(dados.compras_notas, 'nota lançada', 'notas lançadas')} no período.`}
                 />
                 <Indicador
                   rotulo="Estoque final"
@@ -619,17 +621,6 @@ function DetalheDoPeriodo({
   )
 }
 
-/** Marca de identidade ao lado do texto — o texto nunca veste a cor da série. */
-function Ponto({ cor }: { cor: string }) {
-  return (
-    <span
-      className="inline-block size-2.5 shrink-0 rounded-full"
-      style={{ backgroundColor: cor }}
-      aria-hidden
-    />
-  )
-}
-
 /**
  * Rótulo direto em uma coluna só: a mais recente com número.
  *
@@ -690,7 +681,7 @@ function Dica({
   const ponto = pontos.find((p) => p.rotulo === label)
 
   return (
-    <div className="rounded-marca-p border border-borda bg-superficie-1 px-3 py-2 shadow-lg">
+    <div className="rounded-marca-p border border-borda bg-superficie-1 px-3 py-2 shadow-media">
       <div className="mv-numero text-apoio font-semibold text-texto">
         {ponto ? `${formatarData(ponto.inicio)} a ${formatarData(ponto.fim)}` : String(label ?? '')}
       </div>

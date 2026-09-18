@@ -112,7 +112,7 @@ export function Restaurantes(): JSX.Element {
           <ErroDaConsulta erro={panorama.error} aoTentar={() => void panorama.refetch()} />
         ) : lista.length === 0 ? (
           <EstadoVazio
-            icone={<Store className="size-8" aria-hidden />}
+            icone={<Store />}
             titulo="Nenhum restaurante cadastrado"
             acao={
               <Botao tom="primario" onClick={() => setEditando({ restaurante: null })}>

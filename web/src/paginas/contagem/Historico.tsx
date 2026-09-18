@@ -53,7 +53,7 @@ export function HistoricoDeContagens() {
       <>
         <CabecalhoDePagina titulo="Histórico de contagens" />
         <Cartao>
-          <EstadoVazio icone={<Store className="size-7" />} titulo="Nenhum restaurante em foco">
+          <EstadoVazio icone={<Store />} titulo="Nenhum restaurante em foco">
             Escolha um restaurante na barra de cima para ver as contagens.
           </EstadoVazio>
         </Cartao>
@@ -127,7 +127,7 @@ function HistoricoDoRestaurante({ restauranteId }: { restauranteId: string }) {
         {cabecalho}
         <Cartao>
           <EstadoVazio
-            icone={<History className="size-7" />}
+            icone={<History />}
             titulo={tipo === 'todos' ? 'Nenhuma contagem ainda' : 'Nenhuma contagem deste tipo'}
             acao={
               <Botao tom="primario" onClick={() => navegar('/contagem')}>
@@ -161,7 +161,7 @@ function HistoricoDoRestaurante({ restauranteId }: { restauranteId: string }) {
         ))}
       </ul>
 
-      <Cartao className="hidden overflow-hidden lg:block">
+      <Cartao className="hidden lg:block">
         <Tabela>
           <thead>
             <tr>
@@ -178,16 +178,14 @@ function HistoricoDoRestaurante({ restauranteId }: { restauranteId: string }) {
             {lista.map((contagem) => (
               <Linha key={contagem.id} aoClicar={() => navegar(`/contagem/${contagem.id}`)}>
                 <Td>
-                  <button
-                    type="button"
-                    onClick={() => navegar(`/contagem/${contagem.id}`)}
-                    className="text-left font-medium text-texto hover:text-primaria-legivel"
-                  >
+                  <span className="block font-medium text-texto">
                     <span className="mv-numero">{formatarData(contagem.referencia)}</span>
                     {contagem.titulo && (
-                      <span className="block text-micro text-texto-fraco">{contagem.titulo}</span>
+                      <span className="block text-micro font-normal text-texto-fraco">
+                        {contagem.titulo}
+                      </span>
                     )}
-                  </button>
+                  </span>
                 </Td>
                 <Td className="capitalize">{contagem.tipo}</Td>
                 <Td>
@@ -281,7 +279,7 @@ function CartaoDeContagem({
     <button
       type="button"
       onClick={aoAbrir}
-      className="w-full rounded-marca border border-borda bg-superficie-1 p-4 text-left transition-colors hover:border-borda-forte"
+      className="w-full rounded-marca border border-borda bg-superficie-1 p-4 text-left transition-colors hover:border-borda-forte hover:bg-primaria-06 active:bg-primaria-16"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

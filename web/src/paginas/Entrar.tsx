@@ -31,7 +31,7 @@ export function Entrar() {
   }
 
   return (
-    <div className="grid min-h-dvh place-items-center bg-fundo px-4 py-10">
+    <div className="mv-segura-x mv-segura-b grid min-h-dvh place-items-center bg-fundo pt-10 [--mv-folga-b:2.5rem] [--mv-folga-x:1rem]">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
           <Logo className="h-9" />
@@ -39,11 +39,11 @@ export function Entrar() {
 
         <form
           onSubmit={entrar}
-          className="space-y-4 rounded-marca border border-borda bg-superficie-1 p-6"
+          className="space-y-5 rounded-marca border border-borda bg-superficie-1 p-5 shadow-baixa"
         >
           <div>
-            <h1 className="font-titulo text-[17px] font-semibold">Entrar</h1>
-            <p className="mt-1 text-[13px] text-texto-fraco">
+            <h1 className="font-titulo text-secao leading-tight font-semibold">Entrar</h1>
+            <p className="mt-1 text-apoio leading-relaxed text-texto-fraco">
               Use o e-mail cadastrado pelo administrador do seu restaurante.
             </p>
           </div>
@@ -80,7 +80,7 @@ export function Entrar() {
           </Botao>
         </form>
 
-        <p className="mt-6 text-center text-[12px] text-texto-fraco">
+        <p className="mt-6 text-center text-apoio text-texto-fraco">
           Multiverso · gestão de restaurantes
         </p>
       </div>

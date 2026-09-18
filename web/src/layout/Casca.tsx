@@ -48,7 +48,7 @@ export function Casca() {
       <aside
         className={clsx(
           'fixed inset-y-0 left-0 z-40 flex w-[248px] flex-col border-r border-borda bg-superficie',
-          'transition-transform duration-200 lg:translate-x-0',
+          'transition-transform lg:translate-x-0',
           aberto ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -69,11 +69,11 @@ export function Casca() {
                       title={item.descricao}
                       className={({ isActive }) =>
                         clsx(
-                          'group relative flex min-h-toque items-center gap-2.5 rounded-marca-p px-2.5 text-[13.5px]',
+                          'group relative flex min-h-toque items-center gap-2.5 rounded-marca-p px-2.5 text-corpo',
                           'transition-colors',
                           isActive
-                            ? 'bg-primaria/16 font-medium text-primaria-legivel'
-                            : 'text-texto-suave hover:bg-primaria/8 hover:text-texto',
+                            ? 'bg-primaria-16 font-medium text-primaria-legivel'
+                            : 'text-texto-suave hover:bg-primaria-06 hover:text-texto',
                         )
                       }
                     >
@@ -81,11 +81,11 @@ export function Casca() {
                         <>
                           <span
                             className={clsx(
-                              'absolute left-0 h-5 w-[3px] rounded-r-full bg-primaria transition-opacity',
+                              'absolute left-0 h-5 w-0.75 rounded-r-full bg-primaria transition-opacity',
                               isActive ? 'opacity-100' : 'opacity-0',
                             )}
                           />
-                          <Icone nome={item.icone} className="size-[17px] shrink-0" />
+                          <Icone nome={item.icone} className="size-[18px] shrink-0" />
                           <span className="truncate">{item.rotulo}</span>
                         </>
                       )}
@@ -97,24 +97,18 @@ export function Casca() {
           ))}
         </nav>
 
-        <div className="border-t border-borda p-3">
+        <div className="mv-segura-b border-t border-borda px-3 pt-3 [--mv-folga-b:0.75rem]">
           <div className="flex items-center gap-2.5 rounded-marca-p px-2 py-2">
-            <div className="mv-numero grid size-8 shrink-0 place-items-center rounded-full bg-primaria/20 text-[12px] font-semibold text-primaria-legivel">
+            <div className="mv-numero grid size-8 shrink-0 place-items-center rounded-full bg-primaria-24 text-rotulo font-semibold text-primaria-legivel">
               {iniciais(perfil?.nome ?? '?')}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[13px] font-medium">{perfil?.nome}</div>
-              <div className="truncate text-[11.5px] capitalize text-texto-fraco">
+              <div className="truncate text-apoio font-medium">{perfil?.nome}</div>
+              <div className="truncate text-micro capitalize text-texto-fraco">
                 {perfil?.papel}
               </div>
             </div>
-            <Botao
-              tom="fantasma"
-              tamanho="p"
-              onClick={() => void sair()}
-              aria-label="Sair do sistema"
-              className="px-2"
-            >
+            <Botao tom="fantasma" tamanho="p" onClick={() => void sair()} aria-label="Sair do sistema">
               <Icones.LogOut className="size-4" aria-hidden />
             </Botao>
           </div>
@@ -123,7 +117,7 @@ export function Casca() {
 
       {aberto && (
         <button
-          className="fixed inset-0 z-30 bg-neutro-1000/60 lg:hidden"
+          className="mv-entra fixed inset-0 z-30 bg-neutro-1000/60 lg:hidden"
           onClick={() => setAberto(false)}
           aria-label="Fechar menu"
         />
@@ -131,7 +125,7 @@ export function Casca() {
 
       {/* ─────────────────────────────────────────────────────── conteúdo ── */}
       <div className="lg:pl-[248px]">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-borda bg-fundo/85 px-4 backdrop-blur-md sm:px-6">
+        <header className="mv-segura-x sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-borda bg-fundo/85 backdrop-blur-md [--mv-folga-x:1rem] sm:[--mv-folga-x:1.5rem]">
           <Botao
             tom="fantasma"
             tamanho="p"
@@ -153,11 +147,11 @@ export function Casca() {
                 decorativo
               />
               <div className="min-w-0">
-                <div className="truncate text-[13.5px] font-medium leading-tight">
+                <div className="truncate text-corpo font-medium leading-tight">
                   {restaurante.nome}
                 </div>
                 {restaurante.unidade && (
-                  <div className="truncate text-[11.5px] leading-tight text-texto-fraco">
+                  <div className="truncate text-micro leading-tight text-texto-fraco">
                     {restaurante.unidade}
                   </div>
                 )}
@@ -188,7 +182,6 @@ export function Casca() {
             tamanho="p"
             onClick={() => definirTema(tema === 'escuro' ? 'claro' : 'escuro')}
             aria-label={tema === 'escuro' ? 'Usar tema claro' : 'Usar tema escuro'}
-            className="px-2"
           >
             {tema === 'escuro' ? (
               <Icones.Sun className="size-[18px]" aria-hidden />
@@ -198,7 +191,10 @@ export function Casca() {
           </Botao>
         </header>
 
-        <main id="conteudo" className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6">
+        <main
+          id="conteudo"
+          className="mv-segura-x mx-auto max-w-[1400px] space-y-6 py-6 [--mv-folga-x:1rem] sm:[--mv-folga-x:1.5rem]"
+        >
           <Outlet />
         </main>
       </div>

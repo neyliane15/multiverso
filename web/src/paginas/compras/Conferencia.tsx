@@ -34,11 +34,13 @@ import {
   CabecalhoDePagina,
   Carregando,
   Cartao,
+  Dialogo,
   ErroDaConsulta,
   EstadoVazio,
   Indicador,
   Selecao,
   Selo,
+  plural,
 } from '@/componentes/base'
 import { data as formatarData, dinheiro, porcentagem, quantidade } from '@/util/formato'
 import { resumirConferencia } from './logica'
@@ -245,7 +247,10 @@ export function Conferencia({
           nas compras do período.
         </Aviso>
       ) : resumo.pendentes > 0 ? (
-        <Aviso tom="alerta" titulo={`${resumo.pendentes} item(ns) sem produto vinculado`}>
+        <Aviso
+          tom="alerta"
+          titulo={`${resumo.pendentes} ${plural(resumo.pendentes, 'item sem produto vinculado', 'itens sem produto vinculado')}`}
+        >
           O banco recusa lançar uma nota com item pendente, e faz bem: o valor desse item não
           teria em qual produto entrar. Vincule os destacados abaixo — ou, se o item não for
           estoque (taxa, frete, brinde), ele precisa ser vinculado a um produto mesmo assim ou
@@ -298,14 +303,12 @@ export function Conferencia({
       </Cartao>
 
       {confirmandoLancamento && (
-        <Cartao titulo="Lançar esta nota?" className="border-primaria/40">
-          <div className="space-y-4 p-5">
-            <Aviso tom="alerta" titulo="Isto muda o custo dos produtos">
-              Lançar grava o custo unitário desta nota como <strong>custo médio</strong> de cada
-              produto vinculado, e soma {dinheiro(nota.valor_total)} às compras de{' '}
-              {formatarData(nota.emitida_em)}. O CMV do período muda na mesma hora.
-            </Aviso>
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Dialogo
+          titulo="Lançar esta nota?"
+          descricao="Depois de lançada, o custo dos produtos já é outro."
+          aoFechar={() => setConfirmandoLancamento(false)}
+          rodape={
+            <>
               <Botao tom="secundario" onClick={() => setConfirmandoLancamento(false)}>
                 Ainda não
               </Botao>
@@ -316,9 +319,15 @@ export function Conferencia({
               >
                 Lançar e atualizar custos
               </Botao>
-            </div>
-          </div>
-        </Cartao>
+            </>
+          }
+        >
+          <Aviso tom="alerta" titulo="Isto muda o custo dos produtos">
+            Lançar grava o custo unitário desta nota como <strong>custo médio</strong> de cada
+            produto vinculado, e soma {dinheiro(nota.valor_total)} às compras de{' '}
+            {formatarData(nota.emitida_em)}. O CMV do período muda na mesma hora.
+          </Aviso>
+        </Dialogo>
       )}
     </>
   )
@@ -350,7 +359,7 @@ function LinhaDeItem({
     <li
       className={clsx(
         'grid gap-3 px-4 py-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]',
-        pendente && 'border-l-2 border-l-alerta bg-alerta-suave/40',
+        pendente && 'border-l-[3px] border-l-alerta bg-alerta-suave/40',
       )}
     >
       <div className="min-w-0">

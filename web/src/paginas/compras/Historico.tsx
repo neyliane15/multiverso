@@ -24,11 +24,13 @@ import {
   EstadoVazio,
   Indicador,
   Linha,
+  Rotulo,
   Selecao,
   Selo,
   Tabela,
   Td,
   Th,
+  plural,
 } from '@/componentes/base'
 import { data as formatarData, dinheiro, quantidade } from '@/util/formato'
 import { hojeIso } from '@/paginas/contagem/logica'
@@ -60,7 +62,7 @@ export function HistoricoDeCompras() {
       <>
         <CabecalhoDePagina titulo="Histórico de compras" />
         <Cartao>
-          <EstadoVazio icone={<Store className="size-7" />} titulo="Nenhum restaurante em foco">
+          <EstadoVazio icone={<Store />} titulo="Nenhum restaurante em foco">
             Escolha um restaurante na barra de cima para ver as compras.
           </EstadoVazio>
         </Cartao>
@@ -134,9 +136,7 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
       <Cartao titulo="Período" descricao="As datas são de emissão da nota — é assim que o CMV enxerga a compra.">
         <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1.5">
-            <label htmlFor="inicio" className="mv-rotulo block">
-              De
-            </label>
+            <Rotulo para="inicio">De</Rotulo>
             <Campo
               id="inicio"
               type="date"
@@ -145,15 +145,11 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
             />
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="fim" className="mv-rotulo block">
-              Até
-            </label>
+            <Rotulo para="fim">Até</Rotulo>
             <Campo id="fim" type="date" value={fim} onChange={(e) => setFim(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="fornecedor" className="mv-rotulo block">
-              Fornecedor
-            </label>
+            <Rotulo para="fornecedor">Fornecedor</Rotulo>
             <Selecao
               id="fornecedor"
               value={fornecedorId}
@@ -168,9 +164,7 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
             </Selecao>
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="busca" className="mv-rotulo block">
-              Buscar
-            </label>
+            <Rotulo para="busca">Buscar</Rotulo>
             <div className="relative">
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-fraco"
@@ -219,7 +213,7 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
           tom={totais.itensPendentes > 0 ? 'alerta' : 'sucesso'}
           apoio={
             totais.notasPendentes > 0
-              ? `Em ${totais.notasPendentes} nota(s). Enquanto houver um, a nota não é lançável.`
+              ? `Em ${totais.notasPendentes} ${plural(totais.notasPendentes, 'nota', 'notas')}. Enquanto houver um, a nota não é lançável.`
               : 'Nenhuma nota travada na conferência.'
           }
         />
@@ -227,7 +221,7 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
 
       {lista.length === 0 ? (
         <Cartao>
-          <EstadoVazio icone={<Receipt className="size-7" />} titulo="Nenhuma nota no período">
+          <EstadoVazio icone={<Receipt />} titulo="Nenhuma nota no período">
             Ajuste as datas ou o fornecedor — ou lance a primeira nota deste período.
           </EstadoVazio>
         </Cartao>
@@ -245,7 +239,7 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
             ))}
           </ul>
 
-          <Cartao className="hidden overflow-hidden lg:block">
+          <Cartao className="hidden lg:block">
             <Tabela>
               <thead>
                 <tr>
@@ -266,15 +260,7 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
                     className={clsx(compra.itens_pendentes > 0 && 'bg-alerta-suave/40')}
                   >
                     <Td className="mv-numero">{formatarData(compra.emitida_em)}</Td>
-                    <Td>
-                      <button
-                        type="button"
-                        onClick={() => navegar(`/compras/notas/${compra.id}`)}
-                        className="text-left font-medium text-texto hover:text-primaria-legivel"
-                      >
-                        {compra.fornecedor_nome}
-                      </button>
-                    </Td>
+                    <Td className="font-medium text-texto">{compra.fornecedor_nome}</Td>
                     <Td className="mv-numero text-texto-suave">{compra.numero ?? '—'}</Td>
                     <Td className="uppercase text-texto-fraco">{compra.origem}</Td>
                     <Td>
@@ -317,7 +303,7 @@ function CartaoDeCompra({
       type="button"
       onClick={aoAbrir}
       className={clsx(
-        'w-full rounded-marca border bg-superficie-1 p-4 text-left transition-colors hover:border-borda-forte',
+        'w-full rounded-marca border bg-superficie-1 p-4 text-left transition-colors hover:border-borda-forte hover:bg-primaria-06 active:bg-primaria-16',
         compra.itens_pendentes > 0 ? 'border-alerta-borda bg-alerta-suave/40' : 'border-borda',
       )}
     >

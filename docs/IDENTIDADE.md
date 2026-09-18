@@ -90,15 +90,65 @@ Três regras que vêm junto:
   superfície: por isso rótulo visível ou tabela de apoio é **obrigatório**, não
   opcional.
 
+## Superfície, borda e sombra
+
+Um papel, uma medida. Quando duas telas resolvem a mesma coisa de dois jeitos,
+o sistema deixa de parecer um sistema.
+
+**Espaço dentro do cartão.** Uma calha só, de 20px, para que a primeira letra de
+toda linha caia embaixo do título do cartão.
+
+| Papel | Medida |
+|---|---|
+| Cabeçalho do cartão e faixa de filtro | `px-5 py-4` |
+| Corpo do cartão | `p-5` |
+| Item de lista dentro do cartão | `px-5 py-3` |
+| Célula de tabela | `px-5 py-2.5` — fecha a linha em 44px |
+| Rótulo → campo | `mt-1.5` |
+
+**Raio.** `rounded-marca` é superfície que guarda outra coisa (cartão, painel,
+caixa de solta). `rounded-marca-p` é controle (botão, campo, aviso, chip).
+`rounded-marca-g` é o que cobre a tela (diálogo). `rounded-marca-interno` é o
+filho encostado na borda interna do pai — o raio do pai menos a folga, senão o
+canto de dentro estufa. `rounded-full` só para pílula e disco.
+
+**Borda.** `border-borda` separa duas superfícies. `border-borda-forte` é
+realce: hover e amostra de cor. `border-borda/60` é divisória **dentro** de um
+cartão — ela não pode pesar igual à borda do próprio cartão. Fio de identidade
+(faixa da marca, item ativo do menu, item pendente) tem 3px, sempre.
+
+**Sombra.** Três degraus, um por profundidade, e nada fora deles. Os valores de
+tema claro e escuro são **escolhidos**, não a mesma opacidade: preto a 32% sobre
+um fundo quase preto é profundidade, sobre branco é sujeira.
+
+| Token | Papel |
+|---|---|
+| `shadow-baixa` | o que está pousado na página: cartão, botão primário |
+| `shadow-media` | o que flutua por cima dela: dica de gráfico |
+| `shadow-alta` | o que cobre a página: painel lateral, diálogo |
+
+**Lavagem da marca.** A escada `--mv-primaria-06/10/16/24/40/64` tem papel
+definido — 06 repouso tingido, 10 passagem do ponteiro, 16 selecionado, 24
+disco, 40 borda sobre fundo tingido, 64 véu — e é ela que se usa, nunca uma
+opacidade escrita à mão no componente.
+
 ## Movimento, foco e toque
 
-- Movimento é curto: 120–180ms, só opacidade e 4px de deslocamento.
+- Movimento é curto: `--mv-duracao` (150ms) e `--mv-curva`, que são o padrão de
+  toda transição do app. Só opacidade e 4px de deslocamento.
   `prefers-reduced-motion: reduce` zera tudo, inclusive rolagem suave.
 - `:focus-visible` desenha um anel de 2px com 2px de folga, em `--mv-foco` — a
   cor de maior contraste contra o fundo daquele restaurante. Em todo elemento
-  interativo, sem exceção.
+  interativo, sem exceção. O anel **não força raio** (ele acompanha o do próprio
+  elemento) e leva um fio interno na cor do fundo, para continuar visível em
+  cima da primária, de um selo colorido ou da linha selecionada.
+- Todo elemento clicável tem os quatro estados: repouso, `hover`, `active` e
+  `disabled`. Faltar `active` é o clique que não responde.
 - Alvo de toque mínimo de **44px** (`--mv-toque`, classe `.mv-toque`). Controle
-  sem texto leva `aria-label`.
+  sem texto leva `aria-label`, e o `Botao` só de ícone já nasce com os 44px.
+- Área segura do aparelho (`.mv-segura-b`, `.mv-segura-x`) em tudo que gruda no
+  rodapé ou encosta na lateral: barra de totais, rodapé do painel, rodapé da
+  barra lateral.
 - Texto passa AA (4,5:1). Ícone, borda de campo e marca de gráfico passam 3:1.
 
 ## Proibido
@@ -114,9 +164,13 @@ Três regras que vêm junto:
 5. **Número sem `.mv-numero`** em coluna de tabela ou em cartão de valor.
 6. **Dois eixos Y no mesmo gráfico.** Duas medidas de escalas diferentes viram
    dois gráficos.
-7. **Raio de borda em pixel solto.** Use `rounded-marca`, `-marca-p`, `-marca-g`:
-   o raio é escolha do restaurante.
-8. **Tamanho de fonte em pixel solto.** Use a escala acima.
+7. **Raio de borda em pixel solto.** Use `rounded-marca`, `-marca-p`, `-marca-g`,
+   `-marca-interno`: o raio é escolha do restaurante.
+8. **Tamanho de fonte em pixel solto.** Use a escala acima — e `text-sm`,
+   `text-xs` e companhia são pixel solto com outro nome.
+9. **Sombra fora dos três degraus**, e opacidade de marca escrita à mão
+   (`bg-primaria/20`) em vez da escada.
+10. **Concordância por parêntese.** "3 item(ns)" é rascunho; use `plural()`.
 
 ## Como um restaurante novo entra com a própria cara
 

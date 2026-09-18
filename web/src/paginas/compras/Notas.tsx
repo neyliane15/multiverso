@@ -47,6 +47,7 @@ import {
   Tabela,
   Td,
   Th,
+  plural,
 } from '@/componentes/base'
 import { data as formatarData, dinheiro, documento, quantidade } from '@/util/formato'
 import { hojeIso } from '@/paginas/contagem/logica'
@@ -97,7 +98,7 @@ export function Notas() {
       <>
         <CabecalhoDePagina titulo="Notas fiscais" />
         <Cartao>
-          <EstadoVazio icone={<Store className="size-7" />} titulo="Nenhum restaurante em foco">
+          <EstadoVazio icone={<Store />} titulo="Nenhum restaurante em foco">
             Escolha um restaurante na barra de cima para lançar notas.
           </EstadoVazio>
         </Cartao>
@@ -140,8 +141,8 @@ function EntradaDeNotas({ restauranteId }: { restauranteId: string }) {
               className={clsx(
                 'flex min-h-toque flex-col items-start gap-1 rounded-marca border p-4 text-left transition-colors',
                 ativo
-                  ? 'border-primaria bg-primaria/16'
-                  : 'border-borda bg-superficie-1 hover:border-borda-forte',
+                  ? 'border-primaria bg-primaria-16 active:brightness-95'
+                  : 'border-borda bg-superficie-1 hover:border-borda-forte hover:bg-primaria-06 active:bg-primaria-16',
               )}
             >
               <span
@@ -254,7 +255,7 @@ function CaminhoDoXml({ restauranteId }: { restauranteId: string }) {
             }}
             className={clsx(
               'flex flex-col items-center gap-3 rounded-marca border-2 border-dashed px-6 py-10 text-center transition-colors',
-              arrastando ? 'border-primaria bg-primaria/10' : 'border-borda bg-superficie-2',
+              arrastando ? 'border-primaria bg-primaria-10' : 'border-borda bg-superficie-2',
             )}
           >
             {lendo ? (
@@ -416,7 +417,7 @@ function PreviaDaNota({
             Descartar
           </Botao>
           <Botao tom="primario" carregando={gravando} onClick={aoConfirmar}>
-            Importar {nota.itens.length} iten(s)
+            Importar {nota.itens.length} {plural(nota.itens.length, 'item', 'itens')}
           </Botao>
         </div>
       </div>
@@ -703,7 +704,6 @@ function FormularioManual({
                       tom="fantasma"
                       tamanho="p"
                       aria-label="Remover este item"
-                      className="mv-toque px-2"
                       onClick={() =>
                         setLinhas((atual) =>
                           atual.length === 1
@@ -738,7 +738,7 @@ function FormularioManual({
         </div>
 
         <Botao type="submit" tom="primario" tamanho="g" carregando={gravando}>
-          Gravar nota
+          Salvar nota
         </Botao>
       </form>
     </Cartao>

@@ -28,16 +28,21 @@ import {
 } from '@/dados/consultas'
 import {
   Aviso,
+  BarraDeTotais,
   Botao,
   CabecalhoDePagina,
   Campo,
   CampoNumero,
   Carregando,
   Cartao,
+  Chip,
   ErroDaConsulta,
   EstadoVazio,
+  Ponto,
   Rotulo,
   Selo,
+  TotalDaBarra,
+  plural,
 } from '@/componentes/base'
 import { data as formatarData, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
 import {
@@ -59,7 +64,7 @@ export function ListaDeCompras() {
       <>
         <CabecalhoDePagina titulo="Lista de compras" />
         <Cartao>
-          <EstadoVazio icone={<Store className="size-7" />} titulo="Nenhum restaurante em foco">
+          <EstadoVazio icone={<Store />} titulo="Nenhum restaurante em foco">
             Escolha um restaurante na barra de cima para montar a lista.
           </EstadoVazio>
         </Cartao>
@@ -148,7 +153,7 @@ function GerarLista({ restauranteId }: { restauranteId: string }) {
       />
 
       <Cartao>
-        <EstadoVazio icone={<ShoppingCart className="size-8" />} titulo="Nenhuma lista em aberto">
+        <EstadoVazio icone={<ShoppingCart />} titulo="Nenhuma lista em aberto">
           A folha nasce com todos os produtos ativos e já sugere quanto pedir de cada um,
           comparando o estoque mínimo com a última contagem fechada.
         </EstadoVazio>
@@ -176,11 +181,10 @@ function GerarLista({ restauranteId }: { restauranteId: string }) {
               {ativas.map((categoria) => {
                 const marcada = escolhidas.has(categoria.id)
                 return (
-                  <button
+                  <Chip
                     key={categoria.id}
-                    type="button"
-                    aria-pressed={marcada}
-                    onClick={() =>
+                    marcado={marcada}
+                    aoAlternar={() =>
                       setEscolhidas((atual) => {
                         const novo = new Set(atual)
                         if (novo.has(categoria.id)) novo.delete(categoria.id)
@@ -188,27 +192,17 @@ function GerarLista({ restauranteId }: { restauranteId: string }) {
                         return novo
                       })
                     }
-                    className={clsx(
-                      'inline-flex min-h-toque items-center gap-2 rounded-marca-p border px-3 text-corpo transition-colors',
-                      marcada
-                        ? 'border-primaria bg-primaria/16 text-primaria-legivel'
-                        : 'border-borda bg-superficie-2 text-texto-suave hover:border-borda-forte',
-                    )}
                   >
-                    <span
-                      className="size-2.5 rounded-full"
-                      style={{ backgroundColor: categoria.cor }}
-                      aria-hidden
-                    />
+                    <Ponto cor={categoria.cor} />
                     {categoria.nome}
-                  </button>
+                  </Chip>
                 )
               })}
             </div>
             <p className="text-apoio text-texto-fraco" role="status">
               {escolhidas.size === 0
                 ? 'Nenhuma marcada: a folha vai sair com o cadastro inteiro.'
-                : `${escolhidas.size} categoria(s) na folha.`}
+                : `${escolhidas.size} ${plural(escolhidas.size, 'categoria', 'categorias')} na folha.`}
             </p>
           </fieldset>
 
@@ -348,7 +342,7 @@ function Folha({
 
       {lista.length === 0 ? (
         <Cartao>
-          <EstadoVazio icone={<ShoppingCart className="size-7" />} titulo="Folha vazia">
+          <EstadoVazio icone={<ShoppingCart />} titulo="Folha vazia">
             Esta lista nasceu sem produto nenhum. Confira se há produtos ativos nas categorias
             escolhidas.
           </EstadoVazio>
@@ -356,7 +350,7 @@ function Folha({
       ) : visiveis === 0 ? (
         <Cartao>
           <EstadoVazio
-            icone={<Check className="size-7" />}
+            icone={<Check />}
             titulo={busca === '' ? 'Tudo comprado' : 'Nada encontrado'}
           >
             {busca === ''
@@ -367,7 +361,7 @@ function Folha({
       ) : (
         grupos.map((grupo) => (
           <Cartao key={grupo.categoriaId ?? 'sem-categoria'}>
-            <header className="flex items-center justify-between gap-3 border-b border-borda px-4 py-3">
+            <header className="flex items-center justify-between gap-3 border-b border-borda px-5 py-4">
               <Selo cor={grupo.cor ?? undefined}>{grupo.nome}</Selo>
               <span className="mv-numero text-apoio text-texto-fraco">
                 {dinheiro(grupo.total)}
@@ -377,7 +371,7 @@ function Folha({
               {grupo.itens.map((item) => {
                 const emVigor = quantidadeDoItem(item, rascunhos)
                 return (
-                  <li key={item.id} className="flex items-center gap-2 py-1 pl-1 pr-3">
+                  <li key={item.id} className="flex items-center gap-2 py-1 pl-1 pr-5">
                     <button
                       type="button"
                       onClick={() => void alternarComprado(item)}
@@ -385,7 +379,9 @@ function Folha({
                       aria-label={`Marcar ${item.produto?.nome ?? 'item'} como comprado`}
                       className={clsx(
                         'mv-toque grid shrink-0 place-items-center rounded-marca-p border transition-colors',
-                        'border-borda bg-superficie-2 text-texto-fraco hover:border-primaria hover:text-primaria-legivel',
+                        'border-borda bg-superficie-2 text-texto-fraco',
+                        'hover:border-borda-forte hover:bg-primaria-06 hover:text-primaria-legivel',
+                        'active:bg-primaria-16',
                       )}
                     >
                       <Check className="size-5" aria-hidden />
@@ -442,7 +438,7 @@ function Folha({
           {mostrarComprados && (
             <ul className="divide-y divide-borda/60">
               {comprados.map((item) => (
-                <li key={item.id} className="flex items-center gap-3 px-4 py-2.5">
+                <li key={item.id} className="flex items-center gap-3 px-5 py-3">
                   <Check className="size-4 shrink-0 text-sucesso-texto" aria-hidden />
                   <span className="min-w-0 flex-1 truncate text-corpo text-texto-suave line-through">
                     {item.produto?.nome ?? 'Produto'}
@@ -454,7 +450,6 @@ function Folha({
                     tom="fantasma"
                     tamanho="p"
                     aria-label={`Desmarcar ${item.produto?.nome ?? 'item'}`}
-                    className="px-2"
                     onClick={() => void alternarComprado(item)}
                   >
                     <Undo2 className="size-4" aria-hidden />
@@ -466,24 +461,23 @@ function Folha({
         </Cartao>
       )}
 
-      <div
-        role="status"
-        className="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-t border-borda bg-fundo/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6"
-      >
-        <div>
-          <div className="mv-rotulo">A comprar</div>
-          <div className="mv-numero text-destaque font-semibold text-texto">
-            {formatarQuantidade(resumo.aComprar)}
-            <span className="text-apoio text-texto-fraco"> de {resumo.itens}</span>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="mv-rotulo">Total estimado</div>
-          <div className="mv-numero text-secao font-semibold text-primaria-legivel">
-            {dinheiro(resumo.totalEstimado)}
-          </div>
-        </div>
-      </div>
+      <BarraDeTotais>
+        <TotalDaBarra
+          rotulo="A comprar"
+          valor={
+            <>
+              {formatarQuantidade(resumo.aComprar)}
+              <span className="text-apoio text-texto-fraco"> de {resumo.itens}</span>
+            </>
+          }
+        />
+        <TotalDaBarra
+          rotulo="Total estimado"
+          valor={dinheiro(resumo.totalEstimado)}
+          destaque
+          alinharADireita
+        />
+      </BarraDeTotais>
     </>
   )
 }

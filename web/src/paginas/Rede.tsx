@@ -128,7 +128,7 @@ export function Rede(): JSX.Element {
       ) : lista.length === 0 ? (
         <Cartao>
           <EstadoVazio
-            icone={<Network className="size-8" aria-hidden />}
+            icone={<Network />}
             titulo="Nenhum restaurante na rede"
             acao={
               <Botao tom="primario" onClick={() => navegar('/admin/restaurantes')}>
@@ -170,8 +170,8 @@ export function Rede(): JSX.Element {
                     onClick={() => abrir(r)}
                     aria-label={`Pôr ${r.nome} em foco e abrir o painel`}
                     className={[
-                      'flex h-full w-full flex-col gap-4 rounded-marca border bg-superficie-1 p-5 text-left',
-                      'transition-colors hover:border-borda-forte',
+                      'flex h-full w-full flex-col gap-4 rounded-marca border bg-superficie-1 p-4 text-left',
+                      'transition-colors hover:border-borda-forte hover:bg-primaria-06 active:bg-primaria-16',
                       emFoco ? 'border-primaria' : 'border-borda',
                       r.ativo ? '' : 'opacity-70',
                     ].join(' ')}

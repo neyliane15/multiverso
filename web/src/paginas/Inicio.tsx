@@ -8,7 +8,6 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  AlertTriangle,
   ArrowRight,
   ClipboardList,
   FileText,
@@ -53,9 +52,9 @@ function Atalho({
   return (
     <Link
       to={para}
-      className="group flex min-h-toque items-center gap-3 rounded-marca border border-borda bg-superficie-1 p-4 transition-colors hover:border-primaria hover:bg-primaria/6"
+      className="group flex min-h-toque items-center gap-3 rounded-marca border border-borda bg-superficie-1 p-4 transition-colors hover:border-borda-forte hover:bg-primaria-06 active:bg-primaria-16"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-marca-p bg-primaria/16 text-primaria-legivel">
+      <span className="grid size-10 shrink-0 place-items-center rounded-marca-p bg-primaria-16 text-primaria-legivel">
         {icone}
       </span>
       <span className="min-w-0 flex-1">
@@ -240,7 +239,6 @@ export function Inicio(): JSX.Element {
           {mes.notasPendentes > 0 && (
             <Aviso tom="alerta" titulo="Notas com item ainda sem produto">
               <p className="mt-1 flex flex-wrap items-center gap-2">
-                <AlertTriangle className="size-4 shrink-0" aria-hidden />
                 <span>
                   <span className="mv-numero">{quantidade(mes.itensPendentes)}</span>{' '}
                   {mes.itensPendentes === 1 ? 'item' : 'itens'} em{' '}
@@ -289,7 +287,10 @@ export function Inicio(): JSX.Element {
                   aria-valuemax={100}
                   aria-label="Progresso da contagem aberta"
                 >
-                  <div className="h-full rounded-full bg-primaria" style={{ width: `${progresso}%` }} />
+                  <div
+                    className="h-full rounded-full bg-primaria transition-[width]"
+                    style={{ width: `${progresso}%` }}
+                  />
                 </div>
                 <p className="text-apoio text-texto-fraco">
                   O total sobe conforme os itens são lançados. Fechar a contagem congela essa foto —

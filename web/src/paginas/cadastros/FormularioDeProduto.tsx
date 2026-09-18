@@ -8,7 +8,7 @@
  * nos Porcionados — e de outros 13 produtos do primeiro cliente.
  */
 import { useMemo, useState } from 'react'
-import { Archive, ArchiveRestore, Info, Save } from 'lucide-react'
+import { Archive, ArchiveRestore, Save } from 'lucide-react'
 import {
   Aviso,
   Botao,
@@ -335,7 +335,7 @@ export function FormularioDeProduto({
                     key={setor.id}
                     className={[
                       'rounded-marca border p-3 transition-colors',
-                      marcado ? 'border-primaria bg-primaria/6' : 'border-borda',
+                      marcado ? 'border-primaria bg-primaria-06' : 'border-borda',
                     ].join(' ')}
                   >
                     <label className="flex min-h-toque cursor-pointer items-center gap-3">
@@ -390,8 +390,7 @@ export function FormularioDeProduto({
         {/* ──────────────────────────────────────────────── arquivamento ── */}
         {produto && (
           <Aviso tom="info" titulo="Por que arquivar e não apagar">
-            <p className="mt-1 flex gap-2">
-              <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <p className="mt-1">
               <span>
                 Este produto pode estar em contagens já fechadas. Apagar reescreveria o histórico e o
                 CMV daqueles períodos. Arquivar tira ele das próximas folhas e mantém tudo que já foi
