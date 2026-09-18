@@ -159,16 +159,42 @@ npm run build
 npm run preview          # confira em http://localhost:4173
 ```
 
-Para publicar de verdade, a pasta `dist/` é um site estático. Qualquer um serve:
+### Publicar no Vercel
+
+O jeito mais simples é ligar o repositório do GitHub: cada `git push` republica
+sozinho.
+
+1. Entre em [vercel.com](https://vercel.com) com a sua conta do GitHub.
+2. **Add New → Project** e escolha o repositório `multiverso`.
+3. Em **Environment Variables**, coloque as duas — **com estes nomes exatos**:
+
+   | Name | Value |
+   |---|---|
+   | `VITE_SUPABASE_URL` | `https://<referencia>.supabase.co` |
+   | `VITE_SUPABASE_ANON_KEY` | a chave publicável do painel |
+
+   São as mesmas do `.env`, que **não** vai para o GitHub — por isso precisam
+   ser repetidas aqui.
+
+4. **Deploy**.
+
+O `vercel.json` já traz o build, a pasta de saída e — a parte que quebra calada
+quando falta — a regra de reescrita. O Multiverso é uma página só, com o
+roteamento no navegador: sem essa regra, abrir `/cmv` direto ou apertar F5 em
+qualquer tela devolve **404**, porque o servidor procura um arquivo chamado
+`cmv` que não existe. Funciona navegando pelo menu e quebra quando alguém
+recarrega — que é o pior tipo de defeito, o que só aparece com gente usando.
+
+As variáveis entram **no momento do build**, não em tempo de execução. Mudou uma
+delas, é preciso publicar de novo (**Deployments → ... → Redeploy**).
+
+### Outras opções
 
 | Onde | Como |
 |---|---|
-| **Vercel** | `npx vercel --prod` (build `npm run build`, saída `dist`) |
-| **Netlify** | `npx netlify deploy --prod --dir=dist` |
+| **Netlify** | `npx netlify deploy --prod --dir=dist` (a reescrita precisa ser configurada à mão) |
 | **Cloudflare Pages** | conectar o repositório, build `npm run build`, saída `dist` |
-
-Em qualquer um deles, repita as duas variáveis `VITE_*` nas configurações do
-projeto — elas entram no build, não em tempo de execução.
+| **Qualquer servidor** | a pasta `dist/` é um site estático comum |
 
 ---
 
