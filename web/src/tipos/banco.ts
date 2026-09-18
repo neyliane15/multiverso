@@ -79,6 +79,7 @@ export interface Produto {
   codigo_barras: string | null
   unidade: string
   custo_medio: number
+  custo_atualizado_em: string | null
   estoque_minimo: number
   perecivel: boolean
   observacao: string | null
@@ -94,6 +95,13 @@ export interface ProdutoSetor {
   setor_id: string
   unidade: string
   custo: number
+  /**
+   * `true` = custo calculado pela casa (porção, receita) e que **não** segue
+   * nota. Sem essa marca, a primeira nota de tilápia lançada sobrescreveria o
+   * custo da porção com o preço do quilo.
+   */
+  custo_fixo: boolean
+  custo_atualizado_em: string | null
   ordem: number
   ativo: boolean
 }
@@ -104,6 +112,8 @@ export interface SetorDoProduto {
   setor_cor: string
   unidade: string
   custo: number
+  custo_fixo: boolean
+  custo_atualizado_em: string | null
   ordem: number
 }
 
@@ -309,9 +319,12 @@ export interface CmvSerie {
 }
 
 export interface CmvCategoria {
-  categoria_id: string
+  /** Nulo no balde "Sem categoria" — produto cuja categoria foi apagada. */
+  categoria_id: string | null
   categoria_nome: string
   categoria_cor: string
+  /** `false` para categoria arquivada que ainda tem movimento no período. */
+  categoria_ativa: boolean
   /** Nulo sem contagem de abertura — ver a migração 0007. */
   estoque_inicial: number | null
   compras: number
@@ -338,4 +351,22 @@ export interface PanoramaRestaurante {
   ultima_contagem: string | null
   valor_estoque: number | null
   ultimo_acesso: string | null
+}
+
+/**
+ * Convite: quem pode ser o quê, decidido **antes** do cadastro por quem já
+ * tinha esse poder. Sem convite, a conta existe no auth e não ganha perfil —
+ * e sem perfil não enxerga linha nenhuma (migração 0008).
+ */
+export interface Convite {
+  id: string
+  restaurante_id: string | null
+  email: string
+  nome: string | null
+  papel: PapelUsuario
+  criado_por: string | null
+  criado_em: string
+  expira_em: string
+  aceito_em: string | null
+  aceito_por: string | null
 }

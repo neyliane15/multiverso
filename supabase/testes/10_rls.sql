@@ -33,7 +33,14 @@ begin
   insert into restaurantes (nome, slug) values ('Casa A', 'casa-a') returning id into r_a;
   insert into restaurantes (nome, slug) values ('Casa B', 'casa-b') returning id into r_b;
 
-  -- O trigger em auth.users cria o perfil a partir dos metadados do convite.
+  -- Quem decide papel e restaurante e o convite, gravado antes. Os metadados
+  -- do cadastro nao decidem nada (ver migracao 0008).
+  insert into convites (email, nome, papel, restaurante_id) values
+    ('master@multiverso.app', 'Master', 'master',   null),
+    ('admin@casa-a.com',      'Admin A', 'admin',    r_a),
+    ('oper@casa-a.com',       'Oper A',  'operador', r_a),
+    ('admin@casa-b.com',      'Admin B', 'admin',    r_b);
+
   insert into auth.users (id, email, raw_user_meta_data) values
     (u_master,  'master@multiverso.app', jsonb_build_object('nome','Master','papel','master')),
     (u_admin_a, 'admin@casa-a.com',      jsonb_build_object('nome','Admin A','papel','admin','restaurante_id', r_a)),
@@ -188,6 +195,100 @@ begin
   perform conferir('vw_produtos_completos respeita o tenant (security_invoker)', n = 1);
   select count(*) into n from vw_panorama_restaurantes;
   perform conferir('vw_panorama_restaurantes nao vaza a rede para um admin', n = 1);
+  reset role;
+end $$;
+
+-- ------------------------------- cadastrar-se nao da poder nenhum ----------
+do $$
+declare n integer; v_invasor uuid := '99999999-9999-4999-8999-000000000001';
+begin
+  -- Isto e exatamente o que supabase.auth.signUp({options:{data:{...}}}) grava.
+  -- Antes da migracao 0008 esta linha fazia um visitante virar master da rede.
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (v_invasor, 'invasor@exemplo.com',
+          jsonb_build_object('nome', 'Invasor', 'papel', 'master',
+                             'restaurante_id', (select id from restaurantes where slug = 'casa-a')));
+
+  select count(*) into n from perfis where id = v_invasor;
+  perform conferir('cadastro sem convite nao ganha perfil', n = 0);
+
+  set local role authenticated;
+  perform set_config('request.jwt.claims',
+    format('{"sub":"%s","role":"authenticated"}', v_invasor), true);
+
+  perform conferir('e nao vira master por pedir', not mv_eh_master());
+  select count(*) into n from restaurantes;
+  perform conferir('nem enxerga restaurante nenhum', n = 0);
+  select count(*) into n from produtos;
+  perform conferir('nem produto nenhum', n = 0);
+  reset role;
+end $$;
+
+-- ------------------------------ o convite decide, o cadastro nao -----------
+do $$
+declare r_a uuid; v_novo uuid := '99999999-9999-4999-8999-000000000002';
+begin
+  select id into r_a from restaurantes where slug = 'casa-a';
+  insert into convites (email, nome, papel, restaurante_id)
+  values ('convidado@casa-a.com', 'Convidado', 'operador', r_a);
+
+  -- O cadastro tenta forcar master. O convite diz operador.
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (v_novo, 'convidado@casa-a.com', jsonb_build_object('papel', 'master'));
+
+  perform conferir('o papel vem do convite, nao do cadastro',
+    (select papel from perfis where id = v_novo) = 'operador');
+  perform conferir('e o restaurante tambem',
+    (select restaurante_id from perfis where id = v_novo) = r_a);
+  perform conferir('o convite fica marcado como consumido',
+    (select aceito_em is not null from convites where email = 'convidado@casa-a.com'));
+end $$;
+
+-- ------------------------------- quem pode convidar quem -------------------
+do $$
+declare r_a uuid; r_b uuid; v_erro text;
+begin
+  select id into r_a from restaurantes where slug = 'casa-a';
+  select id into r_b from restaurantes where slug = 'casa-b';
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+  begin
+    insert into convites (email, papel, restaurante_id) values ('x@x.com', 'master', null);
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('admin nao convida master', v_erro is not null);
+
+  begin
+    insert into convites (email, papel, restaurante_id) values ('y@y.com', 'admin', r_b);
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('admin nao convida para o restaurante alheio', v_erro is not null);
+
+  insert into convites (email, papel, restaurante_id) values ('z@casa-a.com', 'gerente', r_a);
+  perform conferir('admin convida para o proprio restaurante',
+    (select count(*) from convites where email = 'z@casa-a.com') = 1);
+  reset role;
+end $$;
+
+do $$
+declare n integer; v_erro text;
+begin
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a2', true);
+  begin
+    insert into convites (email, papel, restaurante_id)
+    values ('w@casa-a.com', 'operador', mv_restaurante_atual());
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('operador nao convida ninguem', v_erro is not null);
+
+  select count(*) into n from convites;
+  perform conferir('operador nao le os convites do restaurante', n = 0);
   reset role;
 end $$;
 

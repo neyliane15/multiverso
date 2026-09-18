@@ -174,9 +174,12 @@ export function periodoSugerido(serie: readonly CmvSerie[]): CmvSerie | null {
 // ─────────────────────────────────────────────── abertura por categoria ────
 
 export interface CategoriaDeCmv {
-  categoria_id: string
+  /** Nulo no balde "Sem categoria" — produto cuja categoria foi apagada. */
+  categoria_id: string | null
   categoria_nome: string
   categoria_cor: string
+  /** `false` para categoria arquivada que ainda tem movimento no período. */
+  categoria_ativa: boolean
   /** Nulo quando não há contagem de abertura no período. */
   estoque_inicial: number | null
   compras: number

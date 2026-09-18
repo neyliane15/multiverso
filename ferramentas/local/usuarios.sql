@@ -10,6 +10,13 @@
 -- mv_ao_criar_usuario transforma em perfil.
 -- ============================================================================
 
+-- O papel vem daqui, e nao dos metadados do cadastro (migracao 0008).
+insert into convites (email, nome, papel, restaurante_id) values
+  ('master@multiverso.app',    'Master do Multiverso', 'master',   null),
+  ('admin@bardozeca.com.br',   'Zeca',                 'admin',    'b0a12eca-0000-4000-8000-000000000001'),
+  ('estoque@bardozeca.com.br', 'Dona Neide',           'operador', 'b0a12eca-0000-4000-8000-000000000001')
+on conflict do nothing;
+
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-4111-8111-111111111111', 'master@multiverso.app',
    jsonb_build_object('nome', 'Master do Multiverso', 'papel', 'master')),

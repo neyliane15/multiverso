@@ -16,9 +16,10 @@ declare r uuid; u uuid := '00000000-0000-0000-0000-0000000000f1';
         c_carnes uuid; s_bar uuid; s_cozinha uuid; p1 uuid; p2 uuid;
 begin
   insert into restaurantes (nome, slug) values ('Casa de Teste', 'casa-teste') returning id into r;
+  insert into convites (email, nome, papel, restaurante_id)
+  values ('chef@casa-teste.com', 'Chef', 'admin', r);
   insert into auth.users (id, email, raw_user_meta_data)
-  values (u, 'chef@casa-teste.com',
-          jsonb_build_object('nome','Chef','papel','admin','restaurante_id', r));
+  values (u, 'chef@casa-teste.com', jsonb_build_object('nome','Chef'));
 
   insert into categorias (restaurante_id, nome, ordem) values (r, 'Carnes', 1) returning id into c_carnes;
   insert into setores (restaurante_id, nome, ordem) values (r, 'Bar', 1) returning id into s_bar;
@@ -149,6 +150,76 @@ begin
   reset role;
 end $$;
 
+-- ----------------------------------- o custo chega ate a contagem ----------
+do $$
+declare r uuid; f uuid; nota uuid; p_cerveja uuid; s_bar uuid; s_coz uuid;
+        c_id uuid; v_erro text;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  select id into p_cerveja from produtos where nome = 'Cerveja' and restaurante_id = r;
+  select id into s_bar from setores where nome = 'Bar' and restaurante_id = r;
+  select id into s_coz from setores where nome = 'Cozinha' and restaurante_id = r;
+  select id into f from fornecedores where restaurante_id = r limit 1;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f1', true);
+
+  -- A cerveja vive no Bar a 10. No Estoque (Cozinha) o custo e da casa: engradado
+  -- montado por eles, marcado como custo proprio.
+  insert into produto_setores (produto_id, setor_id, unidade, custo, custo_fixo)
+  values (p_cerveja, s_coz, 'CX', 240, true);
+
+  -- Nota com DUAS linhas do mesmo produto, precos diferentes: o caso em que o
+  -- custo era sorteado. 10 a 12 e 10 a 14 -> media ponderada 13.
+  insert into notas_fiscais (restaurante_id, fornecedor_id, origem, numero,
+                             emitida_em, valor_produtos, valor_total)
+  -- Outubro de proposito: dentro de agosto esta nota entraria nas compras do
+  -- periodo e quebraria a conta redonda que o teste de CMV persegue.
+  values (r, f, 'manual', '2002', date '2026-10-05', 260, 260) returning id into nota;
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total, fator_conversao) values
+    (nota, p_cerveja, 'CERVEJA LOTE A', 'UND', 10, 12, 120, 1),
+    (nota, p_cerveja, 'CERVEJA LOTE B', 'UND', 10, 14, 140, 1);
+
+  perform mv_lancar_nota(nota);
+
+  perform conferir('nota com duas linhas do mesmo produto vira media ponderada (260/20 = 13)',
+    (select custo_medio from produtos where id = p_cerveja) = 13);
+
+  perform conferir('o vinculo que segue a compra foi atualizado para 13',
+    (select custo from produto_setores where produto_id = p_cerveja and setor_id = s_bar) = 13);
+
+  perform conferir('o vinculo marcado como custo proprio nao foi tocado',
+    (select custo from produto_setores where produto_id = p_cerveja and setor_id = s_coz) = 240);
+
+  perform conferir('e o custo carimbou a data de atualizacao',
+    (select custo_atualizado_em is not null from produto_setores
+      where produto_id = p_cerveja and setor_id = s_bar));
+
+  -- Relancar reaplicaria o custo e uma nota cancelada voltaria a contar.
+  begin
+    perform mv_lancar_nota(nota);
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('lancar a mesma nota duas vezes e recusado', v_erro like '%ja foi lancada%');
+
+  -- E o custo novo chega na proxima folha de contagem.
+  c_id := mv_abrir_contagem(r, date '2026-10-06', 'semanal', 'Conferencia de custo');
+  perform conferir('a folha de contagem nasce com o custo novo no bar',
+    (select custo_unitario from contagem_itens
+      where contagem_id = c_id and produto_id = p_cerveja and setor_id = s_bar) = 13);
+  perform conferir('e com o custo proprio preservado na cozinha',
+    (select custo_unitario from contagem_itens
+      where contagem_id = c_id and produto_id = p_cerveja and setor_id = s_coz) = 240);
+  perform conferir('a linha diz de quando e o custo que esta usando',
+    (select observacao like 'custo de %' from contagem_itens
+      where contagem_id = c_id and produto_id = p_cerveja and setor_id = s_bar));
+
+  delete from contagens where id = c_id;
+  reset role;
+end $$;
+
 -- ------------------------------------------------------------- o CMV -------
 do $$
 declare r uuid; v_id uuid; c record;
@@ -200,6 +271,23 @@ begin
   perform conferir('mas o estoque inicial de setembro existe (a foto de agosto)',
     (select count(*) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30')
       where estoque_inicial is not null) > 0);
+
+  -- Produto sem categoria sumia da abertura, e o total do periodo continuava
+  -- contando com ele: as colunas deixavam de fechar sem nada avisar.
+  update produtos set categoria_id = null where nome = 'Cerveja' and restaurante_id = r;
+  perform conferir('produto sem categoria aparece como "Sem categoria"',
+    (select count(*) from mv_cmv_por_categoria(r, date '2026-08-01', date '2026-08-31')
+      where categoria_nome = 'Sem categoria') = 1);
+
+  -- Categoria arquivada tambem: o dado dela nao deixa de existir por ter sido
+  -- tirada do cadastro.
+  update produtos set categoria_id = (select id from categorias where restaurante_id = r limit 1)
+   where nome = 'Cerveja' and restaurante_id = r;
+  update categorias set ativo = false where restaurante_id = r;
+  perform conferir('categoria arquivada com movimento continua na abertura',
+    (select count(*) from mv_cmv_por_categoria(r, date '2026-08-01', date '2026-08-31')
+      where not categoria_ativa) = 1);
+  update categorias set ativo = true where restaurante_id = r;
 
   -- Granularidade invalida tem de gritar, nao devolver vazio.
   begin

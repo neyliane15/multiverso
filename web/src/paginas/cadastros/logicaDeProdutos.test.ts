@@ -33,6 +33,8 @@ const GERAL: SetorDoProduto = {
   unidade: 'KG',
   custo: 41.5,
   ordem: 0,
+  custo_fixo: false,
+  custo_atualizado_em: null,
 }
 const PORCIONADOS: SetorDoProduto = {
   setor_id: 's-porc',
@@ -41,6 +43,8 @@ const PORCIONADOS: SetorDoProduto = {
   unidade: 'UND',
   custo: 6.34,
   ordem: 1,
+  custo_fixo: false,
+  custo_atualizado_em: null,
 }
 
 function produto(
@@ -52,6 +56,7 @@ function produto(
     codigo_barras: null,
     unidade: 'UND',
     custo_medio: 0,
+    custo_atualizado_em: null,
     estoque_minimo: 0,
     perecivel: false,
     observacao: null,
@@ -75,6 +80,7 @@ const tilapia = produto({
   categoria_cor: '#2F80ED',
   unidade: 'KG',
   custo_medio: 41.5,
+  custo_atualizado_em: null,
   setores: [GERAL, PORCIONADOS],
 })
 
@@ -86,6 +92,7 @@ const arroz = produto({
   categoria_cor: '#F5B700',
   unidade: 'KG',
   custo_medio: 5.2,
+  custo_atualizado_em: null,
   setores: [{ ...GERAL, unidade: 'KG', custo: 5.2 }],
 })
 

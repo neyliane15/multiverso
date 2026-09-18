@@ -51,6 +51,33 @@ async function buscar<T>(consulta: PromiseLike<{ data: unknown; error: unknown }
   return data as T
 }
 
+/**
+ * Teto do PostgREST: sem `.range()`, o Supabase devolve no maximo 1000 linhas —
+ * e devolve **calado**. O primeiro cliente ja tem 854 produtos e 868 itens de
+ * contagem; a 15% do teto, a proxima folha de contagem seria truncada sem erro
+ * nenhum na tela, e o total somado no navegador sairia menor que a soma dos
+ * cartoes de setor (esses vem agregados do servidor e estariam certos).
+ *
+ * Esta funcao pagina ate acabar. O limite de seguranca existe para que um
+ * defeito de filtro nao vire um download de banco inteiro.
+ */
+const PAGINA = 1000
+const TETO_DE_SEGURANCA = 50_000
+
+async function buscarTudo<T>(
+  pagina: (de: number, ate: number) => PromiseLike<{ data: unknown; error: unknown }>,
+): Promise<T[]> {
+  const tudo: T[] = []
+  for (let de = 0; de < TETO_DE_SEGURANCA; de += PAGINA) {
+    const lote = await buscar<T[]>(pagina(de, de + PAGINA - 1))
+    tudo.push(...lote)
+    if (lote.length < PAGINA) return tudo
+  }
+  throw new Error(
+    `A consulta passou de ${TETO_DE_SEGURANCA} linhas. Isso quase certamente e um filtro errado, e nao um catalogo desse tamanho.`,
+  )
+}
+
 export const chaves = {
   restaurantes: ['restaurantes'] as const,
   panorama: ['panorama'] as const,
@@ -69,7 +96,10 @@ export const chaves = {
   listaItens: (id: string) => ['lista-itens', id] as const,
   cmv: (r: string, i: string, f: string) => ['cmv', r, i, f] as const,
   cmvSerie: (r: string, g: string, n: number) => ['cmv-serie', r, g, n] as const,
-  cmvCategorias: (r: string, i: string, f: string) => ['cmv-cat', r, i, f] as const,
+  // Sob o prefixo 'cmv' de proposito: as mutacoes invalidam por prefixo, e
+  // 'cmv-cat' era uma chave irma que nunca era atingida — a tabela por
+  // categoria ficava velha ao lado dos indicadores recem-atualizados.
+  cmvCategorias: (r: string, i: string, f: string) => ['cmv', 'categorias', r, i, f] as const,
 }
 
 // ─────────────────────────────────────────────────────── administração ─────
@@ -159,12 +189,13 @@ export function useProdutos(restauranteId: string) {
   return useQuery({
     queryKey: chaves.produtos(restauranteId),
     queryFn: () =>
-      buscar<ProdutoCompleto[]>(
+      buscarTudo<ProdutoCompleto>((de, ate) =>
         supabase
           .from('vw_produtos_completos')
           .select('*')
           .eq('restaurante_id', restauranteId)
-          .order('nome'),
+          .order('nome')
+          .range(de, ate),
       ),
   })
 }
@@ -322,11 +353,13 @@ export function useItensDaContagem(contagemId: string | undefined) {
     queryKey: chaves.contagemItens(contagemId ?? ''),
     enabled: Boolean(contagemId),
     queryFn: () =>
-      buscar<ItemDeContagem[]>(
+      buscarTudo<ItemDeContagem>((de, ate) =>
         supabase
           .from('contagem_itens')
           .select('*, produto:produtos(nome, categoria_id)')
-          .eq('contagem_id', contagemId!),
+          .eq('contagem_id', contagemId!)
+          .order('id')
+          .range(de, ate),
       ),
   })
 }
@@ -401,6 +434,9 @@ export function useFecharContagem(restauranteId: string) {
       void qc.invalidateQueries({ queryKey: chaves.contagem(contagemId) })
       void qc.invalidateQueries({ queryKey: ['cmv'] })
       void qc.invalidateQueries({ queryKey: ['cmv-serie'] })
+      // A rede mostra o valor do estoque da ultima contagem fechada: fechar uma
+      // muda aquele numero.
+      void qc.invalidateQueries({ queryKey: chaves.panorama })
     },
   })
 }
@@ -481,7 +517,12 @@ export function useVincularItemDaNota(notaId: string) {
           .select()
           .single(),
       ),
-    onSuccess: () => qc.invalidateQueries({ queryKey: chaves.notaItens(notaId) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.notaItens(notaId) })
+      // O historico mostra "N itens pendentes" por nota: vincular o ultimo
+      // muda o cracha da lista, que fica noutra tela.
+      void qc.invalidateQueries({ queryKey: ['compras'] })
+    },
   })
 }
 
@@ -522,11 +563,13 @@ export function useItensDaLista(listaId: string | undefined) {
     queryKey: chaves.listaItens(listaId ?? ''),
     enabled: Boolean(listaId),
     queryFn: () =>
-      buscar<ItemDeLista[]>(
+      buscarTudo<ItemDeLista>((de, ate) =>
         supabase
           .from('lista_compras_itens')
           .select('*, produto:produtos(nome, categoria_id)')
-          .eq('lista_id', listaId!),
+          .eq('lista_id', listaId!)
+          .order('id')
+          .range(de, ate),
       ),
   })
 }

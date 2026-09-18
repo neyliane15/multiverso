@@ -446,14 +446,30 @@ on conflict (id) do update set
   p.push('')
 
   // ------------------------------------------------------- produto_setores --
-  p.push(`-- O N:N com unidade e custo POR SETOR, coracao do modulo de cadastros.`)
+  p.push(`-- O N:N com unidade e custo POR SETOR, coracao do modulo de cadastros.
+--
+-- custo_fixo marca o vinculo cujo custo NAO e preco de compra. A regra usada
+-- aqui: quando o custo do setor difere do custo de referencia do produto, ele
+-- foi calculado pela casa — file de tilapia e R$ 41,50/KG no Estoque Geral (o
+-- que se paga ao fornecedor) e R$ 6,34 a porcao nos Porcionados (o que a
+-- cozinha apurou). Sem essa marca, a primeira nota de tilapia lancada
+-- sobrescreveria a porcao com o preco do quilo.
+--
+-- E um palpite bem-informado sobre a planilha de origem, nao um dado que ela
+-- trazia. O admin muda vinculo a vinculo na tela de Produtos.`)
   p.push(bloco(
     'produto_setores',
     'produto_setores',
-    ['produto_id', 'setor_id', 'unidade', 'custo', 'ordem'],
-    modelo.vinculos.map((v) => [txt(v.produtoId), txt(v.setorId), txt(v.unidade), num(v.custo, 6), v.ordem].join(', ')),
+    ['produto_id', 'setor_id', 'unidade', 'custo', 'ordem', 'custo_fixo'],
+    modelo.vinculos.map((v) => {
+      const produto = modelo.produtos.find((x) => x.id === v.produtoId)
+      const proprio = produto !== undefined && Math.abs(v.custo - produto.custoMedio) > 1e-6
+      return [txt(v.produtoId), txt(v.setorId), txt(v.unidade), num(v.custo, 6), v.ordem, proprio]
+        .join(', ')
+    }),
     `on conflict (produto_id, setor_id) do update set
-  unidade = excluded.unidade, custo = excluded.custo, ordem = excluded.ordem, ativo = true`,
+  unidade = excluded.unidade, custo = excluded.custo, ordem = excluded.ordem,
+  custo_fixo = excluded.custo_fixo, ativo = true`,
   ))
   p.push('')
 

@@ -101,7 +101,17 @@ describe('tomDaVariacao · a cor diz magnitude, não direção', () => {
   })
 
   it('exatamente no limite já conta como notável', () => {
-    expect(tomDaVariacao({ ...base, valor: 15, percentual: VARIACAO_NOTAVEL })).toBe('alerta')
+    // Literal dos dois lados, de proposito. Usar VARIACAO_NOTAVEL como entrada
+    // esperada tornava a assercao circular: "no limiar, e o limiar" passa com
+    // qualquer limiar. Dobrar a constante para 30 nao derrubava nenhum dos 11
+    // testes deste arquivo — e o destaque "confira este item" deixava de
+    // disparar entre 15% e 29%, que e onde moram unidade trocada e item
+    // esquecido.
+    expect(tomDaVariacao({ ...base, valor: 15, percentual: 14.99 })).toBe('neutro')
+    expect(tomDaVariacao({ ...base, valor: 15, percentual: 15 })).toBe('alerta')
+    expect(tomDaVariacao({ ...base, valor: -15, percentual: -14.99 })).toBe('neutro')
+    expect(tomDaVariacao({ ...base, valor: -15, percentual: -15 })).toBe('alerta')
+    expect(VARIACAO_NOTAVEL).toBe(15)
   })
 
   it('sem base não há alarme', () => {
