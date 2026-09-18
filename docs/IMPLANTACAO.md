@@ -5,6 +5,55 @@ pode fazer estão marcadas com **você**.
 
 ---
 
+## 0. Preparar o computador · **você**
+
+Todos os comandos deste guia são digitados no **terminal do seu computador**,
+dentro da pasta do projeto. Se você nunca fez isso, é este o caminho.
+
+### Instalar as duas ferramentas
+
+| | Windows | Mac |
+|---|---|---|
+| **Node.js** | [nodejs.org](https://nodejs.org) → botão **LTS** | [nodejs.org](https://nodejs.org) → botão **LTS** |
+| **Git** | [git-scm.com/download/win](https://git-scm.com/download/win) | já vem instalado |
+
+Reinicie o computador depois de instalar o Node.
+
+### Abrir o terminal
+
+- **Windows**: tecla Windows, digite `powershell`, Enter.
+- **Mac**: Cmd + Espaço, digite `terminal`, Enter.
+
+Confira se deu certo — cada comando tem de responder um número de versão:
+
+```bash
+node --version
+git --version
+```
+
+### Baixar o projeto
+
+```bash
+git clone https://github.com/neyliane15/multiverso.git
+cd multiverso
+git checkout claude/clever-mccarthy-nnbtas
+npm install
+```
+
+O `git clone` cria a pasta `multiverso` dentro de onde você estiver (no
+Windows, normalmente `C:\Users\SeuNome`). O `cd` entra nela. **Daqui em
+diante, todo comando deste guia é digitado nessa pasta** — se fechar o terminal,
+abra de novo e faça `cd multiverso` antes de continuar.
+
+Para ver o sistema rodando agora, antes mesmo do Supabase:
+
+```bash
+npm test          # 403 testes
+npm run build
+```
+
+---
+
 ## 1. Criar o projeto no Supabase · **você**
 
 1. Entre em [supabase.com](https://supabase.com) e crie a conta (o plano
@@ -31,6 +80,17 @@ npm i -g supabase
 supabase login                              # abre o navegador
 ferramentas/implantar.sh <referencia> --com-carga
 ```
+
+> **No Windows**, o PowerShell não roda `.sh`. Use o **Git Bash** — ele foi
+> instalado junto com o Git: clique com o botão direito na pasta `multiverso` e
+> escolha *Git Bash Here*. Ou rode os quatro passos na mão:
+>
+> ```
+> supabase link --project-ref <referencia>
+> supabase db push
+> npm run funcao:preparar
+> supabase functions deploy importar-nfe --project-ref <referencia>
+> ```
 
 Isso aplica as 10 migrações, carrega os 854 produtos do Bar do Zeca e publica a
 função que lê NFe. É idempotente: rodar de novo não duplica nada.
