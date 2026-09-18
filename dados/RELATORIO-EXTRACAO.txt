@@ -1,6 +1,7 @@
 descartadas (linhas de titulo): ["',' (Geral!V63)", "'HORTIFRUTI BAR DO ZECA' (Hortifruti!A1)", "'CONTROLE DE ESTOQUE MASSAS' (Massas!A1)", "'PORCIONADOS BAR DO ZECA' (Porcionados!A1)", "'CONTROLE DE ESTOQUE MOLHOS BAR DO ZECA' (Molhos!A1)", "'CONTROLE DE ESTOQUE BEBIDAS BAR DO ZECA' (Bebidas Álcoolicas!A1)"]
+desdobrados em produto proprio: ['BACON -> BACON (FEIJOADA) (Porcionados!A95)', 'BARRIGA SUÍNA -> BARRIGA SUÍNA (FEIJOADA) (Porcionados!A103)']
 linhas de contagem: 869
-produtos unicos  : 852
+produtos unicos  : 854
 total            : 78681.3573  (planilha: 78681.3573)  diferenca: 0.000000
 setores          : ['Bar', 'Estoque Geral', 'Hortifruti', 'Massas e Panificacao', 'Molhos e Caldos', 'Porcionados']
 categorias       : 21

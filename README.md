@@ -131,8 +131,8 @@ docs/IDENTIDADE.md     a direção visual
 
 | | |
 |---|---|
-| Produtos | 852 |
-| Vínculos produto × setor | 866 |
+| Produtos | 854 |
+| Vínculos produto × setor | 868 |
 | Setores | 6 — Bar, Estoque Geral, Hortifrúti, Massas e Panificação, Molhos e Caldos, Porcionados |
 | Categorias | 21 |
 | Valor do estoque | **R$ 78.681,36** |
@@ -146,10 +146,13 @@ Duas coisas foram limpas no caminho, e as duas estão documentadas em
 - A célula `Geral!V63` contém só uma vírgula, numa linha inteiramente vazia —
   um toque de tecla perdido, não um produto. Descartada.
 - Três pares produto × setor aparecem duas vezes, porque o mesmo item está em
-  dois blocos da mesma aba (BACON e BARRIGA SUÍNA em `SUÍNOS` e de novo em
-  `FEIJOADA`; POLIFLOR em `DESCARTÁVEIS` e em `MATERIAL DE LIMPEZA`). Vale a
-  primeira ocorrência. As três repetições estão zeradas, então o total não se
-  move.
+  dois blocos da mesma aba. Cada caso pedia uma decisão, e o cliente decidiu:
+  **BACON** e **BARRIGA SUÍNA** dos porcionados são produtos **diferentes** —
+  o corte que vai na feijoada não é o mesmo dos suínos, e os custos já diziam
+  isso (25,75 contra 25,99; 21,85 contra 29,75). Ganharam nome próprio.
+  **POLIFLOR** é o mesmo produto listado em `DESCARTÁVEIS` e de novo em
+  `MATERIAL DE LIMPEZA`: fica um só. As repetições estão zeradas, então o total
+  não se move.
 
 O pipeline inteiro — planilha, extração, conferência, carga — está em `dados/`
 e roda de novo a qualquer momento:

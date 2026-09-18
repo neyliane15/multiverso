@@ -45,8 +45,8 @@ describe('seed 0001 · Bar do Zeca', () => {
     expect(Number(desvio) / Number(escala)).toBeLessThanOrEqual(0.01)
   })
 
-  it('carrega 852 produtos, 21 categorias e 6 setores', () => {
-    expect(relatorio.resumo.produtos).toBe(852)
+  it('carrega 854 produtos, 21 categorias e 6 setores', () => {
+    expect(relatorio.resumo.produtos).toBe(854)
     expect(relatorio.resumo.categorias).toBe(21)
     expect(relatorio.resumo.setores).toBe(6)
     expect(relatorio.resumo.produtos).toBe(dados.produtos.length)
@@ -54,14 +54,42 @@ describe('seed 0001 · Bar do Zeca', () => {
     expect(relatorio.resumo.setores).toBe(dados.setores.length)
   })
 
-  it('carrega um vinculo por par produto x setor: 866 dos 869 registros da planilha', () => {
-    // A planilha repete tres pares (BACON e BARRIGA SUINA em Porcionados,
-    // POLIFLOR no Estoque Geral). O schema so admite um vinculo por par, e as
-    // repetidas estao zeradas — por isso o total nao muda.
+  it('carrega um vinculo por par produto x setor: 868 dos 869 registros da planilha', () => {
+    // A planilha repetia tres pares. Dois deles o cliente resolveu desdobrando
+    // em produto proprio (BACON e BARRIGA SUINA da feijoada), entao deixaram de
+    // ser repeticao. Sobra POLIFLOR, que e mesmo o mesmo produto listado em duas
+    // categorias — e esta zerado, por isso o total nao muda.
     expect(relatorio.resumo.linhasNoJson).toBe(869)
-    expect(relatorio.resumo.paresRepetidosNoJson).toBe(3)
-    expect(relatorio.resumo.vinculos).toBe(866)
-    expect(relatorio.resumo.itens).toBe(866)
+    expect(relatorio.resumo.paresRepetidosNoJson).toBe(1)
+    expect(relatorio.resumo.vinculos).toBe(868)
+    expect(relatorio.resumo.itens).toBe(868)
+  })
+
+  it('desdobra os cortes da feijoada em produtos proprios, com o custo de cada um', () => {
+    // A decisao e do cliente: o bacon que vai na feijoada nao e o mesmo dos
+    // suinos. Se alguem reverter o desdobramento, um dos dois custos some do
+    // cadastro em silencio — e e o custo que vai para o CMV.
+    const porNome = new Map(dados.produtos.map((p) => [p.nome, p]))
+
+    for (const [base, desdobrado, custoBase, custoFeijoada] of [
+      ['BACON', 'BACON (FEIJOADA)', 25.75, 25.99],
+      ['BARRIGA SUÍNA', 'BARRIGA SUÍNA (FEIJOADA)', 21.85, 29.75],
+    ]) {
+      const original = porNome.get(base)
+      const novo = porNome.get(desdobrado)
+      expect(original, `${base} sumiu do catalogo`).toBeDefined()
+      expect(novo, `${desdobrado} nao foi criado`).toBeDefined()
+
+      const emPorcionados = original.setores.filter((s) => s.setor === 'Porcionados')
+      expect(emPorcionados).toHaveLength(1)
+      expect(emPorcionados[0].categoria).toBe('SUÍNOS')
+      expect(emPorcionados[0].custo).toBe(custoBase)
+
+      expect(novo.setores).toHaveLength(1)
+      expect(novo.setores[0].setor).toBe('Porcionados')
+      expect(novo.setores[0].categoria).toBe('FEIJOADA')
+      expect(novo.setores[0].custo).toBe(custoFeijoada)
+    }
   })
 
   it('preserva os nomes com apostrofo, escapados como o Postgres espera', () => {
@@ -82,7 +110,7 @@ describe('seed 0001 · Bar do Zeca', () => {
     const idsSetores = new Set(linhasDoBloco(sql, 'setores').map((s) => s.id))
     const itens = linhasDoBloco(sql, 'contagem_itens')
 
-    expect(itens.length).toBe(866)
+    expect(itens.length).toBe(868)
     for (const item of itens) {
       expect(idsProdutos.has(item.produto_id), `produto solto na contagem: ${item.produto_id}`).toBe(true)
       expect(idsSetores.has(item.setor_id), `setor solto na contagem: ${item.setor_id}`).toBe(true)

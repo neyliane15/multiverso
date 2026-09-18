@@ -26,7 +26,7 @@ export const TOLERANCIA = '0.01'
 
 // ------------------------------------------------------- aritmetica exata --
 // Comparar dinheiro com ponto flutuante e pedir para um centavo sumir no meio
-// de 866 multiplicacoes. Tudo aqui anda em BigInt numa escala fixa, do mesmo
+// de 868 multiplicacoes. Tudo aqui anda em BigInt numa escala fixa, do mesmo
 // jeito que o numeric do Postgres.
 
 const ESCALA = 4n // casas do total, como em contagem_itens.total

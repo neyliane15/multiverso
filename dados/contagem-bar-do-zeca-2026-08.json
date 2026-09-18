@@ -1036,7 +1036,13 @@
      "custo": 25.75,
      "quantidade": 0.0,
      "total": 0.0
-    },
+    }
+   ]
+  },
+  {
+   "nome": "BACON (FEIJOADA)",
+   "categoria": "FEIJOADA",
+   "setores": [
     {
      "setor": "Porcionados",
      "categoria": "FEIJOADA",
@@ -1178,7 +1184,13 @@
      "custo": 21.85,
      "quantidade": 0.0,
      "total": 0.0
-    },
+    }
+   ]
+  },
+  {
+   "nome": "BARRIGA SUÍNA (FEIJOADA)",
+   "categoria": "FEIJOADA",
+   "setores": [
     {
      "setor": "Porcionados",
      "categoria": "FEIJOADA",
@@ -17594,7 +17606,7 @@
   {
    "setor": "Porcionados",
    "categoria": "FEIJOADA",
-   "produto": "BACON",
+   "produto": "BACON (FEIJOADA)",
    "quantidade": 0.0,
    "unidade": "KG",
    "custo_unitario": 25.99,
@@ -17674,7 +17686,7 @@
   {
    "setor": "Porcionados",
    "categoria": "FEIJOADA",
-   "produto": "BARRIGA SUÍNA",
+   "produto": "BARRIGA SUÍNA (FEIJOADA)",
    "quantidade": 0.0,
    "unidade": "KG",
    "custo_unitario": 29.75,

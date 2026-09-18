@@ -35,6 +35,37 @@ for i in limpos:
         agrupado[k] = i
 linhas = list(agrupado.values())
 
+# ----------------------------------------------------------------------------
+# Pares produto x setor que a planilha repete em blocos diferentes da mesma aba.
+# O schema admite um vinculo por par, entao cada caso precisou de decisao humana:
+# e o MESMO item listado duas vezes, ou sao itens diferentes com o mesmo nome?
+#
+# O cliente decidiu:
+#   BACON e BARRIGA SUINA, em Porcionados, sao produtos DIFERENTES — o corte que
+#   vai na feijoada nao e o mesmo dos suinos, e os custos ja diziam isso (25,75
+#   contra 25,99; 21,85 contra 29,75). Ganham nome proprio.
+#
+#   POLIFLOR, no Estoque Geral, e o MESMO produto listado em DESCARTAVEIS e de
+#   novo em MATERIAL DE LIMPEZA. Fica um so, na primeira ocorrencia.
+#
+# A chave e (nome normalizado, setor, categoria da 2a ocorrencia).
+DESDOBRAR = {
+    ('BACON', 'Porcionados', 'FEIJOADA'): 'BACON (FEIJOADA)',
+    ('BARRIGA SUINA', 'Porcionados', 'FEIJOADA'): 'BARRIGA SUÍNA (FEIJOADA)',
+}
+
+vistos, desdobrados = set(), []
+for i in linhas:
+    par = (chave(i['produto']), i['setor'])
+    if par not in vistos:
+        vistos.add(par)
+        continue
+    novo_nome = DESDOBRAR.get((chave(i['produto']), i['setor'], i['categoria']))
+    if novo_nome:
+        desdobrados.append(f"{i['produto']} -> {novo_nome} ({i['origem']})")
+        i['produto'] = novo_nome
+        vistos.add((chave(novo_nome), i['setor']))
+
 # catalogo: um produto por nome; cada setor guarda a propria unidade e o proprio custo
 produtos = {}
 for i in linhas:
@@ -56,6 +87,7 @@ saida = {
 json.dump(saida, open(f'{BASE}/contagem-bar-do-zeca-2026-08.json', 'w'), ensure_ascii=False, indent=1)
 
 print('descartadas (linhas de titulo):', descartados)
+print('desdobrados em produto proprio:', desdobrados)
 print('linhas de contagem:', len(linhas))
 print('produtos unicos  :', len(produtos))
 print('total            : %.4f  (planilha: 78681.3573)  diferenca: %.6f' % (total, total - 78681.3573))

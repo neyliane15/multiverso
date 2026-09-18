@@ -31,16 +31,31 @@ create table auth.users (
   created_at         timestamptz not null default now()
 );
 
--- O Supabase resolve auth.uid() a partir do JWT. Aqui, a partir de um GUC que
--- os testes trocam com set_config() para simular cada usuario.
+-- O Supabase resolve auth.uid() a partir do JWT. Aqui a fonte pode ser uma de
+-- duas, e as duas importam:
+--
+--   request.jwt.claims  — o JSON inteiro, que e o que o PostgREST publica de
+--                         verdade quando uma requisicao HTTP chega com token.
+--   request.jwt.claim.* — o campo avulso, que os testes SQL trocam com
+--                         set_config() para vestir cada usuario sem HTTP.
+--
+-- Ler as duas deixa o mesmo banco servir a suite de testes e o app rodando
+-- contra PostgREST, sem uma versao de mentira para cada caso.
 create or replace function auth.uid() returns uuid
 language sql stable as $$
-  select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
+  select coalesce(
+    nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub',
+    nullif(current_setting('request.jwt.claim.sub', true), '')
+  )::uuid
 $$;
 
 create or replace function auth.role() returns text
 language sql stable as $$
-  select coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), 'anon')
+  select coalesce(
+    nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role',
+    nullif(current_setting('request.jwt.claim.role', true), ''),
+    'anon'
+  )
 $$;
 
 create table storage.buckets (

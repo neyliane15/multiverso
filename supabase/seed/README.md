@@ -1,8 +1,8 @@
 # Seed — carga do primeiro restaurante
 
 `0001_bar_do_zeca.sql` carrega o **Bar do Zeca — Norte Shopping** com a contagem
-fechada de **agosto/2026**: 21 categorias, 6 setores, 852 produtos, 866 vínculos
-produto × setor e 866 itens de contagem, somando **78.681,3573**.
+fechada de **agosto/2026**: 21 categorias, 6 setores, 854 produtos, 868 vínculos
+produto × setor e 868 itens de contagem, somando **78.681,3573**.
 
 O arquivo é **gerado**, não escrito à mão. A origem é
 `dados/contagem-bar-do-zeca-2026-08.json` (a planilha do cliente já extraída e
@@ -62,9 +62,9 @@ entrar e derruba a transação inteira com `raise exception` se:
 | Verificação | Por quê |
 |---|---|
 | soma de `contagem_itens.total` difere de `78681.3573` em mais de R$ 0,01 | é o número que o cliente conferiu na planilha; a tolerância de um centavo cobre arredondamento de exibição, nada além disso |
-| produtos ≠ 852 | carga parcial ou produto duplicado por nome |
-| vínculos produto × setor ≠ 866 | idem, do lado do N:N |
-| itens da contagem ≠ 866 | a folha de contagem tem de espelhar o cadastro |
+| produtos ≠ 854 | carga parcial ou produto duplicado por nome |
+| vínculos produto × setor ≠ 868 | idem, do lado do N:N |
+| itens da contagem ≠ 868 | a folha de contagem tem de espelhar o cadastro |
 | categorias ≠ 21 ou setores ≠ 6 | carga parcial |
 | a contagem não terminou `fechada` | contagem aberta não entra no CMV nem no histórico |
 
@@ -72,7 +72,7 @@ O total é **somado do banco** no fechamento, nunca copiado da planilha: se um
 item entrar torto, a soma muda e a verificação reprova. É essa a diferença entre
 conferir e apenas repetir o número.
 
-### 869 linhas na planilha, 866 no banco
+### 869 linhas na planilha, 868 no banco
 
 A extração traz 869 linhas, mas três delas repetem um par produto × setor que já
 havia aparecido antes — o mesmo item listado em dois blocos da mesma aba:
