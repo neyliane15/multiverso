@@ -79,7 +79,7 @@ export function textoDeBusca(produto: ProdutoCompleto): string {
  * Índice de busca calculado uma vez por lista. Sem ele, cada tecla digitada
  * normalizaria 852 nomes de novo — é aí que a busca engasga.
  */
-export function criarIndiceDeBusca(produtos: ProdutoCompleto[]): Map<string, string> {
+export function criarIndiceDeBusca(produtos: readonly ProdutoCompleto[]): Map<string, string> {
   const indice = new Map<string, string>()
   for (const p of produtos) indice.set(p.id, textoDeBusca(p))
   return indice
@@ -97,7 +97,7 @@ export function combina(texto: string, busca: string): boolean {
 /* ========================================================================== */
 
 export function filtrarProdutos(
-  produtos: ProdutoCompleto[],
+  produtos: readonly ProdutoCompleto[],
   filtro: FiltroDeProdutos,
   indice?: Map<string, string>,
 ): ProdutoCompleto[] {
@@ -170,7 +170,7 @@ export function compararProdutos(
 }
 
 export function ordenarProdutos(
-  produtos: ProdutoCompleto[],
+  produtos: readonly ProdutoCompleto[],
   ordem: OrdemDeProdutos,
 ): ProdutoCompleto[] {
   const sinal = ordem.direcao === 'crescente' ? 1 : -1
@@ -232,7 +232,7 @@ export interface SetorDisponivel {
  */
 export function rascunhoDeProduto(
   produto: ProdutoCompleto | null,
-  setores: SetorDisponivel[],
+  setores: readonly SetorDisponivel[],
 ): RascunhoDeProduto {
   const porSetor: Record<string, RascunhoDeSetor> = {}
   for (const setor of setores) {
@@ -261,7 +261,7 @@ export function rascunhoDeProduto(
 /** O nome já existe? O banco tem índice único sem acento — avisamos antes. */
 export function nomeJaUsado(
   nome: string,
-  produtos: ProdutoCompleto[],
+  produtos: readonly ProdutoCompleto[],
   idAtual?: string,
 ): boolean {
   const alvo = chaveBusca(nome)
@@ -271,8 +271,8 @@ export function nomeJaUsado(
 
 export function validarProduto(
   rascunho: RascunhoDeProduto,
-  setores: SetorDisponivel[],
-  produtos: ProdutoCompleto[] = [],
+  setores: readonly SetorDisponivel[],
+  produtos: readonly ProdutoCompleto[] = [],
 ): ProblemaDeProduto[] {
   const problemas: ProblemaDeProduto[] = []
 
