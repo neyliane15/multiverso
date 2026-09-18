@@ -40,6 +40,7 @@ import { useSessao } from '@/dados/sessao'
 import { data as formatarData, documento as formatarDocumento, quantidade } from '@/util/formato'
 import type { Restaurante } from '@/tipos/banco'
 import { PainelLateral } from '../PainelLateral'
+import { marcaDoPanorama } from '../marcaDoPanorama'
 import {
   DIAS_DA_SEMANA,
   FUSOS,
@@ -149,7 +150,7 @@ export function Restaurantes(): JSX.Element {
                         <LogoDoRestaurante
                           nome={r.nome}
                           logoUrl={r.logo_url}
-                          marca={completo}
+                          marca={completo ?? marcaDoPanorama(r.cor_primaria, r.logo_url)}
                           tamanho={32}
                           decorativo
                         />

@@ -84,6 +84,16 @@ export function Identidade(): JSX.Element {
   const [rascunho, setRascunho] = useState<Marca>(original)
   const [salvo, setSalvo] = useState(false)
 
+  // O master troca de restaurante sem sair da tela. Recalcular o rascunho
+  // durante a renderização — e não num efeito — evita o quadro em que a prévia
+  // mostra a marca do restaurante anterior.
+  const [idEmEdicao, setIdEmEdicao] = useState(restaurante?.id ?? '')
+  if (restaurante && restaurante.id !== idEmEdicao) {
+    setIdEmEdicao(restaurante.id)
+    setRascunho(original)
+    setSalvo(false)
+  }
+
   const validacao = useMemo(() => validarMarca(rascunho), [rascunho])
 
   // A RLS de `restaurantes` deixa editar só o master e o admin do próprio

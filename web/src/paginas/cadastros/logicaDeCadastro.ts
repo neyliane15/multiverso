@@ -28,15 +28,41 @@ export interface ProblemaDeCadastro {
   mensagem: string
 }
 
-/** Cor inicial de um item novo: um cinza neutro, igual ao DEFAULT do banco. */
+/**
+ * Cor inicial de um item novo. Não é cor de marca — é o mesmo literal do
+ * `DEFAULT` da coluna `cor` em `categorias` e `setores`, repetido aqui para
+ * que o formulário mostre desde o primeiro quadro o que o banco gravaria.
+ */
 export const COR_PADRAO = '#6B7280'
 
 export const ROTULOS: Record<
   TipoDeCadastro,
-  { singular: string; plural: string; artigo: string; umNovo: string }
+  {
+    singular: string
+    plural: string
+    artigo: string
+    umNovo: string
+    /** Concordância inteira, para o texto não sair “Nenhuma setor cadastrada”. */
+    nenhumCadastrado: string
+    inativos: string
+  }
 > = {
-  categoria: { singular: 'categoria', plural: 'categorias', artigo: 'a', umNovo: 'Nova categoria' },
-  setor: { singular: 'setor', plural: 'setores', artigo: 'o', umNovo: 'Novo setor' },
+  categoria: {
+    singular: 'categoria',
+    plural: 'categorias',
+    artigo: 'a',
+    umNovo: 'Nova categoria',
+    nenhumCadastrado: 'Nenhuma categoria cadastrada',
+    inativos: 'inativas',
+  },
+  setor: {
+    singular: 'setor',
+    plural: 'setores',
+    artigo: 'o',
+    umNovo: 'Novo setor',
+    nenhumCadastrado: 'Nenhum setor cadastrado',
+    inativos: 'inativos',
+  },
 }
 
 /* ========================================================================== */

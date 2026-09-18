@@ -55,6 +55,7 @@ import {
   criarIndiceDeBusca,
   faixaDeCusto,
   filtrarProdutos,
+  janelaDeLinhas,
   ordenarProdutos,
   unidadesDoProduto,
   type ColunaDeProdutos,
@@ -208,17 +209,22 @@ export function Produtos(): JSX.Element {
   /* ------------------------------------------------------- janela ------- */
   const telaLarga = useTelaLarga()
   const alturaDaLinha = telaLarga ? ALTURA_DA_LINHA : ALTURA_DO_CARTAO
-  const caixa = useRef<HTMLDivElement>(null)
+  const caixa = useRef<HTMLDivElement | null>(null)
+  const observador = useRef<ResizeObserver | null>(null)
   const [topo, setTopo] = useState(0)
   const [altura, setAltura] = useState(640)
 
-  useEffect(() => {
-    const alvo = caixa.current
-    if (!alvo) return
-    const observador = new ResizeObserver(() => setAltura(alvo.clientHeight))
-    observador.observe(alvo)
-    setAltura(alvo.clientHeight)
-    return () => observador.disconnect()
+  // Ref de callback, e não useEffect: o contêiner só existe depois que a
+  // consulta volta, e um efeito com [] rodaria antes dele nascer — a janela
+  // ficaria travada na altura chutada.
+  const medirCaixa = useCallback((elemento: HTMLDivElement | null) => {
+    observador.current?.disconnect()
+    caixa.current = elemento
+    if (!elemento) return
+    const obs = new ResizeObserver(() => setAltura(elemento.clientHeight))
+    obs.observe(elemento)
+    observador.current = obs
+    setAltura(elemento.clientHeight)
   }, [])
 
   // Mudou o filtro ou a ordem: a lista é outra, e continuar na altura antiga
@@ -228,11 +234,14 @@ export function Produtos(): JSX.Element {
     setTopo(0)
   }, [filtro.categoriaId, filtro.setorId, filtro.situacao, buscaDiferida, ordem])
 
-  const primeira = Math.max(0, Math.floor(topo / alturaDaLinha) - FOLGA)
-  const ultima = Math.min(visiveis.length, Math.ceil((topo + altura) / alturaDaLinha) + FOLGA)
+  const { primeira, ultima, espacoAcima, espacoAbaixo } = janelaDeLinhas(
+    visiveis.length,
+    alturaDaLinha,
+    topo,
+    altura,
+    FOLGA,
+  )
   const janela = visiveis.slice(primeira, ultima)
-  const espacoAcima = primeira * alturaDaLinha
-  const espacoAbaixo = Math.max(0, (visiveis.length - ultima) * alturaDaLinha)
 
   const aoRolar = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setTopo(e.currentTarget.scrollTop)
@@ -402,7 +411,7 @@ export function Produtos(): JSX.Element {
           </EstadoVazio>
         ) : (
           <div
-            ref={caixa}
+            ref={medirCaixa}
             onScroll={aoRolar}
             className="max-h-[min(68vh,720px)] overflow-auto"
             style={{ height: Math.min(visiveis.length * alturaDaLinha + 48, 720) }}
@@ -446,23 +455,30 @@ export function Produtos(): JSX.Element {
                     <Linha
                       key={p.id}
                       aoClicar={() => setEditando({ produto: p })}
-                      className={p.ativo ? undefined : 'opacity-60'}
+                      /* A altura da linha é fixa porque a janela de rolagem
+                         conta em pixels: uma linha que cresce desalinha os
+                         espaçadores e a lista passa a “pular”. Por isso tudo
+                         nesta célula cabe numa linha só. */
+                      className={['h-12', p.ativo ? '' : 'opacity-60'].join(' ')}
                     >
                       <Td className="max-w-[24rem]">
-                        <span className="flex items-center gap-2">
-                          <span className="truncate font-medium text-texto" title={p.nome}>
+                        <span className="flex items-center gap-2 whitespace-nowrap">
+                          <span
+                            className="truncate font-medium text-texto"
+                            title={p.perecivel ? `${p.nome} · perecível` : p.nome}
+                          >
                             {p.nome}
                           </span>
-                          {!p.ativo && <Selo tom="neutro">arquivado</Selo>}
-                          {p.perecivel && (
-                            <span className="text-micro text-texto-fraco" title="Perecível">
-                              perecível
+                          {p.codigo && (
+                            <span className="mv-numero shrink-0 text-micro text-texto-fraco">
+                              {p.codigo}
                             </span>
                           )}
+                          {p.perecivel && (
+                            <span className="shrink-0 text-micro text-texto-fraco">perecível</span>
+                          )}
+                          {!p.ativo && <Selo tom="neutro">arquivado</Selo>}
                         </span>
-                        {p.codigo && (
-                          <span className="mv-numero text-micro text-texto-fraco">{p.codigo}</span>
-                        )}
                       </Td>
                       <Td>
                         {p.categoria_nome ? (
@@ -497,7 +513,7 @@ export function Produtos(): JSX.Element {
                 {janela.map((p) => {
                   const faixa = faixaDeCusto(p)
                   return (
-                    <li key={p.id} style={{ height: ALTURA_DO_CARTAO }}>
+                    <li key={p.id} className="overflow-hidden" style={{ height: ALTURA_DO_CARTAO }}>
                       <button
                         type="button"
                         onClick={() => setEditando({ produto: p })}

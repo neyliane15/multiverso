@@ -27,9 +27,9 @@ import {
 import { LogoDoRestaurante } from '@/componentes/LogoDoRestaurante'
 import { usePanorama } from '@/dados/consultas'
 import { useSessao } from '@/dados/sessao'
-import { MARCA_PADRAO, deOklch, oklch } from '@/tema/marca'
 import { data as formatarData, dataHora, dinheiro, quantidade } from '@/util/formato'
-import type { Marca, PanoramaRestaurante } from '@/tipos/banco'
+import type { PanoramaRestaurante } from '@/tipos/banco'
+import { marcaDoPanorama } from './marcaDoPanorama'
 import {
   avaliarRisco,
   dataIso,
@@ -37,24 +37,6 @@ import {
   type CriterioDoPanorama,
   type NivelDeRisco,
 } from './logicaDoPainel'
-
-/**
- * O panorama só traz a cor primária de cada restaurante. O monograma precisa
- * de duas para a diagonal, então a segunda é derivada da primeira — mais
- * escura e com a matiz girada — em vez de cair numa cor fixa que deixaria
- * todos os cartões com o mesmo degradê.
- */
-function marcaDoCartao(r: PanoramaRestaurante): Marca {
-  const { L, C, H } = oklch(r.cor_primaria)
-  const segunda = deOklch(Math.max(0.18, L * 0.62), C * 0.9, (H + 28) % 360)
-  return {
-    ...MARCA_PADRAO,
-    cor_primaria: r.cor_primaria,
-    cor_secundaria: segunda.hex,
-    logo_url: r.logo_url,
-    logo_escuro_url: null,
-  }
-}
 
 const TOM_DO_RISCO: Record<NivelDeRisco, 'sucesso' | 'alerta' | 'erro' | 'info' | 'neutro'> = {
   ok: 'sucesso',
@@ -179,7 +161,7 @@ export function Rede(): JSX.Element {
           <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {lista.map((r) => {
               const risco = avaliarRisco(r, hoje)
-              const marca = marcaDoCartao(r)
+              const marca = marcaDoPanorama(r.cor_primaria, r.logo_url)
               const emFoco = restaurante?.id === r.id
               return (
                 <li key={r.id}>

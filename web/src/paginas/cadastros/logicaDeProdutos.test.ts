@@ -13,6 +13,7 @@ import {
   criarIndiceDeBusca,
   faixaDeCusto,
   filtrarProdutos,
+  janelaDeLinhas,
   nomeJaUsado,
   ordenarProdutos,
   produtoDoRascunho,
@@ -386,5 +387,67 @@ describe('vinculosDoRascunho e produtoDoRascunho', () => {
     r.unidade = ''
     r.setores['s-porc'] = { marcado: true, unidade: 'cx', custo: 8 }
     expect(produtoDoRascunho(r).unidade).toBe('CX')
+  })
+})
+
+/* -------------------------------------------------- janela de rolagem ----- */
+
+describe('janelaDeLinhas', () => {
+  // 852 produtos, linha de 48px, janela de 720px: 15 linhas cabem na tela.
+  const total = 852
+  const h = 48
+
+  it('no topo começa na primeira linha, sem espaço acima', () => {
+    const j = janelaDeLinhas(total, h, 0, 720)
+    expect(j.primeira).toBe(0)
+    expect(j.espacoAcima).toBe(0)
+    expect(j.ultima).toBe(Math.ceil(720 / h) + 6)
+  })
+
+  it('desenha bem menos que o catálogo inteiro', () => {
+    const j = janelaDeLinhas(total, h, 0, 720)
+    expect(j.ultima - j.primeira).toBeLessThan(40)
+  })
+
+  it('os dois espaçadores mais as linhas desenhadas somam a altura real da lista', () => {
+    for (const topo of [0, 500, 4_000, 20_000, 40_896]) {
+      const j = janelaDeLinhas(total, h, topo, 720)
+      const desenhadas = (j.ultima - j.primeira) * h
+      expect(j.espacoAcima + desenhadas + j.espacoAbaixo).toBe(total * h)
+    }
+  })
+
+  it('a janela cobre a faixa visível, com folga dos dois lados', () => {
+    const topo = 4_800
+    const j = janelaDeLinhas(total, h, topo, 720)
+    expect(j.primeira * h).toBeLessThanOrEqual(topo)
+    expect(j.ultima * h).toBeGreaterThanOrEqual(topo + 720)
+  })
+
+  it('no fim da lista não passa do total e zera o espaço de baixo', () => {
+    const j = janelaDeLinhas(total, h, total * h, 720)
+    expect(j.ultima).toBe(total)
+    expect(j.espacoAbaixo).toBe(0)
+  })
+
+  it('lista vazia não desenha nada', () => {
+    expect(janelaDeLinhas(0, h, 0, 720)).toEqual({
+      primeira: 0,
+      ultima: 0,
+      espacoAcima: 0,
+      espacoAbaixo: 0,
+    })
+  })
+
+  it('aguenta medida torta sem devolver índice negativo', () => {
+    const j = janelaDeLinhas(total, h, -100, -50)
+    expect(j.primeira).toBe(0)
+    expect(j.ultima).toBeGreaterThanOrEqual(0)
+  })
+
+  it('a altura do cartão do celular dá uma janela menor, não um erro', () => {
+    const celular = janelaDeLinhas(total, 118, 0, 600)
+    const desktop = janelaDeLinhas(total, 48, 0, 600)
+    expect(celular.ultima).toBeLessThan(desktop.ultima)
   })
 })

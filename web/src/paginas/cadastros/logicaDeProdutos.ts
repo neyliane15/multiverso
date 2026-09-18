@@ -363,3 +363,51 @@ export function produtoDoRascunho(rascunho: RascunhoDeProduto): {
     ativo: rascunho.ativo,
   }
 }
+
+/* ========================================================================== */
+/* Janela de rolagem                                                          */
+/* ========================================================================== */
+
+export interface JanelaDeLinhas {
+  /** Índice da primeira linha desenhada. */
+  primeira: number
+  /** Índice logo depois da última desenhada (exclusivo, como `slice`). */
+  ultima: number
+  /** Altura do espaçador de cima, em pixels. */
+  espacoAcima: number
+  /** Altura do espaçador de baixo, em pixels. */
+  espacoAbaixo: number
+}
+
+/**
+ * Quais linhas de fato precisam existir no DOM.
+ *
+ * Com 852 produtos, desenhar tudo trava a rolagem no celular — que é onde esta
+ * tela mais é aberta. Em vez de uma biblioteca de virtualização, a conta: a
+ * linha tem altura fixa, então a primeira visível é o quanto já rolou dividido
+ * por essa altura, e dois espaçadores seguram a barra de rolagem no tamanho
+ * certo. A `folga` desenha algumas linhas além da janela para que rolar rápido
+ * não mostre buraco branco.
+ */
+export function janelaDeLinhas(
+  total: number,
+  alturaDaLinha: number,
+  topo: number,
+  alturaVisivel: number,
+  folga = 6,
+): JanelaDeLinhas {
+  if (total <= 0 || alturaDaLinha <= 0) {
+    return { primeira: 0, ultima: 0, espacoAcima: 0, espacoAbaixo: 0 }
+  }
+  const primeira = Math.max(0, Math.floor(Math.max(0, topo) / alturaDaLinha) - folga)
+  const ultima = Math.min(
+    total,
+    Math.max(primeira, Math.ceil((Math.max(0, topo) + Math.max(0, alturaVisivel)) / alturaDaLinha) + folga),
+  )
+  return {
+    primeira,
+    ultima,
+    espacoAcima: primeira * alturaDaLinha,
+    espacoAbaixo: Math.max(0, (total - ultima) * alturaDaLinha),
+  }
+}

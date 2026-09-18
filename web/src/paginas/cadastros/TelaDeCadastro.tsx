@@ -10,7 +10,7 @@
  * dois lugares de uma vez, e elas não divergem devagar.
  */
 import { useMemo, useState } from 'react'
-import { ChevronDown, ChevronUp, Palette, Plus, Save, Tags } from 'lucide-react'
+import { Boxes, ChevronDown, ChevronUp, Plus, Save, Tags } from 'lucide-react'
 import {
   Aviso,
   Botao,
@@ -96,7 +96,7 @@ export function TelaDeCadastro({
     [ordenados, busca, mostrarInativos],
   )
 
-  const Icone = tipo === 'categoria' ? Tags : Palette
+  const Icone = tipo === 'categoria' ? Tags : Boxes
 
   return (
     <>
@@ -133,7 +133,7 @@ export function TelaDeCadastro({
               checked={mostrarInativos}
               onChange={(e) => setMostrarInativos(e.target.checked)}
             />
-            Mostrar {rotulos.plural} {tipo === 'setor' ? 'inativos' : 'inativas'}
+            Mostrar {rotulos.plural} {rotulos.inativos}
           </label>
           <p role="status" className="ml-auto text-apoio text-texto-fraco">
             <span className="mv-numero text-texto">{quantidade(visiveis.length)}</span>{' '}
@@ -148,7 +148,7 @@ export function TelaDeCadastro({
         ) : itens.length === 0 ? (
           <EstadoVazio
             icone={<Icone className="size-8" aria-hidden />}
-            titulo={`Nenhuma ${rotulos.singular} cadastrada`}
+            titulo={rotulos.nenhumCadastrado}
             acao={
               podeEditar && (
                 <Botao tom="primario" onClick={() => setEditando({ item: null })}>
@@ -218,7 +218,7 @@ export function TelaDeCadastro({
                         <Botao
                           tom="fantasma"
                           tamanho="p"
-                          className="px-1.5"
+                          className="mv-toque px-1.5"
                           disabled={!podeEditar || indice === 0 || busca !== ''}
                           aria-label={`Subir ${item.nome}`}
                           onClick={(e) => {
@@ -231,7 +231,7 @@ export function TelaDeCadastro({
                         <Botao
                           tom="fantasma"
                           tamanho="p"
-                          className="px-1.5"
+                          className="mv-toque px-1.5"
                           disabled={!podeEditar || indice === visiveis.length - 1 || busca !== ''}
                           aria-label={`Descer ${item.nome}`}
                           onClick={(e) => {
