@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed:gerar": "node scripts/gerar-seed.mjs",
-    "seed:conferir": "node scripts/conferir-seed.mjs"
+    "seed:conferir": "node scripts/conferir-seed.mjs",
+    "test:banco": "supabase/testes/preparar-postgres.sh > /dev/null && supabase/testes/executar.sh",
+    "verificar": "npm run typecheck && npm test && npm run build && npm run test:banco"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",

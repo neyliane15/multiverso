@@ -83,10 +83,23 @@ A carga termina com um bloco que **aborta** se o total da contagem não bater
 com os R$ 78.681,3573 da planilha de origem.
 
 ```bash
-npm test          # suíte completa
-npm run typecheck
-npm run build
+npm run verificar   # typecheck + testes + build + suíte de banco
 ```
+
+Ou cada peça de uma vez:
+
+```bash
+npm run typecheck
+npm test            # Vitest: parser de NFe, conversão, de-para, marca, seed
+npm run build
+npm run test:banco  # sobe um Postgres do zero, aplica as migrações e a carga,
+                    # e roda as asserções de RLS e de fluxo
+```
+
+`npm run test:banco` não depende de nada pré-instalado além do Postgres do
+sistema: ele cria o cluster, aplica as seis migrações, carrega o Bar do Zeca e
+exercita as políticas trocando de usuário — que é a única forma de provar que
+um restaurante não enxerga o outro. Ler o SQL não prova.
 
 ## Arquitetura
 
