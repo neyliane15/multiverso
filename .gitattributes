@@ -1,0 +1,28 @@
+# ============================================================================
+# Fim de linha, travado em LF para todo mundo.
+# ----------------------------------------------------------------------------
+# No Windows o git converte LF em CRLF na hora do checkout (core.autocrlf), e
+# isso quebra duas coisas de verdade neste repositorio:
+#
+#   1. Script com shebang. `#!/usr/bin/env bash` seguido de CR faz o sistema
+#      procurar um interpretador chamado "bash\r", que nao existe. O erro que
+#      aparece e "bad interpreter", que nao ajuda ninguem a adivinhar a causa.
+#
+#   2. O transformador do Vitest, que engasga com hashbang + CRLF e derruba a
+#      suite inteira com "SyntaxError: Invalid or unexpected token", sem dizer
+#      arquivo nem linha. Foi assim que este arquivo nasceu: 390 de 403 testes
+#      passando na maquina de quem clonou, e 403 na de quem escreveu.
+#
+# `text=auto eol=lf` diz: normalize tudo que for texto, e escreva LF no disco
+# em qualquer sistema. O Windows lida bem com LF ha muitos anos.
+# ============================================================================
+
+* text=auto eol=lf
+
+# Binarios: nao encoste.
+*.png   binary
+*.jpg   binary
+*.webp  binary
+*.ico   binary
+*.xlsx  binary
+*.pdf   binary
