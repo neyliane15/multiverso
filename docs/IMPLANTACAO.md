@@ -98,6 +98,23 @@ função que lê NFe. É idempotente: rodar de novo não duplica nada.
 Sem `--com-carga` o banco sobe vazio, que é o certo se o primeiro restaurante
 não for o Bar do Zeca.
 
+### Carregar o primeiro restaurante depois
+
+Se o banco já subiu vazio, ou se você está no Windows e rodou os comandos na
+mão, a carga entra assim:
+
+```bash
+npm run seed:carregar "<url-de-conexao>"
+```
+
+A URL está no painel em **Settings → Database → Connection string → URI** —
+troque `[YOUR-PASSWORD]` pela senha que você escolheu ao criar o projeto.
+
+O script existe porque `psql` não vem instalado no Windows e a carga tem 360 KB,
+grande demais para colar no editor de SQL do painel sem sustos. Ele mostra as
+mensagens de conferência que a própria carga emite, e ela **aborta a transação
+inteira** se o total não fechar.
+
 > A carga termina num bloco que **aborta a transação inteira** se o total não
 > fechar em R$ 78.681,3573. Carga que mente é pior que carga que falha.
 
