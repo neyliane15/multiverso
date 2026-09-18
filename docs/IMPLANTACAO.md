@@ -188,6 +188,22 @@ recarrega — que é o pior tipo de defeito, o que só aparece com gente usando.
 As variáveis entram **no momento do build**, não em tempo de execução. Mudou uma
 delas, é preciso publicar de novo (**Deployments → ... → Redeploy**).
 
+### O que há dentro do `vercel.json`
+
+Três coisas, e as três importam:
+
+| | Por quê |
+|---|---|
+| `rewrites` | Toda rota serve o `index.html`. Sem isso, abrir `/cmv` direto ou apertar F5 devolve **404** |
+| cache de `/assets/(.*)` | O Vite carimba o nome de cada arquivo com o hash do conteúdo, então podem ser guardados para sempre |
+| cache de `/` | O `index.html` **nunca** pode ficar preso em cache — é ele que aponta para os arquivos novos depois de cada publicação |
+
+O JSON do Vercel **recusa qualquer chave que ele não conheça**, inclusive uma
+chamada `comment` — não dá para documentar o arquivo por dentro, e a tentativa
+falha com `Invalid request: headers[0] should NOT have additional property`.
+É por isso que a explicação mora aqui e não lá. `npm run vercel:conferir`
+valida o arquivo antes de você descobrir isso no meio de uma publicação.
+
 ### Outras opções
 
 | Onde | Como |
