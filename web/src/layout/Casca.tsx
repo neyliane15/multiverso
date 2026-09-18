@@ -56,6 +56,29 @@ export function Casca() {
           <Logo className="h-7" />
         </div>
 
+        {/* No celular a barra de cima esconde o seletor de restaurante, e sem ele
+            o master via todas as telas dizerem "escolha um restaurante na barra
+            de cima" apontando para um controle que não existe naquela largura.
+            Aqui ele existe; no desktop, quem manda é o da barra de cima. */}
+        {ehMaster && restaurantesVisiveis.length > 0 && (
+          <div className="border-b border-borda px-3 py-3 sm:hidden">
+            <label htmlFor="restaurante-em-foco" className="mv-rotulo mb-1.5 block px-1">
+              Restaurante em foco
+            </label>
+            <Selecao
+              id="restaurante-em-foco"
+              value={restaurante?.id ?? ''}
+              onChange={(e) => trocarRestaurante(e.target.value)}
+            >
+              {restaurantesVisiveis.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.nome}
+                </option>
+              ))}
+            </Selecao>
+          </div>
+        )}
+
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Módulos">
           {modulos.map((modulo) => (
             <div key={modulo.numero} className="mb-5 last:mb-0">

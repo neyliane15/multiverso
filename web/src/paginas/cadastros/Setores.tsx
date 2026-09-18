@@ -5,7 +5,7 @@
  * que importa está no aviso de desativação — setor inativo tira produto da
  * próxima folha de contagem, e isso `avisoDeDesativacao` diz por extenso.
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { EstadoVazio } from '@/componentes/base'
 import { useSessao } from '@/dados/sessao'
 import { useProdutos, useSalvarSetor, useSetores } from '@/dados/consultas'
@@ -20,6 +20,9 @@ export function Setores(): JSX.Element {
   const produtos = useProdutos(restauranteId)
   const salvar = useSalvarSetor(restauranteId)
   const [reordenando, setReordenando] = useState(false)
+  const [erroDaOrdem, setErroDaOrdem] = useState<string | null>(null)
+  /** Lotes de reordenação em voo. Evita desligar o "salvando" cedo demais. */
+  const lotesEmVoo = useRef(0)
 
   const usos = useMemo(() => contarUso(produtos.data ?? [], 'setor'), [produtos.data])
 
@@ -31,17 +34,35 @@ export function Setores(): JSX.Element {
     )
   }
 
-  function reordenar(ajustes: AjusteDeOrdem[]) {
+  /**
+   * Reordenar são vários updates independentes. Promise.allSettled no lugar de
+   * um contador porque o contador era por chamada: duas reordenações seguidas
+   * se sobrepunham e a primeira a terminar já desligava o "salvando", com
+   * gravações da segunda ainda em voo. E `onSettled` não distingue sucesso de
+   * falha — um update recusado deixava a lista na ordem antiga sem aviso nenhum,
+   * porque o erro do formulário só aparece dentro do painel, que está fechado.
+   */
+  async function reordenar(ajustes: AjusteDeOrdem[]) {
     if (ajustes.length === 0) return
+    lotesEmVoo.current += 1
     setReordenando(true)
-    let restantes = ajustes.length
-    for (const ajuste of ajustes) {
-      salvar.mutate(ajuste, {
-        onSettled: () => {
-          restantes -= 1
-          if (restantes === 0) setReordenando(false)
-        },
-      })
+    setErroDaOrdem(null)
+    try {
+      const saidas = await Promise.allSettled(ajustes.map((a) => salvar.mutateAsync(a)))
+      const falhas = saidas.filter((r) => r.status === 'rejected')
+      const primeira = falhas[0]
+      if (primeira && primeira.status === 'rejected') {
+        const motivo =
+          primeira.reason instanceof Error ? primeira.reason.message : String(primeira.reason)
+        setErroDaOrdem(
+          falhas.length === ajustes.length
+            ? `A nova ordem não foi salva: ${motivo}`
+            : `A nova ordem foi salva pela metade (${falhas.length} de ${ajustes.length} falharam): ${motivo}`,
+        )
+      }
+    } finally {
+      lotesEmVoo.current -= 1
+      if (lotesEmVoo.current === 0) setReordenando(false)
     }
   }
 
@@ -58,6 +79,7 @@ export function Setores(): JSX.Element {
       podeEditar={podeAdministrar}
       salvando={salvar.isPending || reordenando}
       erroDoServidor={salvar.error instanceof Error ? salvar.error.message : null}
+      erroDaLista={erroDaOrdem}
       aoSalvar={(dados, aoTerminar) => salvar.mutate(dados, { onSuccess: aoTerminar })}
       aoReordenar={reordenar}
     />

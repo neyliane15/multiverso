@@ -13,7 +13,7 @@
  *   tela é pior do que operação lenta.
  * - Total do setor e total geral sempre à vista, grudados no rodapé.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -300,6 +300,12 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   /** Quantidade aceita localmente antes de o servidor confirmar. */
   const [rascunhos, setRascunhos] = useState<ReadonlyMap<string, number>>(new Map())
   /**
+   * Itens com gravação em voo. Precisa ser por item: `lancar.isPending` é da
+   * mutação inteira, então acenderia o indicador de "salvando" em todo item já
+   * digitado sempre que qualquer um estivesse sendo gravado.
+   */
+  const [emVoo, setEmVoo] = useState<ReadonlySet<string>>(new Set())
+  /**
    * Quantas vezes cada campo teve de voltar atrás. Entra na `key` do
    * `CampoNumero` para forçar a remontagem — o campo é não controlado, então
    * sem remontar ele continuaria exibindo o número recusado.
@@ -353,6 +359,28 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   )
   const totalGeral = useMemo(() => totalDosItens(todos, rascunhos), [todos, rascunhos])
   const resumo = useMemo(() => resumoDoFechamento(todos, rascunhos), [todos, rascunhos])
+
+  /**
+   * Some com o rascunho assim que o servidor passa a devolver aquele mesmo
+   * número. Sem isto o valor otimista sombreia o do servidor para sempre — e se
+   * o banco normalizasse a quantidade, a tela seguiria mostrando o valor local.
+   *
+   * A comparação com o valor do servidor é o que protege quem digitou de novo
+   * enquanto a primeira gravação estava em voo: nesse caso o rascunho é mais
+   * novo, não bate com o servidor, e fica.
+   */
+  useEffect(() => {
+    if (rascunhos.size === 0) return
+    const sobrando = new Map(rascunhos)
+    let mudou = false
+    for (const item of todos) {
+      if (sobrando.get(item.id) === item.quantidade && !emVoo.has(item.id)) {
+        sobrando.delete(item.id)
+        mudou = true
+      }
+    }
+    if (mudou) setRascunhos(sobrando)
+  }, [todos, rascunhos, emVoo])
   const visiveis = grupos.reduce((soma, g) => soma + g.itens.length, 0)
 
   async function lancarQuantidade(item: ItemContavel, valor: number) {
@@ -362,6 +390,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
 
     setFalha(null)
     setRascunhos((atual) => new Map(atual).set(item.id, valor))
+    setEmVoo((atual) => new Set(atual).add(item.id))
     try {
       await lancar.mutateAsync({ itemId: item.id, quantidade: valor })
     } catch (erro) {
@@ -374,6 +403,12 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
       setFalha(
         `${item.produto?.nome ?? 'Item'}: ${mensagemDoErro(erro)} — o valor voltou ao que estava.`,
       )
+    } finally {
+      setEmVoo((atual) => {
+        const novo = new Set(atual)
+        novo.delete(item.id)
+        return novo
+      })
     }
   }
 
@@ -614,7 +649,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                   <ul className="divide-y divide-borda/60">
                     {grupo.itens.map((item) => {
                       const emVigor = quantidadeEmVigor(item, rascunhos)
-                      const salvando = rascunhos.has(item.id) && lancar.isPending
+                      const salvando = emVoo.has(item.id)
                       return (
                         <li
                           key={item.id}

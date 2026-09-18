@@ -61,6 +61,12 @@ export interface PropsDaTelaDeCadastro {
   podeEditar: boolean
   salvando: boolean
   erroDoServidor: string | null
+  /**
+   * Erro de uma ação feita fora do painel lateral — hoje, a reordenação.
+   * `erroDoServidor` mora dentro do formulário, e o formulário está fechado
+   * justamente quando alguém reordena: a falha sumiria sem deixar rastro.
+   */
+  erroDaLista: string | null
   aoSalvar: (dados: Partial<Categoria> & { id?: string }, aoTerminar: () => void) => void
   aoReordenar: (ajustes: AjusteDeOrdem[]) => void
 }
@@ -80,6 +86,7 @@ export function TelaDeCadastro({
   podeEditar,
   salvando,
   erroDoServidor,
+  erroDaLista,
   aoSalvar,
   aoReordenar,
 }: PropsDaTelaDeCadastro): JSX.Element {
@@ -141,6 +148,12 @@ export function TelaDeCadastro({
           </p>
         </div>
 
+        {erroDaLista && (
+          <div className="border-b border-borda px-5 py-4">
+            <Aviso tom="erro">{erroDaLista}</Aviso>
+          </div>
+        )}
+
         {carregando ? (
           <Carregando linhas={6} />
         ) : erro ? (
@@ -178,8 +191,13 @@ export function TelaDeCadastro({
               </tr>
             </thead>
             <tbody>
-              {visiveis.map((item, indice) => {
+              {visiveis.map((item) => {
                 const emUso = usos.get(item.id) ?? 0
+                // A posicao que decide se da para subir ou descer e a da lista
+                // COMPLETA, porque e nela que moverNaOrdem opera. Usar o indice
+                // da lista filtrada desabilitava o "subir" da primeira linha
+                // visivel mesmo quando havia item inativo acima dela.
+                const posicao = ordenados.findIndex((o) => o.id === item.id)
                 const fraco = contraste(item.cor, marca.cor_superficie) < CONTRASTE_MINIMO
                 return (
                   <Linha
@@ -218,7 +236,7 @@ export function TelaDeCadastro({
                         <Botao
                           tom="fantasma"
                           tamanho="p"
-                          disabled={!podeEditar || indice === 0 || busca !== ''}
+                          disabled={!podeEditar || posicao <= 0 || busca !== ''}
                           aria-label={`Subir ${item.nome}`}
                           onClick={(e) => {
                             e.stopPropagation()
@@ -230,7 +248,7 @@ export function TelaDeCadastro({
                         <Botao
                           tom="fantasma"
                           tamanho="p"
-                          disabled={!podeEditar || indice === visiveis.length - 1 || busca !== ''}
+                          disabled={!podeEditar || posicao === ordenados.length - 1 || busca !== ''}
                           aria-label={`Descer ${item.nome}`}
                           onClick={(e) => {
                             e.stopPropagation()

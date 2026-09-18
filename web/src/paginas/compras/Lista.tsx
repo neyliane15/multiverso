@@ -12,7 +12,7 @@
  *   fim, que fica fechada por padrão;
  * - o total estimado sobe a cada quantidade digitada e nunca sai da tela.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, Search, ShoppingCart, Store, Undo2 } from 'lucide-react'
@@ -237,6 +237,8 @@ function Folha({
   const [busca, setBusca] = useState('')
   const [mostrarComprados, setMostrarComprados] = useState(false)
   const [rascunhos, setRascunhos] = useState<ReadonlyMap<string, number>>(new Map())
+  /** Gravações em voo, por item — ver a mesma decisão em contagem/Contagem.tsx. */
+  const [emVoo, setEmVoo] = useState<ReadonlySet<string>>(new Set())
   const [reversoes, setReversoes] = useState<ReadonlyMap<string, number>>(new Map())
   const [falha, setFalha] = useState<string | null>(null)
 
@@ -248,6 +250,25 @@ function Folha({
   )
   const comprados = useMemo(() => lista.filter((i) => i.comprado), [lista])
   const resumo = useMemo(() => resumirFolha(lista, rascunhos), [lista, rascunhos])
+
+  /**
+   * O rascunho sai quando o servidor passa a devolver o mesmo número. Mantê-lo
+   * depois disso faria o valor local sombrear o do servidor para sempre.
+   * Quem digitou de novo durante a gravação fica protegido pela própria
+   * comparação: o rascunho mais novo não bate com o servidor e permanece.
+   */
+  useEffect(() => {
+    if (rascunhos.size === 0) return
+    const sobrando = new Map(rascunhos)
+    let mudou = false
+    for (const item of lista) {
+      if (sobrando.get(item.id) === item.quantidade && !emVoo.has(item.id)) {
+        sobrando.delete(item.id)
+        mudou = true
+      }
+    }
+    if (mudou) setRascunhos(sobrando)
+  }, [lista, rascunhos, emVoo])
   const visiveis = grupos.reduce((soma, g) => soma + g.itens.length, 0)
 
   async function lancarQuantidade(item: ItemDeFolha, valor: number) {
@@ -255,6 +276,7 @@ function Folha({
     if (valor === anterior) return
     setFalha(null)
     setRascunhos((atual) => new Map(atual).set(item.id, valor))
+    setEmVoo((atual) => new Set(atual).add(item.id))
     try {
       await lancar.mutateAsync({ itemId: item.id, quantidade: valor })
     } catch (erro) {
@@ -265,6 +287,12 @@ function Folha({
       })
       setReversoes((atual) => new Map(atual).set(item.id, (atual.get(item.id) ?? 0) + 1))
       setFalha(`${item.produto?.nome ?? 'Item'}: ${mensagemDoErro(erro)} — o valor voltou atrás.`)
+    } finally {
+      setEmVoo((atual) => {
+        const novo = new Set(atual)
+        novo.delete(item.id)
+        return novo
+      })
     }
   }
 
