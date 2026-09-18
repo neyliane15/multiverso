@@ -288,13 +288,13 @@ const setoresDisponiveis: SetorDisponivel[] = [
 describe('rascunhoDeProduto', () => {
   it('traz a unidade e o custo de cada setor, não uma média', () => {
     const r = rascunhoDeProduto(tilapia, setoresDisponiveis)
-    expect(r.setores['s-geral']).toEqual({ marcado: true, unidade: 'KG', custo: 41.5 })
-    expect(r.setores['s-porc']).toEqual({ marcado: true, unidade: 'UND', custo: 6.34 })
+    expect(r.setores['s-geral']).toEqual({ marcado: true, unidade: 'KG', custo: 41.5, custoFixo: false })
+    expect(r.setores['s-porc']).toEqual({ marcado: true, unidade: 'UND', custo: 6.34, custoFixo: false })
   })
 
   it('setor não vinculado começa desmarcado, com o palpite do produto', () => {
     const r = rascunhoDeProduto(tilapia, setoresDisponiveis)
-    expect(r.setores['s-bar']).toEqual({ marcado: false, unidade: 'KG', custo: 41.5 })
+    expect(r.setores['s-bar']).toEqual({ marcado: false, unidade: 'KG', custo: 41.5, custoFixo: false })
   })
 
   it('produto novo começa sem setor marcado', () => {
@@ -309,7 +309,7 @@ describe('rascunhoDeProduto', () => {
 describe('validarProduto', () => {
   it('cobra nome', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 1 }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 1, custoFixo: false }
     expect(validarProduto(r, setoresDisponiveis).some((p) => p.campo === 'nome')).toBe(true)
   })
 
@@ -323,7 +323,7 @@ describe('validarProduto', () => {
   it('recusa custo negativo apontando o setor', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'Tomate'
-    r.setores['s-porc'] = { marcado: true, unidade: 'UND', custo: -3 }
+    r.setores['s-porc'] = { marcado: true, unidade: 'UND', custo: -3, custoFixo: false }
     const problema = validarProduto(r, setoresDisponiveis).find((p) => p.campo === 'setor:s-porc')
     expect(problema?.mensagem).toMatch(/Porcionados/)
   })
@@ -331,15 +331,15 @@ describe('validarProduto', () => {
   it('não olha o custo de setor desmarcado', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'Tomate'
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 2 }
-    r.setores['s-bar'] = { marcado: false, unidade: '', custo: -9 }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 2, custoFixo: false }
+    r.setores['s-bar'] = { marcado: false, unidade: '', custo: -9, custoFixo: false }
     expect(validarProduto(r, setoresDisponiveis)).toEqual([])
   })
 
   it('avisa antes do erro 23505 quando o nome já existe', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'file de tilapia'
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 2 }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 2, custoFixo: false }
     expect(validarProduto(r, setoresDisponiveis, catalogo).some((p) => p.campo === 'nome')).toBe(true)
   })
 
@@ -358,13 +358,26 @@ describe('vinculosDoRascunho e produtoDoRascunho', () => {
   it('manda só os setores marcados, com unidade em caixa alta', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = '  Filé de tilápia  '
-    r.setores['s-geral'] = { marcado: true, unidade: 'kg', custo: 41.5 }
-    r.setores['s-porc'] = { marcado: true, unidade: ' und ', custo: 6.34 }
+    r.setores['s-geral'] = { marcado: true, unidade: 'kg', custo: 41.5, custoFixo: false }
+    r.setores['s-porc'] = { marcado: true, unidade: ' und ', custo: 6.34, custoFixo: false }
 
     expect(vinculosDoRascunho(r)).toEqual([
-      { setor_id: 's-geral', unidade: 'KG', custo: 41.5 },
-      { setor_id: 's-porc', unidade: 'UND', custo: 6.34 },
+      { setor_id: 's-geral', unidade: 'KG', custo: 41.5, custo_fixo: false },
+      { setor_id: 's-porc', unidade: 'UND', custo: 6.34, custo_fixo: false },
     ])
+  })
+
+  it('leva a marca de custo próprio para o vínculo', () => {
+    // É esta marca que impede mv_atualiza_custo_medio de sobrescrever a porção
+    // com o preço do quilo na próxima nota de tilápia. Perdê-la no caminho do
+    // formulário para o banco reintroduz o defeito sem ninguém notar.
+    const r = rascunhoDeProduto(null, setoresDisponiveis)
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 41.5, custoFixo: false }
+    r.setores['s-porc'] = { marcado: true, unidade: 'UND', custo: 6.34, custoFixo: true }
+
+    const vinculos = vinculosDoRascunho(r)
+    expect(vinculos.find((v) => v.setor_id === 's-geral')?.custo_fixo).toBe(false)
+    expect(vinculos.find((v) => v.setor_id === 's-porc')?.custo_fixo).toBe(true)
   })
 
   it('remover a marca de um setor tira o vínculo — é o que useSalvarProduto reconcilia', () => {
@@ -379,7 +392,7 @@ describe('vinculosDoRascunho e produtoDoRascunho', () => {
     r.nome = '  Tomate italiano '
     r.codigo = '  '
     r.observacao = '   '
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 8 }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 8, custoFixo: false }
 
     const p = produtoDoRascunho(r)
     expect(p.nome).toBe('Tomate italiano')
@@ -392,7 +405,7 @@ describe('vinculosDoRascunho e produtoDoRascunho', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'Tomate'
     r.unidade = ''
-    r.setores['s-porc'] = { marcado: true, unidade: 'cx', custo: 8 }
+    r.setores['s-porc'] = { marcado: true, unidade: 'cx', custo: 8, custoFixo: false }
     expect(produtoDoRascunho(r).unidade).toBe('CX')
   })
 })

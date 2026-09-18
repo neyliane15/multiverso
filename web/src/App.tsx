@@ -41,10 +41,18 @@ function SoMaster({ children }: { children: React.ReactNode }) {
   return ehMaster ? <>{children}</> : <Navigate to="/" replace />
 }
 
-/** Rota que exige poder de administração (master, admin ou gerente). */
+/**
+ * Rota de administração: equipe e identidade visual.
+ *
+ * Só master e admin. O gerente administra o **cadastro** (apaga produto,
+ * categoria, setor), e é isso que `mv_pode_administrar` cobre — mas quem manda
+ * na equipe e na marca é o admin, como a RLS de `perfis`, `restaurantes` e do
+ * bucket `marcas` já exigia. Usar `podeAdministrar` aqui deixava o gerente
+ * entrar para encontrar uma tela em leitura.
+ */
 function SoAdministracao({ children }: { children: React.ReactNode }) {
-  const { podeAdministrar } = useSessao()
-  return podeAdministrar ? <>{children}</> : <Navigate to="/" replace />
+  const { perfil, ehMaster } = useSessao()
+  return ehMaster || perfil?.papel === 'admin' ? <>{children}</> : <Navigate to="/" replace />
 }
 
 export function App() {

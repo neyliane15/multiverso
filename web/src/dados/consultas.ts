@@ -13,6 +13,7 @@ import {
 import { supabase } from './supabase'
 import type {
   Categoria,
+  Convite,
   CmvCategoria,
   CmvPeriodo,
   CmvSerie,
@@ -26,6 +27,7 @@ import type {
   ListaComprasItem,
   NotaItem,
   PanoramaRestaurante,
+  PapelUsuario,
   Perfil,
   Produto,
   ProdutoCompleto,
@@ -82,6 +84,7 @@ export const chaves = {
   restaurantes: ['restaurantes'] as const,
   panorama: ['panorama'] as const,
   equipe: (r: string) => ['equipe', r] as const,
+  convites: (r: string) => ['convites', r] as const,
   categorias: (r: string) => ['categorias', r] as const,
   setores: (r: string) => ['setores', r] as const,
   produtos: (r: string) => ['produtos', r] as const,
@@ -139,6 +142,51 @@ export function useSalvarRestaurante() {
       void qc.invalidateQueries({ queryKey: chaves.restaurantes })
       void qc.invalidateQueries({ queryKey: chaves.panorama })
     },
+  })
+}
+
+// ──────────────────────────────────────────────────────────── convites ─────
+
+/**
+ * Convites pendentes. Quem não administra não enxerga nenhum — a política de
+ * leitura é restrita de propósito: convite diz quem está sendo contratado e
+ * com que poder, e isso não é assunto de operador.
+ */
+export function useConvites(restauranteId: string | null) {
+  return useQuery({
+    queryKey: chaves.convites(restauranteId ?? 'rede'),
+    queryFn: () => {
+      const q = supabase
+        .from('convites')
+        .select('*')
+        .is('aceito_em', null)
+        .order('criado_em', { ascending: false })
+      return buscar<Convite[]>(restauranteId ? q.eq('restaurante_id', restauranteId) : q)
+    },
+  })
+}
+
+export function useConvidar(restauranteId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: { email: string; papel: PapelUsuario; nome?: string; restauranteId?: string }) =>
+      buscar<Convite>(
+        supabase.rpc('mv_convidar', {
+          p_email: dados.email.trim().toLowerCase(),
+          p_papel: dados.papel,
+          p_restaurante: dados.restauranteId ?? restauranteId,
+          p_nome: dados.nome ?? null,
+        }),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['convites'] }),
+  })
+}
+
+export function useCancelarConvite() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => buscar(supabase.from('convites').delete().eq('id', id)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['convites'] }),
   })
 }
 
@@ -248,6 +296,12 @@ export interface VinculoSetor {
   setor_id: string
   unidade: string
   custo: number
+  /**
+   * `true` = custo calculado pela casa e que não segue nota fiscal. Sem isso, a
+   * primeira nota de tilápia lançada sobrescreveria o custo da porção nos
+   * Porcionados com o preço do quilo do Estoque Geral.
+   */
+  custo_fixo: boolean
 }
 
 /**

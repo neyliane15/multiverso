@@ -9,14 +9,17 @@
  *    erro do Postgres depois. A regra mora em `logicaDeUsuarios.ts` e tem
  *    teste — o banco continua sendo a autoridade, a tela é só educada.
  *
- * 2. **Convite não tem botão.** `auth.admin.inviteUserByEmail` exige a service
- *    role, que não pode viver no navegador: qualquer pessoa com o DevTools
- *    aberto viraria dona do projeto. Então a tela mostra o caminho real pelo
- *    painel do Supabase e diz o que falta construir. Botão que não funciona é
- *    pior que instrução que funciona.
+ * 2. **O convite decide o papel, não o cadastro.** Até a migração 0008 o papel
+ *    vinha de `raw_user_meta_data` — o `options.data` do `signUp()`, escolhido
+ *    pelo navegador —, e quem se cadastrasse pedindo `master` virava master da
+ *    rede. Agora o convite é gravado aqui, antes, por quem já tem o poder de
+ *    dá-lo; quem se cadastra sem convite não ganha perfil e não enxerga nada.
+ *
+ *    Por isso o botão existe e não precisa da service role: a RLS de `convites`
+ *    é que decide se este admin pode convidar para este restaurante.
  */
 import { useMemo, useState } from 'react'
-import { Check, Info, Mail, Save, Search, Users as Icone } from 'lucide-react'
+import { Check, Mail, Save, Search, Users as Icone } from 'lucide-react'
 import {
   Aviso,
   Botao,
@@ -34,7 +37,14 @@ import {
   Td,
   Linha,
 } from '@/componentes/base'
-import { useEquipe, useSalvarPerfil } from '@/dados/consultas'
+import {
+  useCancelarConvite,
+  useConvidar,
+  useConvites,
+  useEquipe,
+  useSalvarPerfil,
+} from '@/dados/consultas'
+import type { Convite } from '@/tipos/banco'
 import { useSessao } from '@/dados/sessao'
 import { dataHora, iniciais } from '@/util/formato'
 import type { PapelUsuario, Perfil } from '@/tipos/banco'
@@ -177,8 +187,8 @@ export function Usuarios(): JSX.Element {
           <ErroDaConsulta erro={equipe.error} aoTentar={() => void equipe.refetch()} />
         ) : lista.length === 0 ? (
           <EstadoVazio icone={<Icone />} titulo="Nenhum usuário ainda">
-            O primeiro acesso de cada pessoa nasce de um convite feito no painel do Supabase — as
-            instruções estão logo abaixo.
+            Cada pessoa entra por um convite. Crie o primeiro no cartão abaixo: ela se cadastra com
+            aquele e-mail e já nasce com o papel que você escolheu.
           </EstadoVazio>
         ) : visiveis.length === 0 ? (
           <EstadoVazio titulo="Ninguém com esses filtros">
@@ -243,7 +253,13 @@ export function Usuarios(): JSX.Element {
         )}
       </Cartao>
 
-      <ComoConvidar />
+      <Convites
+        restauranteId={ehMaster ? null : (restaurante?.id ?? null)}
+        ehMaster={ehMaster}
+        podeConvidar={podeEditar}
+        restaurantes={restaurantesVisiveis.map((r) => ({ id: r.id, nome: r.nome }))}
+        nomeDoRestaurante={nomeDoRestaurante}
+      />
 
       {editando && (
         <FormularioDeUsuario
@@ -266,80 +282,203 @@ export function Usuarios(): JSX.Element {
 }
 
 /* ========================================================================== */
-/* Convite                                                                    */
+/* Convites                                                                   */
 /* ========================================================================== */
 
-function ComoConvidar(): JSX.Element {
+function Convites({
+  restauranteId,
+  ehMaster,
+  podeConvidar,
+  restaurantes,
+  nomeDoRestaurante,
+}: {
+  restauranteId: string | null
+  ehMaster: boolean
+  podeConvidar: boolean
+  restaurantes: { id: string; nome: string }[]
+  nomeDoRestaurante: (id: string | null) => string
+}): JSX.Element {
+  const convites = useConvites(restauranteId)
+  const convidar = useConvidar(restauranteId)
+  const cancelar = useCancelarConvite()
+
+  const [email, setEmail] = useState('')
+  const [nome, setNome] = useState('')
+  const [papel, setPapel] = useState<PapelUsuario>('operador')
+  const [alvo, setAlvo] = useState(restaurantes[0]?.id ?? '')
+  const [erro, setErro] = useState<string | null>(null)
+  const [feito, setFeito] = useState<string | null>(null)
+
+  // O master convida para qualquer restaurante e é o único que cria master.
+  const papeis: PapelUsuario[] = ehMaster
+    ? ['master', 'admin', 'gerente', 'operador']
+    : ['admin', 'gerente', 'operador']
+
+  async function enviar(evento: React.FormEvent) {
+    evento.preventDefault()
+    setErro(null)
+    setFeito(null)
+    try {
+      await convidar.mutateAsync({
+        email,
+        papel,
+        nome: nome.trim() || undefined,
+        restauranteId: papel === 'master' ? undefined : ehMaster ? alvo : (restauranteId ?? undefined),
+      })
+      setFeito(email.trim().toLowerCase())
+      setEmail('')
+      setNome('')
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  const pendentes = convites.data ?? []
+
   return (
     <Cartao
-      titulo="Como entra um usuário novo"
-      descricao="Ainda não dá para convidar por aqui — e o motivo é de segurança, não de preguiça."
+      titulo="Convites"
+      descricao="Quem pode ser o quê é decidido aqui, antes do cadastro. Sem convite, quem se cadastra não enxerga nada."
     >
-      <div className="space-y-4 p-5">
-        <Aviso tom="info" titulo="Por que não existe um botão “Convidar”">
-          <p className="mt-1">
-            <span>
-              Criar usuário no Supabase é <code className="mv-numero">auth.admin</code>, e{' '}
-              <code className="mv-numero">auth.admin</code> só funciona com a chave{' '}
-              <em>service role</em>. Essa chave ignora toda a RLS: colocá-la no navegador entregaria o
-              banco inteiro a quem abrisse o inspecionar do Chrome. Por isso o convite não pode
-              nascer desta tela.
-            </span>
-          </p>
-        </Aviso>
+      {podeConvidar && (
+        <form onSubmit={enviar} className="space-y-4 border-b border-borda p-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-1.5 lg:col-span-2">
+              <Rotulo para="convite-email">E-mail</Rotulo>
+              <Campo
+                id="convite-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="pessoa@restaurante.com.br"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Rotulo para="convite-nome">Nome (opcional)</Rotulo>
+              <Campo
+                id="convite-nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Como aparece na tela"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Rotulo para="convite-papel">Papel</Rotulo>
+              <Selecao
+                id="convite-papel"
+                value={papel}
+                onChange={(e) => setPapel(e.target.value as PapelUsuario)}
+              >
+                {papeis.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </Selecao>
+            </div>
+          </div>
 
-        <div>
-          <h3 className="font-titulo text-corpo font-semibold text-texto">
-            O caminho que funciona hoje
-          </h3>
-          <ol className="mt-2 list-decimal space-y-2 pl-5 text-apoio leading-relaxed text-texto-suave">
-            <li>
-              No painel do Supabase, abra <strong>Authentication → Users → Invite user</strong> e
-              informe o e-mail da pessoa.
-            </li>
-            <li>
-              Em <strong>User metadata</strong>, preencha exatamente estas três chaves:
-              <ul className="mt-1.5 space-y-1">
-                <li>
-                  <code className="mv-numero text-texto">nome</code> — o nome que aparece na tela.
-                </li>
-                <li>
-                  <code className="mv-numero text-texto">papel</code> —{' '}
-                  <code className="mv-numero">admin</code>, <code className="mv-numero">gerente</code>{' '}
-                  ou <code className="mv-numero">operador</code>. Sem isso a pessoa entra como
-                  operador.
-                </li>
-                <li>
-                  <code className="mv-numero text-texto">restaurante_id</code> — o id do restaurante.
-                  Obrigatório para todo papel que não seja master; o master vai sem ele.
-                </li>
-              </ul>
-            </li>
-            <li>
-              O gatilho <code className="mv-numero">mv_ao_criar_usuario</code> lê esses metadados e
-              cria o perfil correspondente em <code className="mv-numero">perfis</code>. A pessoa
-              aparece nesta lista assim que aceitar o convite.
-            </li>
-            <li>Se algum metadado vier errado, corrija o papel e o restaurante aqui mesmo.</li>
-          </ol>
-        </div>
+          {/* Master escolhe o destino; para os demais, o destino é o próprio
+              restaurante e escolha que não existe não vira campo. */}
+          {ehMaster && papel !== 'master' && (
+            <div className="space-y-1.5 sm:max-w-sm">
+              <Rotulo para="convite-restaurante">Restaurante</Rotulo>
+              <Selecao
+                id="convite-restaurante"
+                value={alvo}
+                onChange={(e) => setAlvo(e.target.value)}
+                required
+              >
+                {restaurantes.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.nome}
+                  </option>
+                ))}
+              </Selecao>
+            </div>
+          )}
 
-        <p className="flex gap-2 text-apoio text-texto-fraco">
-          <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>
-            <strong className="text-texto-suave">O que falta construir:</strong> uma Edge Function
-            que guarde a service role no servidor e exponha um convite com permissão checada — o
-            admin convidando só para o próprio restaurante, o master para qualquer um. Enquanto ela
-            não existe, esta tela prefere dizer a verdade a oferecer um botão que falharia.
-          </span>
-        </p>
+          <p className="text-apoio text-texto-fraco">{DESCRICAO_DO_PAPEL[papel]}</p>
 
-        <p className="flex items-center gap-2 text-apoio text-texto-fraco">
-          <Mail className="size-4 shrink-0" aria-hidden />
-          O convite chega por e-mail; até a pessoa aceitar, ela não existe em{' '}
-          <code className="mv-numero">perfis</code>.
-        </p>
-      </div>
+          {erro && <Aviso tom="erro">{erro}</Aviso>}
+          {feito && (
+            <Aviso tom="sucesso" titulo="Convite criado">
+              <p className="mt-1">
+                Peça a <strong>{feito}</strong> para se cadastrar com este mesmo e-mail. O papel vem
+                daqui — o que a pessoa digitar no cadastro não muda nada.
+              </p>
+            </Aviso>
+          )}
+
+          <Botao
+            type="submit"
+            tom="primario"
+            carregando={convidar.isPending}
+            icone={<Mail className="size-4" aria-hidden />}
+          >
+            Convidar
+          </Botao>
+        </form>
+      )}
+
+      {convites.isPending ? (
+        <Carregando linhas={2} />
+      ) : convites.isError ? (
+        <ErroDaConsulta erro={convites.error} aoTentar={() => void convites.refetch()} />
+      ) : pendentes.length === 0 ? (
+        <EstadoVazio icone={<Mail />} titulo="Nenhum convite esperando">
+          Convite aceito sai desta lista e a pessoa aparece na tabela acima.
+        </EstadoVazio>
+      ) : (
+        <Tabela>
+          <thead>
+            <tr>
+              <Th>E-mail</Th>
+              <Th>Papel</Th>
+              {ehMaster && <Th>Restaurante</Th>}
+              <Th>Expira</Th>
+              <Th />
+            </tr>
+          </thead>
+          <tbody>
+            {pendentes.map((c: Convite) => {
+              const vencido = new Date(c.expira_em).getTime() < Date.now()
+              return (
+                <Linha key={c.id}>
+                  <Td>
+                    <span className="font-medium text-texto">{c.email}</span>
+                    {c.nome && <span className="block text-apoio text-texto-fraco">{c.nome}</span>}
+                  </Td>
+                  <Td>
+                    <Selo tom={c.papel === 'master' ? 'alerta' : 'neutro'}>{c.papel}</Selo>
+                  </Td>
+                  {ehMaster && <Td>{nomeDoRestaurante(c.restaurante_id)}</Td>}
+                  <Td>
+                    {vencido ? (
+                      <Selo tom="erro">vencido</Selo>
+                    ) : (
+                      <span className="text-texto-fraco">{dataHora(c.expira_em)}</span>
+                    )}
+                  </Td>
+                  <Td className="text-right">
+                    {podeConvidar && (
+                      <Botao
+                        tom="fantasma"
+                        tamanho="p"
+                        onClick={() => void cancelar.mutateAsync(c.id)}
+                        aria-label={`Cancelar o convite de ${c.email}`}
+                      >
+                        Cancelar
+                      </Botao>
+                    )}
+                  </Td>
+                </Linha>
+              )
+            })}
+          </tbody>
+        </Tabela>
+      )}
     </Cartao>
   )
 }

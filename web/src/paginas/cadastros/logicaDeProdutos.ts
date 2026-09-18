@@ -195,6 +195,8 @@ export interface RascunhoDeSetor {
   marcado: boolean
   unidade: string
   custo: number
+  /** Custo da casa: não acompanha nota fiscal. */
+  custoFixo: boolean
 }
 
 export interface RascunhoDeProduto {
@@ -241,6 +243,7 @@ export function rascunhoDeProduto(
       marcado: Boolean(vinculo),
       unidade: vinculo?.unidade ?? produto?.unidade ?? 'UND',
       custo: vinculo?.custo ?? produto?.custo_medio ?? 0,
+      custoFixo: vinculo?.custo_fixo ?? false,
     }
   }
   return {
@@ -328,6 +331,7 @@ export function vinculosDoRascunho(rascunho: RascunhoDeProduto): VinculoSetor[] 
       setor_id,
       unidade: linha.unidade.trim().toUpperCase(),
       custo: linha.custo,
+      custo_fixo: linha.custoFixo,
     }))
 }
 

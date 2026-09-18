@@ -24,7 +24,7 @@ quem decide o que cada um enxerga.
 |---|---|
 | `master` | A rede inteira. Cadastra restaurantes, cria admins, monitora tudo. `restaurante_id` é nulo. |
 | `admin` | O próprio restaurante, incluindo equipe e identidade visual. |
-| `gerente` | O próprio restaurante: cadastros, contagem, compras. Não mexe em usuários. |
+| `gerente` | O próprio restaurante: cadastros, contagem, compras. Não mexe em usuários nem na identidade visual. |
 | `operador` | Lança contagem e compras. Não apaga cadastro. |
 
 ## Tabelas (nomes em português, como no banco)

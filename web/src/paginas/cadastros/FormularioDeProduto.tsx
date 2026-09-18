@@ -29,6 +29,7 @@ import {
   validarProduto,
   vinculosDoRascunho,
   type RascunhoDeProduto,
+  type RascunhoDeSetor,
   type SetorDisponivel,
 } from './logicaDeProdutos'
 
@@ -91,9 +92,14 @@ export function FormularioDeProduto({
 
   const marcados = disponiveis.filter((s) => rascunho.setores[s.id]?.marcado)
 
-  function mudarSetor(id: string, mudanca: Partial<{ marcado: boolean; unidade: string; custo: number }>) {
+  function mudarSetor(id: string, mudanca: Partial<RascunhoDeSetor>) {
     setRascunho((r) => {
-      const atual = r.setores[id] ?? { marcado: false, unidade: r.unidade, custo: r.custo_medio }
+      const atual: RascunhoDeSetor = r.setores[id] ?? {
+        marcado: false,
+        unidade: r.unidade,
+        custo: r.custo_medio,
+        custoFixo: false,
+      }
       return { ...r, setores: { ...r.setores, [id]: { ...atual, ...mudanca } } }
     })
   }
@@ -373,6 +379,27 @@ export function FormularioDeProduto({
                             {dinheiro(linha.custo)} por {linha.unidade.trim() || '—'}
                           </p>
                         </div>
+                        {/* A marca que decide se a nota fiscal pode mexer neste
+                            custo. Sem ela, a primeira nota de tilápia lançada
+                            sobrescreveria a porção com o preço do quilo. */}
+                        <label className="flex min-h-toque items-start gap-3 sm:col-span-2">
+                          <input
+                            type="checkbox"
+                            className="mt-1 size-4 shrink-0 accent-[var(--mv-primaria)]"
+                            checked={linha.custoFixo}
+                            onChange={(e) => mudarSetor(setor.id, { custoFixo: e.target.checked })}
+                          />
+                          <span>
+                            <span className="block text-corpo text-texto">
+                              Custo calculado pela casa
+                            </span>
+                            <span className="block text-micro text-texto-fraco">
+                              {linha.custoFixo
+                                ? 'Nota fiscal não mexe neste valor — é porção, receita ou rendimento apurado por vocês.'
+                                : 'Este custo acompanha a última compra lançada.'}
+                            </span>
+                          </span>
+                        </label>
                         {problema && (
                           <p role="alert" className="text-apoio text-erro-texto sm:col-span-2">
                             {problema}

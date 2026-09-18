@@ -58,11 +58,20 @@ produto.
 |---|---|
 | `master` | A rede inteira. Cadastra restaurantes, cria admins, monitora tudo |
 | `admin` | O próprio restaurante, incluindo equipe e identidade visual |
-| `gerente` | Cadastros, contagem e compras do próprio restaurante |
+| `gerente` | Cadastros, contagem e compras do próprio restaurante. Não mexe em equipe nem na marca |
 | `operador` | Lança contagem e compras. Não apaga cadastro |
 
 Quem decide isso não é a interface: é a **RLS do Postgres**. Um `operador` que
 montasse a requisição na mão continuaria não enxergando outro restaurante.
+
+E o papel não é escolhido por quem se cadastra. Ele vem de um **convite**,
+gravado antes por alguém que já tinha esse poder — o admin convida pela tela de
+Usuários, e a pessoa se cadastra depois com aquele e-mail. **Quem se cadastra
+sem convite não ganha perfil, e sem perfil não enxerga linha nenhuma.**
+
+Isso não é zelo teórico: até a migração `0008` o papel vinha de
+`raw_user_meta_data`, que é o `options.data` do `signUp()`. Qualquer visitante
+da tela de login podia pedir `papel: 'master'` e receber a rede inteira.
 
 ## Como rodar
 
