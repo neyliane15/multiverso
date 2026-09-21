@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   agruparFolha,
+  coberturaDaFolha,
   filtrarCompras,
+  produtosDaEscolha,
   resumirConferencia,
   resumirFolha,
   totalizarCompras,
@@ -204,5 +206,50 @@ describe('resumirConferencia', () => {
 
   it('nota sem item nenhum não é lançável — não há o que virar custo', () => {
     expect(resumirConferencia([])).toMatchObject({ itens: 0, pendentes: 0, podeLancar: false })
+  })
+})
+
+describe('produtosDaEscolha · o tamanho da folha antes de gerar', () => {
+  const porCategoria = new Map<string | null, number>([
+    ['aparas', 7],
+    ['bebidas', 209],
+    ['hortifruti', 102],
+    [null, 3],
+  ])
+
+  it('sem categoria marcada, e o cadastro inteiro — inclusive o que nao tem categoria', () => {
+    expect(produtosDaEscolha(porCategoria, new Set())).toBe(321)
+  })
+
+  it('marcar APARAS e uma folha de sete produtos, nao do cadastro', () => {
+    expect(produtosDaEscolha(porCategoria, new Set(['aparas']))).toBe(7)
+  })
+
+  it('soma as marcadas', () => {
+    expect(produtosDaEscolha(porCategoria, new Set(['aparas', 'hortifruti']))).toBe(109)
+  })
+
+  it('categoria marcada sem produto nenhum nao quebra a conta', () => {
+    expect(produtosDaEscolha(porCategoria, new Set(['aparas', 'vazia']))).toBe(7)
+  })
+})
+
+describe('coberturaDaFolha · a folha so de APARAS', () => {
+  it('sete produtos contra um cadastro de 854 e folha parcial', () => {
+    expect(coberturaDaFolha(7, 854)).toEqual({ parcial: true, faltam: 847 })
+  })
+
+  it('folha com o cadastro inteiro nao avisa nada', () => {
+    expect(coberturaDaFolha(854, 854)).toEqual({ parcial: false, faltam: 0 })
+  })
+
+  it('cadastro ainda desconhecido nao acusa folha parcial', () => {
+    // Durante o carregamento, `resumo.itens` e 0 e o cadastro e null. Avisar
+    // aqui poria "faltam 854 produtos" na tela de toda folha que abre.
+    expect(coberturaDaFolha(0, null)).toEqual({ parcial: false, faltam: 0 })
+  })
+
+  it('folha maior que o cadastro (produto desativado depois) nao avisa', () => {
+    expect(coberturaDaFolha(854, 850)).toEqual({ parcial: false, faltam: 0 })
   })
 })

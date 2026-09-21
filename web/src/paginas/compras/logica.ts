@@ -180,6 +180,53 @@ export function agruparFolha<T extends ItemDeFolha>(
   return grupos
 }
 
+/**
+ * Quantos produtos uma folha teria, dadas as categorias marcadas.
+ *
+ * Marcar nenhuma significa o cadastro inteiro — a regra do
+ * `mv_gerar_lista_compras`, repetida aqui para que a tela consiga dizer o
+ * tamanho da folha **antes** de gerá-la.
+ */
+export function produtosDaEscolha(
+  porCategoria: ReadonlyMap<string | null, number>,
+  escolhidas: ReadonlySet<string>,
+): number {
+  if (escolhidas.size === 0) {
+    let total = 0
+    for (const n of porCategoria.values()) total += n
+    return total
+  }
+  let total = 0
+  for (const id of escolhidas) total += porCategoria.get(id) ?? 0
+  return total
+}
+
+export interface CoberturaDaFolha {
+  /** A folha tem menos produtos que o cadastro ativo. */
+  parcial: boolean
+  /** Quantos produtos do cadastro ficaram de fora. */
+  faltam: number
+}
+
+/**
+ * Compara a folha com o cadastro.
+ *
+ * Existe por causa de uma folha gerada só com APARAS: sete produtos numa tela
+ * que não dizia em lugar nenhum que havia sido filtrada, e um usuário
+ * concluindo, com razão, que o estoque tinha sumido. Enquanto o cadastro for
+ * desconhecido (`null`, consulta ainda em voo) nada é afirmado — acusar folha
+ * parcial no meio do carregamento seria pior que não avisar.
+ */
+export function coberturaDaFolha(
+  itensNaFolha: number,
+  produtosNoCadastro: number | null,
+): CoberturaDaFolha {
+  if (produtosNoCadastro === null || itensNaFolha >= produtosNoCadastro) {
+    return { parcial: false, faltam: 0 }
+  }
+  return { parcial: true, faltam: produtosNoCadastro - itensNaFolha }
+}
+
 export interface ResumoDaFolha {
   itens: number
   /** Itens com quantidade pedida, ainda não comprados. */

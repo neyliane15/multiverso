@@ -237,14 +237,37 @@ const CAMPO_BASE =
   // `superficie` e nao `superficie-2`: no tema claro a tingida deixa o campo
   // com cara de desabilitado sobre o cartao branco. Assim funciona nos dois —
   // no claro e o branco com a borda separando, no escuro e o encaixe fundo.
-  'w-full rounded-marca-p border border-borda bg-superficie px-3 text-corpo text-texto ' +
+  'rounded-marca-p border border-borda bg-superficie px-3 text-corpo text-texto ' +
   'placeholder:text-texto-fraco/70 transition-colors ' +
   'hover:border-borda-forte focus:border-primaria focus:outline-none ' +
   'disabled:opacity-50 disabled:cursor-not-allowed'
 
+/** Classe de largura do Tailwind — `w-24`, `w-full`, `max-w-56`, `sm:w-40`. */
+const LARGURA = /(^|\s)(\w+:)*(w-|min-w-|max-w-|basis-|size-)/
+
+/**
+ * Larga por padrão, estreita quando o chamador pedir.
+ *
+ * Passar `w-24` para um campo que já nasce `w-full` não o estreita: as duas
+ * regras existem no CSS com a mesma especificidade, e quem vence é a que o
+ * Tailwind emitiu por último — não a que veio depois no atributo `class`. O
+ * campo de quantidade da lista de compras pedia 96px e ficava com 195 num
+ * celular de 390, espremendo o nome do produto até sobrar "APARA D…". Aqui o
+ * padrão sai de cena quando há largura explícita, em vez de brigar com ela.
+ */
+export function comLargura(className: string | undefined, padrao = 'w-full'): string {
+  return LARGURA.test(className ?? '') ? '' : padrao
+}
+
 export const Campo = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   function Campo({ className, ...resto }, ref) {
-    return <input ref={ref} className={clsx(CAMPO_BASE, 'h-toque', className)} {...resto} />
+    return (
+      <input
+        ref={ref}
+        className={clsx(CAMPO_BASE, comLargura(className), 'h-toque', className)}
+        {...resto}
+      />
+    )
   },
 )
 
@@ -270,7 +293,12 @@ export const CampoNumero = forwardRef<
         if (!Number.isNaN(n) && n >= 0) aoMudar(n)
         else e.target.value = String(valor).replace('.', ',')
       }}
-      className={clsx(CAMPO_BASE, 'mv-numero h-toque text-right tabular-nums', className)}
+      className={clsx(
+        CAMPO_BASE,
+        comLargura(className),
+        'mv-numero h-toque text-right tabular-nums',
+        className,
+      )}
       {...resto}
     />
   )
@@ -279,7 +307,11 @@ export const CampoNumero = forwardRef<
 export const Selecao = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
   function Selecao({ className, children, ...resto }, ref) {
     return (
-      <select ref={ref} className={clsx(CAMPO_BASE, 'h-toque pr-8', className)} {...resto}>
+      <select
+        ref={ref}
+        className={clsx(CAMPO_BASE, comLargura(className), 'h-toque pr-8', className)}
+        {...resto}
+      >
         {children}
       </select>
     )

@@ -323,6 +323,41 @@ begin
     (select quantidade from lista_compras_itens li
       join produtos p on p.id = li.produto_id
      where li.lista_id = l and p.nome = 'Cerveja') = 0);
+
+  -- Marcar categoria estreita a folha de verdade. Foi por aqui que o primeiro
+  -- cliente acabou com uma folha de 7 produtos num cadastro de 854, e concluiu
+  -- que o estoque tinha sumido: o filtro funciona, quem nao dizia nada era a
+  -- tela. O comportamento fica fixado aqui para nunca virar "bug do banco".
+  -- Os dois produtos nasceram na mesma categoria. Para o filtro significar
+  -- alguma coisa, a cerveja ganha a dela.
+  insert into categorias (restaurante_id, nome) values (r, 'Bebidas')
+    on conflict do nothing;
+  update produtos
+     set categoria_id = (select id from categorias
+                          where restaurante_id = r and nome = 'Bebidas')
+   where nome = 'Cerveja' and restaurante_id = r;
+
+  l := mv_gerar_lista_compras(r, 'So carnes',
+         array[(select categoria_id from produtos
+                 where nome = 'Picanha' and restaurante_id = r)]);
+  select count(*) into n from lista_compras_itens where lista_id = l;
+  perform conferir('categoria marcada estreita a folha (so 1 produto)', n = 1);
+  perform conferir('e o produto da folha e mesmo o da categoria marcada',
+    (select p.nome from lista_compras_itens li
+      join produtos p on p.id = li.produto_id
+     where li.lista_id = l) = 'Picanha');
+
+  -- E o que ficou de fora e exatamente o que o usuario procurava: o resto.
+  perform conferir('o produto da outra categoria fica de fora da folha',
+    not exists (select 1 from lista_compras_itens li
+                 join produtos p on p.id = li.produto_id
+                where li.lista_id = l and p.nome = 'Cerveja'));
+
+  -- Array vazio nao e "nenhum filtro": `= any('{}')` nao casa com nada.
+  l := mv_gerar_lista_compras(r, 'Nenhuma categoria', array[]::uuid[]);
+  select count(*) into n from lista_compras_itens where lista_id = l;
+  perform conferir('array vazio de categorias gera folha vazia, nao o cadastro', n = 0);
+
   reset role;
 end $$;
 

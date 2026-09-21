@@ -33,6 +33,7 @@ import type {
   ProdutoCompleto,
   Restaurante,
   Setor,
+  StatusLista,
   TipoContagem,
 } from '@/tipos/banco'
 
@@ -97,6 +98,7 @@ export const chaves = {
   notaItens: (id: string) => ['nota-itens', id] as const,
   listas: (r: string) => ['listas', r] as const,
   listaItens: (id: string) => ['lista-itens', id] as const,
+  produtosPorCategoria: (r: string) => ['produtos-por-categoria', r] as const,
   cmv: (r: string, i: string, f: string) => ['cmv', r, i, f] as const,
   cmvSerie: (r: string, g: string, n: number) => ['cmv-serie', r, g, n] as const,
   // Sob o prefixo 'cmv' de proposito: as mutacoes invalidam por prefixo, e
@@ -603,7 +605,11 @@ export function useListasDeCompras(restauranteId: string) {
           .from('listas_compras')
           .select('*')
           .eq('restaurante_id', restauranteId)
-          .order('referencia', { ascending: false }),
+          .order('referencia', { ascending: false })
+          // `referencia` e uma data: duas folhas do mesmo dia empatam e a ordem
+          // vira a que o Postgres quiser. Sem este desempate, "a lista mais
+          // recente" que a tela abre sozinha nao e a ultima que a pessoa criou.
+          .order('criado_em', { ascending: false }),
       ),
   })
 }
@@ -625,6 +631,60 @@ export function useItensDaLista(listaId: string | undefined) {
           .order('id')
           .range(de, ate),
       ),
+  })
+}
+
+/**
+ * Quantos produtos ativos cada categoria tem.
+ *
+ * Existe para que a tela de gerar diga, no proprio chip, que marcar APARAS
+ * significa uma folha de 7 produtos e nao do cadastro inteiro. Traz so a
+ * coluna da categoria — e uma contagem, nao o catalogo.
+ */
+export function useProdutosPorCategoria(
+  restauranteId: string,
+): UseQueryResult<ReadonlyMap<string | null, number>> {
+  return useQuery({
+    queryKey: chaves.produtosPorCategoria(restauranteId),
+    queryFn: async () => {
+      const linhas = await buscarTudo<{ categoria_id: string | null }>((de, ate) =>
+        supabase
+          .from('produtos')
+          .select('categoria_id')
+          .eq('restaurante_id', restauranteId)
+          .eq('ativo', true)
+          .order('id')
+          .range(de, ate),
+      )
+      const contagem = new Map<string | null, number>()
+      for (const linha of linhas) {
+        contagem.set(linha.categoria_id, (contagem.get(linha.categoria_id) ?? 0) + 1)
+      }
+      return contagem
+    },
+  })
+}
+
+/**
+ * Fecha (ou cancela) a folha.
+ *
+ * Sem isto a folha de compras nunca acaba: a tela abre sozinha a mais recente
+ * que ainda esteja em andamento, e uma folha em andamento para sempre e uma
+ * folha da qual nao se sai.
+ */
+export function useEncerrarLista(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: { listaId: string; status: StatusLista }) =>
+      buscar<ListaCompras>(
+        supabase
+          .from('listas_compras')
+          .update({ status: entrada.status })
+          .eq('id', entrada.listaId)
+          .select()
+          .single(),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: chaves.listas(restauranteId) }),
   })
 }
 

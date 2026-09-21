@@ -57,6 +57,11 @@ mv_fechar_contagem(contagem) -> contagens
 mv_reabrir_contagem(contagem) -> contagens
 
 mv_gerar_lista_compras(restaurante, nome, categorias[]) -> uuid
+  categorias = null  -> o cadastro ativo inteiro
+  categorias = [a,b] -> so os produtos dessas categorias
+  categorias = []    -> folha vazia (`= any('{}')` nao casa com nada)
+  A tela precisa dizer em qual dos tres esta: uma folha filtrada e
+  indistinguivel de um cadastro que sumiu.
 mv_lancar_nota(nota) -> notas_fiscais
 
 mv_cmv_periodo(restaurante, inicio, fim)

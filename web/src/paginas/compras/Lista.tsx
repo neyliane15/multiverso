@@ -15,16 +15,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, Search, ShoppingCart, Store, Undo2 } from 'lucide-react'
+import { Check, ListPlus, Search, ShoppingCart, Store, Undo2 } from 'lucide-react'
 import clsx from 'clsx'
 import { useSessao } from '@/dados/sessao'
 import {
   chaves,
   useCategorias,
+  useEncerrarLista,
   useGerarListaDeCompras,
   useItensDaLista,
   useLancarItemDaLista,
   useListasDeCompras,
+  useProdutosPorCategoria,
 } from '@/dados/consultas'
 import {
   Aviso,
@@ -40,13 +42,17 @@ import {
   EstadoVazio,
   Ponto,
   Rotulo,
+  Selecao,
   Selo,
   TotalDaBarra,
   plural,
 } from '@/componentes/base'
+import type { ListaCompras } from '@/tipos/banco'
 import { data as formatarData, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
 import {
   agruparFolha,
+  coberturaDaFolha,
+  produtosDaEscolha,
   quantidadeDoItem,
   resumirFolha,
   type ItemDeFolha,
@@ -74,6 +80,9 @@ export function ListaDeCompras() {
   return <ListaDoRestaurante restauranteId={restaurante.id} />
 }
 
+/** Rota `/compras/lista/nova`: a folha de gerar, mesmo havendo folha aberta. */
+const ROTA_NOVA = 'nova'
+
 function ListaDoRestaurante({ restauranteId }: { restauranteId: string }) {
   const { listaId } = useParams<{ listaId: string }>()
   const listas = useListasDeCompras(restauranteId)
@@ -81,7 +90,8 @@ function ListaDoRestaurante({ restauranteId }: { restauranteId: string }) {
   // Sem id na rota: a lista mais recente que ainda está em andamento. Uma lista
   // concluída não deve reabrir sozinha quando alguém clica no menu.
   const emAndamento = listas.data?.find((l) => l.status === 'rascunho' || l.status === 'enviada')
-  const alvo = listaId ?? emAndamento?.id
+  const pedindoNova = listaId === ROTA_NOVA
+  const alvo = pedindoNova ? undefined : (listaId ?? emAndamento?.id)
 
   if (listas.isLoading) {
     return (
@@ -104,7 +114,14 @@ function ListaDoRestaurante({ restauranteId }: { restauranteId: string }) {
     )
   }
 
-  if (!alvo) return <GerarLista restauranteId={restauranteId} />
+  if (!alvo) {
+    return (
+      <GerarLista
+        restauranteId={restauranteId}
+        aberta={pedindoNova ? (emAndamento ?? null) : null}
+      />
+    )
+  }
 
   const lista = listas.data?.find((l) => l.id === alvo)
   return (
@@ -114,15 +131,25 @@ function ListaDoRestaurante({ restauranteId }: { restauranteId: string }) {
       listaId={alvo}
       nome={lista?.nome ?? 'Lista de compras'}
       referencia={lista?.referencia ?? null}
+      status={lista?.status ?? 'rascunho'}
+      listas={listas.data ?? []}
     />
   )
 }
 
 /* ─────────────────────────────────────────────────────────── gerar folha ── */
 
-function GerarLista({ restauranteId }: { restauranteId: string }) {
+function GerarLista({
+  restauranteId,
+  aberta,
+}: {
+  restauranteId: string
+  /** A folha em andamento, quando se chegou aqui por "Nova folha". */
+  aberta: ListaCompras | null
+}) {
   const navegar = useNavigate()
   const categorias = useCategorias(restauranteId)
+  const porCategoria = useProdutosPorCategoria(restauranteId)
   const gerar = useGerarListaDeCompras(restauranteId)
 
   const [nome, setNome] = useState('')
@@ -130,6 +157,9 @@ function GerarLista({ restauranteId }: { restauranteId: string }) {
   const [erro, setErro] = useState<string | null>(null)
 
   const ativas = (categorias.data ?? []).filter((c) => c.ativo)
+  const contagem = porCategoria.data
+  const noCadastro = contagem ? [...contagem.values()].reduce((a, b) => a + b, 0) : null
+  const naFolha = contagem === undefined ? null : produtosDaEscolha(contagem, escolhidas)
 
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault()
@@ -153,9 +183,22 @@ function GerarLista({ restauranteId }: { restauranteId: string }) {
       />
 
       <Cartao>
-        <EstadoVazio icone={<ShoppingCart />} titulo="Nenhuma lista em aberto">
+        <EstadoVazio
+          icone={<ShoppingCart />}
+          titulo={aberta ? `"${aberta.nome}" continua aberta` : 'Nenhuma lista em aberto'}
+        >
           A folha nasce com todos os produtos ativos e já sugere quanto pedir de cada um,
           comparando o estoque mínimo com a última contagem fechada.
+          {aberta && (
+            <Botao
+              tom="fantasma"
+              tamanho="p"
+              className="mt-3"
+              onClick={() => navegar(`/compras/lista/${aberta.id}`)}
+            >
+              Voltar para ela
+            </Botao>
+          )}
         </EstadoVazio>
       </Cartao>
 
@@ -195,15 +238,30 @@ function GerarLista({ restauranteId }: { restauranteId: string }) {
                   >
                     <Ponto cor={categoria.cor} />
                     {categoria.nome}
+                    {contagem && (
+                      <span className="mv-numero text-micro text-texto-fraco">
+                        {contagem.get(categoria.id) ?? 0}
+                      </span>
+                    )}
                   </Chip>
                 )
               })}
             </div>
             <p className="text-apoio text-texto-fraco" role="status">
               {escolhidas.size === 0
-                ? 'Nenhuma marcada: a folha vai sair com o cadastro inteiro.'
-                : `${escolhidas.size} ${plural(escolhidas.size, 'categoria', 'categorias')} na folha.`}
+                ? noCadastro === null
+                  ? 'Nenhuma marcada: a folha vai sair com o cadastro inteiro.'
+                  : `Nenhuma marcada: a folha vai sair com o cadastro inteiro — ${noCadastro} ${plural(noCadastro, 'produto', 'produtos')}.`
+                : `${escolhidas.size} ${plural(escolhidas.size, 'categoria marcada', 'categorias marcadas')}` +
+                  (naFolha === null
+                    ? '. Só o que estiver nelas entra na folha.'
+                    : `: a folha vai sair com ${naFolha} ${plural(naFolha, 'produto', 'produtos')}, e não com ${noCadastro ?? 0}.`)}
             </p>
+            {escolhidas.size > 0 && (
+              <Botao tom="fantasma" tamanho="p" onClick={() => setEscolhidas(new Set())}>
+                Desmarcar todas e levar o cadastro inteiro
+              </Botao>
+            )}
           </fieldset>
 
           <Botao type="submit" tom="primario" tamanho="g" carregando={gerar.isPending}>
@@ -215,6 +273,31 @@ function GerarLista({ restauranteId }: { restauranteId: string }) {
   )
 }
 
+const ESTADO_DA_LISTA: Record<ListaCompras['status'], string> = {
+  rascunho: '',
+  enviada: ' · enviada',
+  concluida: ' · concluída',
+  cancelada: ' · cancelada',
+}
+
+/**
+ * Nome da folha no seletor.
+ *
+ * Duas folhas geradas no mesmo dia nascem com o mesmo nome padrão
+ * (`Lista · DD/MM/AAAA`), e um seletor com três opções idênticas não serve
+ * para escolher nada. Quando o nome se repete, a hora entra para desempatar.
+ */
+function rotuloDaLista(lista: ListaCompras, todas: readonly ListaCompras[]): string {
+  const repetido = todas.filter((l) => l.nome === lista.nome).length > 1
+  const hora = repetido
+    ? ` · ${new Date(lista.criado_em).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`
+    : ''
+  return `${lista.nome}${hora}${ESTADO_DA_LISTA[lista.status]}`
+}
+
 /* ────────────────────────────────────────────────────────────── a folha ─── */
 
 function Folha({
@@ -222,17 +305,23 @@ function Folha({
   listaId,
   nome,
   referencia,
+  status,
+  listas,
 }: {
   restauranteId: string
   listaId: string
   nome: string
   referencia: string | null
+  status: ListaCompras['status']
+  listas: readonly ListaCompras[]
 }) {
   const navegar = useNavigate()
   const qc = useQueryClient()
   const itens = useItensDaLista(listaId)
   const categorias = useCategorias(restauranteId)
+  const porCategoria = useProdutosPorCategoria(restauranteId)
   const lancar = useLancarItemDaLista(listaId)
+  const encerrar = useEncerrarLista(restauranteId)
 
   const [busca, setBusca] = useState('')
   const [mostrarComprados, setMostrarComprados] = useState(false)
@@ -306,6 +395,28 @@ function Folha({
     }
   }
 
+  const noCadastro = porCategoria.data
+    ? [...porCategoria.data.values()].reduce((a, b) => a + b, 0)
+    : null
+  /**
+   * A folha pode ter nascido com só algumas categorias marcadas. Quem abre a
+   * tela dias depois não vê essa escolha em lugar nenhum e conclui que o
+   * cadastro sumiu — foi exatamente o que aconteceu com a folha só de APARAS.
+   * Enquanto faltar produto, a tela diz quanto falta e oferece a saída.
+   */
+  const cobertura = coberturaDaFolha(resumo.itens, itens.isLoading ? null : noCadastro)
+  const emAberto = status === 'rascunho' || status === 'enviada'
+
+  async function encerrarFolha() {
+    setFalha(null)
+    try {
+      await encerrar.mutateAsync({ listaId, status: 'concluida' })
+      navegar('/compras/lista')
+    } catch (erro) {
+      setFalha(`Não consegui concluir a folha: ${mensagemDoErro(erro)}`)
+    }
+  }
+
   const cabecalho = (
     <CabecalhoDePagina
       titulo={nome}
@@ -315,9 +426,34 @@ function Folha({
           : `${resumo.itens} produtos na folha`
       }
       acoes={
-        <Botao tom="fantasma" onClick={() => navegar('/compras/notas')}>
-          Lançar nota
-        </Botao>
+        <div className="flex flex-wrap items-center gap-2">
+          {listas.length > 1 && (
+            <Selecao
+              value={listaId}
+              aria-label="Trocar de folha"
+              onChange={(e) => navegar(`/compras/lista/${e.target.value}`)}
+              className="w-full sm:w-64"
+            >
+              {listas.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {rotuloDaLista(l, listas)}
+                </option>
+              ))}
+            </Selecao>
+          )}
+          <Botao tom="fantasma" onClick={() => navegar(`/compras/lista/${ROTA_NOVA}`)}>
+            <ListPlus className="size-4" aria-hidden />
+            Nova folha
+          </Botao>
+          {emAberto && (
+            <Botao tom="fantasma" carregando={encerrar.isPending} onClick={() => void encerrarFolha()}>
+              Concluir
+            </Botao>
+          )}
+          <Botao tom="fantasma" onClick={() => navegar('/compras/notas')}>
+            Lançar nota
+          </Botao>
+        </div>
       }
     />
   )
@@ -350,6 +486,24 @@ function Folha({
       {falha && (
         <Aviso tom="erro" titulo="Não deu para salvar">
           {falha}
+        </Aviso>
+      )}
+
+      {cobertura.parcial && (
+        <Aviso tom="alerta" titulo="Esta folha não tem o cadastro inteiro">
+          <p>
+            Ela nasceu com {resumo.itens} {plural(resumo.itens, 'produto', 'produtos')} de{' '}
+            {noCadastro} — foi gerada com algumas categorias marcadas. O resto do estoque
+            continua no cadastro; só não entrou nesta folha.
+          </p>
+          <Botao
+            tom="primario"
+            tamanho="p"
+            className="mt-3"
+            onClick={() => navegar(`/compras/lista/${ROTA_NOVA}`)}
+          >
+            Gerar folha com o cadastro inteiro
+          </Botao>
         </Aviso>
       )}
 
