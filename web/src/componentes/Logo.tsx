@@ -1,10 +1,14 @@
 /**
  * Multiverso · logomarca
  * ---------------------------------------------------------------------------
- * Duas órbitas cruzadas e um núcleo cheio: vários mundos — vários restaurantes
- * — girando num sistema só, com um deles em destaque na trajetória. O núcleo
- * cobre o cruzamento, então em 24px o desenho fecha em três formas legíveis;
- * em 96px as órbitas abrem e o satélite aparece.
+ * Três quadrados arredondados encaixados, cada um girado um pouco mais que o
+ * anterior: mundos dentro de mundos, que é literalmente o nome. Os restaurantes
+ * são camadas do mesmo sistema, e o quadrado cheio no meio é aquele em que você
+ * está agora.
+ *
+ * A rotação fora de fase é o que separa o desenho de um alvo concêntrico — ela
+ * dá movimento sem animação. Em 24px lê como um selo sólido; em 96px as três
+ * camadas se abrem.
  *
  * As cores vêm de `currentColor` e de var(--mv-*). Nenhum hexadecimal aqui.
  */
@@ -32,9 +36,8 @@ export function SimboloDoMultiverso({
   ...resto
 }: PropsDoSimbolo): JSX.Element {
   const marca = pintura === 'marca'
-  const orbita = marca ? 'var(--mv-primaria)' : 'currentColor'
+  const camada = marca ? 'var(--mv-primaria)' : 'currentColor'
   const nucleo = marca ? 'var(--mv-primaria)' : 'currentColor'
-  const satelite = marca ? 'var(--mv-acento)' : 'currentColor'
 
   const acessibilidade = decorativa
     ? ({ 'aria-hidden': true, focusable: false } as const)
@@ -50,31 +53,39 @@ export function SimboloDoMultiverso({
       {...acessibilidade}
       {...resto}
     >
-      {/* as duas órbitas: mesma elipse, espelhada no eixo vertical */}
-      <ellipse
-        cx="16"
-        cy="16"
-        rx="13.2"
-        ry="7.6"
-        transform="rotate(-36 16 16)"
-        stroke={orbita}
-        strokeWidth="2.4"
-        opacity={marca ? 0.55 : 0.45}
+      {/* camada de fora: a rede */}
+      <rect
+        x="2.6"
+        y="2.6"
+        width="26.8"
+        height="26.8"
+        rx="9.2"
+        transform="rotate(-15 16 16)"
+        stroke={camada}
+        strokeWidth="2.3"
+        opacity={marca ? 0.42 : 0.38}
       />
-      <ellipse
-        cx="16"
-        cy="16"
-        rx="13.2"
-        ry="7.6"
-        transform="rotate(36 16 16)"
-        stroke={orbita}
-        strokeWidth="2.4"
-        opacity={marca ? 0.9 : 0.8}
+      {/* camada do meio: o restaurante */}
+      <rect
+        x="8.8"
+        y="8.8"
+        width="14.4"
+        height="14.4"
+        rx="4.8"
+        stroke={camada}
+        strokeWidth="2.3"
+        opacity={marca ? 0.85 : 0.75}
       />
-      {/* o núcleo fecha o cruzamento — é o que segura o desenho em 24px */}
-      <circle cx="16" cy="16" r="4.6" fill={nucleo} />
-      {/* um mundo na trajetória */}
-      <circle cx="26.68" cy="8.24" r="2.5" fill={satelite} />
+      {/* o núcleo: onde você está */}
+      <rect
+        x="12.7"
+        y="12.7"
+        width="6.6"
+        height="6.6"
+        rx="2.2"
+        transform="rotate(15 16 16)"
+        fill={nucleo}
+      />
     </svg>
   )
 }
@@ -91,9 +102,8 @@ export interface PropsDaLogo {
 }
 
 /**
- * A logomarca completa. O nome quebra em "Multi" + "verso": a parte que muda
- * (o restaurante) fica na cor da marca; a parte que é sempre a mesma (a
- * plataforma) fica na cor do texto.
+ * A logomarca completa. O símbolo carrega a cor e o nome carrega a leitura —
+ * pintar os dois divide a atenção e nenhum dos dois ganha.
  */
 export function Logo({
   variante = 'completa',
@@ -125,12 +135,13 @@ export function Logo({
       <span className="inline-flex flex-col justify-center leading-none">
         <span
           className="font-titulo font-semibold"
-          style={{ fontSize: `${corpo}px`, letterSpacing: '-0.02em' }}
+          style={{
+            fontSize: `${corpo}px`,
+            letterSpacing: '-0.015em',
+            color: pintura === 'marca' ? 'var(--mv-texto)' : 'currentColor',
+          }}
         >
-          <span style={{ color: 'var(--mv-texto)' }}>Multi</span>
-          <span style={{ color: pintura === 'marca' ? 'var(--mv-primaria)' : 'currentColor' }}>
-            verso
-          </span>
+          Multiverso
         </span>
         {legenda ? (
           <span

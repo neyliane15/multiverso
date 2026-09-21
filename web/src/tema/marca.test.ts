@@ -123,9 +123,11 @@ describe('corLegivelSobre', () => {
 
 describe('ajustarParaContraste', () => {
   it('preserva a matiz e sobe a luminosidade até alcançar AA', () => {
-    // Laranja de marca sobre superfície clara: não chega a 4,5:1 sozinho.
+    // Um laranja de marca sobre superfície clara: não chega a 4,5:1 sozinho.
+    // Literal de propósito — amarrar isto à primária padrão fez o teste parar
+    // de testar no dia em que ela virou um verde que já passa com folga.
     const fundo = '#F7F8FA'
-    const original = MARCA_PADRAO.cor_primaria
+    const original = '#E4572E'
     expect(contraste(original, fundo)).toBeLessThan(4.5)
 
     const ajustada = ajustarParaContraste(original, fundo, 4.5)
@@ -142,14 +144,26 @@ describe('ajustarParaContraste', () => {
 /* paletaDeGraficos                                                            */
 /* -------------------------------------------------------------------------- */
 
+/** Um tema escuro completo. Não se monta escuro trocando só o campo `tema`:
+ *  fundo, superfície e texto têm de virar junto, senão o fixture diz "escuro" e
+ *  é claro por dentro — que foi exatamente o que aconteceu quando a marca
+ *  padrão do Multiverso passou de escura para clara. */
+const ESCURO: Partial<Marca> = {
+  tema: 'escuro',
+  cor_fundo: '#0E1116',
+  cor_superficie: '#171B22',
+  cor_texto: '#F2F4F8',
+}
+
 const MARCAS_DE_TESTE: Array<[string, Marca]> = [
-  ['laranja padrão (escuro)', MARCA_PADRAO],
-  ['laranja padrão (claro)', marcaCom({ tema: 'claro', cor_fundo: '#FFFFFF', cor_superficie: '#F7F8FA', cor_texto: '#161D24' })],
-  ['azul-marinho', marcaCom({ cor_primaria: '#17255A' })],
-  ['verde', marcaCom({ cor_primaria: '#1BAF7A' })],
+  ['verde padrão (claro)', MARCA_PADRAO],
+  ['verde padrão (escuro)', marcaCom(ESCURO)],
+  ['laranja (escuro)', marcaCom({ ...ESCURO, cor_primaria: '#E4572E' })],
+  ['azul-marinho', marcaCom({ ...ESCURO, cor_primaria: '#17255A' })],
+  ['verde-claro', marcaCom({ cor_primaria: '#1BAF7A' })],
   ['roxo', marcaCom({ cor_primaria: '#7C3AED' })],
   ['rosa-choque', marcaCom({ cor_primaria: '#FF00AA' })],
-  ['vermelho', marcaCom({ cor_primaria: '#E11D48' })],
+  ['vermelho', marcaCom({ ...ESCURO, cor_primaria: '#E11D48' })],
 ]
 
 describe('paletaDeGraficos', () => {
@@ -266,8 +280,16 @@ describe('validarMarca', () => {
   })
 
   it('avisa quando o tema marcado não bate com a cor de fundo', () => {
-    const r = validarMarca(marcaCom({ tema: 'claro' }))
-    expect(r.avisos.join(' ')).toMatch(/marcado como claro/)
+    // Cores claras carimbadas de escuro, e o contrário. Os dois lados importam:
+    // o campo `tema` decide o esqueleto da interface, e errá-lo deixa a tela
+    // meio clara e meio escura.
+    const comoEscuro = validarMarca(marcaCom({ tema: 'escuro' }))
+    expect(comoEscuro.avisos.join(' ')).toMatch(/marcado como escuro/)
+
+    const comoClaro = validarMarca(
+      marcaCom({ tema: 'claro', cor_fundo: '#0E1116', cor_superficie: '#171B22', cor_texto: '#F2F4F8' }),
+    )
+    expect(comoClaro.avisos.join(' ')).toMatch(/marcado como claro/)
   })
 
   it('recusa hexadecimal inválido antes de tentar qualquer cálculo', () => {
@@ -278,7 +300,9 @@ describe('validarMarca', () => {
   })
 
   it('os avisos vêm em português, nomeiam o que quebra e dizem a razão medida', () => {
-    const r = validarMarca(marcaCom({ cor_texto: '#171B22' }))
+    // Texto claro sobre superfície clara: reprova contra a superfície e contra
+    // a página, então sai mais de um aviso — que é o que este teste quer ver.
+    const r = validarMarca(marcaCom({ cor_texto: '#CFD8D3' }))
     expect(r.ok).toBe(false)
     expect(r.avisos.length).toBeGreaterThanOrEqual(2)
     for (const aviso of r.avisos) {
@@ -290,7 +314,7 @@ describe('validarMarca', () => {
 
   it('reprovar não é impedir: quem chama decide salvar mesmo assim', () => {
     // validarMarca não lança, não muda a marca, não tem efeito colateral.
-    const marca = marcaCom({ cor_texto: '#171B22' })
+    const marca = marcaCom({ cor_texto: '#CFD8D3' })
     const copia = { ...marca }
     expect(() => validarMarca(marca)).not.toThrow()
     expect(marca).toEqual(copia)
@@ -322,14 +346,28 @@ describe('derivarMarca', () => {
     '%s: as superfícies elevadas sobem em degraus visíveis, para longe da própria superfície',
     (_nome, marca) => {
       const d = derivarMarca(marca)
+
+      if (marca.tema === 'claro') {
+        // No claro o cartão É a superfície — branco sobre página tingida, com a
+        // borda separando. Escurecer o cartão para "elevá-lo" o afunda. Por
+        // isso o primeiro degrau não se move, e os seguintes tingem para o lado
+        // da página, para o que fica DENTRO do cartão.
+        expect(d.superficie1.toLowerCase()).toBe(marca.cor_superficie.toLowerCase())
+        const l1 = oklch(d.superficie1).L
+        const l2 = oklch(d.superficie2).L
+        const l3 = oklch(d.superficie3).L
+        expect(l1 - l2, 'superfície 1 → 2').toBeGreaterThan(0.01)
+        expect(l2 - l3, 'superfície 2 → 3').toBeGreaterThan(0.01)
+        return
+      }
+
+      // No escuro cada degrau sobe, afastando-se da própria superfície.
       const passos = [marca.cor_superficie, d.superficie1, d.superficie2, d.superficie3]
-      const sentido = oklch(marca.cor_superficie).L > 0.5 ? -1 : 1
       for (let i = 0; i < passos.length - 1; i += 1) {
         const atual = passos[i]
         const proximo = passos[i + 1]
         if (atual === undefined || proximo === undefined) throw new Error('degrau ausente')
-        const salto = (oklch(proximo).L - oklch(atual).L) * sentido
-        expect(salto, `degrau ${i}`).toBeGreaterThan(0.015)
+        expect(oklch(proximo).L - oklch(atual).L, `degrau ${i}`).toBeGreaterThan(0.015)
       }
     },
   )
@@ -358,10 +396,16 @@ describe('derivarMarca', () => {
   })
 
   it('o anel de foco troca quando o acento some no fundo', () => {
-    const marca = marcaCom({ cor_acento: '#101319' }) // acento apagado no escuro
-    const d = derivarMarca(marca)
-    expect(d.foco).not.toBe(marca.cor_acento)
-    expect(contraste(d.foco, marca.cor_fundo)).toBeGreaterThanOrEqual(4.5)
+    // "Sumir" depende do tema, e o anel de foco é a única pista de onde o
+    // teclado está — não pode depender de sorte. Os dois lados:
+    const noEscuro = marcaCom({ ...ESCURO, cor_acento: '#101319' })
+    const noClaro = marcaCom({ cor_acento: '#F4F7F5' })
+
+    for (const marca of [noEscuro, noClaro]) {
+      const d = derivarMarca(marca)
+      expect(d.foco, marca.tema).not.toBe(marca.cor_acento)
+      expect(contraste(d.foco, marca.cor_fundo), marca.tema).toBeGreaterThanOrEqual(4.5)
+    }
   })
 })
 

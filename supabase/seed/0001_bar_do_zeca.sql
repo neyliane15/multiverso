@@ -48,9 +48,9 @@ insert into restaurantes (
   fonte_titulo, fonte_texto, raio_borda, tema
 ) values (
   'b0a12eca-0000-4000-8000-000000000001', 'Bar do Zeca — Norte Shopping', 'bar-do-zeca-norte-shopping', 'Norte Shopping', true,
-  '#E9A03B', '#3FAE86', '#F2664B',
-  '#14100D', '#241C17', '#F6EFE6',
-  'Bitter', 'Inter', '12px', 'escuro'
+  '#12543D', '#0A3226', '#A35A12',
+  '#F0F5F2', '#FFFFFF', '#10201A',
+  'Archivo', 'Inter', '14px', 'claro'
 )
 on conflict (id) do update set
   nome = excluded.nome, slug = excluded.slug, unidade = excluded.unidade, ativo = true,
@@ -65,27 +65,27 @@ on conflict (id) do update set
 -- saturacao e luz presas a uma faixa estreita, para os chips formarem familia.
 -- @bloco:categorias
 insert into categorias (id, restaurante_id, nome, cor, ordem) values
-  ('9c99ff22-f45b-5d8a-8b68-ec4ea4fbcd87', 'b0a12eca-0000-4000-8000-000000000001', 'APARAS', '#dbb676', 1),
-  ('2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'b0a12eca-0000-4000-8000-000000000001', 'BEBIDAS ALCOÓLICAS', '#e2d979', 2),
-  ('01c47b56-4321-5597-b73a-43efbc951b15', 'b0a12eca-0000-4000-8000-000000000001', 'BEBIDAS NÃO ALCOÓLICAS', '#c9e363', 3),
-  ('b60937b9-20ba-5cc3-9055-b2362fd781ad', 'b0a12eca-0000-4000-8000-000000000001', 'CARNES', '#aedd7e', 4),
-  ('ea5eae2d-7e65-5f55-9fae-9de473c5ffc0', 'b0a12eca-0000-4000-8000-000000000001', 'CONGELADOS', '#83de68', 5),
-  ('82bef36a-513d-59a8-91f2-780ed1f1ae38', 'b0a12eca-0000-4000-8000-000000000001', 'DESCARTÁVEIS', '#74e77b', 6),
-  ('16c07953-035f-5109-8de5-ddd72ed79b54', 'b0a12eca-0000-4000-8000-000000000001', 'EMBUTIDOS', '#6ed893', 7),
-  ('e2f207b6-578f-5826-84f4-26b367a9ddf1', 'b0a12eca-0000-4000-8000-000000000001', 'FEIJOADA', '#79e2bb', 8),
-  ('3a614052-826e-58a0-856b-bbfe118fe9f8', 'b0a12eca-0000-4000-8000-000000000001', 'HORTIFRUTI', '#63e3d9', 9),
-  ('c4bab142-35c9-5833-b378-808f3b4f5035', 'b0a12eca-0000-4000-8000-000000000001', 'LATICÍNIOS', '#7ec9dd', 10),
-  ('3290fd5a-65e0-5322-a040-9961052eb7f3', 'b0a12eca-0000-4000-8000-000000000001', 'MASSAS', '#92bee7', 11),
-  ('2c58bf88-d1a5-5462-98a0-b658fb5f1492', 'b0a12eca-0000-4000-8000-000000000001', 'MATERIAL DE LIMPEZA', '#a0b1ee', 12),
-  ('156b289f-4bb4-5914-8190-08695ef3e83c', 'b0a12eca-0000-4000-8000-000000000001', 'MERCEARIA', '#9b96e3', 13),
-  ('5d3fdd64-e6e6-56f1-91f6-7c4f96dbf811', 'b0a12eca-0000-4000-8000-000000000001', 'MOLHOS', '#bca3eb', 14),
-  ('cd858e96-acbd-5202-b034-29678b4466c4', 'b0a12eca-0000-4000-8000-000000000001', 'PEIXES E FRUTOS DO MAR', '#c98eeb', 15),
-  ('b778785a-3e46-5329-a237-ba003d8522a3', 'b0a12eca-0000-4000-8000-000000000001', 'PROCESSADOS', '#e2a6e7', 16),
-  ('a384c88a-08b3-516a-9336-b08527a69b48', 'b0a12eca-0000-4000-8000-000000000001', 'PROTEÍNAS CLIENTE', '#e071c9', 17),
-  ('6092e2e5-88a9-5120-ac04-0caf7797bcf0', 'b0a12eca-0000-4000-8000-000000000001', 'PROTEÍNAS FUNCIONÁRIO', '#e87db4', 18),
-  ('b1bec079-cca8-5e3a-8560-afd4f6add349', 'b0a12eca-0000-4000-8000-000000000001', 'SORVETES', '#db768d', 19),
-  ('93d69735-36bd-572d-88d7-5c014cd81a02', 'b0a12eca-0000-4000-8000-000000000001', 'SUÍNOS', '#e38882', 20),
-  ('9618a2f7-9060-53c6-bedb-7bd318fad75a', 'b0a12eca-0000-4000-8000-000000000001', 'TEMPEROS E AFINS', '#e5966c', 21)
+  ('9c99ff22-f45b-5d8a-8b68-ec4ea4fbcd87', 'b0a12eca-0000-4000-8000-000000000001', 'APARAS', '#8c6521', 1),
+  ('2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'b0a12eca-0000-4000-8000-000000000001', 'BEBIDAS ALCOÓLICAS', '#565010', 2),
+  ('01c47b56-4321-5597-b73a-43efbc951b15', 'b0a12eca-0000-4000-8000-000000000001', 'BEBIDAS NÃO ALCOÓLICAS', '#586a10', 3),
+  ('b60937b9-20ba-5cc3-9055-b2362fd781ad', 'b0a12eca-0000-4000-8000-000000000001', 'CARNES', '#345313', 4),
+  ('ea5eae2d-7e65-5f55-9fae-9de473c5ffc0', 'b0a12eca-0000-4000-8000-000000000001', 'CONGELADOS', '#266714', 5),
+  ('82bef36a-513d-59a8-91f2-780ed1f1ae38', 'b0a12eca-0000-4000-8000-000000000001', 'DESCARTÁVEIS', '#0d5912', 6),
+  ('16c07953-035f-5109-8de5-ddd72ed79b54', 'b0a12eca-0000-4000-8000-000000000001', 'EMBUTIDOS', '#176332', 7),
+  ('e2f207b6-578f-5826-84f4-26b367a9ddf1', 'b0a12eca-0000-4000-8000-000000000001', 'FEIJOADA', '#10563c', 8),
+  ('3a614052-826e-58a0-856b-bbfe118fe9f8', 'b0a12eca-0000-4000-8000-000000000001', 'HORTIFRUTI', '#106a63', 9),
+  ('c4bab142-35c9-5833-b378-808f3b4f5035', 'b0a12eca-0000-4000-8000-000000000001', 'LATICÍNIOS', '#134653', 10),
+  ('3290fd5a-65e0-5322-a040-9961052eb7f3', 'b0a12eca-0000-4000-8000-000000000001', 'MASSAS', '#1f62a3', 11),
+  ('2c58bf88-d1a5-5462-98a0-b658fb5f1492', 'b0a12eca-0000-4000-8000-000000000001', 'MATERIAL DE LIMPEZA', '#173397', 12),
+  ('156b289f-4bb4-5914-8190-08695ef3e83c', 'b0a12eca-0000-4000-8000-000000000001', 'MERCEARIA', '#2c259d', 13),
+  ('5d3fdd64-e6e6-56f1-91f6-7c4f96dbf811', 'b0a12eca-0000-4000-8000-000000000001', 'MOLHOS', '#451c92', 14),
+  ('cd858e96-acbd-5202-b034-29678b4466c4', 'b0a12eca-0000-4000-8000-000000000001', 'PEIXES E FRUTOS DO MAR', '#7419a9', 15),
+  ('b778785a-3e46-5329-a237-ba003d8522a3', 'b0a12eca-0000-4000-8000-000000000001', 'PROCESSADOS', '#84218c', 16),
+  ('a384c88a-08b3-516a-9336-b08527a69b48', 'b0a12eca-0000-4000-8000-000000000001', 'PROTEÍNAS CLIENTE', '#921c7a', 17),
+  ('6092e2e5-88a9-5120-ac04-0caf7797bcf0', 'b0a12eca-0000-4000-8000-000000000001', 'PROTEÍNAS FUNCIONÁRIO', '#85144e', 18),
+  ('b1bec079-cca8-5e3a-8560-afd4f6add349', 'b0a12eca-0000-4000-8000-000000000001', 'SORVETES', '#8c2139', 19),
+  ('93d69735-36bd-572d-88d7-5c014cd81a02', 'b0a12eca-0000-4000-8000-000000000001', 'SUÍNOS', '#811f18', 20),
+  ('9618a2f7-9060-53c6-bedb-7bd318fad75a', 'b0a12eca-0000-4000-8000-000000000001', 'TEMPEROS E AFINS', '#974317', 21)
 on conflict (id) do update set
   nome = excluded.nome, cor = excluded.cor, ordem = excluded.ordem, ativo = true;
 
@@ -96,12 +96,12 @@ on conflict (id) do update set
 -- cadastro. Bar vem primeiro porque e onde a casa fatura.
 -- @bloco:setores
 insert into setores (id, restaurante_id, nome, cor, ordem) values
-  ('d08c7059-341f-5415-b00d-db72edd7ba7a', 'b0a12eca-0000-4000-8000-000000000001', 'Bar', '#d7c098', 1),
-  ('19a7379f-949c-565a-b11d-16eaf91dab37', 'b0a12eca-0000-4000-8000-000000000001', 'Estoque Geral', '#b4de9c', 2),
-  ('42970c23-cbe7-5ebf-b519-9a82e43226ba', 'b0a12eca-0000-4000-8000-000000000001', 'Hortifruti', '#88ddbe', 3),
-  ('1845840a-385e-509f-af58-3715a9539282', 'b0a12eca-0000-4000-8000-000000000001', 'Massas e Panificacao', '#c4d1e8', 4),
-  ('4baad629-37bc-54a7-88eb-38c56420c36c', 'b0a12eca-0000-4000-8000-000000000001', 'Molhos e Caldos', '#d3b3e6', 5),
-  ('0be1640c-9e56-5cc2-902a-bae52307bd9a', 'b0a12eca-0000-4000-8000-000000000001', 'Porcionados', '#e4a0b9', 6)
+  ('d08c7059-341f-5415-b00d-db72edd7ba7a', 'b0a12eca-0000-4000-8000-000000000001', 'Bar', '#866732', 1),
+  ('19a7379f-949c-565a-b11d-16eaf91dab37', 'b0a12eca-0000-4000-8000-000000000001', 'Estoque Geral', '#30551b', 2),
+  ('42970c23-cbe7-5ebf-b519-9a82e43226ba', 'b0a12eca-0000-4000-8000-000000000001', 'Hortifruti', '#1c694d', 3),
+  ('1845840a-385e-509f-af58-3715a9539282', 'b0a12eca-0000-4000-8000-000000000001', 'Massas e Panificacao', '#325186', 4),
+  ('4baad629-37bc-54a7-88eb-38c56420c36c', 'b0a12eca-0000-4000-8000-000000000001', 'Molhos e Caldos', '#74319b', 5),
+  ('0be1640c-9e56-5cc2-902a-bae52307bd9a', 'b0a12eca-0000-4000-8000-000000000001', 'Porcionados', '#812245', 6)
 on conflict (id) do update set
   nome = excluded.nome, cor = excluded.cor, ordem = excluded.ordem, ativo = true;
 

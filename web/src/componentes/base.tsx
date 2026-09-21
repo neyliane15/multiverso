@@ -234,7 +234,10 @@ export function Rotulo({ children, para }: { children: ReactNode; para?: string 
 }
 
 const CAMPO_BASE =
-  'w-full rounded-marca-p border border-borda bg-superficie-2 px-3 text-corpo text-texto ' +
+  // `superficie` e nao `superficie-2`: no tema claro a tingida deixa o campo
+  // com cara de desabilitado sobre o cartao branco. Assim funciona nos dois —
+  // no claro e o branco com a borda separando, no escuro e o encaixe fundo.
+  'w-full rounded-marca-p border border-borda bg-superficie px-3 text-corpo text-texto ' +
   'placeholder:text-texto-fraco/70 transition-colors ' +
   'hover:border-borda-forte focus:border-primaria focus:outline-none ' +
   'disabled:opacity-50 disabled:cursor-not-allowed'
@@ -494,7 +497,7 @@ export function Th({
     <th
       scope="col"
       className={clsx(
-        'mv-rotulo sticky top-0 z-10 border-b border-borda bg-superficie-1 px-5 py-2.5',
+        'mv-rotulo sticky top-0 z-10 border-b border-borda bg-superficie-2 px-5 py-2.5',
         numerico ? 'text-right' : 'text-left',
         className,
       )}
@@ -518,7 +521,7 @@ export function Td({
       className={clsx(
         // px-5 alinha a primeira coluna com o título do cartão; py-2.5 com o
         // corpo de 15/24 fecha a linha em exatos 44px — o alvo de toque.
-        'border-b border-borda/60 px-5 py-2.5 align-middle',
+        'border-b border-borda/60 px-5 py-3 align-middle',
         numerico && 'mv-numero text-right tabular-nums',
         className,
       )}

@@ -12,47 +12,47 @@
    não vira rosa porque o cliente escolheu rosa.
    =========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------ raiz -- */
 :root {
   /* --- marca do próprio Multiverso (master, e enquanto nada carregou) ------ */
-  --mv-primaria: #e4572e;
-  --mv-secundaria: #17255a;
-  --mv-acento: #f5b700;
-  --mv-fundo: #0e1116;
-  --mv-superficie: #171b22;
-  --mv-texto: #f2f4f8;
-  --mv-fonte-titulo: 'Sora';
+  --mv-primaria: #12543D;
+  --mv-secundaria: #0A3226;
+  --mv-acento: #A35A12;
+  --mv-fundo: #F0F5F2;
+  --mv-superficie: #FFFFFF;
+  --mv-texto: #10201A;
+  --mv-fonte-titulo: 'Archivo';
   --mv-fonte-texto: 'Inter';
   --mv-raio: 14px;
 
   /* --- derivadas: marca.ts reescreve todas; os valores abaixo são o fallback
          do primeiro quadro, para a tela não piscar antes do provedor montar --- */
-  --mv-sobre-primaria: #0b0d10;
-  --mv-sobre-secundaria: #ffffff;
-  --mv-sobre-acento: #0b0d10;
-  --mv-primaria-legivel: #e4572e;
-  --mv-primaria-06: rgb(228 87 46 / 0.06);
-  --mv-primaria-10: rgb(228 87 46 / 0.1);
-  --mv-primaria-16: rgb(228 87 46 / 0.16);
-  --mv-primaria-24: rgb(228 87 46 / 0.24);
-  --mv-primaria-40: rgb(228 87 46 / 0.4);
-  --mv-primaria-64: rgb(228 87 46 / 0.64);
-  --mv-superficie-1: #212329;
-  --mv-superficie-2: #2b2b31;
-  --mv-superficie-3: #353338;
-  --mv-borda: #2d3138;
-  --mv-borda-forte: #484c53;
-  --mv-texto-suave: #afb1b6;
-  --mv-texto-fraco: #888b90;
-  --mv-foco: #f5b700;
+  --mv-sobre-primaria: #FFFFFF;
+  --mv-sobre-secundaria: #FFFFFF;
+  --mv-sobre-acento: #FFFFFF;
+  --mv-primaria-legivel: #12543D;
+  --mv-primaria-06: rgb(18 84 61 / 0.06);
+  --mv-primaria-10: rgb(18 84 61 / 0.1);
+  --mv-primaria-16: rgb(18 84 61 / 0.16);
+  --mv-primaria-24: rgb(18 84 61 / 0.24);
+  --mv-primaria-40: rgb(18 84 61 / 0.4);
+  --mv-primaria-64: rgb(18 84 61 / 0.64);
+  --mv-superficie-1: #ffffff;
+  --mv-superficie-2: #e8efeb;
+  --mv-superficie-3: #d2e0d8;
+  --mv-borda: #d6deda;
+  --mv-borda-forte: #a0ada6;
+  --mv-texto-suave: #43504b;
+  --mv-texto-fraco: #65716c;
+  --mv-foco: #A35A12;
   --mv-raio-p: 8px;
   --mv-raio-g: 20px;
-  --mv-grafico-1: #cd4010; --mv-grafico-2: #9a487d; --mv-grafico-3: #9d7bd2;
-  --mv-grafico-4: #3666bb; --mv-grafico-5: #009db8; --mv-grafico-6: #007546;
-  --mv-grafico-7: #83972e; --mv-grafico-8: #8f5900;
+  --mv-grafico-1: #00a779; --mv-grafico-2: #9b67e0; --mv-grafico-3: #a93384;
+  --mv-grafico-4: #e95c45; --mv-grafico-5: #915a00; --mv-grafico-6: #7d9300;
+  --mv-grafico-7: #0099b4; --mv-grafico-8: #1d56ba;
 
   /* --- escala neutra própria: grafite frio (matiz 248, croma mínimo).
          Não é o cinza do Tailwind: é o aço de cozinha sob luz fria. ---------- */
@@ -95,8 +95,8 @@
   /* --- tipografia: três papéis. Título carrega a personalidade, texto carrega
          a leitura, e o numérico carrega o trabalho — é um sistema em que quase
          tudo na tela é um número que precisa alinhar em coluna. ------------- */
-  --mv-fonte-numero: 'JetBrains Mono';
-  --mv-pilha-titulo: var(--mv-fonte-titulo), 'Sora', ui-sans-serif, system-ui, sans-serif;
+  --mv-fonte-numero: 'IBM Plex Mono';
+  --mv-pilha-titulo: var(--mv-fonte-titulo), 'Archivo', ui-sans-serif, system-ui, sans-serif;
   --mv-pilha-texto:  var(--mv-fonte-texto), 'Inter', ui-sans-serif, system-ui, sans-serif;
   --mv-pilha-numero: var(--mv-fonte-numero), ui-monospace, 'SFMono-Regular', monospace;
 
@@ -117,7 +117,7 @@
   --mv-sombra-2: 0 4px 12px -2px rgb(0 0 0 / 0.42);
   --mv-sombra-3: 0 16px 40px -8px rgb(0 0 0 / 0.56);
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* Tema claro por restaurante. marca.ts marca o <html> com data-tema="claro";
@@ -253,22 +253,22 @@
    entre corpo e título; nada acima de 32px, porque não existe capa aqui, existe
    cabeçalho de tela. */
 @theme {
-  --text-micro: 0.6875rem;   /* 11px — rótulo de eixo, unidade, carimbo    */
-  --text-micro--line-height: 1rem;
-  --text-rotulo: 0.75rem;    /* 12px — rótulo de campo, cabeçalho de tabela */
-  --text-rotulo--line-height: 1.125rem;
-  --text-apoio: 0.8125rem;   /* 13px — texto secundário, ajuda             */
-  --text-apoio--line-height: 1.25rem;
-  --text-corpo: 0.9375rem;   /* 15px — leitura, célula de tabela           */
-  --text-corpo--line-height: 1.5rem;
-  --text-destaque: 1.125rem; /* 18px — título de cartão                    */
-  --text-destaque--line-height: 1.625rem;
-  --text-secao: 1.375rem;    /* 22px — título de seção                     */
-  --text-secao--line-height: 1.875rem;
-  --text-tela: 1.75rem;      /* 28px — título de tela                      */
-  --text-tela--line-height: 2.125rem;
-  --text-numero: 2rem;       /* 32px — o número que a tela existe para dar */
-  --text-numero--line-height: 2.25rem;
+  --text-micro: 0.625rem;    /* 10px — rótulo de eixo, unidade, carimbo    */
+  --text-micro--line-height: 0.875rem;
+  --text-rotulo: 0.6875rem;  /* 11px — rótulo de campo, cabeçalho de tabela */
+  --text-rotulo--line-height: 1rem;
+  --text-apoio: 0.75rem;     /* 12px — texto secundário, ajuda             */
+  --text-apoio--line-height: 1.125rem;
+  --text-corpo: 0.8125rem;   /* 13px — leitura, célula de tabela           */
+  --text-corpo--line-height: 1.25rem;
+  --text-destaque: 1rem;     /* 16px — título de cartão                    */
+  --text-destaque--line-height: 1.375rem;
+  --text-secao: 1.1875rem;   /* 19px — título de seção                     */
+  --text-secao--line-height: 1.5rem;
+  --text-tela: 1.5rem;       /* 24px — título de tela                      */
+  --text-tela--line-height: 1.875rem;
+  --text-numero: 1.75rem;    /* 28px — o número que a tela existe para dar */
+  --text-numero--line-height: 2rem;
 }
 
 /* --------------------------------------------------------------- base ----- */

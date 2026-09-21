@@ -18,16 +18,22 @@ export const MARCA_PADRAO: Marca = {
   logo_url: null,
   logo_escuro_url: null,
   favicon_url: null,
-  cor_primaria: '#E4572E',
-  cor_secundaria: '#17255A',
-  cor_acento: '#F5B700',
-  cor_fundo: '#0E1116',
-  cor_superficie: '#171B22',
-  cor_texto: '#F2F4F8',
-  fonte_titulo: 'Sora',
+  // Verde-garrafa sobre branco. A cor vem do lugar: a garrafa de cerveja no
+  // balcão, o azulejo da cozinha, a tinta do livro-caixa. É escura o bastante
+  // para ser lida como tinta e não como enfeite — num sistema em que a tela
+  // inteira é número, a cor tem de se comportar.
+  cor_primaria: '#12543D',
+  cor_secundaria: '#0A3226',
+  // Âmbar queimado, usado com parcimônia: foco, seleção, o que precisa gritar.
+  // Verde e âmbar é o par do botequim, não uma escolha de paleta genérica.
+  cor_acento: '#A35A12',
+  cor_fundo: '#F0F5F2',
+  cor_superficie: '#FFFFFF',
+  cor_texto: '#10201A',
+  fonte_titulo: 'Archivo',
   fonte_texto: 'Inter',
   raio_borda: '14px',
-  tema: 'escuro',
+  tema: 'claro',
 }
 
 /** O preto e o branco do sistema. Só existem estes dois sobre cor de marca. */
@@ -433,6 +439,15 @@ export function derivarMarca(marca: Marca): DerivadasDaMarca {
   // sem que nenhum componente precise saber a cor dele.
   const rumo = oklch(marca.cor_superficie).L > 0.5 ? TINTA_ESCURA : TINTA_CLARA
   const degrau = (passo: number): string => {
+    // No tema claro a elevação não escurece. O cartão É o branco, e quem o
+    // separa da página é a borda e a sombra — escurecer o cartão sobre um fundo
+    // claro o afunda em vez de levantá-lo. Os degraus seguintes tingem de leve,
+    // e servem para o que fica DENTRO do cartão: cabeçalho de tabela, faixa de
+    // filtro, chip.
+    if (claro) {
+      const base = misturar(marca.cor_superficie, marca.cor_fundo, passo - 1)
+      return misturar(base, marca.cor_primaria, (passo - 1) * 0.035)
+    }
     const base = misturar(marca.cor_superficie, rumo, passo * 0.038)
     return misturar(base, marca.cor_primaria, passo * 0.015)
   }
@@ -462,8 +477,19 @@ export function derivarMarca(marca: Marca): DerivadasDaMarca {
     superficie1: degrau(1),
     superficie2: degrau(2),
     superficie3: degrau(3),
-    borda: misturar(marca.cor_superficie, marca.cor_texto, claro ? 0.16 : 0.12),
-    bordaForte: misturar(marca.cor_superficie, marca.cor_texto, claro ? 0.34 : 0.26),
+    // A borda leva um fio da primária dentro. Num sistema de tela cheia de
+    // tabela, é ela que aparece mais vezes que qualquer outra cor — cinza puro
+    // ali deixa o app parecendo de ninguém.
+    borda: misturar(
+      misturar(marca.cor_superficie, marca.cor_texto, claro ? 0.05 : 0.12),
+      marca.cor_primaria,
+      claro ? 0.12 : 0.06,
+    ),
+    bordaForte: misturar(
+      misturar(marca.cor_superficie, marca.cor_texto, claro ? 0.26 : 0.26),
+      marca.cor_primaria,
+      claro ? 0.16 : 0.08,
+    ),
     textoSuave: misturar(marca.cor_texto, marca.cor_fundo, 0.26),
     textoFraco: misturar(marca.cor_texto, marca.cor_fundo, 0.42),
     foco,

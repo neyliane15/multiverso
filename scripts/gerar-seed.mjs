@@ -104,23 +104,42 @@ function hslParaHex(h, s, l) {
   return '#' + [f(0), f(8), f(4)].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('')
 }
 
-// Azul e violeta tem luminancia natural baixa: sem esta compensacao, dois ou
-// tres chips de categoria cairiam abaixo de 4.5:1 sobre o fundo escuro.
-const compensacao = (h) => (h >= 200 && h <= 300 ? 10 : h >= 300 || h < 40 ? 2 : 0)
+// Matiz nao tem luminancia uniforme: amarelo e verde-limao nascem claros, azul
+// e violeta nascem escuros. Sem compensar, a mesma luz nominal produz chips que
+// reprovam em contraste de um lado e berram do outro — e o lado que reprova
+// depende do tema.
+//
+//   fundo escuro -> o chip e claro, e o risco e o AZUL sumir. Ele sobe.
+//   fundo claro  -> o chip e escuro, e o risco e o AMARELO sumir. Ele desce.
+const compensacao = (h, claro) =>
+  claro
+    ? h >= 40 && h < 200
+      ? -10 // amarelo, lima e verde: escurecem para aparecer no branco
+      : h >= 200 && h <= 300
+        ? 4 // azul e violeta ja sao escuros; forcar mais vira borrao
+        : 0
+    : h >= 200 && h <= 300
+      ? 10
+      : h >= 300 || h < 40
+        ? 2
+        : 0
 
-// Identidade de boteco moderno: madeira escura no fundo, ambar de chope na
-// primaria, verde de garrafa na secundaria, vermelho de toldo no acento.
+// Verde-garrafa sobre branco, a mesma direcao da plataforma. O acento ambar e a
+// cerveja no balcao — e o unico lugar onde a cor levanta a voz.
+//
+// O admin troca tudo isto na tela de Identidade visual: esta marca e o ponto de
+// partida do cliente, nao uma sentenca.
 export const MARCA = {
-  cor_primaria: '#E9A03B',
-  cor_secundaria: '#3FAE86',
-  cor_acento: '#F2664B',
-  cor_fundo: '#14100D',
-  cor_superficie: '#241C17',
-  cor_texto: '#F6EFE6',
-  fonte_titulo: 'Bitter', // slab serif: tem cara de quadro-negro de menu
+  cor_primaria: '#12543D',
+  cor_secundaria: '#0A3226',
+  cor_acento: '#A35A12',
+  cor_fundo: '#F0F5F2',
+  cor_superficie: '#FFFFFF',
+  cor_texto: '#10201A',
+  fonte_titulo: 'Archivo',
   fonte_texto: 'Inter',
-  raio_borda: '12px',
-  tema: 'escuro',
+  raio_borda: '14px',
+  tema: 'claro',
 }
 
 /**
@@ -130,15 +149,23 @@ export const MARCA = {
  * contraste minimo, ja que a luz de cada cor nunca escapa da faixa.
  */
 function paleta(quantidade, { saturacaoBase, luzBase }) {
+  const claro = MARCA.tema === 'claro'
   const cores = []
   for (let i = 0; i < quantidade; i += 1) {
     const h = (38 + i * (360 / quantidade)) % 360
     const s = saturacaoBase + (i % 3) * 6
-    const l = luzBase + (i % 2) * 4 + compensacao(h)
+    const l = luzBase + (i % 2) * (claro ? -4 : 4) + compensacao(h, claro)
     cores.push(hslParaHex(h, s, l))
   }
   return cores
 }
+
+/** A faixa de luz muda de lado conforme o tema: chip claro sobre fundo escuro,
+ *  chip escuro sobre fundo claro. A saturacao fica onde esta — e ela que faz as
+ *  27 cores parecerem uma familia. */
+const FAIXA = MARCA.tema === 'claro'
+  ? { categorias: { saturacaoBase: 62, luzBase: 34 }, setores: { saturacaoBase: 46, luzBase: 36 } }
+  : { categorias: { saturacaoBase: 58, luzBase: 64 }, setores: { saturacaoBase: 44, luzBase: 70 } }
 
 function conferirContraste(cores, rotulo) {
   for (const cor of cores) {
@@ -171,10 +198,10 @@ export function montarModelo(dados) {
   const categorias = dados.categorias.map((nome, i) => ({ id: idDe('categoria', nome), nome, ordem: i + 1 }))
   const idDaCategoria = new Map(categorias.map((c) => [c.nome, c.id]))
 
-  const coresCategorias = paleta(categorias.length, { saturacaoBase: 58, luzBase: 64 })
-  // Os setores ficam numa faixa mais clara e menos saturada de proposito: na
+  const coresCategorias = paleta(categorias.length, FAIXA.categorias)
+  // Os setores ficam numa faixa deslocada e menos saturada de proposito: na
   // tela eles aparecem lado a lado com as categorias e precisam se distinguir.
-  const coresSetores = paleta(setores.length, { saturacaoBase: 44, luzBase: 70 })
+  const coresSetores = paleta(setores.length, FAIXA.setores)
   conferirContraste(coresCategorias, 'categorias')
   conferirContraste(coresSetores, 'setores')
   categorias.forEach((c, i) => { c.cor = coresCategorias[i] })
