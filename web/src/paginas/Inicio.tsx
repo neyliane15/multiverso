@@ -146,7 +146,6 @@ export function Inicio(): JSX.Element {
               rotulo="Estoque na última contagem"
               icone={<Warehouse className="size-3.5" aria-hidden />}
               valor={fechada ? dinheiro(fechada.total) : '—'}
-              tom={fechada ? 'marca' : 'neutro'}
               apoio={
                 fechada ? (
                   <>
@@ -204,7 +203,6 @@ export function Inicio(): JSX.Element {
               valor={
                 cmv.isPending ? '…' : cmv.data?.cmv !== null && cmv.data ? dinheiro(cmv.data.cmv) : '—'
               }
-              tom={cmv.data?.completo ? 'marca' : 'neutro'}
               apoio={
                 cmv.isError ? (
                   <span className="text-erro-texto">

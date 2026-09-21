@@ -17,6 +17,14 @@
 
 /* ------------------------------------------------------------------ raiz -- */
 :root {
+  /* --- a marca da PLATAFORMA, que nenhum restaurante reescreve ------------
+         aplicarMarca() repinta todo --mv-* com as cores do restaurante ativo.
+         Estas duas ficam de fora de propósito: o símbolo do Multiverso na
+         barra lateral é a marca de quem faz o sistema, e vesti-lo com a cor do
+         cliente apaga qual é qual — ainda mais quando o cliente é vermelho e a
+         plataforma é verde. ------------------------------------------------ */
+  --mv-plataforma: #12543d;
+
   /* --- marca do próprio Multiverso (master, e enquanto nada carregou) ------ */
   --mv-primaria: #12543D;
   --mv-secundaria: #0A3226;
@@ -122,6 +130,12 @@
 
 /* Tema claro por restaurante. marca.ts marca o <html> com data-tema="claro";
    as cores de marca vêm do banco, os estados e o contorno vêm daqui. */
+:root[data-tema='escuro'] {
+  /* O verde da plataforma clareia para continuar legível sobre superfície
+     escura. É a mesma marca, na luz daquela sala. */
+  --mv-plataforma: #3fae86;
+}
+
 :root[data-tema='claro'] {
   --mv-sucesso:       #0e9f6e;
   --mv-sucesso-texto: #05714b;

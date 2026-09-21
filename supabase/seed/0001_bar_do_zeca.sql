@@ -43,17 +43,20 @@ begin;
 -- superficie — conferido pelo gerador, que se recusa a escrever cor reprovada.
 insert into restaurantes (
   id, nome, slug, unidade, ativo,
+  logo_url,
   cor_primaria, cor_secundaria, cor_acento,
   cor_fundo, cor_superficie, cor_texto,
   fonte_titulo, fonte_texto, raio_borda, tema
 ) values (
   'b0a12eca-0000-4000-8000-000000000001', 'Bar do Zeca — Norte Shopping', 'bar-do-zeca-norte-shopping', 'Norte Shopping', true,
-  '#12543D', '#0A3226', '#A35A12',
-  '#F0F5F2', '#FFFFFF', '#10201A',
+  '/marcas/bar-do-zeca.png',
+  '#D32026', '#7A1418', '#A45F24',
+  '#F9F1E8', '#FFFFFF', '#1F1411',
   'Archivo', 'Inter', '14px', 'claro'
 )
 on conflict (id) do update set
   nome = excluded.nome, slug = excluded.slug, unidade = excluded.unidade, ativo = true,
+  logo_url = excluded.logo_url,
   cor_primaria = excluded.cor_primaria, cor_secundaria = excluded.cor_secundaria,
   cor_acento = excluded.cor_acento, cor_fundo = excluded.cor_fundo,
   cor_superficie = excluded.cor_superficie, cor_texto = excluded.cor_texto,

@@ -124,18 +124,27 @@ const compensacao = (h, claro) =>
         ? 2
         : 0
 
-// Verde-garrafa sobre branco, a mesma direcao da plataforma. O acento ambar e a
-// cerveja no balcao — e o unico lugar onde a cor levanta a voz.
+// A marca do Bar do Zeca sai da logomarca dele, nao da plataforma: e esse o
+// ponto do sistema. As cores foram medidas na imagem — vermelho #D32026 do
+// disco, creme #FBE9DD das letras, e o tom de sombra #DCA57E que dá o relevo.
 //
-// O admin troca tudo isto na tela de Identidade visual: esta marca e o ponto de
-// partida do cliente, nao uma sentenca.
+//   primaria    o vermelho do disco, como veio
+//   secundaria  o mesmo vermelho no escuro, que e a sombra das letras
+//   acento      a sombra em tom de terra, escurecida ate passar em AA no branco
+//   fundo       o creme das letras, clareado ate virar pagina
+//
+// Vermelho de marca colide com o vermelho de erro do sistema, e validarMarca
+// avisa isso. Nao e motivo para trocar a cor do cliente: os estados carregam
+// icone e texto proprios, e o vermelho da marca aparece como botao cheio
+// enquanto o erro aparece como painel tingido.
 export const MARCA = {
-  cor_primaria: '#12543D',
-  cor_secundaria: '#0A3226',
-  cor_acento: '#A35A12',
-  cor_fundo: '#F0F5F2',
+  logo_url: '/marcas/bar-do-zeca.png',
+  cor_primaria: '#D32026',
+  cor_secundaria: '#7A1418',
+  cor_acento: '#A45F24',
+  cor_fundo: '#F9F1E8',
   cor_superficie: '#FFFFFF',
-  cor_texto: '#10201A',
+  cor_texto: '#1F1411',
   fonte_titulo: 'Archivo',
   fonte_texto: 'Inter',
   raio_borda: '14px',
@@ -409,17 +418,20 @@ begin;
 -- superficie — conferido pelo gerador, que se recusa a escrever cor reprovada.
 insert into restaurantes (
   id, nome, slug, unidade, ativo,
+  logo_url,
   cor_primaria, cor_secundaria, cor_acento,
   cor_fundo, cor_superficie, cor_texto,
   fonte_titulo, fonte_texto, raio_borda, tema
 ) values (
   ${R}, ${txt(dados.restaurante)}, ${txt('bar-do-zeca-norte-shopping')}, ${txt('Norte Shopping')}, true,
+  ${txt(MARCA.logo_url)},
   ${txt(MARCA.cor_primaria)}, ${txt(MARCA.cor_secundaria)}, ${txt(MARCA.cor_acento)},
   ${txt(MARCA.cor_fundo)}, ${txt(MARCA.cor_superficie)}, ${txt(MARCA.cor_texto)},
   ${txt(MARCA.fonte_titulo)}, ${txt(MARCA.fonte_texto)}, ${txt(MARCA.raio_borda)}, ${txt(MARCA.tema)}
 )
 on conflict (id) do update set
   nome = excluded.nome, slug = excluded.slug, unidade = excluded.unidade, ativo = true,
+  logo_url = excluded.logo_url,
   cor_primaria = excluded.cor_primaria, cor_secundaria = excluded.cor_secundaria,
   cor_acento = excluded.cor_acento, cor_fundo = excluded.cor_fundo,
   cor_superficie = excluded.cor_superficie, cor_texto = excluded.cor_texto,

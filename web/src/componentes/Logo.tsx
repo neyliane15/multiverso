@@ -36,8 +36,11 @@ export function SimboloDoMultiverso({
   ...resto
 }: PropsDoSimbolo): JSX.Element {
   const marca = pintura === 'marca'
-  const camada = marca ? 'var(--mv-primaria)' : 'currentColor'
-  const nucleo = marca ? 'var(--mv-primaria)' : 'currentColor'
+  // A cor da plataforma, e não a do restaurante ativo: este símbolo diz quem
+  // faz o sistema. Quem diz de quem é o restaurante é a logo dele, na barra de
+  // cima. Repintar os dois com a mesma tinta apaga a diferença.
+  const camada = marca ? 'var(--mv-plataforma)' : 'currentColor'
+  const nucleo = marca ? 'var(--mv-plataforma)' : 'currentColor'
 
   const acessibilidade = decorativa
     ? ({ 'aria-hidden': true, focusable: false } as const)

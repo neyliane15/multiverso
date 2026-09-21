@@ -36,6 +36,20 @@ export const MARCA_PADRAO: Marca = {
   tema: 'claro',
 }
 
+/**
+ * Os sinais de estado, fixos em todo o sistema (o mesmo par que `estilos.css`
+ * publica). Não seguem a marca de propósito: alerta vermelho não pode virar
+ * rosa porque o cliente escolheu rosa.
+ *
+ * Moram aqui porque `validarMarca` precisa medi-los contra a cor que o admin
+ * escolheu — uma primária que é quase o vermelho de erro deixa "ação" e
+ * "deu errado" com a mesma tinta.
+ */
+export const SINAIS_DE_ESTADO = {
+  claro: { sucesso: '#0E9F6E', alerta: '#C77700', erro: '#DC2F35' },
+  escuro: { sucesso: '#2FBE86', alerta: '#E0A020', erro: '#F0605F' },
+} as const
+
 /** O preto e o branco do sistema. Só existem estes dois sobre cor de marca. */
 export const TINTA_ESCURA = '#0B0D10' as const
 export const TINTA_CLARA = '#FFFFFF' as const
@@ -641,6 +655,27 @@ export function validarMarca(marca: Marca): ResultadoDaValidacao {
     avisos.push(
       'Fundo e superfície estão quase iguais: os cartões vão sumir dentro da página.',
     )
+  }
+
+  // Marca que colide com um sinal de estado: a cor deixa de dizer duas coisas
+  // diferentes. Não impede — vermelho pode ser a marca do cliente, e é —, mas
+  // quem escolhe precisa saber que "ação principal" e "deu errado" vão sair com
+  // a mesma tinta, e que a diferença passa a depender do ícone e do texto.
+  const sinais = SINAIS_DE_ESTADO[marca.tema === 'claro' ? 'claro' : 'escuro']
+  const NOME_DO_SINAL: Record<keyof typeof sinais, string> = {
+    sucesso: 'do sucesso',
+    alerta: 'do alerta',
+    erro: 'do erro',
+  }
+  for (const [chave, cor] of Object.entries(sinais) as Array<[keyof typeof sinais, string]>) {
+    const distancia = deltaE(marca.cor_primaria, cor)
+    if (distancia < 12) {
+      avisos.push(
+        `A primária é quase a cor ${NOME_DO_SINAL[chave]} (${cor}): a mesma tinta vai ` +
+          'dizer "ação principal" e o estado. O sistema separa os dois pelo ícone e pelo ' +
+          'texto, mas a cor sozinha deixa de avisar.',
+      )
+    }
   }
 
   const primariaAcento = deltaE(marca.cor_primaria, marca.cor_acento)

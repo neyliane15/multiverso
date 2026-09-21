@@ -279,6 +279,22 @@ describe('validarMarca', () => {
     expect(r.avisos.join(' ')).toMatch(/quase a mesma cor/)
   })
 
+  it('avisa quando a primária colide com um sinal de estado', () => {
+    // O caso real: o Bar do Zeca tem um vermelho de marca praticamente igual ao
+    // vermelho de erro do sistema. Não é motivo para recusar — a cor é do
+    // cliente —, mas quem escolhe tem de saber que a partir dali "ação" e "deu
+    // errado" saem com a mesma tinta.
+    const vermelha = validarMarca(marcaCom({ cor_primaria: '#D32026' }))
+    expect(vermelha.avisos.join(' ')).toMatch(/quase a cor do erro/)
+
+    const verde = validarMarca(marcaCom({ cor_primaria: '#0E9F6E', cor_acento: '#A35A12' }))
+    expect(verde.avisos.join(' ')).toMatch(/quase a cor do sucesso/)
+
+    // E a marca padrão, que é verde escuro, não pode disparar isso: ela está
+    // longe do verde de sucesso, e um aviso que grita sempre ninguém lê.
+    expect(validarMarca(MARCA_PADRAO).avisos).toEqual([])
+  })
+
   it('avisa quando o tema marcado não bate com a cor de fundo', () => {
     // Cores claras carimbadas de escuro, e o contrário. Os dois lados importam:
     // o campo `tema` decide o esqueleto da interface, e errá-lo deixa a tela
