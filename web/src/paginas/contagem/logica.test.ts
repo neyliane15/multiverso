@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   agruparPorCategoria,
+  chaveDoLugar,
   filtrarItens,
   foiTrabalhado,
   hojeIso,
+  montarAbas,
   resumoDoFechamento,
+  rotuloDaAba,
   totalDosItens,
   type CategoriaSimples,
   type ItemContavel,
@@ -172,5 +175,98 @@ describe('hojeIso', () => {
 
   it('preenche mês e dia com zero à esquerda', () => {
     expect(hojeIso(new Date(2026, 0, 5))).toBe('2026-01-05')
+  })
+})
+
+describe('montarAbas · a folha se anda por parada, nao por setor', () => {
+  const TOTAIS = [
+    { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-1', estoque_nome: 'Geladeira 1', itens: 2 },
+    { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-2', estoque_nome: 'Geladeira 2', itens: 1 },
+    { setor_id: 's-horti', setor_nome: 'Hortifruti', setor_cor: '#222222', estoque_id: null, estoque_nome: null, itens: 2 },
+  ]
+
+  function linha(
+    id: string,
+    setor_id: string,
+    estoque_id: string | null,
+    quantidade: number,
+    custo = 10,
+  ): ItemContavel {
+    return {
+      id,
+      produto_id: `p-${id}`,
+      setor_id,
+      estoque_id,
+      quantidade,
+      unidade: 'UND',
+      custo_unitario: custo,
+      total: quantidade * custo,
+      contado_em: null,
+      produto: { nome: id, categoria_id: null },
+    }
+  }
+
+  const ITENS = [
+    linha('a', 's-bar', 'e-1', 3),
+    linha('b', 's-bar', 'e-1', 0),
+    linha('c', 's-bar', 'e-2', 5),
+    linha('d', 's-horti', null, 2),
+    linha('e', 's-horti', null, 0),
+  ]
+
+  it('cada lugar vira uma parada, e o setor sem subdivisao tambem', () => {
+    expect(montarAbas(TOTAIS, ITENS).map((a) => a.id)).toEqual([
+      's-bar:e-1',
+      's-bar:e-2',
+      's-horti:',
+    ])
+  })
+
+  it('o total e o progresso saem so dos itens daquela parada', () => {
+    const [gel1, gel2, horti] = montarAbas(TOTAIS, ITENS)
+    expect(gel1).toMatchObject({ preenchidos: 1, itens: 2, total: 30 })
+    expect(gel2).toMatchObject({ preenchidos: 1, itens: 1, total: 50 })
+    expect(horti).toMatchObject({ preenchidos: 1, itens: 2, total: 20 })
+  })
+
+  it('o rascunho local entra no total antes de o servidor confirmar', () => {
+    const abas = montarAbas(TOTAIS, ITENS, new Map([['b', 4]]))
+    expect(abas[0]).toMatchObject({ preenchidos: 2, total: 70 })
+  })
+
+  it('duas geladeiras do mesmo setor nao se misturam', () => {
+    // O defeito que isto tranca: filtrar so por setor_id juntaria a Geladeira 1
+    // e a 2 numa parada so, e quem esta contando a 2 veria o que ja contou na 1.
+    const abas = montarAbas(TOTAIS, ITENS)
+    expect(abas[0]?.total).not.toBe(abas[1]?.total)
+    expect((abas[0]?.total ?? 0) + (abas[1]?.total ?? 0)).toBe(80)
+  })
+
+  it('o lugar nao se explica sozinho: o rotulo carrega o setor', () => {
+    const [gel1, , horti] = montarAbas(TOTAIS, ITENS)
+    expect(gel1 && rotuloDaAba(gel1)).toBe('Bar › Geladeira 1')
+    expect(horti && rotuloDaAba(horti)).toBe('Hortifruti')
+  })
+
+  it('no setor ja dividido, a parada sem lugar se chama "Sem lugar definido"', () => {
+    // "Bar" ao lado de "Geladeira 1" e "Geladeira 2" faria pensar que a
+    // primeira contem as outras. Ela nao contem: e o resto do bar, o que ainda
+    // nao foi posto em geladeira nenhuma.
+    const totais = [
+      ...TOTAIS,
+      { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: null, estoque_nome: null, itens: 40 },
+    ]
+    const resto = montarAbas(totais, ITENS).find((a) => a.id === 's-bar:')
+    expect(resto).toMatchObject({ titulo: 'Sem lugar definido', subtitulo: 'Bar' })
+    expect(resto && rotuloDaAba(resto)).toBe('Bar › Sem lugar definido')
+  })
+
+  it('setor sem subdivisao nenhuma continua se chamando pelo proprio nome', () => {
+    const horti = montarAbas(TOTAIS, ITENS).find((a) => a.id === 's-horti:')
+    expect(horti).toMatchObject({ titulo: 'Hortifruti', subtitulo: null })
+  })
+
+  it('chaveDoLugar trata nulo e indefinido como o setor inteiro', () => {
+    expect(chaveDoLugar('s', null)).toBe(chaveDoLugar('s', undefined))
   })
 })

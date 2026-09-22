@@ -71,6 +71,13 @@ export const MODULOS: Modulo[] = [
         descricao: 'Onde se conta: bar, estoque geral, câmara fria, hortifrúti.',
         exigeRestaurante: true,
       },
+      {
+        caminho: '/cadastros/estoques',
+        rotulo: 'Estoques de setor',
+        icone: 'Refrigerator',
+        descricao: 'Onde, dentro do setor: Bar › Geladeira 1, Bar › Prateleira do fundo.',
+        exigeRestaurante: true,
+      },
     ],
   },
   {

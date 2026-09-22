@@ -197,6 +197,12 @@ export interface RascunhoDeSetor {
   custo: number
   /** Custo da casa: não acompanha nota fiscal. */
   custoFixo: boolean
+  /**
+   * Ids dos estoques deste setor onde o produto fica. Vazio significa "o setor
+   * inteiro", não "erro": setor sem subdivisão é o caso normal, e é o de todos
+   * os 854 produtos que vieram da planilha.
+   */
+  estoques: string[]
 }
 
 export interface RascunhoDeProduto {
@@ -224,6 +230,8 @@ export interface SetorDisponivel {
   id: string
   nome: string
   cor: string
+  /** Os estoques cadastrados neste setor. Vazio = setor sem subdivisão. */
+  estoques?: readonly { id: string; nome: string }[]
 }
 
 /**
@@ -244,6 +252,11 @@ export function rascunhoDeProduto(
       unidade: vinculo?.unidade ?? produto?.unidade ?? 'UND',
       custo: vinculo?.custo ?? produto?.custo_medio ?? 0,
       custoFixo: vinculo?.custo_fixo ?? false,
+      // Só os lugares que ainda existem neste setor. Um estoque apagado no
+      // cadastro não pode reaparecer marcado quando alguém reabre o produto.
+      estoques: (vinculo?.estoques ?? [])
+        .map((e) => e.id)
+        .filter((id) => (setor.estoques ?? []).some((e) => e.id === id)),
     }
   }
   return {
@@ -332,6 +345,7 @@ export function vinculosDoRascunho(rascunho: RascunhoDeProduto): VinculoSetor[] 
       unidade: linha.unidade.trim().toUpperCase(),
       custo: linha.custo,
       custo_fixo: linha.custoFixo,
+      estoques: linha.estoques,
     }))
 }
 

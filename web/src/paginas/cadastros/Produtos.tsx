@@ -43,6 +43,7 @@ import {
   useCategorias,
   useProdutos,
   useSalvarProduto,
+  useEstoques,
   useSetores,
 } from '@/dados/consultas'
 import { dinheiro, quantidade } from '@/util/formato'
@@ -184,6 +185,7 @@ export function Produtos(): JSX.Element {
   const produtos = useProdutos(restauranteId)
   const categorias = useCategorias(restauranteId)
   const setores = useSetores(restauranteId)
+  const estoques = useEstoques(restauranteId)
   const salvar = useSalvarProduto(restauranteId)
   const arquivar = useArquivarProduto(restauranteId)
 
@@ -564,6 +566,7 @@ export function Produtos(): JSX.Element {
           produto={editando.produto}
           categorias={categorias.data ?? []}
           setores={setores.data ?? []}
+          estoques={estoques.data ?? []}
           produtos={lista}
           podeEditar={podeAdministrar}
           salvando={salvar.isPending || arquivar.isPending}

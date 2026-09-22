@@ -36,7 +36,7 @@ import {
   useLancarQuantidade,
   useReabrirContagem,
   useSetores,
-  useTotaisPorSetor,
+  useTotaisPorEstoque,
 } from '@/dados/consultas'
 import type { TipoContagem } from '@/tipos/banco'
 import {
@@ -64,7 +64,10 @@ import {
   agruparPorCategoria,
   filtrarItens,
   hojeIso,
+  chaveDoLugar,
+  montarAbas,
   quantidadeEmVigor,
+  rotuloDaAba,
   resumoDoFechamento,
   totalDosItens,
   type ItemContavel,
@@ -284,7 +287,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
 
   const contagem = useContagem(contagemId)
   const itens = useItensDaContagem(contagemId)
-  const porSetor = useTotaisPorSetor(contagemId)
+  const porSetor = useTotaisPorEstoque(contagemId)
   const categorias = useCategorias(restauranteId)
 
   const lancar = useLancarQuantidade(contagemId)
@@ -322,24 +325,15 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   // recalculados aqui para subirem junto com o que está sendo digitado — a
   // view só se atualiza depois do ida-e-volta com o servidor.
   const abas = useMemo(
-    () =>
-      (porSetor.data ?? []).map((setor) => {
-        const doSetor = todos.filter((i) => i.setor_id === setor.setor_id)
-        return {
-          id: setor.setor_id,
-          nome: setor.setor_nome,
-          cor: setor.setor_cor,
-          itens: setor.itens,
-          preenchidos: doSetor.filter((i) => quantidadeEmVigor(i, rascunhos) > 0).length,
-          total: totalDosItens(doSetor, rascunhos),
-        }
-      }),
+    () => montarAbas(porSetor.data ?? [], todos, rascunhos),
     [porSetor.data, todos, rascunhos],
   )
 
   const setorEscolhido = setorAtivo ?? abas[0]?.id ?? null
+  const abaEscolhida = abas.find((a) => a.id === setorEscolhido) ?? null
+  const ondeEstou = abaEscolhida ? rotuloDaAba(abaEscolhida) : 'nesta folha'
   const itensDoSetor = useMemo(
-    () => todos.filter((i) => i.setor_id === setorEscolhido),
+    () => todos.filter((i) => chaveDoLugar(i.setor_id, i.estoque_id) === setorEscolhido),
     [todos, setorEscolhido],
   )
 
@@ -545,7 +539,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
       ) : (
         <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
           {/* ───────────────────────────────────────── navegação por setor ── */}
-          <nav aria-label="Setores da contagem" className="min-w-0">
+          <nav aria-label="Setores e estoques da contagem" className="min-w-0">
             <ul
               className={clsx(
                 'flex gap-2 overflow-x-auto pb-1',
@@ -570,13 +564,23 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                     >
                       <span className="flex items-center gap-2">
                         <Ponto cor={aba.cor} />
-                        <span
-                          className={clsx(
-                            'truncate text-corpo font-medium',
-                            ativo ? 'text-primaria-legivel' : 'text-texto',
+                        <span className="min-w-0">
+                          <span
+                            className={clsx(
+                              'block truncate text-corpo font-medium',
+                              ativo ? 'text-primaria-legivel' : 'text-texto',
+                            )}
+                          >
+                            {aba.titulo}
+                          </span>
+                          {/* O lugar sozinho nao se explica: "Geladeira 1" existe
+                              no bar e na cozinha, e o nome e unico so dentro do
+                              setor. Entao o setor vem junto, sempre. */}
+                          {aba.subtitulo !== null && (
+                            <span className="block truncate text-micro text-texto-fraco">
+                              {aba.subtitulo}
+                            </span>
                           )}
-                        >
-                          {aba.nome}
                         </span>
                       </span>
                       <span className="mv-numero text-micro text-texto-fraco">
@@ -610,8 +614,8 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                   type="search"
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
-                  placeholder="Buscar produto neste setor"
-                  aria-label="Buscar produto neste setor"
+                  placeholder={`Buscar produto em ${ondeEstou}`}
+                  aria-label={`Buscar produto em ${ondeEstou}`}
                   className="pl-9"
                 />
               </div>
@@ -630,11 +634,11 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
               <Cartao>
                 <EstadoVazio
                   icone={<CheckCircle2 />}
-                  titulo={soNaoContados ? 'Nada pendente neste setor' : 'Nenhum item encontrado'}
+                  titulo={soNaoContados ? `Nada pendente em ${ondeEstou}` : 'Nenhum item encontrado'}
                 >
                   {soNaoContados
-                    ? 'Todos os itens deste setor já foram trabalhados — inclusive os que ficaram em zero de propósito.'
-                    : 'Nenhum produto deste setor bate com a busca. Tente outro pedaço do nome.'}
+                    ? `Todos os itens de ${ondeEstou} já foram trabalhados — inclusive os que ficaram em zero de propósito.`
+                    : `Nenhum produto de ${ondeEstou} bate com a busca. Tente outro pedaço do nome.`}
                 </EstadoVazio>
               </Cartao>
             ) : (
@@ -698,7 +702,12 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
 
       {/* ─────────────────────────────────── os totais, sempre à vista ──── */}
       <BarraDeTotais>
-        <TotalDaBarra rotulo="Setor" valor={dinheiro(totalDoSetor)} />
+        {/* "Setor" mentia quando a parada era uma geladeira: o numero e o
+            da parada aberta, nao o do setor inteiro. */}
+        <TotalDaBarra
+          rotulo={abaEscolhida?.titulo ?? 'Setor'}
+          valor={dinheiro(totalDoSetor)}
+        />
         <TotalDaBarra rotulo="Total da contagem" valor={dinheiro(totalGeral)} destaque alinharADireita />
         <div className="w-full text-apoio text-texto-fraco sm:w-auto">
           <span className="mv-numero">{resumo.comQuantidade}</span> de{' '}

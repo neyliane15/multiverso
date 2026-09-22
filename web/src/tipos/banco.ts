@@ -70,6 +70,25 @@ export interface Categoria {
 
 export interface Setor extends Omit<Categoria, never> {}
 
+/**
+ * Estoque de setor: o lugar físico dentro do setor — "Bar / Geladeira 1".
+ *
+ * É onde se conta, não quanto custa: unidade e custo continuam no vínculo com
+ * o setor. Duas geladeiras do mesmo bar guardam a mesma cerveja pelo mesmo
+ * preço; o que muda é a parada de quem está contando.
+ */
+export interface Estoque {
+  id: string
+  restaurante_id: string
+  setor_id: string
+  nome: string
+  descricao: string | null
+  ordem: number
+  ativo: boolean
+  criado_em: string
+  atualizado_em: string
+}
+
 export interface Produto {
   id: string
   restaurante_id: string
@@ -115,6 +134,8 @@ export interface SetorDoProduto {
   custo_fixo: boolean
   custo_atualizado_em: string | null
   ordem: number
+  /** Os lugares deste setor onde o produto vive. Vazio = o setor inteiro. */
+  estoques: { id: string; nome: string }[]
 }
 
 /** Linha de vw_produtos_completos. */
@@ -163,6 +184,8 @@ export interface ContagemItem {
   contagem_id: string
   produto_id: string
   setor_id: string
+  /** null = o setor não tem subdivisão, e a linha vale pelo setor inteiro. */
+  estoque_id: string | null
   quantidade: number
   unidade: string
   custo_unitario: number
@@ -178,6 +201,19 @@ export interface ContagemPorSetor {
   setor_id: string
   setor_nome: string
   setor_cor: string
+  itens: number
+  itens_preenchidos: number
+  total: number
+}
+
+export interface ContagemPorEstoque {
+  contagem_id: string
+  restaurante_id: string
+  setor_id: string
+  setor_nome: string
+  setor_cor: string
+  estoque_id: string | null
+  estoque_nome: string | null
   itens: number
   itens_preenchidos: number
   total: number

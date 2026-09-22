@@ -299,6 +299,116 @@ begin
   reset role;
 end $$;
 
+-- ----------------------------------------------- estoque de setor ----------
+do $$
+declare r uuid; s_bar uuid; e1 uuid; e2 uuid; p uuid; p_solto uuid; c uuid;
+        v_contagem_sem_lugar uuid; v_unidade text; v_custo numeric; n integer; v_erro text;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f1', true);
+
+  select id into s_bar from setores where restaurante_id = r limit 1;
+  select produto_id into p from produto_setores where setor_id = s_bar limit 1;
+
+  insert into estoques (restaurante_id, setor_id, nome, ordem)
+  values (r, s_bar, 'Geladeira 1', 1) returning id into e1;
+  insert into estoques (restaurante_id, setor_id, nome, ordem)
+  values (r, s_bar, 'Geladeira 2', 2) returning id into e2;
+
+  -- O nome e unico dentro do setor, nao do restaurante: a cozinha tambem tem
+  -- uma "Geladeira 1", e ela e outra geladeira.
+  begin
+    insert into estoques (restaurante_id, setor_id, nome) values (r, s_bar, 'geladeira 1');
+    perform conferir('nome de estoque repetido no mesmo setor e recusado', false);
+  exception when unique_violation then
+    perform conferir('nome de estoque repetido no mesmo setor e recusado', true);
+  end;
+
+  insert into estoques (restaurante_id, setor_id, nome)
+  select r, id, 'Geladeira 1' from setores
+   where restaurante_id = r and id <> s_bar limit 1;
+  get diagnostics n = row_count;
+  perform conferir('o mesmo nome noutro setor e aceito', n = 1);
+
+  -- Lugar so existe dentro do setor: pendurar produto que nao esta no setor
+  -- faria a folha nascer com produto em setor que ninguem cadastrou.
+  -- Produto que nao esta em setor nenhum: nao adianta procurar um no cenario,
+  -- porque os dois que existem moram justamente neste setor.
+  insert into produtos (restaurante_id, nome, unidade)
+  values (r, 'Sem setor nenhum', 'UND') returning id into p_solto;
+  begin
+    insert into produto_estoques (produto_id, estoque_id) values (p_solto, e1);
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('produto fora do setor nao entra no estoque daquele setor',
+    v_erro like '%nao esta no setor deste estoque%');
+
+  -- ------------------------------------------------ a folha por lugar ------
+  -- Sem lugar nenhum, a folha e a de antes desta migracao.
+  c := mv_abrir_contagem(r, date '2026-10-05', 'mensal', 'Sem lugares');
+  v_contagem_sem_lugar := c;
+  select count(*) into n from contagem_itens where contagem_id = c and setor_id = s_bar;
+  perform conferir('sem estoque cadastrado, o setor rende uma linha por produto',
+    n = (select count(*) from produto_setores where setor_id = s_bar));
+  perform conferir('e essa linha vem sem lugar',
+    (select count(*) from contagem_itens
+      where contagem_id = c and setor_id = s_bar and estoque_id is not null) = 0);
+
+  -- Com duas geladeiras, o produto que mora nas duas rende duas linhas.
+  insert into produto_estoques (produto_id, estoque_id) values (p, e1), (p, e2);
+  c := mv_abrir_contagem(r, date '2026-10-06', 'mensal', 'Com lugares');
+
+  perform conferir('produto em dois lugares rende duas linhas',
+    (select count(*) from contagem_itens
+      where contagem_id = c and produto_id = p and setor_id = s_bar) = 2);
+  perform conferir('e as duas linhas apontam para geladeiras diferentes',
+    (select count(distinct estoque_id) from contagem_itens
+      where contagem_id = c and produto_id = p and setor_id = s_bar) = 2);
+  perform conferir('o produto sem lugar continua rendendo uma linha so, sem lugar',
+    (select count(*) from contagem_itens i
+      where i.contagem_id = c and i.setor_id = s_bar
+        and i.produto_id <> p and i.estoque_id is not null) = 0);
+
+  -- A chave nova: uma vez por lugar, e `nulls not distinct` mantem valendo a
+  -- regra antiga no setor sem subdivisao.
+  begin
+    insert into contagem_itens (contagem_id, produto_id, setor_id, estoque_id)
+    values (c, p, s_bar, e1);
+    v_erro := null;
+  exception when unique_violation then v_erro := 'duplicata';
+  end;
+  perform conferir('o mesmo produto duas vezes no mesmo lugar e recusado', v_erro = 'duplicata');
+
+  begin
+    insert into contagem_itens (contagem_id, produto_id, setor_id, estoque_id)
+    select c, i.produto_id, i.setor_id, null from contagem_itens i
+     where i.contagem_id = c and i.estoque_id is null limit 1;
+    v_erro := null;
+  exception when unique_violation then v_erro := 'duplicata';
+  end;
+  perform conferir('duas linhas sem lugar no mesmo setor tambem sao duplicata',
+    v_erro = 'duplicata');
+
+  -- Sair do setor tem de levar os lugares daquele setor junto.
+  select unidade, custo into v_unidade, v_custo
+    from produto_setores where produto_id = p and setor_id = s_bar;
+  delete from produto_setores where produto_id = p and setor_id = s_bar;
+  perform conferir('sair do setor limpa os lugares daquele setor',
+    (select count(*) from produto_estoques where produto_id = p and estoque_id in (e1, e2)) = 0);
+
+  -- O cenario volta como estava: os blocos seguintes contam produtos e
+  -- vinculos, e um produto de teste esquecido aqui quebraria a conta la.
+  insert into produto_setores (produto_id, setor_id, unidade, custo)
+  values (p, s_bar, v_unidade, v_custo);
+  delete from contagens where id in (c, v_contagem_sem_lugar);
+  delete from produtos where id = p_solto;
+  delete from estoques where restaurante_id = r;
+
+  reset role;
+end $$;
+
 -- ------------------------------------------------- lista de compras --------
 do $$
 declare r uuid; l uuid; n integer;

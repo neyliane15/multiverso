@@ -21,7 +21,7 @@
 -- A planilha traz 869 linhas, mas 1 delas repetem um par produto x setor
 -- que ja aparecera antes (o mesmo item listado em dois blocos da mesma aba). O
 -- schema so admite um vinculo por par — primary key (produto_id, setor_id) e
--- unique (contagem_id, produto_id, setor_id) — entao vale a primeira ocorrencia
+-- unique (contagem_id, produto_id, setor_id, estoque_id) — entao vale a primeira
 -- e a carga fica com 868 vinculos e 868 itens. As 1 linhas descartadas
 -- estao com quantidade zero, logo o total da contagem nao muda:
 --   · POLIFLOR / Estoque Geral: 2a ocorrencia em Geral!V122 descartada (custo 0, quantidade 0)
@@ -2135,7 +2135,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '791931a3-641b-5ccd-b71e-6c532b449bde', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 70),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'f549c978-00f3-5bfa-bfd8-6bf9d84ab835', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 38),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '279c1fd6-7dd6-5a5d-852a-c6422a969771', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 43.6)
-on conflict (contagem_id, produto_id, setor_id) do update set
+on conflict (contagem_id, produto_id, setor_id, estoque_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario;
 
@@ -2340,7 +2340,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '57d134e4-de61-5617-b512-f1b0dc2360cf', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'KG', 8.55),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'd29b88cf-cdcd-5c34-aa04-d09b4ac8c68c', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'KG', 24.06),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'f78c8a93-25de-50dd-8b21-f53d39176037', '42970c23-cbe7-5ebf-b519-9a82e43226ba', 0, 'KG', 8.02)
-on conflict (contagem_id, produto_id, setor_id) do update set
+on conflict (contagem_id, produto_id, setor_id, estoque_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario;
 
@@ -2545,7 +2545,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'd7652807-853f-57d2-bf29-bcbe18a82c1a', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 22.9, 'UND', 47),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '0fd5196b-0deb-5895-918b-929458be492e', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 16),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'ad598144-b7d6-53c0-857f-93b88bd6747f', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 43.92)
-on conflict (contagem_id, produto_id, setor_id) do update set
+on conflict (contagem_id, produto_id, setor_id, estoque_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario;
 
@@ -2750,7 +2750,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '32f55ab7-a8b3-5121-a8a7-f26e013c7885', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 557),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'a48c65b9-6ebf-5e9f-80ad-f27d801031fd', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 442.44),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', 'b93e219f-64db-57ab-b70f-feab6bbc9b81', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 3)
-on conflict (contagem_id, produto_id, setor_id) do update set
+on conflict (contagem_id, produto_id, setor_id, estoque_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario;
 
@@ -2823,7 +2823,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '875290ab-7c19-5b93-81cd-74875ce9e445', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 1, 'UND', 67.86),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '25cf876a-4d43-5bd1-bddc-a264b0c6bb16', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 67.86),
   ('33401c88-15f6-595e-ba5f-6ff148a8fc6c', '1bd5f5f5-8300-5dc4-90c3-492fd3e00b2c', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 67.86)
-on conflict (contagem_id, produto_id, setor_id) do update set
+on conflict (contagem_id, produto_id, setor_id, estoque_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario;
 

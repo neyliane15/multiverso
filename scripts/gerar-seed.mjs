@@ -394,7 +394,7 @@ export function gerarSql(modelo, dados) {
 -- A planilha traz ${modelo.linhasNaPlanilha} linhas, mas ${descartadas} delas repetem um par produto x setor
 -- que ja aparecera antes (o mesmo item listado em dois blocos da mesma aba). O
 -- schema so admite um vinculo por par — primary key (produto_id, setor_id) e
--- unique (contagem_id, produto_id, setor_id) — entao vale a primeira ocorrencia
+-- unique (contagem_id, produto_id, setor_id, estoque_id) — entao vale a primeira
 -- e a carga fica com ${modelo.vinculos.length} vinculos e ${modelo.itens.length} itens. As ${descartadas} linhas descartadas
 -- estao com quantidade zero, logo o total da contagem nao muda:
 ${modelo.avisos.map((a) => `--   · ${a}`).join('\n')}
@@ -549,7 +549,11 @@ delete from contagem_itens i
     'contagem_itens',
     ['contagem_id', 'produto_id', 'setor_id', 'quantidade', 'unidade', 'custo_unitario'],
     modelo.itens.map((i) => [C, txt(i.produtoId), txt(i.setorId), num(i.quantidade, 4), txt(i.unidade), num(i.custo, 6)].join(', ')),
-    `on conflict (contagem_id, produto_id, setor_id) do update set
+    // A chave ganhou o lugar na migracao 0011. A carga nao tem estoque de
+    // setor — a planilha nao tem esse nivel — entao todas as linhas entram com
+    // estoque nulo, e o indice e `nulls not distinct` justamente para que duas
+    // delas ainda contem como a mesma linha.
+    `on conflict (contagem_id, produto_id, setor_id, estoque_id) do update set
   quantidade = excluded.quantidade, unidade = excluded.unidade,
   custo_unitario = excluded.custo_unitario`,
   ))

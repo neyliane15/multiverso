@@ -12,12 +12,107 @@ export interface ItemContavel {
   id: string
   produto_id: string
   setor_id: string
+  /** null = o setor não tem subdivisão; a linha vale pelo setor inteiro. */
+  estoque_id?: string | null
   quantidade: number
   unidade: string
   custo_unitario: number
   total: number
   contado_em: string | null
   produto: { nome: string; categoria_id: string | null } | null
+}
+
+/**
+ * Uma parada da folha: um setor sem subdivisão, ou um lugar dentro de um setor.
+ *
+ * A contagem se faz andando. Quem conta para na Geladeira 1, conta o que está
+ * lá, e vai para a Geladeira 2 — não conta "o bar" de uma vez. Por isso a
+ * navegação da folha é por parada, e não por setor: o setor sem lugar
+ * cadastrado continua sendo uma parada só, que é a tela de antes dos estoques.
+ */
+export interface AbaDaFolha {
+  id: string
+  setorId: string
+  estoqueId: string | null
+  setorNome: string
+  /** null quando a parada é o setor inteiro. */
+  estoqueNome: string | null
+  /** Linha de cima na aba. */
+  titulo: string
+  /** Linha de baixo, ou null quando o título já basta. */
+  subtitulo: string | null
+  cor: string
+  itens: number
+  preenchidos: number
+  total: number
+}
+
+export interface TotalDoLugar {
+  setor_id: string
+  setor_nome: string
+  setor_cor: string
+  estoque_id: string | null
+  estoque_nome: string | null
+  itens: number
+}
+
+/**
+ * Chave da parada. Setor e estoque juntos porque o id do estoque sozinho é
+ * nulo no setor sem subdivisão, e o do setor sozinho não distingue geladeiras.
+ */
+export function chaveDoLugar(setorId: string, estoqueId: string | null | undefined): string {
+  return `${setorId}:${estoqueId ?? ''}`
+}
+
+/**
+ * Monta as paradas da folha.
+ *
+ * Os nomes e a contagem de itens vêm do servidor; o total e o progresso são
+ * recalculados aqui para subirem junto com o que está sendo digitado — a view
+ * só se atualiza depois do ida-e-volta.
+ */
+export function montarAbas(
+  totais: readonly TotalDoLugar[],
+  itens: readonly ItemContavel[],
+  rascunhos?: Rascunhos,
+): AbaDaFolha[] {
+  // Setores que têm pelo menos um lugar cadastrado. Num setor desses, a parada
+  // sem lugar não é "o bar": é o resto do bar, o que ainda não foi colocado em
+  // geladeira nenhuma. Chamá-la de "Bar" ao lado de "Geladeira 1" faria pensar
+  // que a primeira contém as outras.
+  const divididos = new Set(
+    totais.filter((t) => t.estoque_id !== null).map((t) => t.setor_id),
+  )
+
+  return totais.map((lugar) => {
+    const id = chaveDoLugar(lugar.setor_id, lugar.estoque_id)
+    const daParada = itens.filter(
+      (i) => chaveDoLugar(i.setor_id, i.estoque_id) === id,
+    )
+    const semLugarNumSetorDividido =
+      lugar.estoque_id === null && divididos.has(lugar.setor_id)
+    return {
+      id,
+      titulo: semLugarNumSetorDividido
+        ? 'Sem lugar definido'
+        : (lugar.estoque_nome ?? lugar.setor_nome),
+      subtitulo:
+        lugar.estoque_nome !== null || semLugarNumSetorDividido ? lugar.setor_nome : null,
+      setorId: lugar.setor_id,
+      estoqueId: lugar.estoque_id,
+      setorNome: lugar.setor_nome,
+      estoqueNome: lugar.estoque_nome,
+      cor: lugar.setor_cor,
+      itens: lugar.itens,
+      preenchidos: daParada.filter((i) => quantidadeEmVigor(i, rascunhos) > 0).length,
+      total: totalDosItens(daParada, rascunhos),
+    }
+  })
+}
+
+/** Como a parada se chama na tela e nos textos de estado vazio. */
+export function rotuloDaAba(aba: Pick<AbaDaFolha, 'titulo' | 'subtitulo'>): string {
+  return aba.subtitulo === null ? aba.titulo : `${aba.subtitulo} › ${aba.titulo}`
 }
 
 export interface CategoriaSimples {

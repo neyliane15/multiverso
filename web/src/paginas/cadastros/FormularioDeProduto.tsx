@@ -14,12 +14,13 @@ import {
   Botao,
   Campo,
   CampoNumero,
+  Chip,
   Rotulo,
   Selecao,
   Selo,
 } from '@/componentes/base'
 import { dinheiro } from '@/util/formato'
-import type { Categoria, ProdutoCompleto, Setor } from '@/tipos/banco'
+import type { Categoria, Estoque, ProdutoCompleto, Setor } from '@/tipos/banco'
 import type { VinculoSetor } from '@/dados/consultas'
 import { PainelLateral } from '../PainelLateral'
 import {
@@ -38,6 +39,8 @@ export interface PropsDoFormularioDeProduto {
   produto: ProdutoCompleto | null
   categorias: readonly Categoria[]
   setores: readonly Setor[]
+  /** Os estoques de setor do restaurante inteiro; o form agrupa por setor. */
+  estoques: readonly Estoque[]
   /** O catálogo inteiro, só para avisar de nome repetido antes do banco. */
   produtos: readonly ProdutoCompleto[]
   podeEditar: boolean
@@ -65,6 +68,7 @@ export function FormularioDeProduto({
   produto,
   categorias,
   setores,
+  estoques,
   produtos,
   podeEditar,
   salvando,
@@ -74,8 +78,18 @@ export function FormularioDeProduto({
   aoFechar,
 }: PropsDoFormularioDeProduto): JSX.Element {
   const disponiveis: SetorDisponivel[] = useMemo(
-    () => setores.filter((s) => s.ativo).map((s) => ({ id: s.id, nome: s.nome, cor: s.cor })),
-    [setores],
+    () =>
+      setores
+        .filter((s) => s.ativo)
+        .map((s) => ({
+          id: s.id,
+          nome: s.nome,
+          cor: s.cor,
+          estoques: estoques
+            .filter((e) => e.setor_id === s.id && e.ativo)
+            .map((e) => ({ id: e.id, nome: e.nome })),
+        })),
+    [setores, estoques],
   )
 
   const [rascunho, setRascunho] = useState<RascunhoDeProduto>(() =>
@@ -99,8 +113,19 @@ export function FormularioDeProduto({
         unidade: r.unidade,
         custo: r.custo_medio,
         custoFixo: false,
+        estoques: [],
       }
       return { ...r, setores: { ...r.setores, [id]: { ...atual, ...mudanca } } }
+    })
+  }
+
+  /** Marca ou desmarca um lugar dentro do setor. */
+  function alternarEstoque(setorId: string, estoqueId: string) {
+    const atuais = rascunho.setores[setorId]?.estoques ?? []
+    mudarSetor(setorId, {
+      estoques: atuais.includes(estoqueId)
+        ? atuais.filter((id) => id !== estoqueId)
+        : [...atuais, estoqueId],
     })
   }
 
@@ -400,6 +425,43 @@ export function FormularioDeProduto({
                             </span>
                           </span>
                         </label>
+
+                        {/* Estoque de setor: onde, dentro do setor. Só aparece
+                            para setor que tem lugares cadastrados — pedir
+                            "escolha a geladeira" num setor que é uma câmara só
+                            seria uma pergunta sem resposta. */}
+                        <fieldset className="sm:col-span-2">
+                          <legend className="mv-rotulo mb-2">
+                            Estoque de setor em {setor.nome}
+                          </legend>
+                          {(setor.estoques ?? []).length === 0 ? (
+                            <p className="text-micro text-texto-fraco">
+                              {setor.nome} não tem estoques cadastrados: o produto é contado
+                              pelo setor inteiro. Para separar por lugar, cadastre em
+                              Cadastros › Estoques de setor.
+                            </p>
+                          ) : (
+                            <>
+                              <div className="flex flex-wrap gap-2">
+                                {(setor.estoques ?? []).map((estoque) => (
+                                  <Chip
+                                    key={estoque.id}
+                                    marcado={linha.estoques.includes(estoque.id)}
+                                    aoAlternar={() => alternarEstoque(setor.id, estoque.id)}
+                                  >
+                                    {estoque.nome}
+                                  </Chip>
+                                ))}
+                              </div>
+                              <p className="mt-1.5 text-micro text-texto-fraco">
+                                {linha.estoques.length === 0
+                                  ? 'Nenhum marcado: o produto entra na folha uma vez, pelo setor inteiro.'
+                                  : `${linha.estoques.length} ${linha.estoques.length === 1 ? 'lugar' : 'lugares'}: ${linha.estoques.length} ${linha.estoques.length === 1 ? 'linha' : 'linhas'} na folha de contagem deste setor.`}
+                              </p>
+                            </>
+                          )}
+                        </fieldset>
+
                         {problema && (
                           <p role="alert" className="text-apoio text-erro-texto sm:col-span-2">
                             {problema}

@@ -16,6 +16,7 @@ import { Rede } from '@/paginas/Rede'
 import { Produtos } from '@/paginas/cadastros/Produtos'
 import { Categorias } from '@/paginas/cadastros/Categorias'
 import { Setores } from '@/paginas/cadastros/Setores'
+import { Estoques } from '@/paginas/cadastros/Estoques'
 import { Contagem } from '@/paginas/contagem/Contagem'
 import { HistoricoDeContagens } from '@/paginas/contagem/Historico'
 import { Notas } from '@/paginas/compras/Notas'
@@ -77,6 +78,7 @@ export function App() {
           <Route path="cadastros/produtos" element={<Produtos />} />
           <Route path="cadastros/categorias" element={<Categorias />} />
           <Route path="cadastros/setores" element={<Setores />} />
+          <Route path="cadastros/estoques" element={<Estoques />} />
 
           <Route path="contagem" element={<Contagem />} />
           <Route path="contagem/:contagemId" element={<Contagem />} />

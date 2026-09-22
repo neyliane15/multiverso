@@ -56,12 +56,12 @@ describe('contarUso', () => {
       nome: 'Filé de tilápia',
       categoria_id: 'c-proteina',
       setores: [
-        { setor_id: 's-geral', setor_nome: 'Estoque Geral', setor_cor: '#111111', unidade: 'KG', custo: 41.5, ordem: 0, custo_fixo: false, custo_atualizado_em: null },
-        { setor_id: 's-porc', setor_nome: 'Porcionados', setor_cor: '#222222', unidade: 'UND', custo: 6.34, ordem: 1, custo_fixo: false, custo_atualizado_em: null },
+        { setor_id: 's-geral', setor_nome: 'Estoque Geral', setor_cor: '#111111', unidade: 'KG', custo: 41.5, ordem: 0, custo_fixo: false, custo_atualizado_em: null, estoques: [] },
+        { setor_id: 's-porc', setor_nome: 'Porcionados', setor_cor: '#222222', unidade: 'UND', custo: 6.34, ordem: 1, custo_fixo: false, custo_atualizado_em: null, estoques: [] },
       ],
     }),
     produto({ id: 'p2', nome: 'Alcatra', categoria_id: 'c-proteina', setores: [
-      { setor_id: 's-geral', setor_nome: 'Estoque Geral', setor_cor: '#111111', unidade: 'KG', custo: 39, ordem: 0, custo_fixo: false, custo_atualizado_em: null },
+      { setor_id: 's-geral', setor_nome: 'Estoque Geral', setor_cor: '#111111', unidade: 'KG', custo: 39, ordem: 0, custo_fixo: false, custo_atualizado_em: null, estoques: [] },
     ] }),
     produto({ id: 'p3', nome: 'Arquivado', categoria_id: 'c-proteina', ativo: false }),
   ]

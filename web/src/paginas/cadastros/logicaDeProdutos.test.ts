@@ -35,6 +35,7 @@ const GERAL: SetorDoProduto = {
   ordem: 0,
   custo_fixo: false,
   custo_atualizado_em: null,
+  estoques: [],
 }
 const PORCIONADOS: SetorDoProduto = {
   setor_id: 's-porc',
@@ -45,6 +46,7 @@ const PORCIONADOS: SetorDoProduto = {
   ordem: 1,
   custo_fixo: false,
   custo_atualizado_em: null,
+  estoques: [],
 }
 
 function produto(
@@ -288,13 +290,13 @@ const setoresDisponiveis: SetorDisponivel[] = [
 describe('rascunhoDeProduto', () => {
   it('traz a unidade e o custo de cada setor, não uma média', () => {
     const r = rascunhoDeProduto(tilapia, setoresDisponiveis)
-    expect(r.setores['s-geral']).toEqual({ marcado: true, unidade: 'KG', custo: 41.5, custoFixo: false })
-    expect(r.setores['s-porc']).toEqual({ marcado: true, unidade: 'UND', custo: 6.34, custoFixo: false })
+    expect(r.setores['s-geral']).toEqual({ marcado: true, unidade: 'KG', custo: 41.5, custoFixo: false, estoques: [] })
+    expect(r.setores['s-porc']).toEqual({ marcado: true, unidade: 'UND', custo: 6.34, custoFixo: false, estoques: [] })
   })
 
   it('setor não vinculado começa desmarcado, com o palpite do produto', () => {
     const r = rascunhoDeProduto(tilapia, setoresDisponiveis)
-    expect(r.setores['s-bar']).toEqual({ marcado: false, unidade: 'KG', custo: 41.5, custoFixo: false })
+    expect(r.setores['s-bar']).toEqual({ marcado: false, unidade: 'KG', custo: 41.5, custoFixo: false, estoques: [] })
   })
 
   it('produto novo começa sem setor marcado', () => {
@@ -309,7 +311,7 @@ describe('rascunhoDeProduto', () => {
 describe('validarProduto', () => {
   it('cobra nome', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 1, custoFixo: false }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 1, custoFixo: false, estoques: [] }
     expect(validarProduto(r, setoresDisponiveis).some((p) => p.campo === 'nome')).toBe(true)
   })
 
@@ -323,7 +325,7 @@ describe('validarProduto', () => {
   it('recusa custo negativo apontando o setor', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'Tomate'
-    r.setores['s-porc'] = { marcado: true, unidade: 'UND', custo: -3, custoFixo: false }
+    r.setores['s-porc'] = { marcado: true, unidade: 'UND', custo: -3, custoFixo: false, estoques: [] }
     const problema = validarProduto(r, setoresDisponiveis).find((p) => p.campo === 'setor:s-porc')
     expect(problema?.mensagem).toMatch(/Porcionados/)
   })
@@ -331,15 +333,15 @@ describe('validarProduto', () => {
   it('não olha o custo de setor desmarcado', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'Tomate'
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 2, custoFixo: false }
-    r.setores['s-bar'] = { marcado: false, unidade: '', custo: -9, custoFixo: false }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 2, custoFixo: false, estoques: [] }
+    r.setores['s-bar'] = { marcado: false, unidade: '', custo: -9, custoFixo: false, estoques: [] }
     expect(validarProduto(r, setoresDisponiveis)).toEqual([])
   })
 
   it('avisa antes do erro 23505 quando o nome já existe', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'file de tilapia'
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 2, custoFixo: false }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 2, custoFixo: false, estoques: [] }
     expect(validarProduto(r, setoresDisponiveis, catalogo).some((p) => p.campo === 'nome')).toBe(true)
   })
 
@@ -358,12 +360,12 @@ describe('vinculosDoRascunho e produtoDoRascunho', () => {
   it('manda só os setores marcados, com unidade em caixa alta', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = '  Filé de tilápia  '
-    r.setores['s-geral'] = { marcado: true, unidade: 'kg', custo: 41.5, custoFixo: false }
-    r.setores['s-porc'] = { marcado: true, unidade: ' und ', custo: 6.34, custoFixo: false }
+    r.setores['s-geral'] = { marcado: true, unidade: 'kg', custo: 41.5, custoFixo: false, estoques: [] }
+    r.setores['s-porc'] = { marcado: true, unidade: ' und ', custo: 6.34, custoFixo: false, estoques: [] }
 
     expect(vinculosDoRascunho(r)).toEqual([
-      { setor_id: 's-geral', unidade: 'KG', custo: 41.5, custo_fixo: false },
-      { setor_id: 's-porc', unidade: 'UND', custo: 6.34, custo_fixo: false },
+      { setor_id: 's-geral', unidade: 'KG', custo: 41.5, custo_fixo: false, estoques: [] },
+      { setor_id: 's-porc', unidade: 'UND', custo: 6.34, custo_fixo: false, estoques: [] },
     ])
   })
 
@@ -372,8 +374,8 @@ describe('vinculosDoRascunho e produtoDoRascunho', () => {
     // com o preço do quilo na próxima nota de tilápia. Perdê-la no caminho do
     // formulário para o banco reintroduz o defeito sem ninguém notar.
     const r = rascunhoDeProduto(null, setoresDisponiveis)
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 41.5, custoFixo: false }
-    r.setores['s-porc'] = { marcado: true, unidade: 'UND', custo: 6.34, custoFixo: true }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 41.5, custoFixo: false, estoques: [] }
+    r.setores['s-porc'] = { marcado: true, unidade: 'UND', custo: 6.34, custoFixo: true, estoques: [] }
 
     const vinculos = vinculosDoRascunho(r)
     expect(vinculos.find((v) => v.setor_id === 's-geral')?.custo_fixo).toBe(false)
@@ -392,7 +394,7 @@ describe('vinculosDoRascunho e produtoDoRascunho', () => {
     r.nome = '  Tomate italiano '
     r.codigo = '  '
     r.observacao = '   '
-    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 8, custoFixo: false }
+    r.setores['s-geral'] = { marcado: true, unidade: 'KG', custo: 8, custoFixo: false, estoques: [] }
 
     const p = produtoDoRascunho(r)
     expect(p.nome).toBe('Tomate italiano')
@@ -405,7 +407,7 @@ describe('vinculosDoRascunho e produtoDoRascunho', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'Tomate'
     r.unidade = ''
-    r.setores['s-porc'] = { marcado: true, unidade: 'cx', custo: 8, custoFixo: false }
+    r.setores['s-porc'] = { marcado: true, unidade: 'cx', custo: 8, custoFixo: false, estoques: [] }
     expect(produtoDoRascunho(r).unidade).toBe('CX')
   })
 })
@@ -469,5 +471,109 @@ describe('janelaDeLinhas', () => {
     const celular = janelaDeLinhas(total, 118, 0, 600)
     const desktop = janelaDeLinhas(total, 48, 0, 600)
     expect(celular.ultima).toBeLessThan(desktop.ultima)
+  })
+})
+
+describe('estoque de setor · o lugar dentro do setor', () => {
+  const COM_LUGARES: readonly SetorDisponivel[] = [
+    {
+      id: 's-bar',
+      nome: 'Bar',
+      cor: '#111111',
+      estoques: [
+        { id: 'e-gel1', nome: 'Geladeira 1' },
+        { id: 'e-gel2', nome: 'Geladeira 2' },
+      ],
+    },
+    { id: 's-geral', nome: 'Estoque Geral', cor: '#222222', estoques: [] },
+  ]
+
+  function produtoNoBar(estoques: { id: string; nome: string }[]): ProdutoCompleto {
+    return produto({
+      id: 'p-cachaca',
+      nome: 'Cachaça 51',
+      setores: [
+        {
+          setor_id: 's-bar',
+          setor_nome: 'Bar',
+          setor_cor: '#111111',
+          unidade: 'UND',
+          custo: 7.91,
+          ordem: 0,
+          custo_fixo: false,
+          custo_atualizado_em: null,
+          estoques,
+        },
+      ],
+    })
+  }
+
+  it('produto novo nasce sem lugar marcado', () => {
+    const r = rascunhoDeProduto(null, COM_LUGARES)
+    expect(r.setores['s-bar']?.estoques).toEqual([])
+  })
+
+  it('reabrir o produto traz os lugares que ele ja tinha', () => {
+    const r = rascunhoDeProduto(produtoNoBar([{ id: 'e-gel1', nome: 'Geladeira 1' }]), COM_LUGARES)
+    expect(r.setores['s-bar']?.estoques).toEqual(['e-gel1'])
+  })
+
+  it('o mesmo produto pode estar em duas geladeiras do mesmo bar', () => {
+    const r = rascunhoDeProduto(
+      produtoNoBar([
+        { id: 'e-gel1', nome: 'Geladeira 1' },
+        { id: 'e-gel2', nome: 'Geladeira 2' },
+      ]),
+      COM_LUGARES,
+    )
+    expect(r.setores['s-bar']?.estoques).toEqual(['e-gel1', 'e-gel2'])
+  })
+
+  it('lugar apagado do cadastro nao volta marcado', () => {
+    // A Geladeira 3 saiu do cadastro de estoques, mas o vinculo antigo do
+    // produto ainda a cita. Trazer a marca de volta faria o formulario gravar
+    // um id que o banco recusa, com erro que nao explica nada.
+    const r = rascunhoDeProduto(
+      produtoNoBar([
+        { id: 'e-gel1', nome: 'Geladeira 1' },
+        { id: 'e-gel3', nome: 'Geladeira 3' },
+      ]),
+      COM_LUGARES,
+    )
+    expect(r.setores['s-bar']?.estoques).toEqual(['e-gel1'])
+  })
+
+  it('setor sem subdivisao fica com a lista vazia, e isso nao e erro', () => {
+    const r = rascunhoDeProduto(produtoNoBar([]), COM_LUGARES)
+    r.nome = 'Cachaca 51'
+    r.setores['s-geral'] = { marcado: true, unidade: 'UND', custo: 7.91, custoFixo: false, estoques: [] }
+    expect(validarProduto(r, COM_LUGARES)).toEqual([])
+  })
+
+  it('os lugares seguem para o vinculo que vai ao banco', () => {
+    const r = rascunhoDeProduto(null, COM_LUGARES)
+    r.setores['s-bar'] = {
+      marcado: true,
+      unidade: 'und',
+      custo: 7.91,
+      custoFixo: false,
+      estoques: ['e-gel1', 'e-gel2'],
+    }
+    expect(vinculosDoRascunho(r)).toEqual([
+      { setor_id: 's-bar', unidade: 'UND', custo: 7.91, custo_fixo: false, estoques: ['e-gel1', 'e-gel2'] },
+    ])
+  })
+
+  it('setor desmarcado nao leva os lugares dele', () => {
+    const r = rascunhoDeProduto(null, COM_LUGARES)
+    r.setores['s-bar'] = {
+      marcado: false,
+      unidade: 'UND',
+      custo: 7.91,
+      custoFixo: false,
+      estoques: ['e-gel1'],
+    }
+    r.setores['s-geral'] = { marcado: true, unidade: 'UND', custo: 7.91, custoFixo: false, estoques: [] }
+    expect(vinculosDoRascunho(r).map((v) => v.setor_id)).toEqual(['s-geral'])
   })
 })

@@ -20,8 +20,10 @@ import type {
   CompraHistorico,
   Contagem,
   ContagemItem,
+  ContagemPorEstoque,
   ContagemPorSetor,
   ContagemResumo,
+  Estoque,
   Fornecedor,
   ListaCompras,
   ListaComprasItem,
@@ -88,11 +90,13 @@ export const chaves = {
   convites: (r: string) => ['convites', r] as const,
   categorias: (r: string) => ['categorias', r] as const,
   setores: (r: string) => ['setores', r] as const,
+  estoques: (r: string) => ['estoques', r] as const,
   produtos: (r: string) => ['produtos', r] as const,
   contagens: (r: string) => ['contagens', r] as const,
   contagem: (id: string) => ['contagem', id] as const,
   contagemItens: (id: string) => ['contagem-itens', id] as const,
   contagemSetores: (id: string) => ['contagem-setores', id] as const,
+  contagemEstoques: (id: string) => ['contagem-estoques', id] as const,
   fornecedores: (r: string) => ['fornecedores', r] as const,
   compras: (r: string) => ['compras', r] as const,
   notaItens: (id: string) => ['nota-itens', id] as const,
@@ -235,6 +239,47 @@ export function useSetores(restauranteId: string) {
   })
 }
 
+/**
+ * Os estoques de setor do restaurante inteiro, numa consulta só.
+ *
+ * Uma por setor seria uma cascata de consultas em toda tela que mostra
+ * produto. São dezenas de linhas no total — o agrupamento por setor sai de
+ * graça no cliente.
+ */
+export function useEstoques(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.estoques(restauranteId),
+    queryFn: () =>
+      buscar<Estoque[]>(
+        supabase
+          .from('estoques')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('ordem')
+          .order('nome'),
+      ),
+  })
+}
+
+export function useSalvarEstoque(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: Partial<Estoque> & { id?: string }) => {
+      const { id, ...resto } = dados
+      return buscar<Estoque>(
+        id
+          ? supabase.from('estoques').update(resto).eq('id', id).select().single()
+          : supabase
+              .from('estoques')
+              .insert({ ...resto, restaurante_id: restauranteId })
+              .select()
+              .single(),
+      )
+    },
+    onSuccess: () => invalidarCadastros(qc, restauranteId),
+  })
+}
+
 export function useProdutos(restauranteId: string) {
   return useQuery({
     queryKey: chaves.produtos(restauranteId),
@@ -254,6 +299,7 @@ function invalidarCadastros(qc: ReturnType<typeof useQueryClient>, r: string) {
   void qc.invalidateQueries({ queryKey: chaves.produtos(r) })
   void qc.invalidateQueries({ queryKey: chaves.categorias(r) })
   void qc.invalidateQueries({ queryKey: chaves.setores(r) })
+  void qc.invalidateQueries({ queryKey: chaves.estoques(r) })
 }
 
 export function useSalvarCategoria(restauranteId: string) {
@@ -304,6 +350,11 @@ export interface VinculoSetor {
    * Porcionados com o preço do quilo do Estoque Geral.
    */
   custo_fixo: boolean
+  /**
+   * Ids dos estoques deste setor onde o produto vive. Vazio = o setor inteiro,
+   * que é o caso dos 854 produtos vindos da planilha: ela não tem esse nível.
+   */
+  estoques: string[]
 }
 
 /**
@@ -346,11 +397,47 @@ export function useSalvarProduto(restauranteId: string) {
       if (entrada.setores.length > 0) {
         await buscar(
           supabase.from('produto_setores').upsert(
-            entrada.setores.map((s, i) => ({ ...s, produto_id: produto.id, ordem: i })),
+            // `estoques` e campo desta camada, nao coluna: mandar junto faria o
+            // PostgREST recusar a linha inteira por coluna desconhecida.
+            entrada.setores.map(({ estoques: _lugares, ...s }, i) => ({
+              ...s,
+              produto_id: produto.id,
+              ordem: i,
+            })),
             { onConflict: 'produto_id,setor_id' },
           ),
         )
       }
+
+      // Os lugares vem depois dos setores de proposito: o banco recusa pendurar
+      // o produto na Geladeira 1 antes de ele estar no Bar. Sair do setor ja
+      // limpa os lugares daquele setor por gatilho, entao aqui so sobra
+      // reconciliar o que o formulario marcou e desmarcou.
+      const lugaresDesejados = new Set(entrada.setores.flatMap((s) => s.estoques))
+      const lugaresAtuais = await buscar<{ estoque_id: string }[]>(
+        supabase.from('produto_estoques').select('estoque_id').eq('produto_id', produto.id),
+      )
+      const tinha = new Set(lugaresAtuais.map((l) => l.estoque_id))
+      const tirar = [...tinha].filter((id) => !lugaresDesejados.has(id))
+      const por = [...lugaresDesejados].filter((id) => !tinha.has(id))
+
+      if (tirar.length > 0) {
+        await buscar(
+          supabase
+            .from('produto_estoques')
+            .delete()
+            .eq('produto_id', produto.id)
+            .in('estoque_id', tirar),
+        )
+      }
+      if (por.length > 0) {
+        await buscar(
+          supabase
+            .from('produto_estoques')
+            .insert(por.map((estoque_id, i) => ({ produto_id: produto.id, estoque_id, ordem: i }))),
+        )
+      }
+
       return produto
     },
     onSuccess: () => invalidarCadastros(qc, restauranteId),
@@ -416,6 +503,26 @@ export function useItensDaContagem(contagemId: string | undefined) {
           .eq('contagem_id', contagemId!)
           .order('id')
           .range(de, ate),
+      ),
+  })
+}
+
+/**
+ * Totais por lugar dentro da contagem. O setor sem subdivisão vem com
+ * `estoque_id` nulo — uma linha só, que é a tela de antes dos estoques.
+ */
+export function useTotaisPorEstoque(contagemId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.contagemEstoques(contagemId ?? ''),
+    enabled: Boolean(contagemId),
+    queryFn: () =>
+      buscar<ContagemPorEstoque[]>(
+        supabase
+          .from('vw_contagem_por_estoque')
+          .select('*')
+          .eq('contagem_id', contagemId!)
+          .order('setor_nome')
+          .order('estoque_nome', { nullsFirst: true }),
       ),
   })
 }

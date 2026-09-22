@@ -33,11 +33,18 @@ quem decide o que cada um enxerga.
 restaurantes        tenant + identidade visual (logo, cores, fontes, raio)
 perfis              usuário, espelha auth.users
 categorias          1.2
-setores             1.3
+setores             1.3  quem conta: bar, estoque geral, camara fria
+estoques            1.4  onde, dentro do setor: Bar > Geladeira 1
 produtos            1.1
-produto_setores     N:N produto × setor, com unidade e custo POR SETOR
+produto_setores     N:N produto x setor, com unidade e custo POR SETOR
+produto_estoques    N:N produto x lugar. E lugar, nao preco: unidade e custo
+                    continuam em produto_setores, um por setor. Um produto
+                    pode estar em duas geladeiras do mesmo bar.
 contagens           2.1 / 2.2
-contagem_itens      linha da contagem (produto × setor)
+contagem_itens      linha da contagem (produto x setor x lugar)
+                    unique (contagem, produto, setor, estoque) NULLS NOT
+                    DISTINCT — estoque nulo = setor sem subdivisao, e duas
+                    linhas nulas no mesmo setor continuam sendo duplicata
 fornecedores        3.x
 notas_fiscais       3.1  (origem: xml | pdf | manual)
 nota_itens          item da nota, com de-para para produto
@@ -53,6 +60,11 @@ mv_eh_master() / mv_restaurante_atual() / mv_papel_atual()
 mv_pode_operar(uuid) / mv_pode_administrar(uuid)
 
 mv_abrir_contagem(restaurante, referencia, tipo, titulo, setores[]) -> uuid
+  Uma linha por LUGAR onde o produto vive naquele setor; uma linha com
+  estoque nulo quando ele nao tem lugar nenhum ali. O join dos lugares e
+  LATERAL de proposito: com left joins soltos, um produto em dois setores
+  e com duas geladeiras num deles gerava duas linhas nulas no outro setor,
+  e a contagem falhava ao abrir por duplicata.
 mv_fechar_contagem(contagem) -> contagens
 mv_reabrir_contagem(contagem) -> contagens
 
