@@ -56,7 +56,7 @@ function uuid5(espacoDeNomes, nome) {
   return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20)}`
 }
 
-const idDe = (tipo, chave) => uuid5(RESTAURANTE_ID, `${tipo}:${chave}`)
+export const idDe = (tipo, chave) => uuid5(RESTAURANTE_ID, `${tipo}:${chave}`)
 
 /** Literal de texto SQL. A planilha tem nomes como GIN GORDON'S LONDO DRY. */
 export function txt(valor) {

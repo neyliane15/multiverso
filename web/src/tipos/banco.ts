@@ -217,6 +217,8 @@ export interface ContagemPorEstoque {
   itens: number
   itens_preenchidos: number
   total: number
+  setor_ordem: number
+  estoque_ordem: number
 }
 
 export interface Fornecedor {

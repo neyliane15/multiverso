@@ -39,8 +39,12 @@ for f in "$RAIZ"/supabase/migrations/*.sql; do
   "${PSQL[@]}" -d "$BANCO" -f "$f" >/dev/null
 done
 
-echo "→ carga do Bar do Zeca"
-"${PSQL[@]}" -d "$BANCO" -f "$RAIZ/supabase/seed/0001_bar_do_zeca.sql" 2>&1 | grep -i "seed Bar" || true
+# Todos os arquivos de carga, na ordem do nome. O 0002 depende do 0001 ter
+# rodado, e nomear um a um aqui significaria esquecer o proximo.
+for f in "$RAIZ"/supabase/seed/*.sql; do
+  echo "→ carga $(basename "$f")"
+  "${PSQL[@]}" -d "$BANCO" -f "$f" 2>&1 | grep -iE "seed Bar|setores do Bar" || true
+done
 "${PSQL[@]}" -d "$BANCO" -f "$RAIZ/ferramentas/local/preparar.sql" >/dev/null
 "${PSQL[@]}" -d "$BANCO" -f "$RAIZ/ferramentas/local/usuarios.sql" 2>&1 | grep -i "usuarios locais" || true
 
@@ -62,16 +66,33 @@ for arquivo in "$TMP/postgrest.pid" "$TMP/portao.pid"; do
   rm -f "$arquivo"
 done
 
+# Esperar a porta soltar de verdade. `kill` so PEDE para o processo sair; subir
+# o novo no mesmo instante fazia o PostgREST morrer com "Address in use" e o
+# app inteiro responder 502 — com o script dizendo "no ar" logo abaixo.
+for porta in "$PORTA_REST" "$PORTA_PORTAO"; do
+  for _ in $(seq 1 40); do
+    (exec 3<>"/dev/tcp/127.0.0.1/$porta") 2>/dev/null || break
+    exec 3<&- 3>&-
+    sleep 0.25
+  done
+done
+
 postgrest "$TMP/postgrest.conf" > "$TMP/postgrest.log" 2>&1 &
 echo $! > "$TMP/postgrest.pid"
 JWT_SEGREDO="$SEGREDO" PORTA="$PORTA_PORTAO" POSTGREST="http://127.0.0.1:$PORTA_REST" \
   node "$RAIZ/ferramentas/local/portao.mjs" > "$TMP/portao.log" 2>&1 &
 echo $! > "$TMP/portao.pid"
 
+pronto=nao
 for _ in $(seq 1 40); do
-  if curl -fsS "http://127.0.0.1:$PORTA_PORTAO/rest/v1/" >/dev/null 2>&1; then break; fi
+  if curl -fsS "http://127.0.0.1:$PORTA_PORTAO/rest/v1/" >/dev/null 2>&1; then pronto=sim; break; fi
   sleep 0.5
 done
+if [ "$pronto" != sim ]; then
+  echo "a API nao subiu. Fim do log do PostgREST:" >&2
+  tail -5 "$TMP/postgrest.log" >&2
+  exit 1
+fi
 
 cat > "$RAIZ/.env" <<ENV
 # Gerado por ferramentas/local/subir.sh — ambiente local, não é projeto de verdade.

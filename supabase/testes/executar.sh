@@ -15,9 +15,15 @@ for f in "$RAIZ"/supabase/migrations/*.sql; do
   "${PSQL[@]}" -d "$BANCO" -f "$f" >/dev/null
 done
 
-if [ -z "${SEM_SEED:-}" ] && [ -f "$RAIZ/supabase/seed/0001_bar_do_zeca.sql" ]; then
-  echo "→ carga do Bar do Zeca"
-  "${PSQL[@]}" -d "$BANCO" -f "$RAIZ/supabase/seed/0001_bar_do_zeca.sql" >/dev/null
+# A carga inteira, na ordem do nome. Nao e cenario de teste: e a conferencia
+# de que os arquivos de carga continuam aplicaveis contra o schema atual — o
+# bloco final de cada um levanta excecao se a conta nao fechar.
+if [ -z "${SEM_SEED:-}" ]; then
+  for f in "$RAIZ"/supabase/seed/*.sql; do
+    [ -e "$f" ] || continue
+    echo "→ carga $(basename "$f")"
+    "${PSQL[@]}" -d "$BANCO" -f "$f" >/dev/null
+  done
 fi
 
 for f in "$RAIZ"/supabase/testes/[1-9]*.sql; do

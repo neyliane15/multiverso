@@ -521,8 +521,12 @@ export function useTotaisPorEstoque(contagemId: string | undefined) {
           .from('vw_contagem_por_estoque')
           .select('*')
           .eq('contagem_id', contagemId!)
+          // Pela ordem dos setores, nao pelo nome: e a ordem em que se anda
+          // pela casa, e quem a define e o admin na tela de Setores.
+          .order('setor_ordem')
           .order('setor_nome')
-          .order('estoque_nome', { nullsFirst: true }),
+          .order('estoque_ordem')
+          .order('estoque_nome'),
       ),
   })
 }
