@@ -27,6 +27,33 @@ quem decide o que cada um enxerga.
 | `gerente` | O próprio restaurante: cadastros, contagem, compras. Não mexe em usuários nem na identidade visual. |
 | `operador` | Lança contagem e compras. Não apaga cadastro. |
 
+`mv_pode_operar(r)` = master, ou qualquer papel do restaurante `r`.
+`mv_pode_administrar(r)` = master, ou **admin e gerente** de `r`.
+
+`mv_pode_administrar` decide o CADASTRO (apagar produto, categoria, setor,
+fornecedor) e nada mais. Equipe e identidade visual exigem admin, e as
+políticas conferem `mv_papel_atual()` diretamente — usá-la sozinha nessas
+tabelas deixa o gerente entrar (foi o defeito que a 0014 fechou).
+
+### Convites — quem mexe em quem entra
+
+| | master | admin | gerente | operador |
+|---|---|---|---|---|
+| ler | rede inteira | do próprio restaurante | — | — |
+| criar | qualquer papel, qualquer restaurante | até `admin`, só no próprio | — | — |
+| editar (pendente) | sim | sim, sem promover a `master` | — | — |
+| apagar (pendente) | sim | sim, só do próprio | — | — |
+| convite **aceito** | imutável | imutável | — | — |
+
+Convite aceito é histórico: é o único registro de com que papel a pessoa foi
+admitida e quem a admitiu. Ninguém edita nem apaga, master incluído.
+
+**Cuidado ao escrever política de UPDATE/DELETE.** O Postgres só aplica a
+política de SELECT quando o comando lê colunas da tabela. `update t set x=1
+where email='...'` passa pela política de SELECT; `update t set x=1`, sem
+WHERE, não passa. Uma política de UPDATE mais frouxa que a de SELECT não fica
+protegida pela de SELECT — os testes de RLS cobrem os dois casos de propósito.
+
 ## Tabelas (nomes em português, como no banco)
 
 ```

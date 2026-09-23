@@ -29,6 +29,7 @@ declare
   u_admin_a uuid := '00000000-0000-0000-0000-0000000000a1';
   u_oper_a  uuid := '00000000-0000-0000-0000-0000000000a2';
   u_admin_b uuid := '00000000-0000-0000-0000-0000000000b1';
+  u_ger_a   uuid := '00000000-0000-0000-0000-0000000000a3';
 begin
   insert into restaurantes (nome, slug) values ('Casa A', 'casa-a') returning id into r_a;
   insert into restaurantes (nome, slug) values ('Casa B', 'casa-b') returning id into r_b;
@@ -39,16 +40,18 @@ begin
     ('master@multiverso.app', 'Master', 'master',   null),
     ('admin@casa-a.com',      'Admin A', 'admin',    r_a),
     ('oper@casa-a.com',       'Oper A',  'operador', r_a),
+    ('ger@casa-a.com',        'Ger A',   'gerente',  r_a),
     ('admin@casa-b.com',      'Admin B', 'admin',    r_b);
 
   insert into auth.users (id, email, raw_user_meta_data) values
     (u_master,  'master@multiverso.app', jsonb_build_object('nome','Master','papel','master')),
     (u_admin_a, 'admin@casa-a.com',      jsonb_build_object('nome','Admin A','papel','admin','restaurante_id', r_a)),
     (u_oper_a,  'oper@casa-a.com',       jsonb_build_object('nome','Oper A','papel','operador','restaurante_id', r_a)),
+    (u_ger_a,   'ger@casa-a.com',        jsonb_build_object('nome','Ger A','papel','gerente','restaurante_id', r_a)),
     (u_admin_b, 'admin@casa-b.com',      jsonb_build_object('nome','Admin B','papel','admin','restaurante_id', r_b));
 
-  perform conferir('o trigger de auth.users criou os 4 perfis',
-                (select count(*) from perfis) = 4);
+  perform conferir('o trigger de auth.users criou os 5 perfis',
+                (select count(*) from perfis) = 5);
   perform conferir('o master ficou sem restaurante',
                 (select restaurante_id is null from perfis where id = u_master));
 
@@ -157,7 +160,9 @@ begin
   perform conferir('admin nao cria restaurante novo (so o master cria)', v_erro is not null);
 
   select count(*) into n from perfis;
-  perform conferir('admin ve so a equipe do proprio restaurante', n = 2);
+  -- Casa A tem admin, operador e gerente. O master e o admin da Casa B ficam
+  -- de fora — e e esse o ponto.
+  perform conferir('admin ve so a equipe do proprio restaurante', n = 3);
   reset role;
 end $$;
 
@@ -174,7 +179,7 @@ begin
   perform conferir('master ve os 2 restaurantes do cenario', n = 2);
 
   select count(*) into n from perfis;
-  perform conferir('master ve os 4 usuarios', n = 4);
+  perform conferir('master ve os 5 usuarios', n = 5);
 
   select count(*) into n from vw_panorama_restaurantes where slug in ('casa-a', 'casa-b');
   perform conferir('panorama da rede traz os 2 restaurantes', n = 2);
@@ -289,6 +294,97 @@ begin
 
   select count(*) into n from convites;
   perform conferir('operador nao le os convites do restaurante', n = 0);
+  reset role;
+end $$;
+
+do $$
+declare n integer; v_erro text; r_a uuid;
+begin
+  select id into r_a from restaurantes where slug = 'casa-a';
+
+  -- Um convite pendente, criado pelo admin da casa.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+  insert into convites (email, papel, restaurante_id)
+  values ('alvo@casa-a.com', 'operador', r_a);
+  reset role;
+
+  -- ---------------------------------------------------- o gerente e equipe --
+  -- mv_pode_administrar inclui gerente, e por isso ela NAO serve para decidir
+  -- quem mexe em equipe (ver o comentario da 0010). As politicas de UPDATE e
+  -- DELETE de convites usavam ela sozinha, e o furo so aparecia SEM clausula
+  -- WHERE: com WHERE, o Postgres aplica junto a politica de SELECT — que ja
+  -- barrava o gerente — e a linha simplesmente nao era encontrada. Sem WHERE
+  -- nao ha coluna para ler, a politica de SELECT sai de cena, e passava.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a3', true);
+
+  perform conferir('o gerente e mesmo gerente', mv_papel_atual() = 'gerente');
+  perform conferir('e mv_pode_administrar diz sim para ele',
+    mv_pode_administrar(mv_restaurante_atual()));
+
+  select count(*) into n from convites;
+  perform conferir('gerente nao le convite nenhum', n = 0);
+
+  begin
+    perform mv_convidar('novo@casa-a.com', 'operador');
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('gerente nao convida ninguem', v_erro is not null);
+
+  -- O caso que escapou: promover um convite a admin sem WHERE nenhum.
+  update convites set papel = 'admin';
+  get diagnostics n = row_count;
+  perform conferir('gerente nao promove convite a admin (update sem where)', n = 0);
+
+  delete from convites;
+  get diagnostics n = row_count;
+  perform conferir('gerente nao varre os convites (delete sem where)', n = 0);
+  reset role;
+
+  perform conferir('e o convite continua como o admin o deixou',
+    (select papel from convites where email = 'alvo@casa-a.com') = 'operador');
+
+  -- ------------------------------------------- convite aceito e historico --
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+  delete from convites where email = 'oper@casa-a.com';
+  get diagnostics n = row_count;
+  perform conferir('nem o admin apaga convite ja aceito', n = 0);
+
+  update convites set papel = 'admin' where email = 'oper@casa-a.com';
+  get diagnostics n = row_count;
+  perform conferir('nem o admin reescreve convite ja aceito', n = 0);
+
+  -- ---------------------------------------------- o admin segue podendo ----
+  update convites set papel = 'gerente' where email = 'alvo@casa-a.com';
+  get diagnostics n = row_count;
+  perform conferir('admin edita convite pendente do proprio restaurante', n = 1);
+
+  begin
+    update convites set papel = 'master', restaurante_id = null
+     where email = 'alvo@casa-a.com';
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('admin nao promove convite a master', v_erro is not null);
+
+  delete from convites where email = 'alvo@casa-a.com';
+  get diagnostics n = row_count;
+  perform conferir('admin apaga convite pendente', n = 1);
+  reset role;
+
+  -- ------------------------------------------------------- o operador ------
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a2', true);
+  update convites set papel = 'admin';
+  get diagnostics n = row_count;
+  perform conferir('operador nao toca em convite (update sem where)', n = 0);
+  delete from convites;
+  get diagnostics n = row_count;
+  perform conferir('operador nao apaga convite (delete sem where)', n = 0);
   reset role;
 end $$;
 
