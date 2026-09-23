@@ -262,8 +262,12 @@ convite não fecha o ciclo.
   `redirect_to=<origem>` em todo link que gera, mas o Supabase só obedece se a
   origem estiver nesta lista — fora dela, ele volta para o Site URL calado.
 
-**2. Confirmação de e-mail.** Authentication → Providers → Email →
-*Confirm email*.
+**2. Confirmação de e-mail.** Authentication → **Sign In / Providers** →
+*Email* → *Confirm email*.
+
+(O painel já chamou esse item de "Providers"; o nome atual é
+"Sign In / Providers". Se ele mudar de novo, é o item que lista Email,
+Google, Apple e companhia.)
 
 Num sistema por convite ela é dispensável: quem entra precisa de um convite
 gravado antes por quem tem poder de dá-lo, e é o convite que decide papel e
