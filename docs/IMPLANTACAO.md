@@ -129,8 +129,16 @@ No painel, **SQL Editor**:
 select mv_semear_master('voce@seudominio.com.br', 'Seu Nome');
 ```
 
-Depois, **Authentication → Users → Add user**, com **esse mesmo e-mail** e uma
-senha. Marque *Auto Confirm User*.
+A mesma chamada serve nas três situações, e ela diz qual aconteceu:
+
+- **você já se cadastrou** (é o comum: quem instala cria a conta primeiro) —
+  ela adota a conta que existe e põe o perfil de master. Recarregue a página;
+- **você já tem perfil** de outro papel — promove aquele perfil;
+- **ninguém se cadastrou com esse e-mail** — grava um convite de master, e aí
+  você se cadastra normalmente pela tela, com "Tenho um convite".
+
+Só funciona **enquanto não houver master nenhum**. Havendo um, ela se recusa e
+manda usar a tela de Usuários — que exige convite, papel e quem convidou.
 
 A partir daqui a cadeia se sustenta: você convida os admins pela tela de
 Usuários, e cada admin convida a equipe dele.
@@ -243,7 +251,7 @@ justamente porque o bundler não é confiável para seguir import que sai dela.
 | Sintoma | Quase sempre é |
 |---|---|
 | `Faltam VITE_SUPABASE_URL...` | `.env` na raiz do repositório, não em `web/` |
-| Login passa, telas vazias | Conta criada sem convite — rode `mv_semear_master` e recrie |
+| Login passa, telas vazias, ou "sua conta existe mas ainda não tem acesso" | Conta criada sem convite. Se for a primeira do sistema, rode `mv_semear_master('o-email')` — ela adota a conta que já existe, sem recriar nada. Se já houver master, é caso de convite. |
 | `permission denied for table` | Migração `0006` não aplicou; rode `supabase db push` de novo |
 | Função de NFe falha no deploy | Rode `npm run funcao:preparar` antes |
 | Logo não sobe | O caminho no bucket tem de ser `<restaurante_id>/<arquivo>` |

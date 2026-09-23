@@ -388,4 +388,82 @@ begin
   reset role;
 end $$;
 
+-- ------------------------------------------ semear o primeiro master -------
+-- Quem instala o sistema se cadastra ANTES de existir convite algum — nao ha
+-- quem convide. A conta nasce orfa, e a saida documentada era "apague e crie
+-- de novo": pedir para a pessoa desfazer o que fez certo.
+do $$
+declare v_erro text; v_dono uuid; v_papel papel_usuario; n integer;
+begin
+  -- Com um master no cenario, semear tem de ser recusado.
+  begin
+    perform mv_semear_master('intruso@qualquer.com');
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('havendo master, semear e recusado', v_erro like '%ja existe um master%');
+
+  -- A marca de semeadura NAO e permissao: sozinha, com um master no sistema,
+  -- ela nao promove ninguem. E a metade que importa da brecha.
+  perform set_config('mv.semeando', '1', true);
+  begin
+    update perfis set papel = 'master', restaurante_id = null
+     where id = '00000000-0000-0000-0000-0000000000a2';
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('a marca sozinha nao promove ninguem a master', v_erro is not null);
+  perform set_config('mv.semeando', '0', true);
+end $$;
+
+-- Agora numa instalacao sem dono nenhum, que e o estado real de quem acaba de
+-- criar o projeto no Supabase.
+do $$
+declare v_id uuid; v_papel papel_usuario; v_erro text;
+begin
+  create temporary table _masters on commit drop as
+    select * from perfis where papel = 'master';
+  delete from perfis where papel = 'master';
+
+  -- Caso 1: conta ja existe e esta orfa. Era este que obrigava a recriar.
+  insert into auth.users (id, email) values (gen_random_uuid(), 'dona@exemplo.com');
+  perform conferir('a conta nasceu sem perfil, por nao haver convite',
+    not exists (select 1 from perfis where email = 'dona@exemplo.com'));
+
+  perform mv_semear_master('dona@exemplo.com', 'Dona');
+  select papel into v_papel from perfis where email = 'dona@exemplo.com';
+  perform conferir('semear adota a conta que ja existe, sem recria-la', v_papel = 'master');
+  perform conferir('e o master nasce sem restaurante, como o schema exige',
+    (select restaurante_id is null from perfis where email = 'dona@exemplo.com'));
+
+  -- Feito isso, a guarda volta a valer para o proximo.
+  begin
+    perform mv_semear_master('segundo@exemplo.com');
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('depois de semeado, o segundo e recusado', v_erro like '%ja existe um master%');
+
+  delete from perfis where email = 'dona@exemplo.com';
+  delete from auth.users where email = 'dona@exemplo.com';
+
+  -- Caso 3: ninguem se cadastrou ainda -> convite, como antes.
+  perform mv_semear_master('futuro@exemplo.com', 'Futuro');
+  perform conferir('sem conta criada, semear deixa um convite de master',
+    (select papel from convites where email = 'futuro@exemplo.com') = 'master');
+  perform conferir('e o convite de master nao aponta para restaurante nenhum',
+    (select restaurante_id is null from convites where email = 'futuro@exemplo.com'));
+  delete from convites where email = 'futuro@exemplo.com';
+
+  insert into perfis select * from _masters;
+end $$;
+
+-- A funcao nao pode ser alcancada pela API: quem a roda e dono do banco.
+do $$
+begin
+  perform conferir('nem authenticated nem anon executam mv_semear_master',
+    not has_function_privilege('authenticated', 'mv_semear_master(text,text)', 'execute')
+    and not has_function_privilege('anon', 'mv_semear_master(text,text)', 'execute'));
+end $$;
+
 \echo '  --- RLS: todos os casos passaram'
