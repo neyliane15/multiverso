@@ -50,6 +50,10 @@ admitida e quem a admitiu. Ninguém edita nem apaga, master incluído.
 
 ### Como a pessoa convidada entra
 
+0. **o sistema não envia e-mail.** O convite é uma permissão guardada em
+   `convites`; quem avisa a pessoa é quem convidou, copiando o recado pronto
+   na tela de Usuários. Enviar exigiria provedor contratado, domínio
+   verificado e uma chave que não pode viver no navegador;
 1. quem administra grava o convite (e-mail, papel, restaurante);
 2. a pessoa abre o sistema e usa **"Tenho um convite"** — e-mail do convite e
    uma senha que ela escolhe. A senha vai para o GoTrue e não passa por

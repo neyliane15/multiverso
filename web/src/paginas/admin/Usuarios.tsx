@@ -19,7 +19,7 @@
  *    é que decide se este admin pode convidar para este restaurante.
  */
 import { useMemo, useState } from 'react'
-import { Check, Mail, Save, Search, Users as Icone } from 'lucide-react'
+import { Check, Copy, Mail, Save, Search, UserPlus, Users as Icone } from 'lucide-react'
 import {
   Aviso,
   Botao,
@@ -54,6 +54,7 @@ import {
   FILTRO_DE_EQUIPE,
   avisoDeAutoAlteracao,
   filtrarEquipe,
+  mensagemDoConvite,
   montarAlteracaoDePapel,
   motivoSemEdicao,
   opcoesDePapel,
@@ -307,7 +308,9 @@ function Convites({
   const [papel, setPapel] = useState<PapelUsuario>('operador')
   const [alvo, setAlvo] = useState(restaurantes[0]?.id ?? '')
   const [erro, setErro] = useState<string | null>(null)
-  const [feito, setFeito] = useState<string | null>(null)
+  const [feito, setFeito] = useState<Convite | null>(null)
+  /** Qual convite pendente está com o recado aberto. */
+  const [aberto, setAberto] = useState<string | null>(null)
 
   // O master convida para qualquer restaurante e é o único que cria master.
   const papeis: PapelUsuario[] = ehMaster
@@ -319,13 +322,13 @@ function Convites({
     setErro(null)
     setFeito(null)
     try {
-      await convidar.mutateAsync({
+      const criado = await convidar.mutateAsync({
         email,
         papel,
         nome: nome.trim() || undefined,
         restauranteId: papel === 'master' ? undefined : ehMaster ? alvo : (restauranteId ?? undefined),
       })
-      setFeito(email.trim().toLowerCase())
+      setFeito(criado)
       setEmail('')
       setNome('')
     } catch (e) {
@@ -338,7 +341,7 @@ function Convites({
   return (
     <Cartao
       titulo="Convites"
-      descricao="Quem pode ser o quê é decidido aqui, antes do cadastro. Sem convite, quem se cadastra não enxerga nada."
+      descricao="Quem pode ser o quê é decidido aqui, antes do cadastro. Sem convite, quem se cadastra não enxerga nada. O sistema não envia e-mail: você copia o recado pronto e manda como preferir."
     >
       {podeConvidar && (
         <form onSubmit={enviar} className="space-y-4 border-b border-borda p-5">
@@ -403,11 +406,13 @@ function Convites({
 
           {erro && <Aviso tom="erro">{erro}</Aviso>}
           {feito && (
-            <Aviso tom="sucesso" titulo="Convite criado">
+            <Aviso tom="sucesso" titulo="Convite criado — agora avise a pessoa">
               <p className="mt-1">
-                Peça a <strong>{feito}</strong> para se cadastrar com este mesmo e-mail. O papel vem
-                daqui — o que a pessoa digitar no cadastro não muda nada.
+                Nada foi enviado por e-mail: o convite é uma permissão guardada aqui. Copie o
+                recado abaixo e mande para <strong>{feito.email}</strong> por onde vocês já se
+                falam.
               </p>
+              <RecadoDoConvite convite={feito} />
             </Aviso>
           )}
 
@@ -415,9 +420,9 @@ function Convites({
             type="submit"
             tom="primario"
             carregando={convidar.isPending}
-            icone={<Mail className="size-4" aria-hidden />}
+            icone={<UserPlus className="size-4" aria-hidden />}
           >
-            Convidar
+            Criar convite
           </Botao>
         </form>
       )}
@@ -463,14 +468,27 @@ function Convites({
                   </Td>
                   <Td className="text-right">
                     {podeConvidar && (
-                      <Botao
-                        tom="fantasma"
-                        tamanho="p"
-                        onClick={() => void cancelar.mutateAsync(c.id)}
-                        aria-label={`Cancelar o convite de ${c.email}`}
-                      >
-                        Cancelar
-                      </Botao>
+                      <span className="inline-flex gap-1">
+                        {/* O recado fica em CADA convite pendente, não só no
+                            recém-criado: quem convidou ontem e não avisou
+                            ninguém precisa dele hoje. */}
+                        <Botao
+                          tom="fantasma"
+                          tamanho="p"
+                          aria-expanded={aberto === c.id}
+                          onClick={() => setAberto(aberto === c.id ? null : c.id)}
+                        >
+                          {aberto === c.id ? 'Fechar' : 'Ver recado'}
+                        </Botao>
+                        <Botao
+                          tom="fantasma"
+                          tamanho="p"
+                          onClick={() => void cancelar.mutateAsync(c.id)}
+                          aria-label={`Cancelar o convite de ${c.email}`}
+                        >
+                          Cancelar
+                        </Botao>
+                      </span>
                     )}
                   </Td>
                 </Linha>
@@ -478,6 +496,25 @@ function Convites({
             })}
           </tbody>
         </Tabela>
+      )}
+
+      {aberto !== null && (
+        <div className="border-t border-borda p-5">
+          {(() => {
+            const c = pendentes.find((p: Convite) => p.id === aberto)
+            if (!c) return null
+            return (
+              <>
+                <p className="text-apoio leading-relaxed text-texto-suave">
+                  Mande este recado para <strong className="text-texto">{c.email}</strong>. O
+                  sistema não envia e-mail — o convite é a permissão guardada aqui, e quem avisa a
+                  pessoa é você.
+                </p>
+                <RecadoDoConvite convite={c} />
+              </>
+            )
+          })()}
+        </div>
       )}
     </Cartao>
   )
@@ -689,5 +726,73 @@ function FormularioDeUsuario({
         </section>
       </div>
     </PainelLateral>
+  )
+}
+
+/**
+ * O recado pronto, com um botão para copiar.
+ *
+ * Existe porque o sistema não manda e-mail, e o buraco entre "convite criado"
+ * e "a pessoa soube" era invisível: quem convidava ficava esperando um e-mail
+ * que nunca sairia. Aqui o texto já vem escrito, com o endereço certo e os
+ * quatro passos — inclusive o "Tenho um convite", que ninguém adivinha.
+ */
+function RecadoDoConvite({ convite }: { convite: Convite }): JSX.Element {
+  const { restaurantesVisiveis } = useSessao()
+  const [copiado, setCopiado] = useState(false)
+  const [falhou, setFalhou] = useState(false)
+
+  const restaurante =
+    restaurantesVisiveis.find((r) => r.id === convite.restaurante_id)?.nome ?? null
+
+  const texto = mensagemDoConvite({
+    email: convite.email,
+    nome: convite.nome,
+    papel: convite.papel,
+    restaurante,
+    expiraEm: convite.expira_em,
+    endereco: window.location.origin,
+  })
+
+  async function copiar() {
+    setFalhou(false)
+    try {
+      // `navigator.clipboard` não existe fora de https (nem em alguns
+      // navegadores antigos). Falhar em silêncio deixaria o botão mentindo.
+      await navigator.clipboard.writeText(texto)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2500)
+    } catch {
+      setFalhou(true)
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <pre className="max-h-48 overflow-auto rounded-marca-p border border-borda bg-superficie px-3 py-2.5 text-apoio leading-relaxed whitespace-pre-wrap text-texto-suave">
+        {texto}
+      </pre>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Botao
+          tom={copiado ? 'secundario' : 'primario'}
+          tamanho="p"
+          onClick={() => void copiar()}
+          icone={
+            copiado ? (
+              <Check className="size-4" aria-hidden />
+            ) : (
+              <Copy className="size-4" aria-hidden />
+            )
+          }
+        >
+          {copiado ? 'Copiado' : 'Copiar recado'}
+        </Botao>
+        {falhou && (
+          <span className="text-micro text-texto-fraco">
+            O navegador não deixou copiar. Selecione o texto acima e copie à mão.
+          </span>
+        )}
+      </div>
+    </div>
   )
 }

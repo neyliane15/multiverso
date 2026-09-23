@@ -229,3 +229,58 @@ export function avisoDeAutoAlteracao(
     'Outro master precisará devolver o papel.'
   )
 }
+
+/* ────────────────────────────────────────── entregar o convite ──────────── */
+
+/**
+ * O convite é uma LINHA NO BANCO, não um e-mail.
+ *
+ * O sistema não envia nada: não há SMTP configurado, não há função de envio,
+ * e a linha em `convites` só libera a porta para quem se cadastrar com aquele
+ * e-mail. Quem avisa a pessoa é quem convidou.
+ *
+ * Isso é decisão, não esquecimento — mandar e-mail exige um provedor
+ * contratado, domínio verificado e uma chave que não pode viver no navegador.
+ * Mas a tela precisa DIZER, e precisa dar o texto pronto: sem isso, quem
+ * convida fica esperando um e-mail que nunca vai sair, e a pessoa convidada
+ * nunca é avisada. Foi exatamente o que aconteceu com os dois primeiros
+ * convites do Bar do Zeca.
+ */
+export interface DadosDoConvite {
+  email: string
+  nome?: string | null
+  papel: PapelUsuario
+  restaurante?: string | null
+  expiraEm: string
+  /** Endereço do sistema, para a pessoa saber onde clicar. */
+  endereco: string
+}
+
+/** Data em pt-BR, sem depender do util de formato (que é de tela). */
+function dia(iso: string): string {
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR')
+}
+
+/**
+ * O recado pronto para colar no WhatsApp.
+ *
+ * Numerado porque são quatro passos numa tela que a pessoa nunca viu, e o
+ * segundo — "Tenho um convite" — é o único que ela não adivinharia sozinha.
+ */
+export function mensagemDoConvite(dados: DadosDoConvite): string {
+  const saudacao = dados.nome?.trim() ? `Oi, ${dados.nome.trim()}!` : 'Oi!'
+  const onde = dados.restaurante?.trim() ? ` no ${dados.restaurante.trim()}` : ''
+  const validade = dia(dados.expiraEm)
+
+  return [
+    `${saudacao} Você foi convidado para o Multiverso${onde}, como ${dados.papel}.`,
+    '',
+    'Para entrar:',
+    `1. abra ${dados.endereco}`,
+    '2. clique em "Tenho um convite"',
+    `3. use exatamente este e-mail: ${dados.email}`,
+    '4. escolha a senha que quiser — ela é sua, ninguém mais vê',
+    ...(validade ? ['', `O convite vale até ${validade}.`] : []),
+  ].join('\n')
+}

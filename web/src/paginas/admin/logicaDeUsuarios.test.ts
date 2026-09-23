@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import type { PapelUsuario, Perfil } from '@/tipos/banco'
 import {
+  mensagemDoConvite,
   avisoDeAutoAlteracao,
   filtrarEquipe,
   montarAlteracaoDePapel,
@@ -217,5 +218,62 @@ describe('filtrarEquipe', () => {
       situacao: 'todos',
     })
     expect(r.map((p) => p.id)).toEqual(['c'])
+  })
+})
+
+describe('mensagemDoConvite · o recado que substitui o e-mail que nao existe', () => {
+  const BASE = {
+    email: 'val@bardozeca.com.br',
+    nome: 'Val',
+    papel: 'gerente' as const,
+    restaurante: 'Bar do Zeca — Norte Shopping',
+    expiraEm: '2026-10-07T12:00:00Z',
+    endereco: 'https://multiverso.vercel.app',
+  }
+
+  it('leva os quatro passos, inclusive o que ninguem adivinha', () => {
+    const texto = mensagemDoConvite(BASE)
+    expect(texto).toContain('https://multiverso.vercel.app')
+    expect(texto).toContain('Tenho um convite')
+    expect(texto).toContain('val@bardozeca.com.br')
+    expect(texto).toContain('senha')
+  })
+
+  it('diz o papel e o restaurante', () => {
+    const texto = mensagemDoConvite(BASE)
+    expect(texto).toContain('gerente')
+    expect(texto).toContain('Bar do Zeca — Norte Shopping')
+  })
+
+  it('diz ate quando o convite vale', () => {
+    // Convite vencido e a segunda causa mais comum de "nao consigo entrar".
+    expect(mensagemDoConvite(BASE)).toContain('07/10/2026')
+  })
+
+  it('sem nome, cumprimenta assim mesmo', () => {
+    const texto = mensagemDoConvite({ ...BASE, nome: null })
+    expect(texto.startsWith('Oi! ')).toBe(true)
+    expect(texto).not.toContain('undefined')
+    expect(texto).not.toContain('null')
+  })
+
+  it('sem restaurante (convite de master), nao inventa um', () => {
+    const texto = mensagemDoConvite({ ...BASE, papel: 'master', restaurante: null })
+    expect(texto).toContain('Multiverso, como master')
+    expect(texto).not.toContain(' no ,')
+  })
+
+  it('data invalida nao vira "Invalid Date" no recado', () => {
+    const texto = mensagemDoConvite({ ...BASE, expiraEm: 'nao é data' })
+    expect(texto).not.toContain('Invalid')
+    expect(texto).not.toContain('vale até')
+  })
+
+  it('nao promete e-mail em lugar nenhum', () => {
+    // A promessa implicita foi o defeito: dois convites criados, ninguem
+    // avisado, e quem convidou esperando uma mensagem que nunca sairia.
+    const texto = mensagemDoConvite(BASE).toLowerCase()
+    expect(texto).not.toContain('enviamos')
+    expect(texto).not.toContain('verifique sua caixa')
   })
 })
