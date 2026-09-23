@@ -175,13 +175,20 @@ export function useConvites(restauranteId: string | null) {
 export function useConvidar(restauranteId: string | null) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (dados: { email: string; papel: PapelUsuario; nome?: string; restauranteId?: string }) =>
+    mutationFn: (dados: {
+      email: string
+      papel: PapelUsuario
+      nome?: string
+      telefone?: string
+      restauranteId?: string
+    }) =>
       buscar<Convite>(
         supabase.rpc('mv_convidar', {
           p_email: dados.email.trim().toLowerCase(),
           p_papel: dados.papel,
           p_restaurante: dados.restauranteId ?? restauranteId,
           p_nome: dados.nome ?? null,
+          p_telefone: dados.telefone ?? null,
         }),
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['convites'] }),

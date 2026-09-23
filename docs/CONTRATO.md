@@ -50,10 +50,15 @@ admitida e quem a admitiu. Ninguém edita nem apaga, master incluído.
 
 ### Como a pessoa convidada entra
 
-0. **o sistema não envia e-mail.** O convite é uma permissão guardada em
-   `convites`; quem avisa a pessoa é quem convidou, copiando o recado pronto
-   na tela de Usuários. Enviar exigiria provedor contratado, domínio
-   verificado e uma chave que não pode viver no navegador;
+0. **o sistema não envia nada sozinho.** O convite é uma permissão guardada em
+   `convites`. Com `convites.telefone` preenchido, a tela monta um link
+   `wa.me` (click-to-chat) que abre a conversa daquela pessoa com o recado
+   escrito — endereço real, e-mail real, validade — e quem aperta enviar é
+   quem convidou. Envio automático de verdade exigiria a API oficial da Meta
+   (conta comercial verificada, modelos aprovados, número dedicado) ou, para
+   e-mail, provedor contratado e domínio verificado com uma chave que não
+   pode viver no navegador. O telefone segue para `perfis.telefone` quando o
+   convite é aceito, para o contato não morrer com ele;
 1. quem administra grava o convite (e-mail, papel, restaurante);
 2. a pessoa abre o sistema e usa **"Tenho um convite"** — e-mail do convite e
    uma senha que ela escolhe. A senha vai para o GoTrue e não passa por

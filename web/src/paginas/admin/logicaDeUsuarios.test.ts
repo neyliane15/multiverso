@@ -6,7 +6,10 @@
 import { describe, expect, it } from 'vitest'
 import type { PapelUsuario, Perfil } from '@/tipos/banco'
 import {
+  linkDoWhatsapp,
   mensagemDoConvite,
+  normalizarTelefone,
+  telefoneLegivel,
   avisoDeAutoAlteracao,
   filtrarEquipe,
   montarAlteracaoDePapel,
@@ -275,5 +278,83 @@ describe('mensagemDoConvite · o recado que substitui o e-mail que nao existe', 
     const texto = mensagemDoConvite(BASE).toLowerCase()
     expect(texto).not.toContain('enviamos')
     expect(texto).not.toContain('verifique sua caixa')
+  })
+})
+
+describe('normalizarTelefone · o wa.me nao perdoa', () => {
+  it('celular com DDD ganha o 55', () => {
+    expect(normalizarTelefone('11999998888')).toBe('5511999998888')
+  })
+
+  it('fixo com DDD tambem', () => {
+    expect(normalizarTelefone('1133334444')).toBe('551133334444')
+  })
+
+  it('o que a pessoa digita de verdade', () => {
+    // Parenteses, espaco e traco sao o normal de quem copia da agenda. Sem
+    // limpar, o link abre uma conversa com ninguem — e em silencio.
+    expect(normalizarTelefone('(11) 99999-8888')).toBe('5511999998888')
+    expect(normalizarTelefone('+55 11 99999-8888')).toBe('5511999998888')
+    expect(normalizarTelefone(' 11 9 9999 8888 ')).toBe('5511999998888')
+  })
+
+  it('numero que ja veio com DDI nao ganha outro', () => {
+    expect(normalizarTelefone('5511999998888')).toBe('5511999998888')
+    expect(normalizarTelefone('551133334444')).toBe('551133334444')
+  })
+
+  it('o zero de operadora sai', () => {
+    expect(normalizarTelefone('055 11 99999-8888')).toBe('5511999998888')
+  })
+
+  it('vazio e lixo devolvem null, e a tela nao oferece o botao', () => {
+    // Melhor nao oferecer do que abrir a conversa errada.
+    expect(normalizarTelefone('')).toBeNull()
+    expect(normalizarTelefone(null)).toBeNull()
+    expect(normalizarTelefone('abc')).toBeNull()
+    expect(normalizarTelefone('123')).toBeNull()
+  })
+
+  it('numero de outro pais passa inteiro', () => {
+    expect(normalizarTelefone('+351 912 345 678')).toBe('351912345678')
+  })
+})
+
+describe('telefoneLegivel', () => {
+  it('celular brasileiro sai formatado', () => {
+    expect(telefoneLegivel('11999998888')).toBe('+55 (11) 99999-8888')
+  })
+
+  it('fixo tem o corte no lugar certo', () => {
+    expect(telefoneLegivel('1133334444')).toBe('+55 (11) 3333-4444')
+  })
+
+  it('estrangeiro nao vira endereco brasileiro', () => {
+    expect(telefoneLegivel('+351 912 345 678')).toBe('+351912345678')
+  })
+
+  it('sem telefone, nada', () => {
+    expect(telefoneLegivel(null)).toBeNull()
+  })
+})
+
+describe('linkDoWhatsapp', () => {
+  const RECADO = 'Oi, Val! Você foi convidado — acesse https://x.app'
+
+  it('monta o click-to-chat com a mensagem escapada', () => {
+    const link = linkDoWhatsapp('(11) 99999-8888', RECADO)
+    expect(link).toContain('https://wa.me/5511999998888?text=')
+    expect(link).toContain(encodeURIComponent(RECADO))
+  })
+
+  it('acento e quebra de linha sobrevivem a viagem', () => {
+    const link = linkDoWhatsapp('11999998888', 'Olá\nção')!
+    const texto = decodeURIComponent(link.split('text=')[1]!)
+    expect(texto).toBe('Olá\nção')
+  })
+
+  it('sem telefone confiavel, sem link', () => {
+    expect(linkDoWhatsapp('', RECADO)).toBeNull()
+    expect(linkDoWhatsapp('123', RECADO)).toBeNull()
   })
 })

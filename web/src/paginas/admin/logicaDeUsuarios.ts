@@ -246,6 +246,66 @@ export function avisoDeAutoAlteracao(
  * nunca é avisada. Foi exatamente o que aconteceu com os dois primeiros
  * convites do Bar do Zeca.
  */
+/**
+ * Telefone brasileiro em formato que o WhatsApp entende: só dígitos, com DDI.
+ *
+ * O `wa.me` não perdoa: `(11) 99999-8888` abre uma conversa com ninguém, e
+ * sem o 55 na frente ele tenta um número dos Estados Unidos. Como o erro é
+ * SILENCIOSO — abre o WhatsApp, some a conversa, e quem clicou acha que
+ * mandou — a normalização mora aqui, testada, em vez de solta na tela.
+ *
+ * As regras, na ordem em que importam:
+ *   10 dígitos  DDD + fixo/celular antigo        -> 55 na frente
+ *   11 dígitos  DDD + celular com o nono dígito  -> 55 na frente
+ *   12 ou 13    já veio com DDI                  -> como está
+ *   começa com 0 (0xx)                           -> o zero sai
+ *
+ * Devolve null quando não dá para confiar. Melhor não oferecer o botão do que
+ * oferecer um que abre a conversa errada.
+ */
+export function normalizarTelefone(bruto: string | null | undefined): string | null {
+  let digitos = (bruto ?? '').replace(/\D/g, '')
+  if (digitos === '') return null
+
+  // 0xx11999998888: o zero de operadora não existe em número internacional.
+  if (digitos.length > 11 && digitos.startsWith('0')) digitos = digitos.slice(1)
+
+  if (digitos.length === 10 || digitos.length === 11) return `55${digitos}`
+  if ((digitos.length === 12 || digitos.length === 13) && digitos.startsWith('55')) return digitos
+  // Outro país, já com DDI plausível: respeita em vez de estragar.
+  if (digitos.length >= 11 && digitos.length <= 15) return digitos
+  return null
+}
+
+/** Como o número aparece na tela: +55 (11) 99999-8888. */
+export function telefoneLegivel(bruto: string | null | undefined): string | null {
+  const n = normalizarTelefone(bruto)
+  if (n === null) return null
+  if (!n.startsWith('55') || (n.length !== 12 && n.length !== 13)) return `+${n}`
+  const ddd = n.slice(2, 4)
+  const resto = n.slice(4)
+  const meio = resto.length === 9 ? resto.slice(0, 5) : resto.slice(0, 4)
+  const fim = resto.length === 9 ? resto.slice(5) : resto.slice(4)
+  return `+55 (${ddd}) ${meio}-${fim}`
+}
+
+/**
+ * O link que abre a conversa com a mensagem já escrita.
+ *
+ * `wa.me` é o "click to chat" oficial: abre o aplicativo no celular ou o
+ * WhatsApp Web no computador, na conversa daquele número, com o texto
+ * preenchido. Quem convida confere e aperta enviar.
+ *
+ * Mandar sozinho, sem esse toque, exigiria a API oficial da Meta — conta
+ * comercial verificada, modelos de mensagem aprovados e um número dedicado.
+ * Não é o que esta função faz, e prometer isso na tela seria mentira.
+ */
+export function linkDoWhatsapp(telefone: string | null | undefined, mensagem: string): string | null {
+  const numero = normalizarTelefone(telefone)
+  if (numero === null) return null
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`
+}
+
 export interface DadosDoConvite {
   email: string
   nome?: string | null

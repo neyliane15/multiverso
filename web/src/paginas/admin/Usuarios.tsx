@@ -19,7 +19,7 @@
  *    é que decide se este admin pode convidar para este restaurante.
  */
 import { useMemo, useState } from 'react'
-import { Check, Copy, Mail, Save, Search, UserPlus, Users as Icone } from 'lucide-react'
+import { Check, Copy, Mail, MessageCircle, Save, Search, UserPlus, Users as Icone } from 'lucide-react'
 import {
   Aviso,
   Botao,
@@ -54,7 +54,9 @@ import {
   FILTRO_DE_EQUIPE,
   avisoDeAutoAlteracao,
   filtrarEquipe,
+  linkDoWhatsapp,
   mensagemDoConvite,
+  telefoneLegivel,
   montarAlteracaoDePapel,
   motivoSemEdicao,
   opcoesDePapel,
@@ -305,6 +307,7 @@ function Convites({
 
   const [email, setEmail] = useState('')
   const [nome, setNome] = useState('')
+  const [telefone, setTelefone] = useState('')
   const [papel, setPapel] = useState<PapelUsuario>('operador')
   const [alvo, setAlvo] = useState(restaurantes[0]?.id ?? '')
   const [erro, setErro] = useState<string | null>(null)
@@ -326,11 +329,13 @@ function Convites({
         email,
         papel,
         nome: nome.trim() || undefined,
+        telefone: telefone.trim() || undefined,
         restauranteId: papel === 'master' ? undefined : ehMaster ? alvo : (restauranteId ?? undefined),
       })
       setFeito(criado)
       setEmail('')
       setNome('')
+      setTelefone('')
     } catch (e) {
       setErro(e instanceof Error ? e.message : String(e))
     }
@@ -341,7 +346,7 @@ function Convites({
   return (
     <Cartao
       titulo="Convites"
-      descricao="Quem pode ser o quê é decidido aqui, antes do cadastro. Sem convite, quem se cadastra não enxerga nada. O sistema não envia e-mail: você copia o recado pronto e manda como preferir."
+      descricao="Quem pode ser o quê é decidido aqui, antes do cadastro. Sem convite, quem se cadastra não enxerga nada. Com o WhatsApp preenchido, a tela abre a conversa com o recado pronto — o envio é seu."
     >
       {podeConvidar && (
         <form onSubmit={enviar} className="space-y-4 border-b border-borda p-5">
@@ -366,6 +371,26 @@ function Convites({
                 placeholder="Como aparece na tela"
               />
             </div>
+            <div className="space-y-1.5">
+              <Rotulo para="convite-telefone">WhatsApp (opcional)</Rotulo>
+              <Campo
+                id="convite-telefone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                placeholder="(11) 99999-8888"
+                aria-describedby="ajuda-telefone"
+              />
+              <p id="ajuda-telefone" className="text-micro text-texto-fraco">
+                {telefone.trim() === ''
+                  ? 'Com o número, a tela abre a conversa com o recado pronto.'
+                  : (telefoneLegivel(telefone) ??
+                    'Número incompleto — confira o DDD.')}
+              </p>
+            </div>
+
             <div className="space-y-1.5">
               <Rotulo para="convite-papel">Papel</Rotulo>
               <Selecao
@@ -408,9 +433,9 @@ function Convites({
           {feito && (
             <Aviso tom="sucesso" titulo="Convite criado — agora avise a pessoa">
               <p className="mt-1">
-                Nada foi enviado por e-mail: o convite é uma permissão guardada aqui. Copie o
-                recado abaixo e mande para <strong>{feito.email}</strong> por onde vocês já se
-                falam.
+                {feito.telefone
+                  ? 'O convite é uma permissão guardada aqui; nada sai sozinho. Abaixo, a conversa já escrita — confira e envie.'
+                  : `Nada foi enviado por e-mail: o convite é uma permissão guardada aqui. Copie o recado e mande para ${feito.email} por onde vocês já se falam.`}
               </p>
               <RecadoDoConvite convite={feito} />
             </Aviso>
@@ -506,9 +531,9 @@ function Convites({
             return (
               <>
                 <p className="text-apoio leading-relaxed text-texto-suave">
-                  Mande este recado para <strong className="text-texto">{c.email}</strong>. O
-                  sistema não envia e-mail — o convite é a permissão guardada aqui, e quem avisa a
-                  pessoa é você.
+                  Recado para <strong className="text-texto">{c.email}</strong>. O sistema não
+                  envia nada sozinho — o convite é a permissão guardada aqui, e quem aperta enviar
+                  é você.
                 </p>
                 <RecadoDoConvite convite={c} />
               </>
@@ -751,8 +776,12 @@ function RecadoDoConvite({ convite }: { convite: Convite }): JSX.Element {
     papel: convite.papel,
     restaurante,
     expiraEm: convite.expira_em,
+    // O endereço real de onde o sistema está rodando: em produção é o
+    // domínio da Vercel, e é esse que a pessoa precisa abrir.
     endereco: window.location.origin,
   })
+
+  const whatsapp = linkDoWhatsapp(convite.telefone, texto)
 
   async function copiar() {
     setFalhou(false)
@@ -773,8 +802,22 @@ function RecadoDoConvite({ convite }: { convite: Convite }): JSX.Element {
         {texto}
       </pre>
       <div className="mt-2 flex flex-wrap items-center gap-2">
+        {whatsapp !== null && (
+          /* Link de verdade, e não um botão com onClick: o WhatsApp precisa
+             abrir em aba nova, e o navegador trata link melhor do que
+             `window.open` — que bloqueador de pop-up costuma engolir. */
+          <a
+            href={whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mv-toque inline-flex items-center gap-2 rounded-marca-p bg-primaria px-4 text-corpo font-medium text-sobre-primaria transition-[filter] hover:brightness-110 active:brightness-95"
+          >
+            <MessageCircle className="size-4" aria-hidden />
+            Abrir no WhatsApp
+          </a>
+        )}
         <Botao
-          tom={copiado ? 'secundario' : 'primario'}
+          tom={whatsapp === null || copiado ? 'secundario' : 'fantasma'}
           tamanho="p"
           onClick={() => void copiar()}
           icone={
@@ -793,6 +836,20 @@ function RecadoDoConvite({ convite }: { convite: Convite }): JSX.Element {
           </span>
         )}
       </div>
+      {whatsapp === null ? (
+        <p className="mt-2 text-micro text-texto-fraco">
+          {convite.telefone
+            ? 'O número guardado não parece completo — edite o convite para corrigir.'
+            : 'Sem WhatsApp neste convite: copie o recado e mande por onde preferir.'}
+        </p>
+      ) : (
+        /* Dizer que o envio é com um toque evita a decepção seguinte: a tela
+           abre a conversa escrita, quem manda é você. */
+        <p className="mt-2 text-micro text-texto-fraco">
+          Abre a conversa com <strong className="text-texto-suave">{telefoneLegivel(convite.telefone)}</strong>{' '}
+          e o recado já escrito. Você confere e aperta enviar.
+        </p>
+      )}
     </div>
   )
 }

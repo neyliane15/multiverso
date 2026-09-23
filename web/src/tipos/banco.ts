@@ -401,6 +401,8 @@ export interface Convite {
   restaurante_id: string | null
   email: string
   nome: string | null
+  /** Só dígitos, com DDI. A tela monta o link do WhatsApp a partir dele. */
+  telefone: string | null
   papel: PapelUsuario
   criado_por: string | null
   criado_em: string
