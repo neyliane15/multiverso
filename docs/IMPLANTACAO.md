@@ -89,11 +89,13 @@ ferramentas/implantar.sh <referencia> --com-carga
 > supabase link --project-ref <referencia>
 > supabase db push
 > npm run funcao:preparar
-> supabase functions deploy importar-nfe --project-ref <referencia>
+> supabase functions deploy importar-nfe
+> supabase functions deploy remover-usuario
 > ```
 
-Isso aplica as 10 migrações, carrega os 854 produtos do Bar do Zeca e publica a
-função que lê NFe. É idempotente: rodar de novo não duplica nada.
+Isso aplica todas as migrações, carrega os produtos do Bar do Zeca e publica as
+duas funções — a que lê NFe e a que exclui usuário. É idempotente: rodar de
+novo não duplica nada.
 
 Sem `--com-carga` o banco sobe vazio, que é o certo se o primeiro restaurante
 não for o Bar do Zeca.

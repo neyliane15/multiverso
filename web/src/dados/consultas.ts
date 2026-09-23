@@ -203,6 +203,47 @@ export function useCancelarConvite() {
   })
 }
 
+export interface UsuarioExcluido {
+  excluido: { id: string; nome: string; email: string }
+  aviso: string
+}
+
+/**
+ * Exclui de verdade: a conta some do `auth`, e o perfil vai junto no cascade.
+ *
+ * Passa pela edge function porque apagar do `auth` exige a `service_role`, que
+ * não pode viver no navegador. Apagar só a linha de `perfis` daqui deixaria a
+ * conta viva: a pessoa continuaria entrando, cairia em "sua conta existe mas
+ * ainda não tem acesso", e não poderia ser convidada de novo — o gatilho que
+ * transforma convite em perfil só dispara quando a conta NASCE.
+ */
+export function useExcluirUsuario(restauranteId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (usuarioId: string) => {
+      const { data, error } = await supabase.functions.invoke('remover-usuario', {
+        body: { usuarioId },
+      })
+      if (error) {
+        // O supabase-js não entrega o corpo quando o status não é 2xx: ele
+        // embrulha a Response em `error.context`. Sem abrir, sobra "non-2xx
+        // status code", que não diz por que a exclusão foi recusada.
+        const resposta = (error as { context?: unknown }).context
+        if (resposta instanceof Response) {
+          const corpo = (await resposta.json().catch(() => null)) as { erro?: string } | null
+          throw new Error(corpo?.erro ?? error.message)
+        }
+        throw new Error(error.message)
+      }
+      return data as UsuarioExcluido
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.equipe(restauranteId ?? 'rede') })
+      void qc.invalidateQueries({ queryKey: ['convites'] })
+    },
+  })
+}
+
 export function useSalvarPerfil() {
   const qc = useQueryClient()
   return useMutation({

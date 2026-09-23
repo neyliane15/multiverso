@@ -86,3 +86,41 @@ describe('preparar-funcao', () => {
     expect(chaveBusca('CERVEJA HEINEKEN 600ML')).toBe('CERVEJA HEINEKEN 600ML')
   })
 })
+
+describe('a regra de exclusao copiada para a remover-usuario', () => {
+  it('e byte a byte a mesma decisao da tela', async () => {
+    // A funcao roda com service_role, que passa por cima da RLS: a checagem
+    // dela e a unica que sobra. Uma segunda copia escrita a mao divergiria, e
+    // o lado que divergisse seria justamente o que apaga.
+    const { podeExcluirUsuario: daTela } = await import(
+      '../web/src/paginas/admin/regraDeExclusao.ts'
+    )
+    const copiada = readFileSync(
+      join(RAIZ, 'supabase/functions/remover-usuario/_compartilhado/regraDeExclusao.ts'),
+      'utf8',
+    )
+    const fonte = readFileSync(join(RAIZ, 'web/src/paginas/admin/regraDeExclusao.ts'), 'utf8')
+    expect(copiada).toContain(fonte.trim())
+    expect(typeof daTela).toBe('function')
+  })
+
+  it('nao importa nada de fora da pasta — e o que quebraria o deploy', () => {
+    const copiada = readFileSync(
+      join(RAIZ, 'supabase/functions/remover-usuario/_compartilhado/regraDeExclusao.ts'),
+      'utf8',
+    )
+    const fuga = [...copiada.matchAll(/from '([^']+)'/g)]
+      .map((m) => m[1])
+      .filter((c) => c.startsWith('..') || c.startsWith('@/'))
+    expect(fuga).toEqual([])
+  })
+
+  it('avisa que e gerado, para ninguem editar la', () => {
+    const copiada = readFileSync(
+      join(RAIZ, 'supabase/functions/remover-usuario/_compartilhado/regraDeExclusao.ts'),
+      'utf8',
+    )
+    expect(copiada).toContain('ARQUIVO GERADO')
+    expect(copiada).toContain('web/src/paginas/admin/regraDeExclusao.ts')
+  })
+})

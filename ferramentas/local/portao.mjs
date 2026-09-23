@@ -20,6 +20,8 @@
  */
 import { createServer } from 'node:http'
 import pg from 'pg'
+// A MESMA decisão que a tela e a edge function usam — nada reescrito aqui.
+import { podeExcluirUsuario } from '../../web/src/paginas/admin/regraDeExclusao.ts'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { request as pedir } from 'node:http'
 
@@ -315,6 +317,46 @@ createServer(async (req, res) => {
   }
 
   // ───────────────────────────────────────────── o que não existe aqui ────
+  /**
+   * `remover-usuario`, a única edge function reimplementada aqui.
+   *
+   * As outras podem responder 501 porque o que elas fazem (ler XML, guardar
+   * arquivo) não muda a regra de quem pode o quê. Esta muda: ela é o caminho
+   * pelo qual uma conta some, e a decisão dela roda com service_role, sem RLS
+   * por baixo. Testar isso só em produção seria descobrir o erro apagando a
+   * pessoa errada.
+   *
+   * O código da decisão é o MESMO arquivo que a tela e a função usam.
+   */
+  if (url.pathname === '/functions/v1/remover-usuario') {
+    const carga = conferir((req.headers.authorization ?? '').replace('Bearer ', ''))
+    if (!carga) return responder(res, 401, { erro: 'Token inválido ou expirado.' })
+    if (!(await bancoLigado)) return responder(res, 501, { erro: 'sem ligação com o banco' })
+
+    const corpo = JSON.parse((await lerCorpo(req)).toString() || '{}')
+    const alvoId = corpo.usuarioId
+    if (!alvoId) return responder(res, 400, { erro: 'Faltou dizer qual usuário excluir.' })
+
+    const { rows } = await BANCO.query(
+      'select id, papel, restaurante_id, nome, email from perfis where id = any($1::uuid[])',
+      [[carga.sub, alvoId]],
+    )
+    const ator = rows.find((p) => p.id === carga.sub) ?? null
+    const alvo = rows.find((p) => p.id === alvoId) ?? null
+    if (!ator) return responder(res, 403, { erro: 'Sua conta não tem perfil neste sistema.' })
+    if (!alvo) return responder(res, 404, { erro: 'Este usuário não existe (ou já foi excluído).' })
+
+    const veredito = podeExcluirUsuario(ator, alvo)
+    if (!veredito.permitido) return responder(res, 403, { erro: veredito.motivo })
+
+    await BANCO.query('delete from auth.users where id = $1', [alvoId])
+    USUARIOS.delete(alvo.email)
+    return responder(res, 200, {
+      excluido: { id: alvo.id, nome: alvo.nome, email: alvo.email },
+      aviso: 'O histórico do que a pessoa lançou continua, agora sem nome.',
+    })
+  }
+
   if (url.pathname.startsWith('/storage/v1') || url.pathname.startsWith('/functions/v1')) {
     const qual = url.pathname.startsWith('/storage/v1') ? 'O Storage' : 'As Edge Functions'
     return responder(res, 501, {

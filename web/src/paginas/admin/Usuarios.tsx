@@ -19,7 +19,17 @@
  *    é que decide se este admin pode convidar para este restaurante.
  */
 import { useMemo, useState } from 'react'
-import { Check, Copy, Mail, MessageCircle, Save, Search, UserPlus, Users as Icone } from 'lucide-react'
+import {
+  Check,
+  Copy,
+  Mail,
+  MessageCircle,
+  Save,
+  Search,
+  Trash2,
+  UserPlus,
+  Users as Icone,
+} from 'lucide-react'
 import {
   Aviso,
   Botao,
@@ -27,6 +37,7 @@ import {
   Campo,
   Carregando,
   Cartao,
+  Dialogo,
   ErroDaConsulta,
   EstadoVazio,
   Rotulo,
@@ -41,6 +52,7 @@ import {
   useCancelarConvite,
   useConvidar,
   useConvites,
+  useExcluirUsuario,
   useEquipe,
   useSalvarPerfil,
 } from '@/dados/consultas'
@@ -49,6 +61,7 @@ import { useSessao } from '@/dados/sessao'
 import { dataHora, iniciais } from '@/util/formato'
 import type { PapelUsuario, Perfil } from '@/tipos/banco'
 import { PainelLateral } from '../PainelLateral'
+import { podeExcluirUsuario } from './regraDeExclusao'
 import {
   DESCRICAO_DO_PAPEL,
   FILTRO_DE_EQUIPE,
@@ -84,6 +97,8 @@ export function Usuarios(): JSX.Element {
 
   const [filtro, setFiltro] = useState<FiltroDeEquipe>(FILTRO_DE_EQUIPE)
   const [editando, setEditando] = useState<Perfil | null>(null)
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState<Perfil | null>(null)
+  const excluir = useExcluirUsuario(restaurante?.id ?? null)
 
   const ator = perfil ? comoEnvolvido(perfil) : null
   const podeEditar = podeEditarEquipe(ator)
@@ -272,12 +287,37 @@ export function Usuarios(): JSX.Element {
           ehMaster={ehMaster}
           restaurantes={restaurantesVisiveis.map((r) => ({ id: r.id, nome: r.nome }))}
           salvando={salvar.isPending}
-          erroDoServidor={salvar.error instanceof Error ? salvar.error.message : null}
+          excluindo={excluir.isPending}
+          erroDoServidor={
+            salvar.error instanceof Error
+              ? salvar.error.message
+              : excluir.error instanceof Error
+                ? excluir.error.message
+                : null
+          }
           aoSalvar={(patch) => salvar.mutate(patch, { onSuccess: () => setEditando(null) })}
+          aoPedirExclusao={() => setConfirmandoExclusao(editando)}
           aoFechar={() => {
             setEditando(null)
             salvar.reset()
+            excluir.reset()
           }}
+        />
+      )}
+
+      {confirmandoExclusao && (
+        <ConfirmarExclusao
+          alvo={confirmandoExclusao}
+          excluindo={excluir.isPending}
+          aoConfirmar={() =>
+            excluir.mutate(confirmandoExclusao.id, {
+              onSuccess: () => {
+                setConfirmandoExclusao(null)
+                setEditando(null)
+              },
+            })
+          }
+          aoFechar={() => setConfirmandoExclusao(null)}
         />
       )}
     </>
@@ -555,8 +595,10 @@ function FormularioDeUsuario({
   ehMaster,
   restaurantes,
   salvando,
+  excluindo,
   erroDoServidor,
   aoSalvar,
+  aoPedirExclusao,
   aoFechar,
 }: {
   alvo: Perfil
@@ -564,8 +606,10 @@ function FormularioDeUsuario({
   ehMaster: boolean
   restaurantes: readonly { id: string; nome: string }[]
   salvando: boolean
+  excluindo: boolean
   erroDoServidor: string | null
   aoSalvar: (patch: Partial<Perfil> & { id: string }) => void
+  aoPedirExclusao: () => void
   aoFechar: () => void
 }): JSX.Element {
   const envolvido = comoEnvolvido(alvo)
@@ -575,6 +619,7 @@ function FormularioDeUsuario({
 
   const opcoes = useMemo(() => opcoesDePapel(ator, envolvido), [ator, envolvido])
   const permissaoDoAtivo = podeAlternarAtivo(ator, envolvido)
+  const permissaoDeExcluir = podeExcluirUsuario(ator, envolvido)
   const aviso = avisoDeAutoAlteracao(ator, envolvido, papel)
 
   const alteracao = useMemo(
@@ -608,6 +653,17 @@ function FormularioDeUsuario({
       aoFechar={aoFechar}
       rodape={
         <>
+          {permissaoDeExcluir.permitido && (
+            <Botao
+              tom="perigo"
+              className="mr-auto"
+              carregando={excluindo}
+              onClick={() => aoPedirExclusao()}
+              icone={<Trash2 className="size-4" aria-hidden />}
+            >
+              Excluir
+            </Botao>
+          )}
           <Botao tom="fantasma" onClick={aoFechar}>
             Cancelar
           </Botao>
@@ -739,7 +795,8 @@ function FormularioDeUsuario({
           ) : (
             <p className="mt-1.5 text-apoio text-texto-fraco">
               Desativar não apaga nada: o que a pessoa lançou continua no histórico, com o nome dela.
-              Ela só deixa de conseguir entrar.
+              Ela só deixa de conseguir entrar — e volta com um clique.
+              {permissaoDeExcluir.permitido && ' Para tirar a conta de vez, use Excluir.'}
             </p>
           )}
           <p className="mt-3 text-apoio text-texto-fraco">
@@ -851,5 +908,73 @@ function RecadoDoConvite({ convite }: { convite: Convite }): JSX.Element {
         </p>
       )}
     </div>
+  )
+}
+
+/**
+ * A confirmação da exclusão.
+ *
+ * Diz o que some e o que fica, com o nome de quem vai embora escrito, porque
+ * "tem certeza?" não é aviso — é um obstáculo que se clica sem ler. O que se
+ * perde de verdade é a autoria: contagens e notas continuam no histórico, mas
+ * sem nome. É a diferença entre isto e desativar, e ela precisa estar à vista
+ * ANTES do clique, não depois.
+ */
+function ConfirmarExclusao({
+  alvo,
+  excluindo,
+  aoConfirmar,
+  aoFechar,
+}: {
+  alvo: Perfil
+  excluindo: boolean
+  aoConfirmar: () => void
+  aoFechar: () => void
+}): JSX.Element {
+  return (
+    <Dialogo
+      titulo="Excluir esta conta?"
+      aoFechar={aoFechar}
+      rodape={
+        <>
+          <Botao tom="fantasma" onClick={aoFechar}>
+            Não excluir
+          </Botao>
+          <Botao
+            tom="perigo"
+            carregando={excluindo}
+            onClick={aoConfirmar}
+            icone={<Trash2 className="size-4" aria-hidden />}
+          >
+            Excluir {alvo.nome}
+          </Botao>
+        </>
+      }
+    >
+      <p className="text-corpo leading-relaxed text-texto-suave">
+        <strong className="text-texto">{alvo.nome}</strong> ({alvo.email}) perde o acesso e a conta
+        some do sistema. Não dá para desfazer.
+      </p>
+
+      <ul className="mt-3 space-y-1.5 text-apoio leading-relaxed text-texto-fraco">
+        <li>
+          <strong className="text-texto-suave">Fica:</strong> tudo que a pessoa lançou — contagens,
+          notas, listas. Os números não mudam.
+        </li>
+        <li>
+          <strong className="text-texto-suave">Some:</strong> o nome dela nesses registros. Onde
+          hoje se lê quem contou, passará a não ter ninguém.
+        </li>
+        <li>
+          <strong className="text-texto-suave">Libera:</strong> o e-mail, que pode receber um
+          convite novo depois.
+        </li>
+      </ul>
+
+      <p className="mt-3 text-apoio leading-relaxed text-texto-fraco">
+        Se a ideia é só tirar o acesso e preservar o nome no histórico,
+        <strong className="text-texto-suave"> desative</strong> em vez de excluir.
+      </p>
+    </Dialogo>
   )
 }

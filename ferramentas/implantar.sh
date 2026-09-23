@@ -11,7 +11,7 @@
 #   1. liga o repositório ao projeto        (supabase link)
 #   2. aplica as 10 migrações               (supabase db push)
 #   3. carrega o Bar do Zeca                (opcional, --com-carga)
-#   4. publica a função que lê NFe          (supabase functions deploy)
+#   4. publica as duas edge functions        (supabase functions deploy)
 #   5. confere o que ficou de pé
 #
 # É idempotente: rodar de novo não duplica nada.
@@ -54,8 +54,11 @@ fi
 echo "→ preparando a funcao de NFe"
 node ferramentas/preparar-funcao.mjs
 
-echo "→ publicando a funcao"
+echo "→ publicando as funcoes"
 supabase functions deploy importar-nfe --project-ref "$REF"
+# A que exclui usuario. Sem ela, o botao Excluir da tela de Usuarios responde
+# erro de funcao inexistente — e a pessoa fica sem saber se apagou ou nao.
+supabase functions deploy remover-usuario --project-ref "$REF"
 
 echo
 echo "pronto. falta o que so voce pode fazer:"

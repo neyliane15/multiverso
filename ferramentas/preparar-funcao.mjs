@@ -23,6 +23,25 @@ const DESTINO = join(RAIZ, 'supabase/functions/importar-nfe/_compartilhado')
 
 const MODULOS = ['parsearXml', 'conversaoUnidade', 'casarProdutos']
 
+/**
+ * A regra de quem exclui quem, copiada para a `remover-usuario`.
+ *
+ * Aquela função roda com a `service_role`, que passa por cima da RLS — a
+ * checagem dela e a unica que sobra. Se a regra virasse uma segunda copia
+ * escrita a mao, o lado que divergisse seria justamente o que apaga.
+ */
+const REGRA_ORIGEM = join(RAIZ, 'web/src/paginas/admin')
+const REGRA_DESTINO = join(RAIZ, 'supabase/functions/remover-usuario/_compartilhado')
+const REGRA_MODULOS = ['regraDeExclusao']
+
+const CABECALHO_REGRA = `// ============================================================================
+// ARQUIVO GERADO por ferramentas/preparar-funcao.mjs — nao edite aqui.
+// A fonte e web/src/paginas/admin/%s.ts, o mesmo modulo que a TELA usa.
+// Corrija la e rode o gerador de novo.
+// ============================================================================
+
+`
+
 const CABECALHO = `// ============================================================================
 // ARQUIVO GERADO por ferramentas/preparar-funcao.mjs — nao edite aqui.
 // A fonte e web/src/dados/nfe/%s.ts. Corrija la e rode o gerador de novo.
@@ -73,4 +92,27 @@ for (const arquivo of [...MODULOS, 'texto']) {
   }
 }
 
+// ------------------------------------------------- remover-usuario ---------
+rmSync(REGRA_DESTINO, { recursive: true, force: true })
+mkdirSync(REGRA_DESTINO, { recursive: true })
+
+for (const modulo of REGRA_MODULOS) {
+  const codigo = readFileSync(join(REGRA_ORIGEM, `${modulo}.ts`), 'utf8')
+  writeFileSync(
+    join(REGRA_DESTINO, `${modulo}.ts`),
+    CABECALHO_REGRA.replace('%s', modulo) + paraDeno(codigo),
+  )
+}
+
+for (const arquivo of REGRA_MODULOS) {
+  const codigo = readFileSync(join(REGRA_DESTINO, `${arquivo}.ts`), 'utf8')
+  const fuga = [...codigo.matchAll(/from '([^']+)'/g)]
+    .map((m) => m[1])
+    .filter((caminho) => caminho.startsWith('..') || caminho.startsWith('@/'))
+  if (fuga.length > 0) {
+    throw new Error(`${arquivo}.ts ainda importa de fora da pasta: ${fuga.join(', ')}`)
+  }
+}
+
 console.log(`funcao preparada: ${MODULOS.length + 1} arquivos em supabase/functions/importar-nfe/_compartilhado/`)
+console.log(`regra copiada:    ${REGRA_MODULOS.length} arquivo em supabase/functions/remover-usuario/_compartilhado/`)

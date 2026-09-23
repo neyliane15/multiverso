@@ -48,6 +48,28 @@ tabelas deixa o gerente entrar (foi o defeito que a 0014 fechou).
 Convite aceito é histórico: é o único registro de com que papel a pessoa foi
 admitida e quem a admitiu. Ninguém edita nem apaga, master incluído.
 
+### Tirar alguém
+
+| | desativar | excluir |
+|---|---|---|
+| quem faz | master, admin | master, admin |
+| a conta | continua, sem entrar | some do `auth`, e o perfil vai no cascade |
+| o histórico | fica, **com o nome** | fica, **sem o nome** (FKs são `on delete set null`) |
+| o e-mail | preso | livre para um convite novo |
+| desfaz? | um clique | não |
+
+Excluir passa pela edge function `remover-usuario`, porque apagar do `auth`
+exige `service_role` e ela não pode viver no navegador. Apagar só a linha de
+`perfis` pelo cliente deixaria a conta viva: a pessoa continuaria entrando,
+cairia em "sua conta existe mas ainda não tem acesso", e não poderia ser
+convidada de novo — o gatilho do convite só dispara quando a conta **nasce**.
+
+A decisão de quem exclui quem mora em `web/src/paginas/admin/regraDeExclusao.ts`
+e é **copiada** para a função por `ferramentas/preparar-funcao.mjs`. A função
+roda com `service_role`, sem RLS por baixo: lá a checagem é a única que sobra,
+e uma segunda cópia escrita à mão divergiria — com o lado divergente sendo
+justamente o que apaga.
+
 ### Como a pessoa convidada entra
 
 0. **o sistema não envia nada sozinho.** O convite é uma permissão guardada em
