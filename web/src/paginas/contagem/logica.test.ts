@@ -378,3 +378,66 @@ describe('o eixo da contagem · as mesmas linhas, tres recortes', () => {
     expect(grupos.map((g) => g.nome)).toEqual(['Sem categoria'])
   })
 })
+
+describe('lista unica · o mesmo produto em varios lugares', () => {
+  const LUGARES = [
+    { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-g1', estoque_nome: 'Geladeira 1', itens: 1 },
+    { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-g2', estoque_nome: 'Geladeira 2', itens: 1 },
+    { setor_id: 's-coz', setor_nome: 'Cozinha', setor_cor: '#222222', estoque_id: 'e-cf', estoque_nome: 'Câmara fria', itens: 1 },
+    { setor_id: 's-coz', setor_nome: 'Cozinha', setor_cor: '#222222', estoque_id: 'e-de', estoque_nome: 'Despensa', itens: 1 },
+  ]
+
+  function mesma(id: string, setor_id: string, estoque_id: string): ItemContavel {
+    return {
+      id, produto_id: 'p-cachaca', setor_id, estoque_id, quantidade: 0,
+      unidade: 'UND', custo_unitario: 7.91, total: 0, contado_em: null,
+      produto: { nome: 'CACHAÇA 51', categoria_id: 'c-beb' },
+    }
+  }
+
+  // De proposito fora de ordem: e assim que o servidor pode devolver.
+  const ITENS = [
+    mesma('4', 's-coz', 'e-de'),
+    mesma('1', 's-bar', 'e-g1'),
+    mesma('3', 's-coz', 'e-cf'),
+    mesma('2', 's-bar', 'e-g2'),
+  ]
+
+  it('as linhas do mesmo produto saem na ordem dos lugares, nao ao acaso', () => {
+    // Cinco linhas com o mesmo nome em ordem aleatoria transformam preencher a
+    // terceira geladeira em adivinhacao.
+    const [grupo] = gruposDaParada('produto', ITENS, [], LUGARES)
+    expect(grupo?.itens.map((i) => i.id)).toEqual(['1', '2', '3', '4'])
+  })
+
+  it('cada linha se explica pelo lugar', () => {
+    const [grupo] = gruposDaParada('produto', ITENS, [], LUGARES)
+    expect(grupo?.itens.map((i) => ondeFica(i, LUGARES))).toEqual([
+      'Bar › Geladeira 1',
+      'Bar › Geladeira 2',
+      'Cozinha › Câmara fria',
+      'Cozinha › Despensa',
+    ])
+  })
+
+  it('no eixo setor, cada lugar e uma parada com uma linha so', () => {
+    const paradas = montarParadas('setor', LUGARES, [], ITENS)
+    expect(paradas).toHaveLength(4)
+    for (const parada of paradas) {
+      expect(itensDaParada('setor', parada.id, ITENS)).toHaveLength(1)
+    }
+  })
+
+  it('no eixo categoria, o produto aparece uma vez por lugar', () => {
+    const grupos = gruposDaParada(
+      'categoria',
+      itensDaParada('categoria', 'c-beb', ITENS),
+      [{ id: 'c-beb', nome: 'BEBIDAS', cor: '#a1a1a1' }],
+      LUGARES,
+    )
+    expect(grupos.map((g) => g.nome)).toEqual([
+      'Bar › Geladeira 1', 'Bar › Geladeira 2', 'Cozinha › Câmara fria', 'Cozinha › Despensa',
+    ])
+    expect(grupos.every((g) => g.itens.length === 1)).toBe(true)
+  })
+})

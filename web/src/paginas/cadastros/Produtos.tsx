@@ -57,6 +57,7 @@ import {
   faixaDeCusto,
   filtrarProdutos,
   janelaDeLinhas,
+  lugaresDoProduto,
   ordenarProdutos,
   unidadesDoProduto,
   type ColunaDeProdutos,
@@ -143,16 +144,28 @@ function Setores({ produto }: { produto: ProdutoCompleto }): JSX.Element {
       </span>
     )
   }
-  const visiveis = produto.setores.slice(0, 2)
-  const resto = produto.setores.length - visiveis.length
+  const lugares = lugaresDoProduto(produto)
+  const visiveis = lugares.slice(0, 2)
+  const resto = lugares.length - visiveis.length
   return (
     <span
       className="flex items-center gap-1.5 whitespace-nowrap"
-      title={produto.setores.map((s) => `${s.setor_nome}: ${dinheiro(s.custo)}/${s.unidade}`).join(' · ')}
+      title={produto.setores
+        .map((s) => {
+          const onde = (s.estoques ?? []).map((e) => e.nome).join(', ')
+          return `${s.setor_nome}${onde === '' ? '' : ` › ${onde}`}: ${dinheiro(s.custo)}/${s.unidade}`
+        })
+        .join(' · ')}
     >
-      {visiveis.map((s) => (
-        <Selo key={s.setor_id} cor={s.setor_cor}>
-          {s.setor_nome}
+      {visiveis.map((lugar) => (
+        <Selo key={lugar.setorId} cor={lugar.setorCor}>
+          {lugar.setorNome}
+          {/* O número de lugares, quando há mais de um. Sem ele, um produto
+              guardado em três geladeiras da cozinha fica idêntico a um contado
+              uma vez lá — e são três linhas na folha contra uma. */}
+          {lugar.estoques.length > 1 && (
+            <span className="mv-numero opacity-70">·{lugar.estoques.length}</span>
+          )}
         </Selo>
       ))}
       {resto > 0 && <span className="mv-numero text-micro text-texto-fraco">+{resto}</span>}

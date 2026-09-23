@@ -449,7 +449,20 @@ export function gruposDaParada(
     }))
     return agrupar(itens, (i) => chaveDoLugar(i.setor_id, i.estoque_id), ordem, rascunhos, 'Fora do cadastro')
   }
-  const ordenados = [...itens].sort(porNome)
+  // Ordem alfabética, e o lugar desempata. Um produto guardado em cinco
+  // lugares rende cinco linhas com o MESMO nome: sem desempate elas saem numa
+  // ordem qualquer, e preencher a terceira geladeira vira adivinhação. O
+  // índice vem de `lugares`, que já chega ordenado por setor e por lugar.
+  const posicao = new Map(
+    lugares.map((lugar, i) => [chaveDoLugar(lugar.setor_id, lugar.estoque_id), i]),
+  )
+  const ordenados = [...itens].sort((a, b) => {
+    const nome = porNome(a, b)
+    if (nome !== 0) return nome
+    const pa = posicao.get(chaveDoLugar(a.setor_id, a.estoque_id)) ?? Number.MAX_SAFE_INTEGER
+    const pb = posicao.get(chaveDoLugar(b.setor_id, b.estoque_id)) ?? Number.MAX_SAFE_INTEGER
+    return pa - pb
+  })
   return [{ id: 'todos', nome: 'Todos os produtos', cor: null, itens: ordenados, total: totalDosItens(ordenados, rascunhos) }]
 }
 

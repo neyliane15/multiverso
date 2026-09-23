@@ -25,6 +25,7 @@ import type { VinculoSetor } from '@/dados/consultas'
 import { PainelLateral } from '../PainelLateral'
 import {
   UNIDADES_COMUNS,
+  linhasDoRascunho,
   produtoDoRascunho,
   rascunhoDeProduto,
   validarProduto,
@@ -105,6 +106,7 @@ export function FormularioDeProduto({
   const mostrar = (campo: string) => (tentouSalvar ? problemaDe(campo) : undefined)
 
   const marcados = disponiveis.filter((s) => rascunho.setores[s.id]?.marcado)
+  const linhasNaFolha = linhasDoRascunho(rascunho)
 
   function mudarSetor(id: string, mudanca: Partial<RascunhoDeSetor>) {
     setRascunho((r) => {
@@ -342,8 +344,20 @@ export function FormularioDeProduto({
           </div>
           <p className="mt-1 text-apoio leading-relaxed text-texto-fraco">
             Marque cada setor em que o produto existe. Cada um guarda a própria unidade e o próprio
-            custo — a mesma tilápia pode ser 41,50/KG no estoque e 6,34/UND já porcionada.
+            custo — a mesma tilápia pode ser 41,50/KG no estoque e 6,34/UND já porcionada. Dentro
+            do setor, marque quantos lugares quiser: o mesmo produto pode estar na Geladeira 1 e na
+            2 do mesmo bar.
           </p>
+
+          {/* O número que resume a escolha inteira. Cada linha é uma parada de
+              quem conta, e é esse o custo real de marcar mais um lugar. */}
+          {linhasNaFolha > 0 && (
+            <p className="mt-2 text-apoio text-texto-suave" role="status">
+              Este produto vai gerar{' '}
+              <strong className="mv-numero font-semibold text-texto">{linhasNaFolha}</strong>{' '}
+              {linhasNaFolha === 1 ? 'linha' : 'linhas'} na folha de contagem.
+            </p>
+          )}
 
           {mostrar('setores') && (
             <p role="alert" className="mt-2 text-apoio text-erro-texto">

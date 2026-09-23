@@ -336,6 +336,54 @@ export function validarProduto(
   return problemas
 }
 
+export interface LugarDoProduto {
+  setorId: string
+  setorNome: string
+  setorCor: string
+  /** Os lugares dentro do setor. Vazio = conta-se o setor inteiro, uma vez. */
+  estoques: string[]
+  /** Quantas linhas de contagem este setor gera para este produto. */
+  linhas: number
+}
+
+/**
+ * Onde o produto é contado, com o peso de cada lugar.
+ *
+ * O catálogo mostrava só o nome do setor, e com isso um produto guardado em
+ * três geladeiras da cozinha ficava idêntico a um contado uma vez lá. São
+ * coisas diferentes: a primeira rende três linhas na folha, três paradas e
+ * três números para somar. O `linhas` é esse peso, e é o que a lista precisa
+ * mostrar para não esconder trabalho.
+ */
+export function lugaresDoProduto(produto: ProdutoCompleto): LugarDoProduto[] {
+  return produto.setores.map((setor) => {
+    const estoques = (setor.estoques ?? []).map((e) => e.nome)
+    return {
+      setorId: setor.setor_id,
+      setorNome: setor.setor_nome,
+      setorCor: setor.setor_cor,
+      estoques,
+      // Sem lugar cadastrado o setor ainda rende uma linha: a do setor inteiro.
+      linhas: Math.max(estoques.length, 1),
+    }
+  })
+}
+
+/** Quantas linhas este produto põe na folha de contagem, somando os setores. */
+export function linhasDeContagem(produto: ProdutoCompleto): number {
+  return lugaresDoProduto(produto).reduce((soma, lugar) => soma + lugar.linhas, 0)
+}
+
+/** O mesmo, a partir do rascunho aberto no formulário (antes de salvar). */
+export function linhasDoRascunho(rascunho: RascunhoDeProduto): number {
+  let total = 0
+  for (const linha of Object.values(rascunho.setores)) {
+    if (!linha.marcado) continue
+    total += Math.max(linha.estoques.length, 1)
+  }
+  return total
+}
+
 /** Os vínculos que `useSalvarProduto` reconcilia — só os setores marcados. */
 export function vinculosDoRascunho(rascunho: RascunhoDeProduto): VinculoSetor[] {
   return Object.entries(rascunho.setores)

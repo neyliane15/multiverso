@@ -14,6 +14,9 @@ import {
   faixaDeCusto,
   filtrarProdutos,
   janelaDeLinhas,
+  linhasDeContagem,
+  linhasDoRascunho,
+  lugaresDoProduto,
   nomeJaUsado,
   ordenarProdutos,
   produtoDoRascunho,
@@ -575,5 +578,111 @@ describe('estoque de setor · o lugar dentro do setor', () => {
     }
     r.setores['s-geral'] = { marcado: true, unidade: 'UND', custo: 7.91, custoFixo: false, estoques: [] }
     expect(vinculosDoRascunho(r).map((v) => v.setor_id)).toEqual(['s-geral'])
+  })
+})
+
+describe('lugaresDoProduto · o peso de cada setor na folha', () => {
+  function comLugares(...setores: { nome: string; estoques: string[] }[]): ProdutoCompleto {
+    return produto({
+      id: 'p-multi',
+      nome: 'CACHAÇA 51',
+      setores: setores.map((s, i) => ({
+        setor_id: `s-${i}`,
+        setor_nome: s.nome,
+        setor_cor: '#111111',
+        unidade: 'UND',
+        custo: 7.91,
+        ordem: i,
+        custo_fixo: false,
+        custo_atualizado_em: null,
+        estoques: s.estoques.map((nome, j) => ({ id: `e-${i}-${j}`, nome })),
+      })),
+    })
+  }
+
+  it('setor sem subdivisao ainda rende uma linha: a do setor inteiro', () => {
+    const [cozinha] = lugaresDoProduto(comLugares({ nome: 'Cozinha', estoques: [] }))
+    expect(cozinha).toMatchObject({ setorNome: 'Cozinha', estoques: [], linhas: 1 })
+  })
+
+  it('tres lugares no mesmo setor sao tres linhas, nao uma', () => {
+    // O que a lista escondia: um produto guardado em tres geladeiras da
+    // cozinha ficava igual a um contado uma vez la.
+    const [cozinha] = lugaresDoProduto(
+      comLugares({ nome: 'Cozinha', estoques: ['Câmara fria', 'Despensa', 'Bancada'] }),
+    )
+    expect(cozinha?.linhas).toBe(3)
+    expect(cozinha?.estoques).toEqual(['Câmara fria', 'Despensa', 'Bancada'])
+  })
+
+  it('lugares em setores diferentes somam', () => {
+    const p = comLugares(
+      { nome: 'Bar', estoques: ['Geladeira 1', 'Geladeira 2'] },
+      { nome: 'Cozinha', estoques: ['Câmara fria', 'Despensa'] },
+    )
+    expect(lugaresDoProduto(p).map((l) => l.linhas)).toEqual([2, 2])
+    expect(linhasDeContagem(p)).toBe(4)
+  })
+
+  it('mistura de setor com e sem subdivisao', () => {
+    const p = comLugares(
+      { nome: 'Bar', estoques: ['Geladeira 1', 'Geladeira 2'] },
+      { nome: 'Limpeza', estoques: [] },
+    )
+    expect(linhasDeContagem(p)).toBe(3)
+  })
+
+  it('produto sem setor nenhum nao entra na folha', () => {
+    expect(linhasDeContagem(produto({ id: 'p-solto', nome: 'SOLTO' }))).toBe(0)
+  })
+})
+
+describe('linhasDoRascunho · o mesmo numero antes de salvar', () => {
+  const SETORES: readonly SetorDisponivel[] = [
+    { id: 's-bar', nome: 'Bar', cor: '#111111', estoques: [
+      { id: 'e-1', nome: 'Geladeira 1' }, { id: 'e-2', nome: 'Geladeira 2' } ] },
+    { id: 's-coz', nome: 'Cozinha', cor: '#222222', estoques: [] },
+  ]
+
+  it('conta so os setores marcados', () => {
+    const r = rascunhoDeProduto(null, SETORES)
+    expect(linhasDoRascunho(r)).toBe(0)
+    r.setores['s-coz'] = { marcado: true, unidade: 'UND', custo: 1, custoFixo: false, estoques: [] }
+    expect(linhasDoRascunho(r)).toBe(1)
+  })
+
+  it('marcar o segundo lugar do mesmo setor soma uma linha', () => {
+    const r = rascunhoDeProduto(null, SETORES)
+    r.setores['s-bar'] = { marcado: true, unidade: 'UND', custo: 1, custoFixo: false, estoques: ['e-1'] }
+    expect(linhasDoRascunho(r)).toBe(1)
+    r.setores['s-bar'] = { ...r.setores['s-bar']!, estoques: ['e-1', 'e-2'] }
+    expect(linhasDoRascunho(r)).toBe(2)
+  })
+
+  it('desmarcar o setor leva os lugares dele junto', () => {
+    const r = rascunhoDeProduto(null, SETORES)
+    r.setores['s-bar'] = { marcado: false, unidade: 'UND', custo: 1, custoFixo: false, estoques: ['e-1', 'e-2'] }
+    r.setores['s-coz'] = { marcado: true, unidade: 'UND', custo: 1, custoFixo: false, estoques: [] }
+    expect(linhasDoRascunho(r)).toBe(1)
+  })
+
+  it('bate com o que o banco vai gerar', () => {
+    // A tela promete um numero antes de salvar; o banco produz outro depois.
+    // Os dois tem de ser o mesmo, senao a promessa e mentira.
+    const r = rascunhoDeProduto(null, SETORES)
+    r.setores['s-bar'] = { marcado: true, unidade: 'UND', custo: 1, custoFixo: false, estoques: ['e-1', 'e-2'] }
+    r.setores['s-coz'] = { marcado: true, unidade: 'UND', custo: 1, custoFixo: false, estoques: [] }
+
+    const salvo = produto({
+      id: 'p', nome: 'X',
+      setores: vinculosDoRascunho(r).map((v, i) => ({
+        setor_id: v.setor_id, setor_nome: '', setor_cor: '#000000',
+        unidade: v.unidade, custo: v.custo, ordem: i,
+        custo_fixo: v.custo_fixo, custo_atualizado_em: null,
+        estoques: v.estoques.map((id) => ({ id, nome: id })),
+      })),
+    })
+    expect(linhasDeContagem(salvo)).toBe(linhasDoRascunho(r))
+    expect(linhasDeContagem(salvo)).toBe(3)
   })
 })

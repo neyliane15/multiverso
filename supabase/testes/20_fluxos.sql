@@ -487,6 +487,98 @@ begin
   reset role;
 end $$;
 
+-- -------------------------------- produto em varios lugares, varios setores --
+-- A regra que desenha o modulo, um nivel abaixo: assim como o produto vive em
+-- varios SETORES, ele vive em varios LUGARES de cada setor. Tres geladeiras na
+-- cozinha sao tres paradas de quem conta, nao uma.
+do $$
+declare
+  r uuid; s_a uuid; s_b uuid; p uuid; c uuid; c2 uuid;
+  e_a1 uuid; e_a2 uuid; e_a3 uuid; e_b1 uuid; e_b2 uuid;
+  res record; n integer;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f1', true);
+
+  select id into s_a from setores where restaurante_id = r order by ordem, nome limit 1;
+  select id into s_b from setores where restaurante_id = r and id <> s_a order by ordem, nome limit 1;
+
+  -- Um produto que vive nos dois setores.
+  select ps.produto_id into p from produto_setores ps where ps.setor_id = s_a limit 1;
+  insert into produto_setores (produto_id, setor_id, unidade, custo)
+  values (p, s_b, 'UND', 9) on conflict do nothing;
+
+  insert into estoques (restaurante_id, setor_id, nome, ordem) values
+    (r, s_a, 'Lugar A1', 1) returning id into e_a1;
+  insert into estoques (restaurante_id, setor_id, nome, ordem) values
+    (r, s_a, 'Lugar A2', 2) returning id into e_a2;
+  insert into estoques (restaurante_id, setor_id, nome, ordem) values
+    (r, s_a, 'Lugar A3', 3) returning id into e_a3;
+  insert into estoques (restaurante_id, setor_id, nome, ordem) values
+    (r, s_b, 'Lugar B1', 1) returning id into e_b1;
+  insert into estoques (restaurante_id, setor_id, nome, ordem) values
+    (r, s_b, 'Lugar B2', 2) returning id into e_b2;
+
+  -- Tres lugares num setor, dois no outro.
+  insert into produto_estoques (produto_id, estoque_id)
+  values (p, e_a1), (p, e_a2), (p, e_a3), (p, e_b1), (p, e_b2);
+
+  c := mv_abrir_contagem(r, date '2026-11-10', 'avulsa', 'Varios lugares');
+
+  select count(*) into n from contagem_itens
+   where contagem_id = c and produto_id = p and setor_id = s_a;
+  perform conferir('tres lugares num setor rendem tres linhas', n = 3);
+
+  select count(*) into n from contagem_itens
+   where contagem_id = c and produto_id = p and setor_id = s_b;
+  perform conferir('e dois lugares no outro rendem duas', n = 2);
+
+  select count(distinct estoque_id) into n from contagem_itens
+   where contagem_id = c and produto_id = p;
+  perform conferir('as cinco linhas apontam para cinco lugares distintos', n = 5);
+
+  perform conferir('e nenhuma delas vem sem lugar',
+    not exists (select 1 from contagem_itens
+                 where contagem_id = c and produto_id = p and estoque_id is null));
+
+  -- A invariante que amarra as duas funcoes: refazer tem de chegar na MESMA
+  -- folha que abrir. Sem isto, uma delas poderia ganhar um LATERAL e a outra
+  -- nao, e a folha refeita passaria a divergir da recem-aberta sem aviso.
+  select * into res from mv_refazer_folha(c);
+  perform conferir('refazer concorda com abrir: nada a acrescentar',
+    res.acrescentadas = 0);
+  perform conferir('refazer concorda com abrir: nada a remover', res.removidas = 0);
+
+  -- E uma folha aberta DEPOIS tem de ser identica, linha a linha.
+  c2 := mv_abrir_contagem(r, date '2026-11-11', 'avulsa', 'Conferencia');
+  perform conferir('duas folhas do mesmo cadastro tem as mesmas linhas',
+    not exists (
+      (select produto_id, setor_id, estoque_id from contagem_itens where contagem_id = c
+       except
+       select produto_id, setor_id, estoque_id from contagem_itens where contagem_id = c2)
+      union all
+      (select produto_id, setor_id, estoque_id from contagem_itens where contagem_id = c2
+       except
+       select produto_id, setor_id, estoque_id from contagem_itens where contagem_id = c)));
+
+  -- Tirar um lugar tira exatamente uma linha da proxima folha.
+  delete from produto_estoques where produto_id = p and estoque_id = e_a3;
+  select * into res from mv_refazer_folha(c);
+  perform conferir('tirar um lugar tira uma linha da folha', res.removidas = 1);
+  select count(*) into n from contagem_itens
+   where contagem_id = c and produto_id = p and setor_id = s_a;
+  perform conferir('e sobram dois lugares naquele setor', n = 2);
+
+  -- O cenario volta como estava.
+  delete from contagem_itens where contagem_id in (c, c2);
+  delete from contagens where id in (c, c2);
+  delete from produto_estoques where produto_id = p;
+  delete from estoques where id in (e_a1, e_a2, e_a3, e_b1, e_b2);
+  delete from produto_setores where produto_id = p and setor_id = s_b;
+  reset role;
+end $$;
+
 -- ------------------------------------------------- lista de compras --------
 do $$
 declare r uuid; l uuid; n integer;
