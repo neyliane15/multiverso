@@ -255,6 +255,7 @@ justamente porque o bundler não é confiável para seguir import que sai dela.
 | `Faltam VITE_SUPABASE_URL...` | `.env` na raiz do repositório, não em `web/` |
 | Login passa, telas vazias, ou "sua conta existe mas ainda não tem acesso" | Conta criada sem convite. Se for a primeira do sistema, rode `mv_semear_master('o-email')` — ela adota a conta que já existe, sem recriar nada. Se já houver master, é caso de convite. |
 | `permission denied for table` | Migração `0006` não aplicou; rode `supabase db push` de novo |
+| `cannot drop columns from view` ou `cannot change return type` no `db push` | O histórico de migrações está atrás do banco — acontece quando alguém roda o SQL na mão pelo painel. O `push` reaplica tudo o que o histórico não registra, e as migrações aguentam isso desde que estejam atualizadas: dê `git pull` e rode de novo. A suíte de banco reaplica todas as migrações por cima do banco pronto justamente para que isso não apareça na sua produção. |
 | Função de NFe falha no deploy | Rode `npm run funcao:preparar` antes |
 | Logo não sobe | O caminho no bucket tem de ser `<restaurante_id>/<arquivo>` |
 

@@ -238,6 +238,21 @@ left join categorias c on c.id = p.categoria_id;
 
 -- Total por lugar dentro de uma contagem. O setor sem subdivisao aparece uma
 -- vez, com estoque_nome nulo — a tela mostra o setor inteiro nesse caso.
+--
+-- `drop` antes, e nao `create or replace` sozinho: a 0012 ACRESCENTA colunas a
+-- esta vista, e `create or replace view` sabe acrescentar coluna no fim mas
+-- nao sabe tirar. Reaplicar a 0011 num banco que ja recebeu a 0012 — o que
+-- acontece sempre que o historico de migracoes esta atras do banco, por
+-- exemplo depois de rodar o SQL na mao pelo painel — morria em "cannot drop
+-- columns from view", e a migracao inteira voltava atras.
+--
+-- Derrubar esta aqui nao custa nada: a vista NASCE nesta migracao, entao nao
+-- ha permissao anterior a preservar, e o grant e o security_invoker sao
+-- repostos poucas linhas abaixo, nesta mesma migracao. O caso da
+-- vw_produtos_completos acima e o oposto — ela vem da 0009 com grant proprio,
+-- e por isso la o `create or replace` e obrigatorio.
+drop view if exists vw_contagem_por_estoque;
+
 create or replace view vw_contagem_por_estoque as
 select
   i.contagem_id, c.restaurante_id,

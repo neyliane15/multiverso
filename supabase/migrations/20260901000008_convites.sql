@@ -170,6 +170,15 @@ grant select, insert, update, delete on convites to authenticated;
 -- Ovo e galinha: nao ha master para convidar o primeiro master. O primeiro
 -- convite e semeado fora da RLS, por quem tem acesso ao banco (migracao, psql
 -- ou service role). Depois disso, a cadeia se sustenta sozinha.
+-- O `drop` e para a SEGUNDA passada: uma migracao posterior muda o formato do
+-- retorno desta funcao, e `create or replace function` recusa mudar retorno.
+-- Reaplicar esta migracao num banco ja adiantado — o que o `supabase db push`
+-- faz sempre que o historico de migracoes esta atras do banco — morria em
+-- "cannot change return type of existing function", levando junto a migracao
+-- inteira. Quem depende do formato novo e a migracao que o introduziu, e ela
+-- roda logo depois desta, na mesma passada.
+drop function if exists mv_semear_master(text, text);
+
 create or replace function mv_semear_master(p_email text, p_nome text default null)
 returns convites
 language plpgsql security definer set search_path = public as $$

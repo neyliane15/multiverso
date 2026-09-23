@@ -18,6 +18,15 @@
 -- Compras seguem valendo mesmo sem contagem: nota lancada e fato consumado.
 -- ============================================================================
 
+-- O `drop` e para a SEGUNDA passada: uma migracao posterior muda o formato do
+-- retorno desta funcao, e `create or replace function` recusa mudar retorno.
+-- Reaplicar esta migracao num banco ja adiantado — o que o `supabase db push`
+-- faz sempre que o historico de migracoes esta atras do banco — morria em
+-- "cannot change return type of existing function", levando junto a migracao
+-- inteira. Quem depende do formato novo e a migracao que o introduziu, e ela
+-- roda logo depois desta, na mesma passada.
+drop function if exists mv_cmv_por_categoria(uuid, date, date);
+
 create or replace function mv_cmv_por_categoria(
   p_restaurante uuid,
   p_inicio      date,

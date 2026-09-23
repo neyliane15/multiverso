@@ -26,6 +26,19 @@ if [ -z "${SEM_SEED:-}" ]; then
   done
 fi
 
+# As migracoes aplicadas DE NOVO, por cima do banco ja pronto e com carga.
+#
+# Nao e paranoia: o `supabase db push` reaplica tudo o que nao esta no historico
+# de migracoes, e o historico fica atras do banco toda vez que alguem roda o SQL
+# na mao pelo painel. Foi assim que a 0011 morreu em "cannot drop columns from
+# view" num banco que ja tinha recebido a 0012 — e a migracao inteira voltou
+# atras. Com ON_ERROR_STOP, qualquer migracao que nao aguente uma segunda
+# passada derruba a suite aqui, e nao na producao de alguem.
+echo "→ segunda passada das migracoes (o banco ja pronto)"
+for f in "$RAIZ"/supabase/migrations/*.sql; do
+  "${PSQL[@]}" -d "$BANCO" -f "$f" >/dev/null
+done
+
 for f in "$RAIZ"/supabase/testes/[1-9]*.sql; do
   [ -e "$f" ] || continue
   echo "→ $(basename "$f")"

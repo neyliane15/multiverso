@@ -129,6 +129,19 @@ call mv_registra_touch('produtos');
 
 -- ------------------------------------------------------------------- vista -
 -- Produto com categoria e setores resolvidos: o que a tela de Cadastros lista.
+--
+-- O `drop` e para a SEGUNDA passada. Migracao boa aguenta ser reaplicada, e
+-- isso acontece de verdade: o `supabase db push` reaplica tudo o que o
+-- historico de migracoes nao registra, e o historico fica atras do banco
+-- sempre que alguem roda o SQL na mao pelo painel. Nessa hora esta vista ja
+-- ganhou colunas da 0009 e da 0011, e `create or replace view` acrescenta
+-- coluna no fim mas nao sabe tirar — o erro e "cannot drop columns from view",
+-- e leva a migracao inteira junto.
+--
+-- Derrubar aqui nao perde permissao: a 0009 refaz esta vista do zero e repoe o
+-- grant logo depois, na mesma passada.
+drop view if exists vw_produtos_completos;
+
 create or replace view vw_produtos_completos as
 select
   p.id, p.restaurante_id, p.nome, p.codigo, p.codigo_barras, p.unidade,
