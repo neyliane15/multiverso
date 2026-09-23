@@ -5,7 +5,11 @@ import {
   filtrarItens,
   foiTrabalhado,
   hojeIso,
+  gruposDaParada,
+  itensDaParada,
   montarAbas,
+  montarParadas,
+  ondeFica,
   resumoDoFechamento,
   rotuloDaAba,
   totalDosItens,
@@ -268,5 +272,109 @@ describe('montarAbas · a folha se anda por parada, nao por setor', () => {
 
   it('chaveDoLugar trata nulo e indefinido como o setor inteiro', () => {
     expect(chaveDoLugar('s', null)).toBe(chaveDoLugar('s', undefined))
+  })
+})
+
+describe('o eixo da contagem · as mesmas linhas, tres recortes', () => {
+  const LUGARES = [
+    { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-1', estoque_nome: 'Geladeira 1', itens: 2 },
+    { setor_id: 's-coz', setor_nome: 'Cozinha', setor_cor: '#222222', estoque_id: null, estoque_nome: null, itens: 2 },
+  ]
+  const CATS: CategoriaSimples[] = [
+    { id: 'c-beb', nome: 'BEBIDAS', cor: '#a1a1a1' },
+    { id: 'c-car', nome: 'CARNES', cor: '#b2b2b2' },
+  ]
+
+  function linha(
+    id: string,
+    setor_id: string,
+    estoque_id: string | null,
+    categoria_id: string | null,
+    quantidade: number,
+    custo = 10,
+  ): ItemContavel {
+    return {
+      id, produto_id: `p-${id}`, setor_id, estoque_id, quantidade,
+      unidade: 'UND', custo_unitario: custo, total: quantidade * custo,
+      contado_em: null, produto: { nome: id.toUpperCase(), categoria_id },
+    }
+  }
+
+  const ITENS = [
+    linha('cerveja', 's-bar', 'e-1', 'c-beb', 2),
+    linha('gin', 's-bar', 'e-1', 'c-beb', 0),
+    linha('picanha', 's-coz', null, 'c-car', 1),
+    linha('suco', 's-coz', null, 'c-beb', 0),
+  ]
+
+  it('trocar de eixo nao cria nem esconde linha nenhuma', () => {
+    // A garantia que importa: os tres eixos sao recortes das MESMAS linhas.
+    for (const eixo of ['setor', 'categoria', 'produto'] as const) {
+      const paradas = montarParadas(eixo, LUGARES, CATS, ITENS)
+      const vistos = new Set<string>()
+      if (eixo === 'produto') {
+        for (const g of gruposDaParada(eixo, ITENS, CATS, LUGARES)) {
+          for (const i of g.itens) vistos.add(i.id)
+        }
+      } else {
+        for (const parada of paradas) {
+          for (const i of itensDaParada(eixo, parada.id, ITENS)) vistos.add(i.id)
+        }
+      }
+      expect([...vistos].sort()).toEqual(['cerveja', 'gin', 'picanha', 'suco'])
+    }
+  })
+
+  it('no eixo produto nao ha parada: uma navegacao de uma entrada so e enfeite', () => {
+    expect(montarParadas('produto', LUGARES, CATS, ITENS)).toEqual([])
+  })
+
+  it('no eixo setor, as paradas sao os lugares', () => {
+    const paradas = montarParadas('setor', LUGARES, CATS, ITENS)
+    expect(paradas.map((p) => p.titulo)).toEqual(['Geladeira 1', 'Cozinha'])
+  })
+
+  it('no eixo categoria, as paradas sao as categorias COM linha', () => {
+    // Listar as 21 do cadastro com metade zerada faria a navegacao mentir
+    // sobre o tamanho do trabalho.
+    const paradas = montarParadas('categoria', LUGARES, [...CATS, { id: 'c-vazia', nome: 'VAZIA', cor: '#c3c3c3' }], ITENS)
+    expect(paradas.map((p) => p.titulo)).toEqual(['BEBIDAS', 'CARNES'])
+    expect(paradas[0]).toMatchObject({ itens: 3, preenchidos: 1 })
+  })
+
+  it('dentro da parada vem sempre o OUTRO eixo', () => {
+    const noSetor = gruposDaParada('setor', itensDaParada('setor', 's-bar:e-1', ITENS), CATS, LUGARES)
+    expect(noSetor.map((g) => g.nome)).toEqual(['BEBIDAS'])
+
+    const naCategoria = gruposDaParada('categoria', itensDaParada('categoria', 'c-beb', ITENS), CATS, LUGARES)
+    expect(naCategoria.map((g) => g.nome)).toEqual(['Bar › Geladeira 1', 'Cozinha'])
+  })
+
+  it('no eixo produto e um bloco so, em ordem alfabetica', () => {
+    const grupos = gruposDaParada('produto', ITENS, CATS, LUGARES)
+    expect(grupos).toHaveLength(1)
+    expect(grupos[0]?.itens.map((i) => i.produto?.nome)).toEqual(['CERVEJA', 'GIN', 'PICANHA', 'SUCO'])
+  })
+
+  it('a linha da lista unica diz de onde e', () => {
+    // Sem isso, um produto que vive em dois lugares aparece duas vezes
+    // identicas e nao da para saber qual se esta preenchendo.
+    const [cerveja, , picanha] = ITENS
+    expect(cerveja && ondeFica(cerveja, LUGARES)).toBe('Bar › Geladeira 1')
+    expect(picanha && ondeFica(picanha, LUGARES)).toBe('Cozinha')
+  })
+
+  it('linha de um setor que saiu do cadastro nao some: vai para o fim, visivel', () => {
+    const orfa = linha('sumido', 's-antigo', null, 'c-car', 5)
+    const grupos = gruposDaParada('categoria', [...ITENS, orfa], CATS, LUGARES)
+    const resto = grupos.at(-1)
+    expect(resto?.nome).toBe('Fora do cadastro')
+    expect(resto?.itens.map((i) => i.id)).toEqual(['sumido'])
+  })
+
+  it('produto sem categoria cai num balde proprio, nao no vazio', () => {
+    const semCat = linha('avulso', 's-coz', null, null, 1)
+    const grupos = gruposDaParada('setor', [semCat], CATS, LUGARES)
+    expect(grupos.map((g) => g.nome)).toEqual(['Sem categoria'])
   })
 })

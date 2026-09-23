@@ -299,6 +299,84 @@ begin
   reset role;
 end $$;
 
+-- --------------------------------------------- refazer a folha aberta ------
+-- A folha e uma foto do cadastro no instante da abertura. Quando o cadastro
+-- muda de verdade — o Bar do Zeca indo de seis setores para quatro — a folha
+-- aberta fica mostrando setor que nao existe mais. Refazer realinha sem
+-- apagar o que ja foi contado.
+do $$
+declare
+  r uuid; c uuid; s_novo uuid; s_base uuid; p_alvo uuid; res record;
+  n_antes integer; v_erro text;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f1', true);
+
+  c := mv_abrir_contagem(r, date '2026-10-20', 'avulsa', 'Folha a refazer');
+  select count(*) into n_antes from contagem_itens where contagem_id = c;
+
+  -- Uma linha especifica, de um par produto x setor: o cenario tem produto em
+  -- dois setores, e carimbar "o produto" carimbaria os dois.
+  select produto_id, setor_id into p_alvo, s_base
+    from contagem_itens where contagem_id = c limit 1;
+  update contagem_itens set quantidade = 4, contado_em = now()
+   where contagem_id = c and produto_id = p_alvo and setor_id = s_base;
+
+  -- O cadastro muda: nasce um setor com este produto dentro.
+  insert into setores (restaurante_id, nome) values (r, 'Deposito') returning id into s_novo;
+  insert into produto_setores (produto_id, setor_id, unidade, custo)
+  values (p_alvo, s_novo, 'UND', 5);
+
+  select * into res from mv_refazer_folha(c);
+  perform conferir('refazer traz a linha do setor novo', res.acrescentadas = 1);
+  perform conferir('e nada mais: a folha cresce exatamente o que entrou',
+    (select count(*) from contagem_itens where contagem_id = c) = n_antes + 1);
+  perform conferir('refazer nao remove nada que esteja no cadastro', res.removidas = 0);
+
+  -- Agora o produto sai do cadastro inteiro. A linha zerada do Deposito pode
+  -- ir embora; a que tem quantidade, nao — e trabalho de quem contou.
+  update produtos set ativo = false where id = p_alvo;
+  select * into res from mv_refazer_folha(c);
+
+  perform conferir('a linha zerada do produto que saiu e removida', res.removidas >= 1);
+  perform conferir('a linha ja contada NAO e removida',
+    (select quantidade from contagem_itens
+      where contagem_id = c and produto_id = p_alvo and setor_id = s_base) = 4);
+  perform conferir('e o carimbo de quem contou continua la',
+    (select contado_em is not null from contagem_itens
+      where contagem_id = c and produto_id = p_alvo and setor_id = s_base));
+  perform conferir('ela volta contada como preservada, para a tela avisar',
+    res.preservadas >= 1);
+  perform conferir('a linha zerada do Deposito sumiu mesmo',
+    not exists (select 1 from contagem_itens
+                 where contagem_id = c and setor_id = s_novo));
+
+  -- Chamar duas vezes seguidas nao pode explodir nem mudar nada de novo.
+  select * into res from mv_refazer_folha(c);
+  perform conferir('refazer de novo, logo em seguida, nao mexe em nada',
+    res.acrescentadas = 0 and res.removidas = 0);
+
+  update produtos set ativo = true where id = p_alvo;
+
+  -- Folha fechada nao se refaz: a foto e imutavel, e e ela que sustenta o CMV.
+  perform mv_fechar_contagem(c);
+  begin
+    perform mv_refazer_folha(c);
+    v_erro := null;
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('folha fechada nao pode ser refeita', v_erro like '%so a folha aberta%');
+
+  -- O cenario volta como estava.
+  update contagens set status = 'aberta' where id = c;
+  delete from contagem_itens where contagem_id = c;
+  delete from contagens where id = c;
+  delete from produto_setores where setor_id = s_novo;
+  delete from setores where id = s_novo;
+  reset role;
+end $$;
+
 -- ----------------------------------------------- estoque de setor ----------
 do $$
 declare r uuid; s_bar uuid; e1 uuid; e2 uuid; p uuid; p_solto uuid; c uuid;

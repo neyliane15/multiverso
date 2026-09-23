@@ -279,3 +279,187 @@ export function hojeIso(agora = new Date()): string {
   const dia = String(agora.getDate()).padStart(2, '0')
   return `${agora.getFullYear()}-${mes}-${dia}`
 }
+
+/* ──────────────────────────────────────────────── o eixo da contagem ────── */
+
+/**
+ * Por onde se caminha na folha.
+ *
+ * Contar é uma tarefa física, e nem toda casa a faz do mesmo jeito. Quem tem
+ * o estoque organizado por lugar anda por setor. Quem confere preço de compra
+ * quer todas as bebidas juntas, venham de onde vierem. Quem está caçando um
+ * item específico não quer navegação nenhuma — quer a lista inteira e a busca.
+ *
+ * A tela não escolhe por ninguém: o eixo é do usuário, e os três reagrupam
+ * exatamente as mesmas linhas. Nada é criado nem escondido ao trocar.
+ */
+export type Eixo = 'setor' | 'categoria' | 'produto'
+
+export const EIXOS: { valor: Eixo; rotulo: string; ajuda: string }[] = [
+  { valor: 'setor', rotulo: 'Setor', ajuda: 'Uma parada por setor e por lugar — a ordem em que se anda pela casa.' },
+  { valor: 'categoria', rotulo: 'Categoria', ajuda: 'Uma parada por categoria, com os setores agrupados dentro.' },
+  { valor: 'produto', rotulo: 'Produto', ajuda: 'A folha inteira numa lista só, em ordem alfabética.' },
+]
+
+/** Uma parada da navegação: um setor, um lugar, uma categoria. */
+export interface Parada {
+  id: string
+  titulo: string
+  subtitulo: string | null
+  cor: string | null
+  itens: number
+  preenchidos: number
+  total: number
+}
+
+/** Um bloco dentro da parada aberta. */
+export interface Grupo {
+  id: string
+  nome: string
+  cor: string | null
+  itens: ItemContavel[]
+  total: number
+}
+
+const porNome = (a: ItemContavel, b: ItemContavel) =>
+  (a.produto?.nome ?? '').localeCompare(b.produto?.nome ?? '', 'pt-BR')
+
+/**
+ * Agrupa por uma chave qualquer, na ordem dada.
+ *
+ * A ordem vem do cadastro, e não do `Map`: categoria e setor têm ordem própria
+ * que o admin define, e obedecê-la é o que faz a folha da tela bater com a
+ * folha de papel. O que sobrar — categoria arquivada, setor que saiu do
+ * cadastro — vai para o fim, visível. Esconder seria perder item de vista bem
+ * na hora de contar.
+ */
+export function agrupar(
+  itens: readonly ItemContavel[],
+  chaveDoItem: (item: ItemContavel) => string,
+  ordem: readonly { id: string; nome: string; cor: string | null }[],
+  rascunhos?: Rascunhos,
+  nomeDoResto = 'Fora do cadastro',
+): Grupo[] {
+  const porChave = new Map<string, ItemContavel[]>()
+  for (const item of itens) {
+    const chave = chaveDoItem(item)
+    const lista = porChave.get(chave)
+    if (lista) lista.push(item)
+    else porChave.set(chave, [item])
+  }
+
+  const montar = (id: string, nome: string, cor: string | null, lista: ItemContavel[]): Grupo => {
+    const ordenados = [...lista].sort(porNome)
+    return { id, nome, cor, itens: ordenados, total: totalDosItens(ordenados, rascunhos) }
+  }
+
+  const grupos: Grupo[] = []
+  for (const { id, nome, cor } of ordem) {
+    const lista = porChave.get(id)
+    if (!lista) continue
+    grupos.push(montar(id, nome, cor, lista))
+    porChave.delete(id)
+  }
+  for (const [chave, lista] of porChave) {
+    grupos.push(montar(chave, nomeDoResto, null, lista))
+  }
+  return grupos
+}
+
+/** A chave de categoria de um item, com um balde próprio para quem não tem. */
+export const chaveDaCategoria = (item: ItemContavel): string =>
+  item.produto?.categoria_id ?? 'sem-categoria'
+
+/**
+ * As paradas do eixo escolhido.
+ *
+ * No eixo `produto` não há parada nenhuma: a folha é uma lista só, e uma
+ * navegação de uma entrada só seria enfeite ocupando a largura da tela.
+ */
+export function montarParadas(
+  eixo: Eixo,
+  totais: readonly TotalDoLugar[],
+  categorias: readonly CategoriaSimples[],
+  itens: readonly ItemContavel[],
+  rascunhos?: Rascunhos,
+): Parada[] {
+  if (eixo === 'produto') return []
+
+  if (eixo === 'setor') {
+    return montarAbas(totais, itens, rascunhos).map((aba) => ({
+      id: aba.id,
+      titulo: aba.titulo,
+      subtitulo: aba.subtitulo,
+      cor: aba.cor,
+      itens: aba.itens,
+      preenchidos: aba.preenchidos,
+      total: aba.total,
+    }))
+  }
+
+  // Categoria: só as que têm linha nesta folha. Listar as 21 do cadastro com
+  // metade zerada faria a navegação mentir sobre o tamanho do trabalho.
+  const grupos = agrupar(itens, chaveDaCategoria, categorias, rascunhos, 'Sem categoria')
+  return grupos.map((grupo) => ({
+    id: grupo.id,
+    titulo: grupo.nome,
+    subtitulo: null,
+    cor: grupo.cor,
+    itens: grupo.itens.length,
+    preenchidos: grupo.itens.filter((i) => quantidadeEmVigor(i, rascunhos) > 0).length,
+    total: grupo.total,
+  }))
+}
+
+/** Os itens que a parada aberta mostra. No eixo `produto`, a folha inteira. */
+export function itensDaParada(
+  eixo: Eixo,
+  paradaId: string | null,
+  itens: readonly ItemContavel[],
+): ItemContavel[] {
+  if (eixo === 'produto' || paradaId === null) return [...itens]
+  if (eixo === 'setor') {
+    return itens.filter((i) => chaveDoLugar(i.setor_id, i.estoque_id) === paradaId)
+  }
+  return itens.filter((i) => chaveDaCategoria(i) === paradaId)
+}
+
+/**
+ * Os blocos dentro da parada — sempre o outro eixo.
+ *
+ * Andando por setor, o que organiza a parada é a categoria; andando por
+ * categoria, é o setor. No eixo produto não há bloco: um cartão só, porque
+ * ali a pessoa está buscando pelo nome e qualquer divisão atrapalha.
+ */
+export function gruposDaParada(
+  eixo: Eixo,
+  itens: readonly ItemContavel[],
+  categorias: readonly CategoriaSimples[],
+  lugares: readonly TotalDoLugar[],
+  rascunhos?: Rascunhos,
+): Grupo[] {
+  if (eixo === 'setor') {
+    return agrupar(itens, chaveDaCategoria, categorias, rascunhos, 'Sem categoria')
+  }
+  if (eixo === 'categoria') {
+    const ordem = lugares.map((lugar) => ({
+      id: chaveDoLugar(lugar.setor_id, lugar.estoque_id),
+      nome: lugar.estoque_nome === null ? lugar.setor_nome : `${lugar.setor_nome} › ${lugar.estoque_nome}`,
+      cor: lugar.setor_cor,
+    }))
+    return agrupar(itens, (i) => chaveDoLugar(i.setor_id, i.estoque_id), ordem, rascunhos, 'Fora do cadastro')
+  }
+  const ordenados = [...itens].sort(porNome)
+  return [{ id: 'todos', nome: 'Todos os produtos', cor: null, itens: ordenados, total: totalDosItens(ordenados, rascunhos) }]
+}
+
+/** Onde este item está, para a linha se explicar sozinha no eixo produto. */
+export function ondeFica(
+  item: ItemContavel,
+  lugares: readonly TotalDoLugar[],
+): string | null {
+  const chave = chaveDoLugar(item.setor_id, item.estoque_id)
+  const lugar = lugares.find((l) => chaveDoLugar(l.setor_id, l.estoque_id) === chave)
+  if (!lugar) return null
+  return lugar.estoque_nome === null ? lugar.setor_nome : `${lugar.setor_nome} › ${lugar.estoque_nome}`
+}

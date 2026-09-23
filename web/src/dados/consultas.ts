@@ -591,6 +591,39 @@ export function useLancarQuantidade(contagemId: string) {
   })
 }
 
+export interface ResultadoDoRefazer {
+  acrescentadas: number
+  removidas: number
+  preservadas: number
+}
+
+/**
+ * Realinha a folha aberta com o cadastro de hoje.
+ *
+ * A folha é uma foto do cadastro no instante da abertura — de propósito, para
+ * que mexer no cadastro não mude uma contagem em andamento por baixo. O preço
+ * disso aparece quando o cadastro muda de verdade: foi o que deixou a folha
+ * do Bar do Zeca mostrando quatro setores que não existem mais.
+ */
+export function useRefazerFolha(contagemId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const linhas = await buscar<ResultadoDoRefazer[]>(
+        supabase.rpc('mv_refazer_folha', { p_contagem: contagemId }),
+      )
+      const resultado = linhas[0]
+      if (!resultado) throw new Error('a folha respondeu sem resultado')
+      return resultado
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.contagemItens(contagemId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagemEstoques(contagemId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagemSetores(contagemId) })
+    },
+  })
+}
+
 export function useFecharContagem(restauranteId: string) {
   const qc = useQueryClient()
   return useMutation({

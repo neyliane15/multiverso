@@ -21,6 +21,7 @@ import {
   ClipboardList,
   Lock,
   LockOpen,
+  RefreshCw,
   Search,
   Store,
 } from 'lucide-react'
@@ -35,6 +36,7 @@ import {
   useItensDaContagem,
   useLancarQuantidade,
   useReabrirContagem,
+  useRefazerFolha,
   useSetores,
   useTotaisPorEstoque,
 } from '@/dados/consultas'
@@ -61,17 +63,23 @@ import {
 } from '@/componentes/base'
 import { data as formatarData, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
 import {
-  agruparPorCategoria,
+  EIXOS,
   filtrarItens,
+  gruposDaParada,
   hojeIso,
-  chaveDoLugar,
-  montarAbas,
+  itensDaParada,
+  montarParadas,
+  ondeFica,
   quantidadeEmVigor,
-  rotuloDaAba,
   resumoDoFechamento,
   totalDosItens,
+  type Eixo,
   type ItemContavel,
+  type Parada,
 } from './logica'
+
+/** Chave do eixo no localStorage. */
+const EIXO_SALVO = 'multiverso:contagem:eixo'
 
 const TIPOS: { valor: TipoContagem; rotulo: string; ajuda: string }[] = [
   { valor: 'semanal', rotulo: 'Semanal', ajuda: 'A foto da semana, para acompanhar consumo.' },
@@ -293,12 +301,28 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   const lancar = useLancarQuantidade(contagemId)
   const fechar = useFecharContagem(restauranteId)
   const reabrir = useReabrirContagem(restauranteId)
+  const refazer = useRefazerFolha(contagemId)
 
-  const [setorAtivo, setSetorAtivo] = useState<string | null>(null)
+  /**
+   * O eixo fica no navegador, não no banco: é preferência de quem conta, e
+   * cada pessoa da equipe tem a sua. Quem abre a folha amanhã acha do jeito
+   * que deixou. Se o `localStorage` não estiver disponível, cai no padrão.
+   */
+  const [eixo, setEixo] = useState<Eixo>(() => {
+    try {
+      const salvo = localStorage.getItem(EIXO_SALVO)
+      if (salvo === 'setor' || salvo === 'categoria' || salvo === 'produto') return salvo
+    } catch {
+      /* navegador anônimo, cookies bloqueados: o padrão serve. */
+    }
+    return 'setor'
+  })
+  const [paradaAtiva, setParadaAtiva] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
   const [soNaoContados, setSoNaoContados] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
   const [falha, setFalha] = useState<string | null>(null)
+  const [aviso, setAviso] = useState<string | null>(null)
 
   /** Quantidade aceita localmente antes de o servidor confirmar. */
   const [rascunhos, setRascunhos] = useState<ReadonlyMap<string, number>>(new Map())
@@ -321,35 +345,46 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
 
   const todos = useMemo(() => itens.data ?? [], [itens.data])
 
-  // Os setores, os nomes e as cores saem da view; o total e o progresso são
-  // recalculados aqui para subirem junto com o que está sendo digitado — a
-  // view só se atualiza depois do ida-e-volta com o servidor.
-  const abas = useMemo(
-    () => montarAbas(porSetor.data ?? [], todos, rascunhos),
-    [porSetor.data, todos, rascunhos],
+  // Os nomes, as cores e a contagem de itens saem da view; o total e o
+  // progresso são recalculados aqui para subirem junto com o que está sendo
+  // digitado — a view só se atualiza depois do ida-e-volta com o servidor.
+  const lugares = useMemo(() => porSetor.data ?? [], [porSetor.data])
+  const paradas = useMemo(
+    () => montarParadas(eixo, lugares, categorias.data ?? [], todos, rascunhos),
+    [eixo, lugares, categorias.data, todos, rascunhos],
   )
 
-  const setorEscolhido = setorAtivo ?? abas[0]?.id ?? null
-  const abaEscolhida = abas.find((a) => a.id === setorEscolhido) ?? null
-  const ondeEstou = abaEscolhida ? rotuloDaAba(abaEscolhida) : 'nesta folha'
-  const itensDoSetor = useMemo(
-    () => todos.filter((i) => chaveDoLugar(i.setor_id, i.estoque_id) === setorEscolhido),
-    [todos, setorEscolhido],
+  // A parada escolhida é por eixo: trocar de eixo e cair numa parada que não
+  // existe ali deixaria a folha vazia sem motivo visível.
+  const paradaEscolhida = paradas.find((p) => p.id === paradaAtiva) ?? paradas[0] ?? null
+  const paradaId = paradaEscolhida?.id ?? null
+  const ondeEstou =
+    eixo === 'produto'
+      ? 'toda a folha'
+      : paradaEscolhida
+        ? [paradaEscolhida.subtitulo, paradaEscolhida.titulo].filter(Boolean).join(' › ')
+        : 'nesta folha'
+
+  const itensDaqui = useMemo(
+    () => itensDaParada(eixo, paradaId, todos),
+    [eixo, paradaId, todos],
   )
 
   const grupos = useMemo(
     () =>
-      agruparPorCategoria(
-        filtrarItens(itensDoSetor, { busca, soNaoContados }, rascunhos),
+      gruposDaParada(
+        eixo,
+        filtrarItens(itensDaqui, { busca, soNaoContados }, rascunhos),
         categorias.data ?? [],
+        lugares,
         rascunhos,
       ),
-    [itensDoSetor, busca, soNaoContados, rascunhos, categorias.data],
+    [eixo, itensDaqui, busca, soNaoContados, rascunhos, categorias.data, lugares],
   )
 
   const totalDoSetor = useMemo(
-    () => totalDosItens(itensDoSetor, rascunhos),
-    [itensDoSetor, rascunhos],
+    () => totalDosItens(itensDaqui, rascunhos),
+    [itensDaqui, rascunhos],
   )
   const totalGeral = useMemo(() => totalDosItens(todos, rascunhos), [todos, rascunhos])
   const resumo = useMemo(() => resumoDoFechamento(todos, rascunhos), [todos, rascunhos])
@@ -416,6 +451,32 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
     }
   }
 
+  /**
+   * Realinha a folha com o cadastro. A mensagem diz as três contas separadas
+   * porque cada uma responde a uma pergunta diferente de quem clicou: entrou
+   * coisa nova? sumiu alguma? e — a que importa — o que eu já contei ficou?
+   */
+  async function refazerAFolha() {
+    setFalha(null)
+    setAviso(null)
+    try {
+      const r = await refazer.mutateAsync()
+      const partes = [
+        `${r.acrescentadas} ${plural(r.acrescentadas, 'linha nova', 'linhas novas')}`,
+        `${r.removidas} ${plural(r.removidas, 'linha zerada removida', 'linhas zeradas removidas')}`,
+      ]
+      if (r.preservadas > 0) {
+        partes.push(
+          `${r.preservadas} ${plural(r.preservadas, 'linha já contada', 'linhas já contadas')} ` +
+            'fora do cadastro atual — ficaram na folha, agrupadas como "Fora do cadastro"',
+        )
+      }
+      setAviso(`${partes.join(', ')}. Nada do que já foi contado se perdeu.`)
+    } catch (erro) {
+      setFalha(`Não consegui refazer a folha: ${mensagemDoErro(erro)}`)
+    }
+  }
+
   async function confirmarReabertura() {
     setFalha(null)
     try {
@@ -464,6 +525,16 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
         descricao={`Referência ${formatarData(cabecalho?.referencia)} · ${resumo.itens} itens na folha`}
         acoes={
           <>
+            {!somenteLeitura && (
+              <Botao
+                tom="fantasma"
+                icone={<RefreshCw className="size-4" aria-hidden />}
+                carregando={refazer.isPending}
+                onClick={() => void refazerAFolha()}
+              >
+                Refazer a folha
+              </Botao>
+            )}
             <Botao tom="fantasma" onClick={() => navegar('/contagem/historico')}>
               Histórico
             </Botao>
@@ -529,7 +600,29 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
         </Aviso>
       )}
 
-      {abas.length === 0 ? (
+      {aviso && <Aviso tom="info" titulo="Folha refeita">{aviso}</Aviso>}
+
+      <BarraDeControle
+        eixo={eixo}
+        aoTrocarEixo={(proximo) => {
+          setEixo(proximo)
+          setParadaAtiva(null)
+          try {
+            localStorage.setItem(EIXO_SALVO, proximo)
+          } catch {
+            /* sem armazenamento: a escolha vale para esta visita. */
+          }
+        }}
+        busca={busca}
+        aoBuscar={setBusca}
+        ondeEstou={ondeEstou}
+        soNaoContados={soNaoContados}
+        aoAlternarNaoContados={() => setSoNaoContados((v) => !v)}
+        contados={resumo.comQuantidade}
+        total={resumo.itens}
+      />
+
+      {todos.length === 0 ? (
         <Cartao>
           <EstadoVazio icone={<ClipboardList />} titulo="Folha vazia">
             Esta contagem nasceu sem nenhuma linha — provavelmente não havia produto ativo
@@ -537,97 +630,24 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
           </EstadoVazio>
         </Cartao>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-          {/* ───────────────────────────────────────── navegação por setor ── */}
-          <nav aria-label="Setores e estoques da contagem" className="min-w-0">
-            <ul
-              className={clsx(
-                'flex gap-2 overflow-x-auto pb-1',
-                'lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0',
-              )}
-            >
-              {abas.map((aba) => {
-                const ativo = aba.id === setorEscolhido
-                const progresso = aba.itens === 0 ? 0 : (aba.preenchidos / aba.itens) * 100
-                return (
-                  <li key={aba.id} className="shrink-0 lg:shrink">
-                    <button
-                      type="button"
-                      aria-current={ativo ? 'true' : undefined}
-                      onClick={() => setSetorAtivo(aba.id)}
-                      className={clsx(
-                        'flex min-h-toque w-full min-w-[168px] flex-col justify-center gap-1 rounded-marca-p border px-3 py-2 text-left transition-colors',
-                        ativo
-                          ? 'border-primaria bg-primaria-16 active:brightness-95'
-                          : 'border-borda bg-superficie-1 hover:border-borda-forte hover:bg-primaria-06 active:bg-primaria-16',
-                      )}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Ponto cor={aba.cor} />
-                        <span className="min-w-0">
-                          <span
-                            className={clsx(
-                              'block truncate text-corpo font-medium',
-                              ativo ? 'text-primaria-legivel' : 'text-texto',
-                            )}
-                          >
-                            {aba.titulo}
-                          </span>
-                          {/* O lugar sozinho nao se explica: "Geladeira 1" existe
-                              no bar e na cozinha, e o nome e unico so dentro do
-                              setor. Entao o setor vem junto, sempre. */}
-                          {aba.subtitulo !== null && (
-                            <span className="block truncate text-micro text-texto-fraco">
-                              {aba.subtitulo}
-                            </span>
-                          )}
-                        </span>
-                      </span>
-                      <span className="mv-numero text-micro text-texto-fraco">
-                        {aba.preenchidos}/{aba.itens} · {dinheiro(aba.total)}
-                      </span>
-                      <span
-                        className="h-1 w-full overflow-hidden rounded-full bg-superficie-3"
-                        aria-hidden
-                      >
-                        <span
-                          className="block h-full rounded-full bg-primaria transition-[width]"
-                          style={{ width: `${progresso}%` }}
-                        />
-                      </span>
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </nav>
+        <div
+          className={clsx(
+            'grid gap-4',
+            // No eixo produto não há navegação, e a lista toma a largura
+            // inteira: uma coluna vazia de 240px seria só enfeite.
+            eixo !== 'produto' && 'lg:grid-cols-[240px_minmax(0,1fr)]',
+          )}
+        >
+          {eixo !== 'produto' && (
+            <Navegacao
+              paradas={paradas}
+              escolhida={paradaId}
+              aoEscolher={setParadaAtiva}
+              rotulo={eixo === 'setor' ? 'Setores e estoques da contagem' : 'Categorias da contagem'}
+            />
+          )}
 
-          {/* ────────────────────────────────────────────────── os itens ── */}
           <div className="min-w-0 space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative min-w-[200px] flex-1">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-fraco"
-                  aria-hidden
-                />
-                <Campo
-                  type="search"
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                  placeholder={`Buscar produto em ${ondeEstou}`}
-                  aria-label={`Buscar produto em ${ondeEstou}`}
-                  className="pl-9"
-                />
-              </div>
-              <Botao
-                tom={soNaoContados ? 'primario' : 'secundario'}
-                aria-pressed={soNaoContados}
-                onClick={() => setSoNaoContados((v) => !v)}
-              >
-                Só os não contados
-              </Botao>
-            </div>
-
             {categorias.isError && <ErroDaConsulta erro={categorias.error} />}
 
             {visiveis === 0 ? (
@@ -643,22 +663,27 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
               </Cartao>
             ) : (
               grupos.map((grupo) => (
-                <Cartao key={grupo.categoriaId ?? 'sem-categoria'}>
-                  <header className="flex items-center justify-between gap-3 border-b border-borda px-5 py-4">
-                    <Selo cor={grupo.cor ?? undefined}>{grupo.nome}</Selo>
-                    <span className="mv-numero text-apoio text-texto-fraco">
-                      {dinheiro(grupo.total)}
-                    </span>
-                  </header>
+                <Cartao key={grupo.id}>
+                  {/* No eixo produto o cabeçalho seria um só, dizendo "Todos
+                      os produtos" — informação que o seletor acima já deu. */}
+                  {eixo !== 'produto' && (
+                    <header className="flex items-center justify-between gap-3 border-b border-borda px-5 py-3.5">
+                      <Selo cor={grupo.cor ?? undefined}>{grupo.nome}</Selo>
+                      <span className="mv-numero text-apoio text-texto-fraco">
+                        {dinheiro(grupo.total)}
+                      </span>
+                    </header>
+                  )}
                   <ul className="divide-y divide-borda/60">
                     {grupo.itens.map((item) => {
                       const emVigor = quantidadeEmVigor(item, rascunhos)
                       const salvando = emVoo.has(item.id)
+                      // Na lista única, a linha precisa dizer de onde é: a
+                      // tilápia aparece duas vezes, e sem isso não dá para
+                      // saber qual delas se está preenchendo.
+                      const lugar = eixo === 'produto' ? ondeFica(item, lugares) : null
                       return (
-                        <li
-                          key={item.id}
-                          className="flex items-center gap-3 px-5 py-3"
-                        >
+                        <li key={item.id} className="flex items-center gap-3 py-1 pl-5 pr-5">
                           <div className="min-w-0 flex-1">
                             <label
                               htmlFor={`qtd-${item.id}`}
@@ -666,7 +691,8 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                             >
                               {item.produto?.nome ?? 'Produto removido do cadastro'}
                             </label>
-                            <span className="mv-numero text-micro text-texto-fraco">
+                            <span className="mv-numero block truncate text-micro text-texto-fraco">
+                              {lugar !== null && <span className="text-texto-suave">{lugar} · </span>}
                               {item.unidade} · {dinheiro(item.custo_unitario)} por {item.unidade}
                             </span>
                           </div>
@@ -705,7 +731,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
         {/* "Setor" mentia quando a parada era uma geladeira: o numero e o
             da parada aberta, nao o do setor inteiro. */}
         <TotalDaBarra
-          rotulo={abaEscolhida?.titulo ?? 'Setor'}
+          rotulo={eixo === 'produto' ? 'Na folha' : (paradaEscolhida?.titulo ?? 'Setor')}
           valor={dinheiro(totalDoSetor)}
         />
         <TotalDaBarra rotulo="Total da contagem" valor={dinheiro(totalGeral)} destaque alinharADireita />
@@ -800,5 +826,195 @@ function ConfirmarFechamento({
         </div>
       </div>
     </Dialogo>
+  )
+}
+
+/* ──────────────────────────────────────────── a barra de controle ──────── */
+
+/**
+ * Onde se decide COMO contar, antes de contar.
+ *
+ * Eixo, busca e filtro moram juntos porque são a mesma decisão: o recorte da
+ * folha. Espalhá-los pela tela fazia a pessoa procurar o controle enquanto
+ * segurava o celular com uma mão só.
+ */
+function BarraDeControle({
+  eixo,
+  aoTrocarEixo,
+  busca,
+  aoBuscar,
+  ondeEstou,
+  soNaoContados,
+  aoAlternarNaoContados,
+  contados,
+  total,
+}: {
+  eixo: Eixo
+  aoTrocarEixo: (eixo: Eixo) => void
+  busca: string
+  aoBuscar: (busca: string) => void
+  ondeEstou: string
+  soNaoContados: boolean
+  aoAlternarNaoContados: () => void
+  contados: number
+  total: number
+}): JSX.Element {
+  const progresso = total === 0 ? 0 : (contados / total) * 100
+  const ajuda = EIXOS.find((e) => e.valor === eixo)?.ajuda ?? ''
+
+  return (
+    <Cartao className="p-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div
+          role="radiogroup"
+          aria-label="Contar por"
+          className="flex shrink-0 rounded-marca-p border border-borda bg-superficie-2 p-1"
+        >
+          {EIXOS.map((opcao) => {
+            const ativo = opcao.valor === eixo
+            return (
+              <button
+                key={opcao.valor}
+                type="button"
+                role="radio"
+                aria-checked={ativo}
+                title={opcao.ajuda}
+                onClick={() => aoTrocarEixo(opcao.valor)}
+                className={clsx(
+                  'min-h-9 rounded-marca-p px-3 text-corpo transition-colors',
+                  ativo
+                    ? 'bg-superficie text-texto shadow-baixa'
+                    : 'text-texto-fraco hover:text-texto',
+                )}
+              >
+                {opcao.rotulo}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="relative min-w-[200px] flex-1">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-fraco"
+            aria-hidden
+          />
+          <Campo
+            type="search"
+            value={busca}
+            onChange={(e) => aoBuscar(e.target.value)}
+            placeholder={`Buscar produto em ${ondeEstou}`}
+            aria-label={`Buscar produto em ${ondeEstou}`}
+            className="pl-9"
+          />
+        </div>
+
+        <Botao
+          tom={soNaoContados ? 'primario' : 'secundario'}
+          aria-pressed={soNaoContados}
+          onClick={aoAlternarNaoContados}
+        >
+          Só os não contados
+        </Botao>
+      </div>
+
+      <div className="mt-3 flex items-center gap-3">
+        <span
+          className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-superficie-3"
+          aria-hidden
+        >
+          <span
+            className="block h-full rounded-full bg-primaria transition-[width]"
+            style={{ width: `${progresso}%` }}
+          />
+        </span>
+        <span className="mv-numero shrink-0 text-micro text-texto-fraco" role="status">
+          {contados} de {total} contados
+        </span>
+      </div>
+
+      <p className="mt-2 text-micro text-texto-fraco">{ajuda}</p>
+    </Cartao>
+  )
+}
+
+/* ─────────────────────────────────────────── a navegação da folha ──────── */
+
+/**
+ * As paradas: linhas finas, não cartões.
+ *
+ * A versão anterior eram caixas de 70px com barra de progresso dentro, e vinte
+ * e uma categorias viravam uma coluna de rolagem infinita. Aqui cada parada
+ * ocupa uma linha, o progresso é um traço embaixo do nome, e a que está aberta
+ * se marca por uma faixa na lateral — o mesmo alvo de toque, um terço da
+ * altura.
+ */
+function Navegacao({
+  paradas,
+  escolhida,
+  aoEscolher,
+  rotulo,
+}: {
+  paradas: readonly Parada[]
+  escolhida: string | null
+  aoEscolher: (id: string) => void
+  rotulo: string
+}): JSX.Element {
+  return (
+    <nav aria-label={rotulo} className="min-w-0">
+      <ul
+        className={clsx(
+          'flex gap-2 overflow-x-auto pb-1',
+          'lg:max-h-[70vh] lg:flex-col lg:gap-0.5 lg:overflow-y-auto lg:overflow-x-visible lg:pb-0',
+        )}
+      >
+        {paradas.map((parada) => {
+          const ativo = parada.id === escolhida
+          const progresso = parada.itens === 0 ? 0 : (parada.preenchidos / parada.itens) * 100
+          return (
+            <li key={parada.id} className="shrink-0 lg:shrink">
+              <button
+                type="button"
+                aria-current={ativo ? 'true' : undefined}
+                onClick={() => aoEscolher(parada.id)}
+                className={clsx(
+                  'flex min-h-toque w-full min-w-[150px] flex-col justify-center gap-1 rounded-marca-p',
+                  'border-l-2 px-3 py-1.5 text-left transition-colors',
+                  ativo
+                    ? 'border-l-primaria bg-primaria-16'
+                    : 'border-l-transparent hover:bg-primaria-06',
+                )}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  {parada.cor !== null && <Ponto cor={parada.cor} />}
+                  <span
+                    className={clsx(
+                      'truncate text-corpo',
+                      ativo ? 'font-medium text-primaria-legivel' : 'text-texto',
+                    )}
+                  >
+                    {parada.titulo}
+                  </span>
+                  <span className="mv-numero ml-auto shrink-0 text-micro text-texto-fraco">
+                    {parada.preenchidos}/{parada.itens}
+                  </span>
+                </span>
+                {parada.subtitulo !== null && (
+                  <span className="truncate text-micro text-texto-fraco">{parada.subtitulo}</span>
+                )}
+                <span
+                  className="h-0.5 w-full overflow-hidden rounded-full bg-superficie-3"
+                  aria-hidden
+                >
+                  <span
+                    className="block h-full rounded-full bg-primaria transition-[width]"
+                    style={{ width: `${progresso}%` }}
+                  />
+                </span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
   )
 }
