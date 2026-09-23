@@ -31,6 +31,19 @@ período dizia "sem CMV" e a tabela logo abaixo mostrava R$ 38.905,46 em
 bebidas, calculado com estoque final zero. Nenhum teste pegou; a tela aberta
 pegou.
 
+## Ver o build atual
+
+```bash
+npm run build && ferramentas/local/previa.sh
+```
+
+O `vite preview` **não falha** quando a porta está ocupada: avisa numa linha e
+sobe em 4174, 4175… A prévia antiga segue respondendo em 4173, com o bundle
+antigo, e quem testa no endereço de sempre testa código velho sem nenhum
+sinal. Aconteceu aqui: nove prévias acumuladas. O script derruba quem estiver
+na porta — inclusive o `vite` filho do `npx`, que sobrevive a matar o pai — e
+usa `--strictPort`, para não haver segunda porta onde se esconder.
+
 ## Simular a confirmação de e-mail
 
 ```bash

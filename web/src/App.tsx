@@ -11,6 +11,7 @@ import { ProvedorDeMarca } from '@/tema/ProvedorDeMarca'
 import { Casca } from '@/layout/Casca'
 import { Logo } from '@/componentes/Logo'
 import { Entrar } from '@/paginas/Entrar'
+import { FalhaAoCarregar } from '@/paginas/FalhaAoCarregar'
 import { NovaSenha } from '@/paginas/NovaSenha'
 import { SemConvite } from '@/paginas/SemConvite'
 import { Inicio } from '@/paginas/Inicio'
@@ -59,13 +60,17 @@ function SoAdministracao({ children }: { children: React.ReactNode }) {
 }
 
 export function App() {
-  const { carregando, sessao, perfil, restaurante, ehMaster, recuperandoSenha } = useSessao()
+  const { carregando, sessao, perfil, restaurante, ehMaster, recuperandoSenha, falhaAoCarregar } =
+    useSessao()
 
   if (carregando) return <Aguarde />
   if (!sessao) return <Entrar />
   // Antes do perfil: quem veio do link de recuperação troca a senha primeiro,
   // mesmo que já tenha acesso a tudo.
   if (recuperandoSenha) return <NovaSenha />
+  // A consulta falhou: dizer "você não tem convite" aqui seria mandar a pessoa
+  // atrás de um problema que ela não tem.
+  if (falhaAoCarregar !== null) return <FalhaAoCarregar />
   // Conta sem convite (ou com convite vencido). Era um spinner eterno.
   if (!perfil) return <SemConvite />
 
