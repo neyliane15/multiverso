@@ -11,6 +11,8 @@ import { ProvedorDeMarca } from '@/tema/ProvedorDeMarca'
 import { Casca } from '@/layout/Casca'
 import { Logo } from '@/componentes/Logo'
 import { Entrar } from '@/paginas/Entrar'
+import { NovaSenha } from '@/paginas/NovaSenha'
+import { SemConvite } from '@/paginas/SemConvite'
 import { Inicio } from '@/paginas/Inicio'
 import { Rede } from '@/paginas/Rede'
 import { Produtos } from '@/paginas/cadastros/Produtos'
@@ -57,11 +59,15 @@ function SoAdministracao({ children }: { children: React.ReactNode }) {
 }
 
 export function App() {
-  const { carregando, sessao, perfil, restaurante, ehMaster } = useSessao()
+  const { carregando, sessao, perfil, restaurante, ehMaster, recuperandoSenha } = useSessao()
 
   if (carregando) return <Aguarde />
   if (!sessao) return <Entrar />
-  if (!perfil) return <Aguarde />
+  // Antes do perfil: quem veio do link de recuperação troca a senha primeiro,
+  // mesmo que já tenha acesso a tudo.
+  if (recuperandoSenha) return <NovaSenha />
+  // Conta sem convite (ou com convite vencido). Era um spinner eterno.
+  if (!perfil) return <SemConvite />
 
   // O master começa na visão da rede; quem vive num restaurante começa no
   // painel dele. Um master sem nenhum restaurante cadastrado ainda não tem o

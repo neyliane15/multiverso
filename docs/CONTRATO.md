@@ -48,6 +48,22 @@ tabelas deixa o gerente entrar (foi o defeito que a 0014 fechou).
 Convite aceito é histórico: é o único registro de com que papel a pessoa foi
 admitida e quem a admitiu. Ninguém edita nem apaga, master incluído.
 
+### Como a pessoa convidada entra
+
+1. quem administra grava o convite (e-mail, papel, restaurante);
+2. a pessoa abre o sistema e usa **"Tenho um convite"** — e-mail do convite e
+   uma senha que ela escolhe. A senha vai para o GoTrue e não passa por
+   nenhuma tabela nossa;
+3. o gatilho `mv_ao_criar_usuario` procura convite pendente e não vencido para
+   aquele e-mail e cria o perfil com o papel do CONVITE. O `options.data` do
+   `signUp` não decide nada (era o furo que a 0008 fechou);
+4. sem convite, a conta existe no auth e fica sem perfil — estado seguro, e a
+   tela `SemConvite` explica em vez de girar para sempre.
+
+O convite vale 14 dias. Recuperação de senha é `resetPasswordForEmail` e volta
+no evento `PASSWORD_RECOVERY`, que trava o app na tela de senha nova até
+trocar — senão o link "funcionaria" sem trocar nada.
+
 **Cuidado ao escrever política de UPDATE/DELETE.** O Postgres só aplica a
 política de SELECT quando o comando lê colunas da tabela. `update t set x=1
 where email='...'` passa pela política de SELECT; `update t set x=1`, sem

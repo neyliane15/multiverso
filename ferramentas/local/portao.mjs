@@ -19,6 +19,7 @@
  * vez de falharem com erro de rede que parece bug do app.
  */
 import { createServer } from 'node:http'
+import pg from 'pg'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { request as pedir } from 'node:http'
 
@@ -27,12 +28,82 @@ const POSTGREST = process.env.POSTGREST ?? 'http://127.0.0.1:54325'
 const SEGREDO = process.env.JWT_SEGREDO ?? 'segredo-local-do-multiverso-com-32-caracteres'
 const SENHA = process.env.SENHA_LOCAL ?? 'multiverso'
 
-/** Os usuários que o `usuarios.sql` cria. E-mail → id e nome. */
-const USUARIOS = new Map([
-  ['master@multiverso.app', { id: '11111111-1111-4111-8111-111111111111', nome: 'Master do Multiverso' }],
-  ['admin@bardozeca.com.br', { id: '22222222-2222-4222-8222-222222222222', nome: 'Zeca' }],
-  ['estoque@bardozeca.com.br', { id: '33333333-3333-4333-8333-333333333333', nome: 'Dona Neide' }],
-])
+/**
+ * Os usuários vêm do BANCO, não de uma lista aqui.
+ *
+ * Havia uma cópia escrita à mão neste arquivo, e ela saiu de sincronia com o
+ * `usuarios.sql` no dia em que um gerente foi acrescentado lá: entrar como
+ * gerente devolvia "credenciais inválidas", e uma auditoria de papéis saiu com
+ * o gerente aparecendo como se não enxergasse nada — quando na verdade ele
+ * nem tinha entrado. Duas listas da mesma coisa sempre divergem; esta some.
+ */
+const USUARIOS = new Map()
+
+/** Token de leitura assinado com o mesmo segredo que o PostgREST confere. */
+function tokenDeServico(sub) {
+  const agora = Math.floor(Date.now() / 1000)
+  return assinar({ sub, role: 'authenticated', aud: 'authenticated', iat: agora, exp: agora + 60 })
+}
+
+/**
+ * O único id escrito à mão: o do master, que o `usuarios.sql` fixa.
+ *
+ * É o ponto de partida obrigatório. A RLS de `perfis` entrega a linha a quem
+ * já é aquele usuário, ao master, ou a quem é do mesmo restaurante — nenhum
+ * desses caminhos existe antes de se saber o id de ALGUÉM. Um id, e o resto
+ * sai do banco.
+ */
+const MASTER_ID = process.env.MASTER_ID ?? '11111111-1111-4111-8111-111111111111'
+
+/**
+ * Ligação direta com o Postgres, só para o cadastro.
+ *
+ * `auth.users` não é exposta pelo PostgREST (ele serve `public`), e é
+ * justamente lá que o gatilho `mv_ao_criar_usuario` mora. Sem esta ligação, o
+ * caminho convite → criar conta → perfil não teria como ser exercitado aqui —
+ * e foi exatamente esse caminho que passou meses sem tela nenhuma.
+ */
+const BANCO = new pg.Client({
+  host: process.env.SOCK ?? '/home/pg/sock',
+  user: 'postgres',
+  database: process.env.BANCO ?? 'multiverso_app',
+})
+let bancoLigado = BANCO.connect().then(() => true).catch(() => false)
+
+/**
+ * Procura o usuário pelo e-mail: primeiro em `perfis`, depois em `auth.users`.
+ *
+ * A segunda busca não é detalhe. Uma conta sem convite EXISTE no auth e não
+ * tem perfil — e o GoTrue de verdade abre sessão para ela do mesmo jeito. Se
+ * o portão recusasse essas, o estado "entrou mas não tem acesso" nunca
+ * apareceria aqui, e a tela que o explica nunca seria exercitada.
+ */
+async function acharUsuario(email) {
+  if (USUARIOS.has(email)) return USUARIOS.get(email)
+
+  const r = await fetch(
+    `${POSTGREST}/perfis?select=id,nome,email&email=eq.${encodeURIComponent(email)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${tokenDeServico(MASTER_ID)}`,
+        Accept: 'application/json',
+      },
+    },
+  )
+  const achados = r.ok ? await r.json() : []
+  const u = achados[0]
+  if (u) {
+    USUARIOS.set(email, { id: u.id, nome: u.nome })
+    return USUARIOS.get(email)
+  }
+
+  if (!(await bancoLigado)) return null
+  const orfa = await BANCO.query('select id from auth.users where lower(email) = $1', [email])
+  const conta = orfa.rows[0]
+  if (!conta) return null
+  USUARIOS.set(email, { id: conta.id, nome: email.split('@')[0] })
+  return USUARIOS.get(email)
+}
 
 const base64url = (buf) =>
   Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -60,8 +131,8 @@ function conferir(token) {
   return carga.exp * 1000 > Date.now() ? carga : null
 }
 
-function sessao(email) {
-  const u = USUARIOS.get(email)
+async function sessao(email) {
+  const u = await acharUsuario(email)
   if (!u) return null
   const agora = Math.floor(Date.now() / 1000)
   const carga = {
@@ -129,13 +200,13 @@ createServer(async (req, res) => {
     if (tipo === 'refresh_token') {
       const id = String(corpo.refresh_token ?? '').replace('refresh-', '')
       const email = [...USUARIOS].find(([, u]) => u.id === id)?.[0]
-      const s = email ? sessao(email) : null
+      const s = email ? await sessao(email) : null
       return s
         ? responder(res, 200, s)
         : responder(res, 401, { error: 'invalid_grant', error_description: 'Sessão expirada.' })
     }
 
-    const s = corpo.password === SENHA ? sessao(String(corpo.email ?? '').toLowerCase()) : null
+    const s = corpo.password === SENHA ? await sessao(String(corpo.email ?? '').toLowerCase()) : null
     return s
       ? responder(res, 200, s)
       : responder(res, 400, {
@@ -144,10 +215,56 @@ createServer(async (req, res) => {
         })
   }
 
+  /**
+   * Cadastro. Cria a linha em `auth.users` e deixa o gatilho decidir o resto:
+   * com convite pendente nasce o perfil, sem convite a conta fica órfã — que
+   * é o estado seguro que a tela `SemConvite` explica.
+   */
+  if (url.pathname === '/auth/v1/signup') {
+    const corpo = JSON.parse((await lerCorpo(req)).toString() || '{}')
+    const email = String(corpo.email ?? '').toLowerCase().trim()
+    const senha = String(corpo.password ?? '')
+
+    if (!email.includes('@')) {
+      return responder(res, 422, { code: 422, msg: 'Unable to validate email address' })
+    }
+    if (senha.length < 6) {
+      return responder(res, 422, { code: 422, msg: 'Password should be at least 6 characters' })
+    }
+    if (!(await bancoLigado)) {
+      return responder(res, 501, { msg: 'cadastro indisponível: sem ligação com o banco' })
+    }
+
+    const jaExiste = await BANCO.query('select 1 from auth.users where lower(email) = $1', [email])
+    if (jaExiste.rowCount > 0) {
+      return responder(res, 422, { code: 422, msg: 'User already registered' })
+    }
+
+    // O cache é por e-mail e a conta acabou de nascer com id novo. Sem limpar,
+    // um e-mail recriado (banco resetado entre execuções) receberia sessão com
+    // o id antigo — e a pessoa entraria como um perfil que não existe mais.
+    USUARIOS.delete(email)
+    await BANCO.query('insert into auth.users (id, email) values (gen_random_uuid(), $1)', [email])
+    const s = await sessao(email)
+    // Com ou sem convite, a sessão abre — como no GoTrue com confirmação
+    // desligada. Quem não tem perfil entra e encontra a tela que explica.
+    return s
+      ? responder(res, 200, s)
+      : responder(res, 500, { msg: 'conta criada mas sem sessão: isto é defeito do portão' })
+  }
+
+  /** Recuperação de senha: aqui não há e-mail para enviar, e o portão diz isso. */
+  if (url.pathname === '/auth/v1/recover') {
+    return responder(res, 501, {
+      msg: 'recuperação de senha não existe no portão local — use o GoTrue de verdade',
+    })
+  }
+
   if (url.pathname === '/auth/v1/user') {
     const carga = conferir((req.headers.authorization ?? '').replace('Bearer ', ''))
-    return carga
-      ? responder(res, 200, sessao(carga.email).user)
+    const s = carga ? await sessao(carga.email) : null
+    return s
+      ? responder(res, 200, s.user)
       : responder(res, 401, { message: 'Token inválido ou expirado.' })
   }
 

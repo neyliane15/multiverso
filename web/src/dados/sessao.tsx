@@ -19,6 +19,9 @@ interface EstadoSessao {
   /** Restaurantes que este usuário enxerga. Para o master, a rede inteira. */
   restaurantesVisiveis: Restaurante[]
   ehMaster: boolean
+  /** Chegou pelo link de recuperação: a senha ainda é a antiga. */
+  recuperandoSenha: boolean
+  concluirRecuperacao: () => void
   podeAdministrar: boolean
   trocarRestaurante: (id: string) => void
   recarregar: () => Promise<void>
@@ -38,6 +41,12 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
   const [escolhido, setEscolhido] = useState<string | null>(
     () => localStorage.getItem(CHAVE_ESCOLHA),
   )
+  /**
+   * O GoTrue devolve a pessoa com sessão aberta ao clicar no link de
+   * recuperação. Sem marcar esse estado, ela entraria direto no sistema e o
+   * link teria "funcionado" sem trocar senha nenhuma.
+   */
+  const [recuperandoSenha, setRecuperandoSenha] = useState(false)
 
   const carregarPerfil = useCallback(async (s: Session | null) => {
     if (!s) {
@@ -70,7 +79,9 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
       if (vivo) setCarregando(false)
     })
 
-    const { data: inscricao } = supabase.auth.onAuthStateChange((_evento, s) => {
+    const { data: inscricao } = supabase.auth.onAuthStateChange((evento, s) => {
+      if (evento === 'PASSWORD_RECOVERY') setRecuperandoSenha(true)
+      if (evento === 'SIGNED_OUT') setRecuperandoSenha(false)
       setSessao(s)
       void carregarPerfil(s)
     })
@@ -102,6 +113,8 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
     restaurante,
     restaurantesVisiveis: restaurantes,
     ehMaster: Boolean(ehMaster),
+    recuperandoSenha,
+    concluirRecuperacao: () => setRecuperandoSenha(false),
     podeAdministrar: perfil ? PODE_ADMINISTRAR.includes(perfil.papel) : false,
     trocarRestaurante,
     recarregar: useCallback(() => carregarPerfil(sessao), [carregarPerfil, sessao]),

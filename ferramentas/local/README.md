@@ -14,6 +14,7 @@ Entrar com qualquer um destes, senha `multiverso`:
 |---|---|---|
 | `master@multiverso.app` | master | A rede inteira |
 | `admin@bardozeca.com.br` | admin | O Bar do Zeca, incluindo equipe e marca |
+| `gerente@bardozeca.com.br` | gerente | Cadastros, contagem e compras — sem equipe nem marca |
 | `estoque@bardozeca.com.br` | operador | Lança contagem e compras |
 
 ## O que é real aqui
