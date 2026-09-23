@@ -80,7 +80,7 @@ describe('contraste', () => {
     expect(normalizarHex('nao é cor')).toBeNull()
   })
 
-  it('o texto padrão do Multiverso passa AA sobre o fundo e sobre a superfície', () => {
+  it('o texto padrão do sistema passa AA sobre o fundo e sobre a superfície', () => {
     expect(contraste(MARCA_PADRAO.cor_texto, MARCA_PADRAO.cor_fundo)).toBeGreaterThanOrEqual(4.5)
     expect(contraste(MARCA_PADRAO.cor_texto, MARCA_PADRAO.cor_superficie)).toBeGreaterThanOrEqual(4.5)
   })
@@ -92,7 +92,7 @@ describe('contraste', () => {
 
 describe('corLegivelSobre', () => {
   it('branco sobre amarelo reprova — então escolhe a tinta escura', () => {
-    const amarelo = '#F5B700' // o acento padrão do Multiverso
+    const amarelo = '#F5B700' // o acento padrão do sistema
     expect(contraste(TINTA_CLARA, amarelo)).toBeLessThan(4.5)
     expect(corLegivelSobre(amarelo)).toBe(TINTA_ESCURA)
     expect(contraste(corLegivelSobre(amarelo), amarelo)).toBeGreaterThanOrEqual(4.5)
@@ -147,7 +147,7 @@ describe('ajustarParaContraste', () => {
 /** Um tema escuro completo. Não se monta escuro trocando só o campo `tema`:
  *  fundo, superfície e texto têm de virar junto, senão o fixture diz "escuro" e
  *  é claro por dentro — que foi exatamente o que aconteceu quando a marca
- *  padrão do Multiverso passou de escura para clara. */
+ *  padrão do sistema passou de escura para clara. */
 const ESCURO: Partial<Marca> = {
   tema: 'escuro',
   cor_fundo: '#0E1116',
@@ -235,7 +235,7 @@ describe('paletaDeGraficos', () => {
 /* -------------------------------------------------------------------------- */
 
 describe('validarMarca', () => {
-  it('a marca padrão do Multiverso passa sem aviso', () => {
+  it('a marca padrão do sistema passa sem aviso', () => {
     const r = validarMarca(MARCA_PADRAO)
     expect(r.avisos).toEqual([])
     expect(r.ok).toBe(true)

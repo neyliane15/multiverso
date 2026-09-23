@@ -1,5 +1,5 @@
 /**
- * Multiverso · logo do restaurante
+ * Gestão de Restaurantes · logo do restaurante
  * ---------------------------------------------------------------------------
  * Mostra o logo que o admin subiu. Quando não existe — e no começo nunca
  * existe — desenha um monograma a partir do nome, com as cores daquele

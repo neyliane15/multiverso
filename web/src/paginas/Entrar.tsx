@@ -252,7 +252,7 @@ export function Entrar() {
         </form>
 
         <p className="mt-6 text-center text-apoio text-texto-fraco">
-          Multiverso · gestão de restaurantes
+          Cadastros, contagem, compras e CMV
         </p>
       </div>
     </div>

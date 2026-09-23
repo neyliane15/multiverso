@@ -1,19 +1,22 @@
 /**
- * Multiverso · logomarca
+ * Gestão de Restaurantes · logomarca
  * ---------------------------------------------------------------------------
- * Três quadrados arredondados encaixados, cada um girado um pouco mais que o
- * anterior: mundos dentro de mundos, que é literalmente o nome. Os restaurantes
- * são camadas do mesmo sistema, e o quadrado cheio no meio é aquele em que você
- * está agora.
+ * Uma travessa com a tampa e o puxador: o gesto de servir, que é o fim de toda
+ * a contagem que este sistema faz. Três traços e nada mais — em 24px lê como um
+ * selo, em 96px as três peças se separam.
  *
- * A rotação fora de fase é o que separa o desenho de um alvo concêntrico — ela
- * dá movimento sem animação. Em 24px lê como um selo sólido; em 96px as três
- * camadas se abrem.
+ * A hierarquia é a mesma em qualquer tamanho: o prato é a base e vem mais
+ * claro, a tampa é a forma que se reconhece e vem cheia, o puxador é sólido e
+ * segura o olho no centro. É o que mantém o desenho legível quando ele encolhe
+ * para o tamanho de um favicon.
  *
- * As cores vêm de `currentColor` e de var(--mv-*). Nenhum hexadecimal aqui.
+ * As cores vêm de `currentColor` e de var(--mv-*). Nenhum hexadecimal aqui —
+ * quem fala em hexadecimal é `tema/marca.ts`, e o favicon, que é um arquivo
+ * estático e não tem como ler variável de CSS.
  */
 
 import type { CSSProperties, SVGProps } from 'react'
+import { NOME_DO_SISTEMA, NOME_EM_LINHAS } from '@/tema/marca'
 
 export type VarianteDaLogo = 'simbolo' | 'completa'
 export type PinturaDaLogo = 'marca' | 'monocromatica'
@@ -21,26 +24,25 @@ export type PinturaDaLogo = 'marca' | 'monocromatica'
 export interface PropsDoSimbolo extends Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> {
   /** Lado do símbolo em pixels. Desenhado para funcionar de 24 a 96. */
   tamanho?: number
-  /** 'marca' usa primária e acento; 'monocromatica' usa só currentColor. */
+  /** 'marca' usa a cor da plataforma; 'monocromatica' usa só currentColor. */
   pintura?: PinturaDaLogo
   /** Some para o leitor de tela quando a logo vem acompanhada de texto. */
   decorativa?: boolean
   titulo?: string
 }
 
-export function SimboloDoMultiverso({
+export function SimboloDoSistema({
   tamanho = 32,
   pintura = 'marca',
   decorativa = false,
-  titulo = 'Multiverso',
+  titulo = NOME_DO_SISTEMA,
   ...resto
 }: PropsDoSimbolo): JSX.Element {
   const marca = pintura === 'marca'
   // A cor da plataforma, e não a do restaurante ativo: este símbolo diz quem
   // faz o sistema. Quem diz de quem é o restaurante é a logo dele, na barra de
   // cima. Repintar os dois com a mesma tinta apaga a diferença.
-  const camada = marca ? 'var(--mv-plataforma)' : 'currentColor'
-  const nucleo = marca ? 'var(--mv-plataforma)' : 'currentColor'
+  const tinta = marca ? 'var(--mv-plataforma)' : 'currentColor'
 
   const acessibilidade = decorativa
     ? ({ 'aria-hidden': true, focusable: false } as const)
@@ -56,39 +58,24 @@ export function SimboloDoMultiverso({
       {...acessibilidade}
       {...resto}
     >
-      {/* camada de fora: a rede */}
-      <rect
-        x="2.6"
-        y="2.6"
-        width="26.8"
-        height="26.8"
-        rx="9.2"
-        transform="rotate(-15 16 16)"
-        stroke={camada}
-        strokeWidth="2.3"
-        opacity={marca ? 0.42 : 0.38}
+      {/* o prato: a base, e a peça mais larga do desenho */}
+      <path
+        d="M3.8 25h24.4"
+        stroke={tinta}
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        opacity={marca ? 0.55 : 0.45}
       />
-      {/* camada do meio: o restaurante */}
-      <rect
-        x="8.8"
-        y="8.8"
-        width="14.4"
-        height="14.4"
-        rx="4.8"
-        stroke={camada}
-        strokeWidth="2.3"
-        opacity={marca ? 0.85 : 0.75}
+      {/* a tampa */}
+      <path
+        d="M6 21.6a10 10 0 0 1 20 0"
+        stroke={tinta}
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        opacity={marca ? 1 : 0.8}
       />
-      {/* o núcleo: onde você está */}
-      <rect
-        x="12.7"
-        y="12.7"
-        width="6.6"
-        height="6.6"
-        rx="2.2"
-        transform="rotate(15 16 16)"
-        fill={nucleo}
-      />
+      {/* o puxador: o ponto sólido que segura o centro */}
+      <circle cx="16" cy="8.6" r="1.8" fill={tinta} />
     </svg>
   )
 }
@@ -118,7 +105,7 @@ export function Logo({
 }: PropsDaLogo): JSX.Element {
   if (variante === 'simbolo') {
     return (
-      <SimboloDoMultiverso
+      <SimboloDoSistema
         tamanho={tamanho}
         pintura={pintura}
         className={className}
@@ -127,29 +114,34 @@ export function Logo({
     )
   }
 
-  const corpo = Math.round(tamanho * 0.58)
+  const corpo = Math.round(tamanho * 0.45)
 
   return (
     <span
       className={['inline-flex items-center gap-2.5', className].filter(Boolean).join(' ')}
       style={style}
     >
-      <SimboloDoMultiverso tamanho={tamanho} pintura={pintura} decorativa />
+      <SimboloDoSistema tamanho={tamanho} pintura={pintura} decorativa />
       <span className="inline-flex flex-col justify-center leading-none">
         <span
           className="font-titulo font-semibold"
           style={{
             fontSize: `${corpo}px`,
+            lineHeight: 1.08,
             letterSpacing: '-0.015em',
             color: pintura === 'marca' ? 'var(--mv-texto)' : 'currentColor',
           }}
         >
-          Multiverso
+          {NOME_EM_LINHAS.map((linha) => (
+            <span key={linha} className="block">
+              {linha}
+            </span>
+          ))}
         </span>
         {legenda ? (
           <span
             className="mv-rotulo mt-1"
-            style={{ fontSize: `${Math.max(9, Math.round(corpo * 0.42))}px` }}
+            style={{ fontSize: `${Math.max(9, Math.round(corpo * 0.52))}px` }}
           >
             {legenda}
           </span>

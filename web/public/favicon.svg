@@ -1,0 +1,8 @@
+<!-- A mesma marca do sistema: prato, tampa e puxador.
+     Aqui o verde da plataforma vai em hexadecimal porque arquivo estático não
+     lê variável de CSS — é a única cópia da cor fora de tema/marca.ts. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <path d="M3.8 25h24.4" stroke="#12543D" stroke-width="2.4" stroke-linecap="round" opacity="0.55"/>
+  <path d="M6 21.6a10 10 0 0 1 20 0" stroke="#12543D" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="16" cy="8.6" r="1.8" fill="#12543D"/>
+</svg>

@@ -1,5 +1,5 @@
 /**
- * Multiverso · camada de marca
+ * Gestão de Restaurantes · camada de marca
  * ---------------------------------------------------------------------------
  * O app inteiro se repinta a partir do banco. Este arquivo é a única ponte
  * entre a linha de `restaurantes` e o CSS: ele calcula as derivadas que a UI
@@ -13,7 +13,31 @@
 
 import type { Marca } from '@/tipos/banco'
 
-/** Identidade do próprio Multiverso — espelha os DEFAULT de `restaurantes`. */
+/**
+ * O nome do sistema, num lugar só.
+ *
+ * Ele aparece na logomarca, no título da aba, no recado de convite e no rodapé
+ * da tela de entrada. Espalhado por esses quatro arquivos, um dia um deles
+ * ficaria para trás e o sistema se apresentaria com dois nomes diferentes na
+ * mesma sessão. Aqui, trocar o nome é trocar uma linha.
+ *
+ * Isto é identidade de TELA. Nada no banco, nas funções `mv_*`, nas chaves de
+ * `localStorage` ou no prefixo `--mv-*` depende deste texto — trocá-lo não
+ * mexe em dado nenhum de ninguém.
+ */
+export const NOME_DO_SISTEMA = 'Gestão de Restaurantes'
+
+/**
+ * Como o nome quebra dentro da logomarca.
+ *
+ * Duas linhas e não uma: a barra lateral tem 248px e a fonte de título é
+ * escolhida por cada restaurante. Numa fonte mais larga que a padrão, o nome
+ * em linha única estouraria a barra — e o defeito só apareceria no cliente que
+ * trocou a fonte, que é o pior lugar para descobrir.
+ */
+export const NOME_EM_LINHAS = ['Gestão de', 'Restaurantes'] as const
+
+/** Identidade do próprio sistema — espelha os DEFAULT de `restaurantes`. */
 export const MARCA_PADRAO: Marca = {
   logo_url: null,
   logo_escuro_url: null,

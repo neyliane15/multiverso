@@ -1,5 +1,5 @@
 /**
- * Multiverso · controles de identidade
+ * Gestão de Restaurantes · controles de identidade
  * ---------------------------------------------------------------------------
  * O que o admin usa em Configurações para montar a cara do restaurante dele.
  * Quatro peças: escolher cor, subir logo, escolher fonte e ver o resultado
@@ -424,7 +424,7 @@ export interface FonteCurada {
  *  alinham em coluna. Lista curta de propósito — escolher é o trabalho do
  *  admin, garimpar não. */
 export const FONTES_DE_TITULO: readonly FonteCurada[] = [
-  { familia: 'Sora', nota: 'Geométrica de terminais retos. O padrão do Multiverso.' },
+  { familia: 'Sora', nota: 'Geométrica de terminais retos. O padrão do sistema.' },
   { familia: 'Outfit', nota: 'Limpa e larga, boa para nome curto.' },
   { familia: 'Space Grotesk', nota: 'Técnica, com caráter. Combina com número.' },
   { familia: 'Archivo', nota: 'Condensada e firme, aguenta título longo.' },
@@ -435,7 +435,7 @@ export const FONTES_DE_TITULO: readonly FonteCurada[] = [
 ]
 
 export const FONTES_DE_TEXTO: readonly FonteCurada[] = [
-  { familia: 'Inter', nota: 'Feita para tela. O padrão do Multiverso.' },
+  { familia: 'Inter', nota: 'Feita para tela. O padrão do sistema.' },
   { familia: 'Public Sans', nota: 'Sóbria, alta legibilidade em texto pequeno.' },
   { familia: 'Source Sans 3', nota: 'Humanista, confortável em bloco de texto.' },
   { familia: 'IBM Plex Sans', nota: 'Técnica, ótima ao lado de tabela.' },

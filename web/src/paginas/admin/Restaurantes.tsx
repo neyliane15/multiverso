@@ -82,7 +82,7 @@ export function Restaurantes(): JSX.Element {
     await recarregar()
     setEditando(null)
     if (novo) {
-      // A marca nasce com os padrões do Multiverso, então a tela do cliente já
+      // A marca nasce com os padrões do sistema, então a tela do cliente já
       // está inteira. O passo seguinte é dar a cara dele a ela.
       trocarRestaurante(salvo.id)
       navegar('/admin/identidade')
@@ -440,7 +440,7 @@ function FormularioDeRestaurante({
 
         {!restaurante && (
           <Aviso tom="info" titulo="O que acontece ao salvar">
-            O restaurante nasce com as cores e as fontes padrão do Multiverso, então a primeira tela
+            O restaurante nasce com as cores e as fontes padrão do sistema, então a primeira tela
             dele já está inteira. Você vai direto para a identidade visual para trocar logo, cores e
             tipografia — e só depois convida o admin dele em Usuários.
           </Aviso>

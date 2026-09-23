@@ -262,7 +262,7 @@ describe('mensagemDoConvite · o recado que substitui o e-mail que nao existe', 
 
   it('sem restaurante (convite de master), nao inventa um', () => {
     const texto = mensagemDoConvite({ ...BASE, papel: 'master', restaurante: null })
-    expect(texto).toContain('Multiverso, como master')
+    expect(texto).toContain('Gestão de Restaurantes, como master')
     expect(texto).not.toContain(' no ,')
   })
 

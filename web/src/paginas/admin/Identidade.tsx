@@ -14,7 +14,7 @@
  *    cliente, e a decisão é dele;
  *  · salvar aplica na hora, porque trocar de marca é reescrever variáveis CSS,
  *    não remontar a árvore (quem cuida disso é o `ProvedorDeMarca`);
- *  · dá para voltar à marca padrão do Multiverso a qualquer momento.
+ *  · dá para voltar à marca padrão do sistema a qualquer momento.
  */
 import { useMemo, useState } from 'react'
 import { Check, Eye, RotateCcw, Save, TriangleAlert } from 'lucide-react'
@@ -38,7 +38,7 @@ import type { Marca } from '@/tipos/banco'
 const RAIOS: readonly { valor: string; rotulo: string }[] = [
   { valor: '4px', rotulo: 'Reto — 4px' },
   { valor: '8px', rotulo: 'Discreto — 8px' },
-  { valor: '14px', rotulo: 'Padrão do Multiverso — 14px' },
+  { valor: '14px', rotulo: 'Padrão do sistema — 14px' },
   { valor: '20px', rotulo: 'Arredondado — 20px' },
   { valor: '28px', rotulo: 'Muito arredondado — 28px' },
 ]
@@ -151,7 +151,7 @@ export function Identidade(): JSX.Element {
                 icone={<RotateCcw className="size-4" aria-hidden />}
                 onClick={restaurarPadrao}
               >
-                Voltar ao padrão do Multiverso
+                Voltar ao padrão do sistema
               </Botao>
               <Botao
                 tom="primario"

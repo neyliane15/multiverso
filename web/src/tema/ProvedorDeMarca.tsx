@@ -1,11 +1,11 @@
 /**
- * Multiverso · provedor de marca
+ * Gestão de Restaurantes · provedor de marca
  * ---------------------------------------------------------------------------
  * Recebe o restaurante ativo, aplica a identidade dele e mantém as fontes
  * carregadas. Três casos que ele precisa resolver bem:
  *
  *  1. Nenhum restaurante (o master, e a tela de login): entra a marca do
- *     próprio Multiverso.
+ *     próprio sistema.
  *  2. Troca de restaurante sem piscar: as cores viram variáveis CSS escritas
  *     antes da pintura (useLayoutEffect), e a fonte nova é pedida antes de
  *     virar a fonte em uso — enquanto ela não chega, continua valendo a
@@ -33,7 +33,7 @@ export type TemaDaMarca = Marca['tema']
 export interface ContextoDaMarca {
   /** O restaurante ativo, ou null quando é o master / ainda não há sessão. */
   restaurante: Restaurante | null
-  /** A identidade em vigor: a do restaurante, ou a do Multiverso. */
+  /** A identidade em vigor: a do restaurante, ou a do sistema. */
   marca: Marca
   /** Tudo que a UI usa e o banco não guarda. */
   derivadas: DerivadasDaMarca

@@ -13,6 +13,7 @@
  * errada — por isso a regra tem teste próprio.
  */
 import { chaveBusca } from '@/util/formato'
+import { NOME_DO_SISTEMA } from '@/tema/marca'
 import type { PapelUsuario, Perfil } from '@/tipos/banco'
 
 /** O mínimo que precisamos saber de alguém para decidir permissão. */
@@ -334,7 +335,7 @@ export function mensagemDoConvite(dados: DadosDoConvite): string {
   const validade = dia(dados.expiraEm)
 
   return [
-    `${saudacao} Você foi convidado para o Multiverso${onde}, como ${dados.papel}.`,
+    `${saudacao} Você foi convidado para o sistema ${NOME_DO_SISTEMA}${onde}, como ${dados.papel}.`,
     '',
     'Para entrar:',
     `1. abra ${dados.endereco}`,
