@@ -310,6 +310,37 @@ export function useEstoques(restauranteId: string) {
 }
 
 /**
+ * Quantos produtos cada lugar tem NO CADASTRO.
+ *
+ * Não é o mesmo número que a folha de contagem mostra, e a diferença entre os
+ * dois é justamente o que a tela precisa explicar: lugar com produto no
+ * cadastro e sem linha na folha significa "folha antiga, é só refazer"; lugar
+ * sem produto nenhum significa "falta vincular". Sem esta contagem, as duas
+ * situações viram a mesma tela vazia e quem está contando não sabe qual é.
+ *
+ * Só os ids que já sabemos ser deste restaurante entram no filtro — a RLS
+ * limita por conta própria, mas o master enxerga a rede inteira e somaria
+ * lugar de outro cliente.
+ */
+export function useVinculosPorEstoque(estoqueIds: readonly string[]) {
+  const ids = [...estoqueIds].sort()
+  return useQuery({
+    queryKey: ['vinculos-por-estoque', ids.join(',')],
+    enabled: ids.length > 0,
+    queryFn: async () => {
+      const linhas = await buscar<{ estoque_id: string }[]>(
+        supabase.from('produto_estoques').select('estoque_id').eq('ativo', true).in('estoque_id', ids),
+      )
+      const conta = new Map<string, number>()
+      for (const linha of linhas) {
+        conta.set(linha.estoque_id, (conta.get(linha.estoque_id) ?? 0) + 1)
+      }
+      return conta
+    },
+  })
+}
+
+/**
  * Põe (ou tira) de uma vez todos os produtos de um estoque de setor.
  *
  * Sem isto, encher a "Câmara fria" com os 455 produtos da Cozinha exigiria

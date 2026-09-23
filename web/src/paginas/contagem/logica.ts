@@ -399,6 +399,23 @@ export interface RamoDeSetor {
   lugares: Parada[]
 }
 
+/**
+ * Um lugar como ele existe no CADASTRO — que não é a mesma coisa que um lugar
+ * com linha nesta folha.
+ *
+ * A folha é uma foto do cadastro no instante em que a contagem abriu. Um lugar
+ * criado depois, ou um lugar ainda sem produto nenhum, não produz linha
+ * nenhuma — e, se a navegação só olhasse para as linhas, ele simplesmente não
+ * existiria na tela. Quem acabou de criar a "Prateleira" clicaria na Cozinha,
+ * não veria a Prateleira, e não teria como saber se errou o cadastro, se o
+ * sistema não salvou, ou se falta um passo.
+ */
+export interface LugarDoCadastro {
+  id: string
+  setor_id: string
+  nome: string
+}
+
 /** A chave de uma seleção de SETOR inteiro, distinta da de um lugar. */
 export const chaveDoSetor = (setorId: string): string => `setor:${setorId}`
 
@@ -407,6 +424,16 @@ export const ehSelecaoDeSetor = (selecao: string | null): boolean =>
   selecao !== null && selecao.startsWith('setor:')
 
 const setorDaSelecao = (selecao: string): string => selecao.slice('setor:'.length)
+
+/**
+ * O estoque de uma seleção de lugar — nulo quando é o setor inteiro ou o
+ * balde "sem lugar". É o que a tela precisa para explicar um lugar vazio.
+ */
+export function estoqueDaSelecao(selecao: string | null): string | null {
+  if (selecao === null || ehSelecaoDeSetor(selecao)) return null
+  const estoque = selecao.slice(selecao.indexOf(':') + 1)
+  return estoque === '' ? null : estoque
+}
 
 /**
  * Monta a árvore: um galho por setor, com os lugares dentro.
@@ -419,6 +446,8 @@ export function montarArvoreDeSetores(
   totais: readonly TotalDoLugar[],
   itens: readonly ItemContavel[],
   rascunhos?: Rascunhos,
+  /** Os lugares do cadastro, para os que ainda não têm linha aparecerem. */
+  lugaresDoCadastro: readonly LugarDoCadastro[] = [],
 ): RamoDeSetor[] {
   const paradas = montarAbas(totais, itens, rascunhos)
   const porSetor = new Map<string, RamoDeSetor>()
@@ -451,11 +480,48 @@ export function montarArvoreDeSetores(
     })
   }
 
+  /**
+   * Os lugares do cadastro que ainda não têm linha nenhuma nesta folha.
+   *
+   * Entram com 0/0 e no fim da lista do setor. Mostrar um lugar vazio não é
+   * poluição: é a única forma de quem criou a "Prateleira" agora há pouco ver
+   * que ela existe — e, ao clicar, ler por que ela ainda não tem o que contar.
+   * O silêncio é que seria o defeito.
+   *
+   * Setor que não está na folha (não entrou nesta contagem) não ganha galho
+   * por causa de um lugar: ali o lugar vazio seria o menor dos assuntos.
+   */
+  for (const lugar of lugaresDoCadastro) {
+    const ramo = porSetor.get(lugar.setor_id)
+    if (!ramo) continue
+    const chave = chaveDoLugar(lugar.setor_id, lugar.id)
+    if (ramo.lugares.some((l) => l.id === chave)) continue
+    ramo.lugares.push({
+      id: chave,
+      titulo: lugar.nome,
+      subtitulo: null,
+      cor: ramo.cor,
+      itens: 0,
+      preenchidos: 0,
+      total: 0,
+    })
+  }
+
   for (const ramo of porSetor.values()) {
     // Um lugar só, e ele é o próprio setor: não há o que abrir.
     if (ramo.lugares.length === 1 && ramo.lugares[0]?.id === chaveDoLugar(ramo.setorId, null)) {
       ramo.lugares = []
+      continue
     }
+    /**
+     * Com vizinhos ao lado, o resto do setor deixa de se chamar pelo nome do
+     * setor. "Cozinha" logo abaixo de "Cozinha" faria pensar em repetição ou
+     * em erro de tela — e não é nem uma coisa nem outra: é o que ainda não foi
+     * posto em lugar nenhum. A folha aberta antes do lugar existir nasce com
+     * essa parada chamada pelo setor, porque na hora não havia o que separar.
+     */
+    const resto = ramo.lugares.find((l) => l.id === chaveDoLugar(ramo.setorId, null))
+    if (resto && resto.titulo === ramo.nome) resto.titulo = 'Sem lugar definido'
   }
 
   return [...porSetor.values()]

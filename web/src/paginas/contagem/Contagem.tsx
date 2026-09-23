@@ -17,10 +17,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   AlertTriangle,
+  Boxes,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   ClipboardList,
+  Refrigerator,
   Lock,
   LockOpen,
   RefreshCw,
@@ -39,8 +41,10 @@ import {
   useLancarQuantidade,
   useReabrirContagem,
   useRefazerFolha,
+  useEstoques,
   useSetores,
   useTotaisPorEstoque,
+  useVinculosPorEstoque,
 } from '@/dados/consultas'
 import type { TipoContagem } from '@/tipos/banco'
 import {
@@ -68,6 +72,7 @@ import {
   EIXOS,
   chaveDoSetor,
   ehSelecaoDeSetor,
+  estoqueDaSelecao,
   filtrarItens,
   gruposDaParada,
   hojeIso,
@@ -303,6 +308,15 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   const itens = useItensDaContagem(contagemId)
   const porSetor = useTotaisPorEstoque(contagemId)
   const categorias = useCategorias(restauranteId)
+  /**
+   * Os lugares do CADASTRO, além dos que já têm linha na folha.
+   *
+   * A folha é uma foto do cadastro na hora em que a contagem abriu. Sem isto,
+   * um lugar criado depois — ou ainda sem produto nenhum — não aparecia em
+   * lugar nenhum da tela, e quem acabou de criá-lo não tinha como saber se
+   * errou o cadastro, se o sistema não salvou, ou se falta um passo.
+   */
+  const estoques = useEstoques(restauranteId)
 
   const lancar = useLancarQuantidade(contagemId)
   const fechar = useFecharContagem(restauranteId)
@@ -359,10 +373,26 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
     () => montarParadas(eixo, lugares, categorias.data ?? [], todos, rascunhos),
     [eixo, lugares, categorias.data, todos, rascunhos],
   )
-  const arvore = useMemo(
-    () => (eixo === 'setor' ? montarArvoreDeSetores(lugares, todos, rascunhos) : []),
-    [eixo, lugares, todos, rascunhos],
+  const lugaresDoCadastro = useMemo(
+    () =>
+      (estoques.data ?? [])
+        .filter((e) => e.ativo)
+        .map((e) => ({ id: e.id, setor_id: e.setor_id, nome: e.nome })),
+    [estoques.data],
   )
+  const arvore = useMemo(
+    () =>
+      eixo === 'setor'
+        ? montarArvoreDeSetores(lugares, todos, rascunhos, lugaresDoCadastro)
+        : [],
+    [eixo, lugares, todos, rascunhos, lugaresDoCadastro],
+  )
+  // Quantos produtos cada lugar tem no cadastro — a conta que separa "folha
+  // antiga, é só refazer" de "este lugar ainda está vazio".
+  const vinculos = useVinculosPorEstoque(useMemo(
+    () => lugaresDoCadastro.map((l) => l.id),
+    [lugaresDoCadastro],
+  ))
 
   /**
    * A seleção válida para este eixo. Trocar de eixo e cair numa seleção que
@@ -423,6 +453,20 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
     () => itensDaParada(eixo, paradaId, todos),
     [eixo, paradaId, todos],
   )
+
+  /**
+   * O lugar selecionado não tem linha nenhuma nesta folha — e por quê.
+   *
+   * `null` quando não é o caso. Quando é, `vinculados` decide a conversa: zero
+   * significa "este lugar está vazio no cadastro"; mais que zero significa
+   * "a folha é mais velha que o cadastro, é só refazer".
+   */
+  const lugarSemLinha = useMemo(() => {
+    if (eixo !== 'setor' || itensDaqui.length > 0) return null
+    const estoque = estoqueDaSelecao(paradaId)
+    if (estoque === null) return null
+    return { estoque, vinculados: vinculos.data?.get(estoque) ?? 0 }
+  }, [eixo, itensDaqui.length, paradaId, vinculos.data])
 
   const grupos = useMemo(
     () =>
@@ -713,7 +757,55 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
           <div className="min-w-0 space-y-4">
             {categorias.isError && <ErroDaConsulta erro={categorias.error} />}
 
-            {visiveis === 0 ? (
+            {/*
+              Um lugar sem NENHUMA linha nesta folha não é "nenhum item
+              encontrado": é uma das duas situações abaixo, e dizer qual é a
+              diferença entre a pessoa resolver em dois cliques ou achar que o
+              sistema engoliu o que ela cadastrou.
+            */}
+            {lugarSemLinha !== null ? (
+              <Cartao>
+                {lugarSemLinha.vinculados === 0 ? (
+                  <EstadoVazio
+                    icone={<Refrigerator />}
+                    titulo={`${ondeEstou} ainda não tem produto nenhum`}
+                    acao={
+                      <Botao
+                        tom="secundario"
+                        onClick={() => navegar('/cadastros/estoques')}
+                        icone={<Boxes />}
+                      >
+                        Escolher os produtos deste lugar
+                      </Botao>
+                    }
+                  >
+                    O lugar está criado, mas nada foi guardado nele ainda. Em Cadastros ›
+                    Estoques de setor, o botão <strong className="text-texto-suave">Produtos</strong>{' '}
+                    abre a lista do setor e deixa marcar todos de uma vez.
+                  </EstadoVazio>
+                ) : (
+                  <EstadoVazio
+                    icone={<RefreshCw />}
+                    titulo={`${ondeEstou} entrou depois que esta folha foi aberta`}
+                    acao={
+                      <Botao
+                        tom="secundario"
+                        onClick={() => void refazerAFolha()}
+                        carregando={refazer.isPending}
+                        icone={<RefreshCw />}
+                      >
+                        Refazer a folha
+                      </Botao>
+                    }
+                  >
+                    A folha é uma foto do cadastro no instante em que a contagem abriu — por isso
+                    ela não tem as {lugarSemLinha.vinculados}{' '}
+                    {plural(lugarSemLinha.vinculados, 'linha', 'linhas')} deste lugar. Refazer traz
+                    o que falta e preserva tudo o que já foi contado.
+                  </EstadoVazio>
+                )}
+              </Cartao>
+            ) : visiveis === 0 ? (
               <Cartao>
                 <EstadoVazio
                   icone={<CheckCircle2 />}

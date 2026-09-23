@@ -7,6 +7,7 @@ import {
   hojeIso,
   chaveDoSetor,
   ehSelecaoDeSetor,
+  estoqueDaSelecao,
   gruposDaParada,
   itensDaParada,
   montarAbas,
@@ -582,6 +583,52 @@ describe('a arvore da contagem · setor por fora, estoque de setor por dentro', 
     const itens = itensDaParada('setor', chaveDoLugar('s-bar', 'e-g1'), ITENS)
     const grupos = gruposDaParada('setor', itens, CATS, LUGARES, undefined, chaveDoLugar('s-bar', 'e-g1'))
     expect(grupos.map((g) => g.nome)).toEqual(['BEBIDAS'])
+  })
+
+  it('lugar criado depois da folha aparece na arvore, com 0/0', () => {
+    // O defeito que isto tranca: a "Prateleira" recem-criada nao existia em
+    // lugar nenhum da tela, e quem acabou de cria-la nao tinha como saber se
+    // errou o cadastro, se o sistema nao salvou, ou se falta um passo.
+    const cadastro = [
+      { id: 'e-g1', setor_id: 's-bar', nome: 'Geladeira 1' },
+      { id: 'e-g2', setor_id: 's-bar', nome: 'Geladeira 2' },
+      { id: 'e-pra', setor_id: 's-coz', nome: 'Prateleira' },
+    ]
+    const coz = montarArvoreDeSetores(LUGARES, ITENS, undefined, cadastro)
+      .find((r) => r.setorId === 's-coz')
+    expect(coz?.lugares.map((l) => l.titulo)).toEqual(['Sem lugar definido', 'Prateleira'])
+    expect(coz?.lugares.at(-1)).toMatchObject({ itens: 0, preenchidos: 0, total: 0 })
+  })
+
+  it('com vizinho ao lado, o resto do setor deixa de se chamar pelo setor', () => {
+    // "Cozinha" logo abaixo de "Cozinha" parece repeticao ou erro de tela.
+    const cadastro = [{ id: 'e-pra', setor_id: 's-coz', nome: 'Prateleira' }]
+    const coz = montarArvoreDeSetores(LUGARES, ITENS, undefined, cadastro)
+      .find((r) => r.setorId === 's-coz')
+    expect(coz?.lugares[0]?.titulo).toBe('Sem lugar definido')
+    expect(coz?.lugares[0]?.id).toBe(chaveDoLugar('s-coz', null))
+  })
+
+  it('lugar do cadastro que JA tem linha nao entra duas vezes', () => {
+    const cadastro = [{ id: 'e-g1', setor_id: 's-bar', nome: 'Geladeira 1' }]
+    const bar = montarArvoreDeSetores(LUGARES, ITENS, undefined, cadastro)
+      .find((r) => r.setorId === 's-bar')
+    expect(bar?.lugares.map((l) => l.titulo)).toEqual(['Geladeira 1', 'Geladeira 2'])
+  })
+
+  it('lugar de setor fora desta folha nao inventa um galho', () => {
+    // Contagem aberta so para alguns setores: um lugar do setor que ficou de
+    // fora nao pode fazer o setor inteiro reaparecer na navegacao.
+    const cadastro = [{ id: 'e-x', setor_id: 's-limpeza', nome: 'Armario' }]
+    const arvore = montarArvoreDeSetores(LUGARES, ITENS, undefined, cadastro)
+    expect(arvore.map((r) => r.setorId)).toEqual(['s-bar', 's-coz'])
+  })
+
+  it('estoqueDaSelecao separa lugar, resto do setor e setor inteiro', () => {
+    expect(estoqueDaSelecao(chaveDoLugar('s-bar', 'e-g1'))).toBe('e-g1')
+    expect(estoqueDaSelecao(chaveDoLugar('s-bar', null))).toBeNull()
+    expect(estoqueDaSelecao(chaveDoSetor('s-bar'))).toBeNull()
+    expect(estoqueDaSelecao(null)).toBeNull()
   })
 
   it('a arvore inteira cobre as mesmas linhas da folha, sem repetir nenhuma', () => {
