@@ -309,6 +309,66 @@ export function useEstoques(restauranteId: string) {
   })
 }
 
+/**
+ * Põe (ou tira) de uma vez todos os produtos de um estoque de setor.
+ *
+ * Sem isto, encher a "Câmara fria" com os 455 produtos da Cozinha exigiria
+ * abrir produto por produto — 455 painéis, 455 salvamentos. O cadastro
+ * existente ficaria eternamente fora dos lugares, e o recurso inteiro viraria
+ * enfeite para quem já tem catálogo.
+ *
+ * Reconcilia por diferença em vez de apagar e reinserir: quem já estava no
+ * lugar não sai e volta, e a ordem de quem ficou é preservada.
+ */
+export function useProdutosDoEstoque(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (entrada: { estoqueId: string; produtos: string[] }) => {
+      const desejados = new Set(entrada.produtos)
+
+      const atuais = await buscarTudo<{ produto_id: string }>((de, ate) =>
+        supabase
+          .from('produto_estoques')
+          .select('produto_id')
+          .eq('estoque_id', entrada.estoqueId)
+          .order('produto_id')
+          .range(de, ate),
+      )
+      const tinha = new Set(atuais.map((a) => a.produto_id))
+      const tirar = [...tinha].filter((id) => !desejados.has(id))
+      const por = [...desejados].filter((id) => !tinha.has(id))
+
+      if (tirar.length > 0) {
+        await buscar(
+          supabase
+            .from('produto_estoques')
+            .delete()
+            .eq('estoque_id', entrada.estoqueId)
+            .in('produto_id', tirar),
+        )
+      }
+      if (por.length > 0) {
+        // Em lotes: 455 linhas numa requisição só é pedido grande demais para
+        // uma conexão de celular no meio do salão.
+        const LOTE = 200
+        for (let i = 0; i < por.length; i += LOTE) {
+          await buscar(
+            supabase.from('produto_estoques').insert(
+              por.slice(i, i + LOTE).map((produto_id, j) => ({
+                produto_id,
+                estoque_id: entrada.estoqueId,
+                ordem: i + j,
+              })),
+            ),
+          )
+        }
+      }
+      return { adicionados: por.length, removidos: tirar.length }
+    },
+    onSuccess: () => invalidarCadastros(qc, restauranteId),
+  })
+}
+
 export function useSalvarEstoque(restauranteId: string) {
   const qc = useQueryClient()
   return useMutation({

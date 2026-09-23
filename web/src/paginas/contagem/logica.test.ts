@@ -5,9 +5,12 @@ import {
   filtrarItens,
   foiTrabalhado,
   hojeIso,
+  chaveDoSetor,
+  ehSelecaoDeSetor,
   gruposDaParada,
   itensDaParada,
   montarAbas,
+  montarArvoreDeSetores,
   montarParadas,
   ondeFica,
   resumoDoFechamento,
@@ -439,5 +442,159 @@ describe('lista unica · o mesmo produto em varios lugares', () => {
       'Bar › Geladeira 1', 'Bar › Geladeira 2', 'Cozinha › Câmara fria', 'Cozinha › Despensa',
     ])
     expect(grupos.every((g) => g.itens.length === 1)).toBe(true)
+  })
+})
+
+describe('a arvore da contagem · setor por fora, estoque de setor por dentro', () => {
+  const LUGARES = [
+    { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-g1', estoque_nome: 'Geladeira 1', itens: 2 },
+    { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-g2', estoque_nome: 'Geladeira 2', itens: 1 },
+    { setor_id: 's-coz', setor_nome: 'Cozinha', setor_cor: '#222222', estoque_id: null, estoque_nome: null, itens: 1 },
+  ]
+  const CATS: CategoriaSimples[] = [
+    { id: 'c-beb', nome: 'BEBIDAS', cor: '#a1a1a1' },
+    { id: 'c-car', nome: 'CARNES', cor: '#b2b2b2' },
+  ]
+
+  function linha(
+    id: string,
+    setor_id: string,
+    estoque_id: string | null,
+    categoria_id: string | null,
+    quantidade: number,
+    custo = 10,
+  ): ItemContavel {
+    return {
+      id, produto_id: `p-${id}`, setor_id, estoque_id, quantidade,
+      unidade: 'UND', custo_unitario: custo, total: quantidade * custo,
+      contado_em: null, produto: { nome: id.toUpperCase(), categoria_id },
+    }
+  }
+
+  const ITENS = [
+    linha('cerveja', 's-bar', 'e-g1', 'c-beb', 2),
+    linha('gin', 's-bar', 'e-g1', 'c-beb', 0),
+    linha('vinho', 's-bar', 'e-g2', 'c-beb', 3),
+    linha('picanha', 's-coz', null, 'c-car', 1),
+  ]
+
+  it('um galho por setor, com os lugares dentro', () => {
+    const arvore = montarArvoreDeSetores(LUGARES, ITENS)
+    expect(arvore.map((r) => r.nome)).toEqual(['Bar', 'Cozinha'])
+    expect(arvore[0]?.lugares.map((l) => l.titulo)).toEqual(['Geladeira 1', 'Geladeira 2'])
+  })
+
+  it('o galho soma os lugares: itens, preenchidos e dinheiro', () => {
+    const [bar] = montarArvoreDeSetores(LUGARES, ITENS)
+    expect(bar).toMatchObject({ itens: 3, preenchidos: 2, total: 50 })
+  })
+
+  it('setor sem subdivisao nao ganha um nivel a mais so para ter um', () => {
+    // Um galho com uma folha so chamada "Cozinha" dentro da "Cozinha" seria
+    // um clique a mais que nao separa nada.
+    const coz = montarArvoreDeSetores(LUGARES, ITENS).find((r) => r.setorId === 's-coz')
+    expect(coz?.lugares).toEqual([])
+    expect(coz).toMatchObject({ itens: 1, preenchidos: 1, total: 10 })
+  })
+
+  it('o rascunho local ja mexe no galho, antes de o servidor confirmar', () => {
+    const [bar] = montarArvoreDeSetores(LUGARES, ITENS, new Map([['gin', 4]]))
+    expect(bar).toMatchObject({ preenchidos: 3, total: 90 })
+  })
+
+  it('a chave do setor inteiro nao se confunde com a de um lugar', () => {
+    // `s-bar:` (o lugar sem estoque) e `setor:s-bar` (o setor todo) sao coisas
+    // diferentes, e trocar uma pela outra mostraria a folha errada.
+    expect(chaveDoSetor('s-bar')).not.toBe(chaveDoLugar('s-bar', null))
+    expect(ehSelecaoDeSetor(chaveDoSetor('s-bar'))).toBe(true)
+    expect(ehSelecaoDeSetor(chaveDoLugar('s-bar', null))).toBe(false)
+    expect(ehSelecaoDeSetor(null)).toBe(false)
+  })
+
+  it('escolher o setor traz as linhas de TODOS os lugares dele', () => {
+    const doBar = itensDaParada('setor', chaveDoSetor('s-bar'), ITENS)
+    expect(doBar.map((i) => i.id).sort()).toEqual(['cerveja', 'gin', 'vinho'])
+  })
+
+  it('escolher um lugar estreita a folha so para ele', () => {
+    const g2 = itensDaParada('setor', chaveDoLugar('s-bar', 'e-g2'), ITENS)
+    expect(g2.map((i) => i.id)).toEqual(['vinho'])
+  })
+
+  it('com o setor inteiro aberto, os blocos sao os ESTOQUES do setor', () => {
+    // O pedido de quem conta: clicar no Bar e ver a Geladeira 1 e a 2 como
+    // blocos, cada uma com o seu total.
+    const itens = itensDaParada('setor', chaveDoSetor('s-bar'), ITENS)
+    const grupos = gruposDaParada('setor', itens, CATS, LUGARES, undefined, chaveDoSetor('s-bar'))
+    expect(grupos.map((g) => g.nome)).toEqual(['Bar › Geladeira 1', 'Bar › Geladeira 2'])
+    expect(grupos.map((g) => g.total)).toEqual([20, 30])
+  })
+
+  it('os blocos do setor nao trazem lugar de outro setor', () => {
+    const grupos = gruposDaParada('setor', ITENS, CATS, LUGARES, undefined, chaveDoSetor('s-bar'))
+    // A picanha e da Cozinha: nao pode virar bloco do Bar, mas tambem nao
+    // pode sumir — vai para o balde visivel do fim.
+    expect(grupos.map((g) => g.nome)).toEqual(['Bar › Geladeira 1', 'Bar › Geladeira 2', 'Sem lugar definido'])
+  })
+
+  it('o resto do setor se chama "Sem lugar definido", nao pelo nome do setor', () => {
+    // "Bar" como bloco ao lado de "Bar › Geladeira 1" faria pensar que um
+    // contem o outro. Nao contem: e o que ainda nao foi posto em geladeira.
+    const comResto = [
+      ...LUGARES,
+      { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: null, estoque_nome: null, itens: 1 },
+    ]
+    const solto = linha('agua', 's-bar', null, 'c-beb', 1)
+    const itens = [...ITENS, solto]
+    const grupos = gruposDaParada(
+      'setor',
+      itensDaParada('setor', chaveDoSetor('s-bar'), itens),
+      CATS,
+      comResto,
+      undefined,
+      chaveDoSetor('s-bar'),
+    )
+    expect(grupos.map((g) => g.nome)).toEqual([
+      'Bar › Geladeira 1',
+      'Bar › Geladeira 2',
+      'Sem lugar definido',
+    ])
+  })
+
+  it('setor sem subdivisao abre por CATEGORIA, nao num bloco so com o proprio nome', () => {
+    // Um cabecalho "Cozinha" dentro da parada "Cozinha", com o rodape dizendo
+    // "Cozinha", nao separa nada — e so ruido em cima da folha.
+    const itens = [...ITENS, linha('frango', 's-coz', null, 'c-beb', 0)]
+    const grupos = gruposDaParada(
+      'setor',
+      itensDaParada('setor', chaveDoSetor('s-coz'), itens),
+      CATS,
+      LUGARES,
+      undefined,
+      chaveDoSetor('s-coz'),
+    )
+    expect(grupos.map((g) => g.nome)).toEqual(['BEBIDAS', 'CARNES'])
+  })
+
+  it('dentro de UM lugar a categoria volta a mandar', () => {
+    // Ali ja nao ha o que separar por lugar: dividir por lugar daria um bloco
+    // so, com o nome do lugar repetido no titulo da parada.
+    const itens = itensDaParada('setor', chaveDoLugar('s-bar', 'e-g1'), ITENS)
+    const grupos = gruposDaParada('setor', itens, CATS, LUGARES, undefined, chaveDoLugar('s-bar', 'e-g1'))
+    expect(grupos.map((g) => g.nome)).toEqual(['BEBIDAS'])
+  })
+
+  it('a arvore inteira cobre as mesmas linhas da folha, sem repetir nenhuma', () => {
+    const arvore = montarArvoreDeSetores(LUGARES, ITENS)
+    const vistos: string[] = []
+    for (const ramo of arvore) {
+      const alvos = ramo.lugares.length > 0
+        ? ramo.lugares.map((l) => l.id)
+        : [chaveDoSetor(ramo.setorId)]
+      for (const alvo of alvos) {
+        for (const i of itensDaParada('setor', alvo, ITENS)) vistos.push(i.id)
+      }
+    }
+    expect(vistos.sort()).toEqual(['cerveja', 'gin', 'picanha', 'vinho'])
   })
 })

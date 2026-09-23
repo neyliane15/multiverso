@@ -18,6 +18,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   ClipboardList,
   Lock,
   LockOpen,
@@ -64,10 +66,13 @@ import {
 import { data as formatarData, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
 import {
   EIXOS,
+  chaveDoSetor,
+  ehSelecaoDeSetor,
   filtrarItens,
   gruposDaParada,
   hojeIso,
   itensDaParada,
+  montarArvoreDeSetores,
   montarParadas,
   ondeFica,
   quantidadeEmVigor,
@@ -76,6 +81,7 @@ import {
   type Eixo,
   type ItemContavel,
   type Parada,
+  type RamoDeSetor,
 } from './logica'
 
 /** Chave do eixo no localStorage. */
@@ -353,17 +359,65 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
     () => montarParadas(eixo, lugares, categorias.data ?? [], todos, rascunhos),
     [eixo, lugares, categorias.data, todos, rascunhos],
   )
+  const arvore = useMemo(
+    () => (eixo === 'setor' ? montarArvoreDeSetores(lugares, todos, rascunhos) : []),
+    [eixo, lugares, todos, rascunhos],
+  )
 
-  // A parada escolhida é por eixo: trocar de eixo e cair numa parada que não
-  // existe ali deixaria a folha vazia sem motivo visível.
-  const paradaEscolhida = paradas.find((p) => p.id === paradaAtiva) ?? paradas[0] ?? null
-  const paradaId = paradaEscolhida?.id ?? null
-  const ondeEstou =
-    eixo === 'produto'
-      ? 'toda a folha'
-      : paradaEscolhida
-        ? [paradaEscolhida.subtitulo, paradaEscolhida.titulo].filter(Boolean).join(' › ')
-        : 'nesta folha'
+  /**
+   * A seleção válida para este eixo. Trocar de eixo e cair numa seleção que
+   * não existe ali deixaria a folha vazia sem motivo visível.
+   *
+   * No eixo setor, o padrão é o PRIMEIRO SETOR inteiro — não o primeiro lugar.
+   * Quem abre a contagem quer ver o setor, e decide dali se desce.
+   */
+  const selecoesValidas = useMemo(() => {
+    if (eixo === 'setor') {
+      return new Set(arvore.flatMap((r) => [chaveDoSetor(r.setorId), ...r.lugares.map((l) => l.id)]))
+    }
+    return new Set(paradas.map((p) => p.id))
+  }, [eixo, arvore, paradas])
+
+  const padrao =
+    eixo === 'setor'
+      ? arvore[0] !== undefined
+        ? chaveDoSetor(arvore[0].setorId)
+        : null
+      : (paradas[0]?.id ?? null)
+
+  const paradaId =
+    paradaAtiva !== null && selecoesValidas.has(paradaAtiva) ? paradaAtiva : padrao
+
+  const ondeEstou = useMemo(() => {
+    if (eixo === 'produto') return 'toda a folha'
+    if (paradaId === null) return 'nesta folha'
+    if (eixo === 'setor') {
+      if (ehSelecaoDeSetor(paradaId)) {
+        return arvore.find((r) => chaveDoSetor(r.setorId) === paradaId)?.nome ?? 'nesta folha'
+      }
+      for (const ramo of arvore) {
+        const lugar = ramo.lugares.find((l) => l.id === paradaId)
+        if (lugar) return `${ramo.nome} › ${lugar.titulo}`
+      }
+      return 'nesta folha'
+    }
+    const p = paradas.find((x) => x.id === paradaId)
+    return p ? [p.subtitulo, p.titulo].filter(Boolean).join(' › ') : 'nesta folha'
+  }, [eixo, paradaId, arvore, paradas])
+
+  const tituloDoRodape = useMemo(() => {
+    if (eixo === 'produto') return 'Na folha'
+    if (eixo === 'setor' && paradaId !== null) {
+      if (ehSelecaoDeSetor(paradaId)) {
+        return arvore.find((r) => chaveDoSetor(r.setorId) === paradaId)?.nome ?? 'Setor'
+      }
+      for (const ramo of arvore) {
+        const lugar = ramo.lugares.find((l) => l.id === paradaId)
+        if (lugar) return lugar.titulo
+      }
+    }
+    return paradas.find((x) => x.id === paradaId)?.titulo ?? 'Setor'
+  }, [eixo, paradaId, arvore, paradas])
 
   const itensDaqui = useMemo(
     () => itensDaParada(eixo, paradaId, todos),
@@ -378,8 +432,9 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
         categorias.data ?? [],
         lugares,
         rascunhos,
+        paradaId,
       ),
-    [eixo, itensDaqui, busca, soNaoContados, rascunhos, categorias.data, lugares],
+    [eixo, itensDaqui, busca, soNaoContados, rascunhos, categorias.data, lugares, paradaId],
   )
 
   const totalDoSetor = useMemo(
@@ -638,13 +693,21 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
             eixo !== 'produto' && 'lg:grid-cols-[240px_minmax(0,1fr)]',
           )}
         >
-          {eixo !== 'produto' && (
-            <Navegacao
-              paradas={paradas}
+          {eixo === 'setor' ? (
+            <NavegacaoPorSetor
+              ramos={arvore}
               escolhida={paradaId}
               aoEscolher={setParadaAtiva}
-              rotulo={eixo === 'setor' ? 'Setores e estoques da contagem' : 'Categorias da contagem'}
             />
+          ) : (
+            eixo === 'categoria' && (
+              <Navegacao
+                paradas={paradas}
+                escolhida={paradaId}
+                aoEscolher={setParadaAtiva}
+                rotulo="Categorias da contagem"
+              />
+            )
           )}
 
           <div className="min-w-0 space-y-4">
@@ -731,7 +794,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
         {/* "Setor" mentia quando a parada era uma geladeira: o numero e o
             da parada aberta, nao o do setor inteiro. */}
         <TotalDaBarra
-          rotulo={eixo === 'produto' ? 'Na folha' : (paradaEscolhida?.titulo ?? 'Setor')}
+          rotulo={tituloDoRodape}
           valor={dinheiro(totalDoSetor)}
         />
         <TotalDaBarra rotulo="Total da contagem" valor={dinheiro(totalGeral)} destaque alinharADireita />
@@ -1011,6 +1074,170 @@ function Navegacao({
                   />
                 </span>
               </button>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
+}
+
+/**
+ * A navegação por setor: setor é galho, estoque de setor é folha.
+ *
+ * Clicar no **setor** abre o setor inteiro — e a folha se divide em blocos,
+ * um por estoque de setor. Clicar num **estoque** estreita a folha só para
+ * ele. É a diferença entre "conferir o Bar" e "estar de pé na Geladeira 1",
+ * e as duas coisas acontecem no mesmo dia.
+ *
+ * Por isso o clique no setor também abre o galho: quem clicou no Bar quer
+ * ver quais lugares existem dentro dele, sem ter que caçar uma setinha. A
+ * setinha existe para o caso contrário — espiar os lugares de um setor sem
+ * sair de onde se está contando.
+ */
+function NavegacaoPorSetor({
+  ramos,
+  escolhida,
+  aoEscolher,
+}: {
+  ramos: readonly RamoDeSetor[]
+  escolhida: string | null
+  aoEscolher: (id: string) => void
+}): JSX.Element {
+  // Só o que foi mexido na mão fica aqui. O resto se decide pela seleção —
+  // assim o galho de quem está contando já nasce aberto, inclusive quando a
+  // tela recarrega e a seleção volta do zero.
+  const [mexidos, setMexidos] = useState<Record<string, boolean>>({})
+
+  const pertence = (ramo: RamoDeSetor): boolean =>
+    escolhida === chaveDoSetor(ramo.setorId) ||
+    ramo.lugares.some((l) => l.id === escolhida)
+
+  const alternar = (setorId: string, aberto: boolean) =>
+    setMexidos((antes) => ({ ...antes, [setorId]: !aberto }))
+
+  return (
+    <nav aria-label="Setores e estoques da contagem" className="min-w-0">
+      <ul className="flex max-h-[45vh] flex-col gap-0.5 overflow-y-auto pb-1 lg:max-h-[70vh] lg:pb-0">
+        {ramos.map((ramo) => {
+          const chave = chaveDoSetor(ramo.setorId)
+          const temLugares = ramo.lugares.length > 0
+          const aberto = temLugares && (mexidos[ramo.setorId] ?? pertence(ramo))
+          const ativo = escolhida === chave
+          const progresso = ramo.itens === 0 ? 0 : (ramo.preenchidos / ramo.itens) * 100
+          return (
+            <li key={ramo.setorId} className="min-w-0">
+              <div className="flex items-stretch">
+                <button
+                  type="button"
+                  aria-current={ativo ? 'true' : undefined}
+                  onClick={() => {
+                    aoEscolher(chave)
+                    // Escolher o setor é pedir para ver o que tem dentro.
+                    if (temLugares) setMexidos((antes) => ({ ...antes, [ramo.setorId]: true }))
+                  }}
+                  className={clsx(
+                    'flex min-h-toque min-w-0 flex-1 flex-col justify-center gap-1 rounded-marca-p',
+                    'border-l-2 px-3 py-1.5 text-left transition-colors',
+                    ativo
+                      ? 'border-l-primaria bg-primaria-16'
+                      : 'border-l-transparent hover:bg-primaria-06',
+                  )}
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <Ponto cor={ramo.cor} />
+                    <span
+                      className={clsx(
+                        'truncate text-corpo',
+                        ativo ? 'font-medium text-primaria-legivel' : 'text-texto',
+                      )}
+                    >
+                      {ramo.nome}
+                    </span>
+                    <span className="mv-numero ml-auto shrink-0 text-micro text-texto-fraco">
+                      {ramo.preenchidos}/{ramo.itens}
+                    </span>
+                  </span>
+                  <span
+                    className="h-0.5 w-full overflow-hidden rounded-full bg-superficie-3"
+                    aria-hidden
+                  >
+                    <span
+                      className="block h-full rounded-full bg-primaria transition-[width]"
+                      style={{ width: `${progresso}%` }}
+                    />
+                  </span>
+                </button>
+                {temLugares && (
+                  <button
+                    type="button"
+                    onClick={() => alternar(ramo.setorId, aberto)}
+                    aria-expanded={aberto}
+                    aria-label={
+                      aberto
+                        ? `Esconder os estoques de ${ramo.nome}`
+                        : `Ver os ${ramo.lugares.length} estoques de ${ramo.nome}`
+                    }
+                    className={clsx(
+                      'flex min-h-toque w-10 shrink-0 items-center justify-center rounded-marca-p',
+                      'text-texto-fraco transition-colors hover:bg-primaria-06 hover:text-texto',
+                    )}
+                  >
+                    {aberto ? (
+                      <ChevronDown className="size-4" aria-hidden />
+                    ) : (
+                      <ChevronRight className="size-4" aria-hidden />
+                    )}
+                  </button>
+                )}
+              </div>
+              {aberto && (
+                <ul className="ml-3 flex flex-col gap-0.5 border-l border-borda pl-1">
+                  {ramo.lugares.map((lugar) => {
+                    const dentro = lugar.id === escolhida
+                    const andar = lugar.itens === 0 ? 0 : (lugar.preenchidos / lugar.itens) * 100
+                    return (
+                      <li key={lugar.id} className="min-w-0">
+                        <button
+                          type="button"
+                          aria-current={dentro ? 'true' : undefined}
+                          onClick={() => aoEscolher(lugar.id)}
+                          className={clsx(
+                            'flex min-h-toque w-full min-w-0 flex-col justify-center gap-1',
+                            'rounded-marca-p border-l-2 px-3 py-1.5 text-left transition-colors',
+                            dentro
+                              ? 'border-l-primaria bg-primaria-16'
+                              : 'border-l-transparent hover:bg-primaria-06',
+                          )}
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span
+                              className={clsx(
+                                'truncate text-micro',
+                                dentro ? 'font-medium text-primaria-legivel' : 'text-texto-fraco',
+                              )}
+                            >
+                              {lugar.titulo}
+                            </span>
+                            <span className="mv-numero ml-auto shrink-0 text-micro text-texto-fraco">
+                              {lugar.preenchidos}/{lugar.itens}
+                            </span>
+                          </span>
+                          <span
+                            className="h-0.5 w-full overflow-hidden rounded-full bg-superficie-3"
+                            aria-hidden
+                          >
+                            <span
+                              className="block h-full rounded-full bg-primaria transition-[width]"
+                              style={{ width: `${andar}%` }}
+                            />
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </li>
           )
         })}

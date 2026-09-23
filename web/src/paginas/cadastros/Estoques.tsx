@@ -11,7 +11,7 @@
  * dentro do setor justamente porque a cozinha também pode ter a dela.
  */
 import { useMemo, useState } from 'react'
-import { Archive, ArchiveRestore, Boxes, Plus } from 'lucide-react'
+import { Archive, ArchiveRestore, Boxes, Package, Plus, Save, Search } from 'lucide-react'
 import {
   Aviso,
   Botao,
@@ -25,9 +25,21 @@ import {
   plural,
 } from '@/componentes/base'
 import { useSessao } from '@/dados/sessao'
-import { useEstoques, useProdutos, useSalvarEstoque, useSetores } from '@/dados/consultas'
-import type { Estoque, Setor } from '@/tipos/banco'
-import { contarProdutosPorEstoque } from './logicaDeEstoques'
+import {
+  useEstoques,
+  useProdutos,
+  useProdutosDoEstoque,
+  useSalvarEstoque,
+  useSetores,
+} from '@/dados/consultas'
+import type { Estoque, ProdutoCompleto, Setor } from '@/tipos/banco'
+import { PainelLateral } from '../PainelLateral'
+import {
+  contarProdutosPorEstoque,
+  diferencaDeMarcacao,
+  filtrarProdutosDoSetor,
+  produtosParaOEstoque,
+} from './logicaDeEstoques'
 
 function mensagem(erro: unknown): string {
   return erro instanceof Error ? erro.message : String(erro)
@@ -41,7 +53,11 @@ export function Estoques(): JSX.Element {
   const estoques = useEstoques(restauranteId)
   const produtos = useProdutos(restauranteId)
   const salvar = useSalvarEstoque(restauranteId)
+  const vincular = useProdutosDoEstoque(restauranteId)
   const [falha, setFalha] = useState<string | null>(null)
+  const [aviso, setAviso] = useState<string | null>(null)
+  /** O lugar cujo painel de produtos está aberto. */
+  const [escolhendo, setEscolhendo] = useState<{ setor: Setor; estoque: Estoque } | null>(null)
 
   const usos = useMemo(
     () => contarProdutosPorEstoque(produtos.data ?? []),
@@ -107,6 +123,12 @@ export function Estoques(): JSX.Element {
         </Aviso>
       )}
 
+      {aviso && (
+        <Aviso tom="sucesso" titulo="Produtos vinculados">
+          {aviso}
+        </Aviso>
+      )}
+
       {ativos.length === 0 ? (
         <Cartao>
           <EstadoVazio icone={<Boxes />} titulo="Nenhum setor ativo">
@@ -123,6 +145,7 @@ export function Estoques(): JSX.Element {
             usos={usos}
             podeEditar={podeAdministrar}
             salvando={salvar.isPending}
+            aoEscolherProdutos={(estoque) => setEscolhendo({ setor, estoque })}
             aoSalvar={async (dados) => {
               setFalha(null)
               try {
@@ -136,6 +159,42 @@ export function Estoques(): JSX.Element {
           />
         ))
       )}
+
+      {escolhendo && (
+        <EscolherProdutos
+          key={escolhendo.estoque.id}
+          setor={escolhendo.setor}
+          estoque={escolhendo.estoque}
+          produtos={produtos.data ?? []}
+          salvando={vincular.isPending}
+          aoFechar={() => setEscolhendo(null)}
+          aoSalvar={async (ids) => {
+            setFalha(null)
+            setAviso(null)
+            try {
+              const r = await vincular.mutateAsync({
+                estoqueId: escolhendo.estoque.id,
+                produtos: ids,
+              })
+              const partes = [
+                r.adicionados > 0
+                  ? `${r.adicionados} ${plural(r.adicionados, 'produto entrou', 'produtos entraram')}`
+                  : null,
+                r.removidos > 0
+                  ? `${r.removidos} ${plural(r.removidos, 'saiu', 'saíram')}`
+                  : null,
+              ].filter(Boolean)
+              setAviso(
+                `${escolhendo.estoque.nome}: ${partes.join(' e ')}. ` +
+                  'A próxima folha de contagem já nasce assim.',
+              )
+              setEscolhendo(null)
+            } catch (erro) {
+              setFalha(mensagem(erro))
+            }
+          }}
+        />
+      )}
     </>
   )
 }
@@ -147,6 +206,7 @@ function SetorComEstoques({
   podeEditar,
   salvando,
   aoSalvar,
+  aoEscolherProdutos,
 }: {
   setor: Setor
   estoques: readonly Estoque[]
@@ -154,6 +214,7 @@ function SetorComEstoques({
   podeEditar: boolean
   salvando: boolean
   aoSalvar: (dados: Partial<Estoque> & { id?: string }) => Promise<boolean>
+  aoEscolherProdutos: (estoque: Estoque) => void
 }): JSX.Element {
   const [novo, setNovo] = useState('')
   const [editando, setEditando] = useState<string | null>(null)
@@ -226,6 +287,17 @@ function SetorComEstoques({
                     </span>
                     {podeEditar && (
                       <>
+                        {/* Antes do renomear: encher o lugar é o que se faz
+                            com ele, e trocar o nome é o que quase nunca se
+                            faz. */}
+                        <Botao
+                          tom="secundario"
+                          tamanho="p"
+                          onClick={() => aoEscolherProdutos(estoque)}
+                          icone={<Package className="size-4" aria-hidden />}
+                        >
+                          Produtos
+                        </Botao>
                         <Botao
                           tom="fantasma"
                           tamanho="p"
@@ -274,5 +346,167 @@ function SetorComEstoques({
         </form>
       )}
     </Cartao>
+  )
+}
+
+/* ──────────────────────────── escolher produtos para o lugar ───────────── */
+
+/**
+ * Enche o lugar com os produtos que o setor já tem.
+ *
+ * Sem esta tela, pôr os 455 produtos da Cozinha na Câmara fria custaria 455
+ * painéis abertos um a um — e o recurso de estoque viraria enfeite para quem
+ * já tem catálogo. A lista é só do SETOR porque o banco recusa o resto, e
+ * oferecer o que o banco recusa é prometer o que não se cumpre.
+ */
+function EscolherProdutos({
+  setor,
+  estoque,
+  produtos,
+  salvando,
+  aoSalvar,
+  aoFechar,
+}: {
+  setor: Setor
+  estoque: Estoque
+  produtos: readonly ProdutoCompleto[]
+  salvando: boolean
+  aoSalvar: (ids: string[]) => void
+  aoFechar: () => void
+}): JSX.Element {
+  const lista = useMemo(
+    () => produtosParaOEstoque(produtos, setor.id, estoque.id),
+    [produtos, setor.id, estoque.id],
+  )
+  const [marcados, setMarcados] = useState<Set<string>>(
+    () => new Set(lista.filter((p) => p.dentro).map((p) => p.id)),
+  )
+  const [busca, setBusca] = useState('')
+
+  const visiveis = useMemo(() => filtrarProdutosDoSetor(lista, busca), [lista, busca])
+  const { entram, saem } = diferencaDeMarcacao(lista, marcados)
+  const nadaMudou = entram === 0 && saem === 0
+
+  function alternar(id: string) {
+    setMarcados((atual) => {
+      const novo = new Set(atual)
+      if (novo.has(id)) novo.delete(id)
+      else novo.add(id)
+      return novo
+    })
+  }
+
+  /** Marca ou desmarca só o que a busca deixou à vista — nunca a lista toda. */
+  function todosOsVisiveis(dentro: boolean) {
+    setMarcados((atual) => {
+      const novo = new Set(atual)
+      for (const p of visiveis) {
+        if (dentro) novo.add(p.id)
+        else novo.delete(p.id)
+      }
+      return novo
+    })
+  }
+
+  return (
+    <PainelLateral
+      aberto
+      largura="larga"
+      titulo={`${setor.nome} › ${estoque.nome}`}
+      descricao="Marque o que fica guardado aqui. Cada marca vira uma linha própria na folha de contagem."
+      aoFechar={aoFechar}
+      rodape={
+        <>
+          <span className="mr-auto text-apoio text-texto-fraco" role="status">
+            {nadaMudou
+              ? `${marcados.size} ${plural(marcados.size, 'produto', 'produtos')} neste lugar`
+              : [
+                  entram > 0 ? `${entram} a mais` : null,
+                  saem > 0 ? `${saem} a menos` : null,
+                ]
+                  .filter(Boolean)
+                  .join(', ')}
+          </span>
+          <Botao tom="fantasma" onClick={aoFechar}>
+            Cancelar
+          </Botao>
+          <Botao
+            tom="primario"
+            carregando={salvando}
+            disabled={nadaMudou}
+            onClick={() => aoSalvar([...marcados])}
+            icone={<Save className="size-4" aria-hidden />}
+          >
+            Salvar
+          </Botao>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        {lista.length === 0 ? (
+          <Aviso tom="alerta" titulo="Nenhum produto neste setor">
+            Um produto só pode ficar num lugar do setor em que ele já existe. Vincule produtos a{' '}
+            {setor.nome} no cadastro de Produtos e volte aqui.
+          </Aviso>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative min-w-[200px] flex-1">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-fraco"
+                  aria-hidden
+                />
+                <Campo
+                  type="search"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder={`Buscar entre os ${lista.length} produtos de ${setor.nome}`}
+                  aria-label="Buscar produto"
+                  className="pl-9"
+                />
+              </div>
+              <Botao tom="secundario" tamanho="p" onClick={() => todosOsVisiveis(true)}>
+                Marcar {busca === '' ? 'todos' : 'os encontrados'}
+              </Botao>
+              <Botao tom="fantasma" tamanho="p" onClick={() => todosOsVisiveis(false)}>
+                Desmarcar
+              </Botao>
+            </div>
+
+            {visiveis.length === 0 ? (
+              <p className="text-apoio text-texto-fraco">Nenhum produto bate com a busca.</p>
+            ) : (
+              <ul className="divide-y divide-borda/60 rounded-marca border border-borda">
+                {visiveis.map((produto) => (
+                  <li key={produto.id}>
+                    <label className="flex min-h-toque cursor-pointer items-center gap-3 px-3 py-2">
+                      <input
+                        type="checkbox"
+                        className="size-4 shrink-0 accent-[var(--mv-primaria)]"
+                        checked={marcados.has(produto.id)}
+                        onChange={() => alternar(produto.id)}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-corpo text-texto">{produto.nome}</span>
+                        {produto.tambemEm.length > 0 && (
+                          /* Sem este aviso, marcar aqui cria uma segunda
+                             contagem do mesmo produto sem ninguém perceber. */
+                          <span className="block truncate text-micro text-texto-fraco">
+                            também em {produto.tambemEm.join(', ')}
+                          </span>
+                        )}
+                      </span>
+                      {produto.categoriaNome && (
+                        <Selo cor={produto.categoriaCor ?? undefined}>{produto.categoriaNome}</Selo>
+                      )}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </div>
+    </PainelLateral>
   )
 }

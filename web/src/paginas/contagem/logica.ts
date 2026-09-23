@@ -376,6 +376,91 @@ export const chaveDaCategoria = (item: ItemContavel): string =>
  * No eixo `produto` não há parada nenhuma: a folha é uma lista só, e uma
  * navegação de uma entrada só seria enfeite ocupando a largura da tela.
  */
+/**
+ * Um setor com os lugares dentro — a navegação da contagem por setor.
+ *
+ * Antes eram paradas soltas: "Sem lugar definido", "Geladeira 1", "Geladeira
+ * 2", "Cozinha", "Câmara fria"… tudo no mesmo nível, e a relação entre elas só
+ * existia na cabeça de quem lia. Com quatro setores e alguns lugares em cada,
+ * a coluna virava uma lista de quinze entradas sem hierarquia nenhuma.
+ *
+ * Agora o setor é o galho e os lugares são as folhas. Clicar no setor mostra
+ * o setor INTEIRO, com os lugares como subgrupos; clicar num lugar estreita
+ * para ele. As duas coisas que quem conta quer, sem escolher uma só.
+ */
+export interface RamoDeSetor {
+  setorId: string
+  nome: string
+  cor: string
+  itens: number
+  preenchidos: number
+  total: number
+  /** Os lugares do setor. Vazio quando o setor não tem subdivisão. */
+  lugares: Parada[]
+}
+
+/** A chave de uma seleção de SETOR inteiro, distinta da de um lugar. */
+export const chaveDoSetor = (setorId: string): string => `setor:${setorId}`
+
+/** A seleção é de um setor inteiro? */
+export const ehSelecaoDeSetor = (selecao: string | null): boolean =>
+  selecao !== null && selecao.startsWith('setor:')
+
+const setorDaSelecao = (selecao: string): string => selecao.slice('setor:'.length)
+
+/**
+ * Monta a árvore: um galho por setor, com os lugares dentro.
+ *
+ * O setor sem subdivisão nenhuma continua sendo um galho SEM folhas — e não
+ * um galho com uma folha só chamada "Sem lugar definido". Um nível de
+ * hierarquia que não separa nada é só um clique a mais.
+ */
+export function montarArvoreDeSetores(
+  totais: readonly TotalDoLugar[],
+  itens: readonly ItemContavel[],
+  rascunhos?: Rascunhos,
+): RamoDeSetor[] {
+  const paradas = montarAbas(totais, itens, rascunhos)
+  const porSetor = new Map<string, RamoDeSetor>()
+
+  for (const parada of paradas) {
+    let ramo = porSetor.get(parada.setorId)
+    if (!ramo) {
+      ramo = {
+        setorId: parada.setorId,
+        nome: parada.setorNome,
+        cor: parada.cor,
+        itens: 0,
+        preenchidos: 0,
+        total: 0,
+        lugares: [],
+      }
+      porSetor.set(parada.setorId, ramo)
+    }
+    ramo.itens += parada.itens
+    ramo.preenchidos += parada.preenchidos
+    ramo.total += parada.total
+    ramo.lugares.push({
+      id: parada.id,
+      titulo: parada.titulo,
+      subtitulo: null,
+      cor: parada.cor,
+      itens: parada.itens,
+      preenchidos: parada.preenchidos,
+      total: parada.total,
+    })
+  }
+
+  for (const ramo of porSetor.values()) {
+    // Um lugar só, e ele é o próprio setor: não há o que abrir.
+    if (ramo.lugares.length === 1 && ramo.lugares[0]?.id === chaveDoLugar(ramo.setorId, null)) {
+      ramo.lugares = []
+    }
+  }
+
+  return [...porSetor.values()]
+}
+
 export function montarParadas(
   eixo: Eixo,
   totais: readonly TotalDoLugar[],
@@ -419,6 +504,11 @@ export function itensDaParada(
 ): ItemContavel[] {
   if (eixo === 'produto' || paradaId === null) return [...itens]
   if (eixo === 'setor') {
+    // Seleção de setor inteiro: todas as linhas dele, de todos os lugares.
+    if (ehSelecaoDeSetor(paradaId)) {
+      const setor = setorDaSelecao(paradaId)
+      return itens.filter((i) => i.setor_id === setor)
+    }
     return itens.filter((i) => chaveDoLugar(i.setor_id, i.estoque_id) === paradaId)
   }
   return itens.filter((i) => chaveDaCategoria(i) === paradaId)
@@ -431,23 +521,76 @@ export function itensDaParada(
  * categoria, é o setor. No eixo produto não há bloco: um cartão só, porque
  * ali a pessoa está buscando pelo nome e qualquer divisão atrapalha.
  */
+/** Os lugares como eixo de agrupamento, na ordem em que o servidor os manda. */
+function ordemDosLugares(
+  lugares: readonly TotalDoLugar[],
+): { id: string; nome: string; cor: string | null }[] {
+  return lugares.map((lugar) => ({
+    id: chaveDoLugar(lugar.setor_id, lugar.estoque_id),
+    nome:
+      lugar.estoque_nome === null ? lugar.setor_nome : `${lugar.setor_nome} › ${lugar.estoque_nome}`,
+    cor: lugar.setor_cor,
+  }))
+}
+
 export function gruposDaParada(
   eixo: Eixo,
   itens: readonly ItemContavel[],
   categorias: readonly CategoriaSimples[],
   lugares: readonly TotalDoLugar[],
   rascunhos?: Rascunhos,
+  /** A seleção, para o setor inteiro saber que deve se abrir por lugar. */
+  selecao?: string | null,
 ): Grupo[] {
   if (eixo === 'setor') {
+    /**
+     * Setor inteiro selecionado: os subgrupos são os LUGARES.
+     *
+     * É o que quem conta pediu — clicar no Bar e ver a Geladeira 1 e a 2 como
+     * blocos, cada uma com o seu total. Agrupar por categoria aqui misturaria
+     * as geladeiras dentro de "BEBIDAS ALCOÓLICAS", e a folha deixaria de
+     * corresponder ao caminho que se faz a pé.
+     *
+     * Dentro de UM lugar, porém, a categoria volta a mandar: ali já não há o
+     * que separar por lugar.
+     */
+    if (ehSelecaoDeSetor(selecao ?? null)) {
+      const setor = setorDaSelecao(selecao as string)
+      const doSetor = ordemDosLugares(lugares).filter((l) => l.id.startsWith(`${setor}:`))
+      /**
+       * Setor sem subdivisão: a categoria manda, como em qualquer lugar.
+       *
+       * Dividir por lugar aqui daria UM bloco só, com o nome do setor
+       * repetindo o título da parada e o rodapé. Um cabeçalho que não separa
+       * nada é ruído em cima da folha.
+       */
+      if (doSetor.length > 1) {
+        // O lugar nulo não se chama pelo nome do setor quando há outros ao
+        // lado: "Bar" ao lado de "Bar › Geladeira 1" faria pensar que um
+        // contém o outro. É o resto do setor, e a navegação já o chama assim.
+        const semLugar = chaveDoLugar(setor, null)
+        const nomeados = doSetor.map((l) =>
+          l.id === semLugar ? { ...l, nome: 'Sem lugar definido' } : l,
+        )
+        return agrupar(
+          itens,
+          (i) => chaveDoLugar(i.setor_id, i.estoque_id),
+          nomeados,
+          rascunhos,
+          'Sem lugar definido',
+        )
+      }
+    }
     return agrupar(itens, chaveDaCategoria, categorias, rascunhos, 'Sem categoria')
   }
   if (eixo === 'categoria') {
-    const ordem = lugares.map((lugar) => ({
-      id: chaveDoLugar(lugar.setor_id, lugar.estoque_id),
-      nome: lugar.estoque_nome === null ? lugar.setor_nome : `${lugar.setor_nome} › ${lugar.estoque_nome}`,
-      cor: lugar.setor_cor,
-    }))
-    return agrupar(itens, (i) => chaveDoLugar(i.setor_id, i.estoque_id), ordem, rascunhos, 'Fora do cadastro')
+    return agrupar(
+      itens,
+      (i) => chaveDoLugar(i.setor_id, i.estoque_id),
+      ordemDosLugares(lugares),
+      rascunhos,
+      'Fora do cadastro',
+    )
   }
   // Ordem alfabética, e o lugar desempata. Um produto guardado em cinco
   // lugares rende cinco linhas com o MESMO nome: sem desempate elas saem numa
