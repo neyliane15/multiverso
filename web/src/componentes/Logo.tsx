@@ -114,7 +114,7 @@ export function Logo({
     )
   }
 
-  const corpo = Math.round(tamanho * 0.45)
+  const corpo = Math.round(tamanho * 0.38)
 
   return (
     <span

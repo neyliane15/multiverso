@@ -1,8 +1,14 @@
-<!-- A mesma marca do sistema: prato, tampa e puxador.
-     Aqui o verde da plataforma vai em hexadecimal porque arquivo estático não
-     lê variável de CSS — é a única cópia da cor fora de tema/marca.ts. -->
+<!-- A marca do sistema em branco, sobre o verde da plataforma.
+     O fundo não é enfeite: a aba do navegador é branca num tema e quase preta
+     no outro, e marca sem fundo some numa das duas. Com o quadrado verde, o
+     desenho aparece igual nos dois — e é onde o branco funciona.
+     O verde vai em hexadecimal porque arquivo estático não lê variável de CSS:
+     é a única cópia da cor fora de tema/marca.ts. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <path d="M3.8 25h24.4" stroke="#12543D" stroke-width="2.4" stroke-linecap="round" opacity="0.55"/>
-  <path d="M6 21.6a10 10 0 0 1 20 0" stroke="#12543D" stroke-width="2.4" stroke-linecap="round"/>
-  <circle cx="16" cy="8.6" r="1.8" fill="#12543D"/>
+  <rect width="32" height="32" rx="7.5" fill="#12543D"/>
+  <g transform="translate(16 16) scale(0.8) translate(-16 -16)" stroke="#FFFFFF">
+    <path d="M3.8 25h24.4" stroke-width="2.6" stroke-linecap="round" opacity="0.75"/>
+    <path d="M6 21.6a10 10 0 0 1 20 0" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="16" cy="8.6" r="1.9" fill="#FFFFFF" stroke="none"/>
+  </g>
 </svg>
