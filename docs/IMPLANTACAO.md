@@ -247,3 +247,34 @@ justamente porque o bundler não é confiável para seguir import que sai dela.
 | `permission denied for table` | Migração `0006` não aplicou; rode `supabase db push` de novo |
 | Função de NFe falha no deploy | Rode `npm run funcao:preparar` antes |
 | Logo não sobe | O caminho no bucket tem de ser `<restaurante_id>/<arquivo>` |
+
+## Autenticação: dois ajustes no painel do Supabase
+
+Nenhum dos dois está no código — são configuração do projeto, e sem eles o
+convite não fecha o ciclo.
+
+**1. Para onde o link volta.** Authentication → URL Configuration:
+
+- *Site URL*: o endereço de produção (`https://seu-projeto.vercel.app`). Sai
+  de fábrica como `http://localhost:3000`, e é por isso que quem confirmava o
+  e-mail caía numa tela que não existe.
+- *Redirect URLs*: o mesmo endereço mais `/**`. O app manda
+  `redirect_to=<origem>` em todo link que gera, mas o Supabase só obedece se a
+  origem estiver nesta lista — fora dela, ele volta para o Site URL calado.
+
+**2. Confirmação de e-mail.** Authentication → Providers → Email →
+*Confirm email*.
+
+Num sistema por convite ela é dispensável: quem entra precisa de um convite
+gravado antes por quem tem poder de dá-lo, e é o convite que decide papel e
+restaurante. Desligada, a pessoa se cadastra e já entra.
+
+O que se perde ao desligar: a confirmação prova que quem digitou o e-mail é
+dono dele. Sem ela, alguém que adivinhe um e-mail com convite **pendente**
+pode tomar o lugar antes da pessoa certa. A janela é curta (convite vale 14
+dias) e visível (a tela de Usuários mostra quem aceitou e quando).
+
+Se mantiver ligada, o ciclo funciona igual — só com um passo a mais. E há a
+saída para quem não confirmou: o convite é consumido no cadastro, então essa
+pessoa não entra E não pode ser convidada de novo; a tela de entrada oferece
+"Reenviar o link de confirmação" exatamente nesse erro.

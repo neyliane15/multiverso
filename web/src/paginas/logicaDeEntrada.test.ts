@@ -3,6 +3,7 @@ import {
   MINIMO_DA_SENHA,
   depoisDoCadastro,
   mensagemDeAuth,
+  precisaConfirmar,
   problemaDaSenha,
 } from './logicaDeEntrada'
 
@@ -66,5 +67,35 @@ describe('problemaDaSenha', () => {
   it('a checagem de tamanho vem antes da de igualdade', () => {
     // Duas curtas e iguais: o erro util e o tamanho, nao "sao iguais".
     expect(problemaDaSenha('12', '12')).toContain(String(MINIMO_DA_SENHA))
+  })
+})
+
+describe('precisaConfirmar · o unico erro com saida propria', () => {
+  it('reconhece o e-mail nao confirmado', () => {
+    expect(precisaConfirmar('Email not confirmed')).toBe(true)
+    expect(precisaConfirmar('email not confirmed')).toBe(true)
+  })
+
+  it('nao confunde com senha errada', () => {
+    // Oferecer "reenviar confirmacao" a quem so errou a senha manda a pessoa
+    // caçar um e-mail que nao tem nada a ver com o problema dela.
+    expect(precisaConfirmar('Invalid login credentials')).toBe(false)
+    expect(precisaConfirmar('User already registered')).toBe(false)
+  })
+})
+
+describe('depoisDoCadastro · o texto nao pode esconder que isso e configuravel', () => {
+  it('diz que a exigencia vem do projeto, e que da para desligar', () => {
+    // O convite ja identifica a pessoa; a confirmacao e uma segunda prova que
+    // quem administra escolhe exigir ou nao.
+    const texto = depoisDoCadastro(false).texto
+    expect(texto).toContain('Supabase')
+    expect(texto).toContain('desligar')
+  })
+
+  it('e promete que o link volta para ca, nao para outro lugar', () => {
+    // Era o defeito: sem `emailRedirectTo`, o link caía no Site URL do
+    // projeto — http://localhost:3000 de fabrica.
+    expect(depoisDoCadastro(false).texto).toContain('volta para cá')
   })
 })

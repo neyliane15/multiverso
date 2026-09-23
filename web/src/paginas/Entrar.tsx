@@ -20,6 +20,7 @@ import {
   MINIMO_DA_SENHA,
   depoisDoCadastro,
   mensagemDeAuth,
+  precisaConfirmar,
   problemaDaSenha,
   type ModoDaEntrada,
 } from './logicaDeEntrada'
@@ -48,11 +49,32 @@ export function Entrar() {
   const [erro, setErro] = useState<string | null>(null)
   const [recado, setRecado] = useState<{ titulo: string; texto: string } | null>(null)
   const [enviando, setEnviando] = useState(false)
+  const [podeReenviar, setPodeReenviar] = useState(false)
+
+  async function reenviarConfirmacao() {
+    setEnviando(true)
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    })
+    setEnviando(false)
+    if (error) {
+      setErro(mensagemDeAuth(error.message))
+      return
+    }
+    setPodeReenviar(false)
+    setRecado({
+      titulo: 'Link reenviado',
+      texto: 'Abra a mensagem mais recente — as anteriores não valem mais.',
+    })
+  }
 
   function trocarModo(proximo: ModoDaEntrada) {
     setModo(proximo)
     setErro(null)
     setRecado(null)
+    setPodeReenviar(false)
     setSenha('')
     setRepetida('')
   }
@@ -61,6 +83,7 @@ export function Entrar() {
     evento.preventDefault()
     setErro(null)
     setRecado(null)
+    setPodeReenviar(false)
 
     if (modo === 'criar') {
       const problema = problemaDaSenha(senha, repetida)
@@ -74,12 +97,26 @@ export function Entrar() {
     try {
       if (modo === 'entrar') {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
-        if (error) setErro(mensagemDeAuth(error.message))
+        if (error) {
+          setErro(mensagemDeAuth(error.message))
+          // O convite já foi consumido no cadastro, então quem não confirmou
+          // não consegue entrar E não pode ser convidado de novo. Sem uma
+          // saída aqui, a pessoa fica presa e só um master a destrava.
+          setPodeReenviar(precisaConfirmar(error.message))
+        }
         return
       }
 
       if (modo === 'criar') {
-        const { data, error } = await supabase.auth.signUp({ email, password: senha })
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password: senha,
+          // Sem isto o link de confirmação volta para o "Site URL" do projeto,
+          // que sai de fábrica como http://localhost:3000 — a pessoa confirma
+          // e cai numa tela que não existe. Aqui ele volta para o endereço de
+          // onde ela se cadastrou, seja a Vercel ou a máquina de quem testa.
+          options: { emailRedirectTo: window.location.origin },
+        })
         if (error) {
           setErro(mensagemDeAuth(error.message))
           return
@@ -128,7 +165,22 @@ export function Entrar() {
             <p className="mt-1 text-apoio leading-relaxed text-texto-fraco">{ajuda}</p>
           </div>
 
-          {erro && <Aviso tom="erro">{erro}</Aviso>}
+          {erro && (
+            <Aviso tom="erro">
+              {erro}
+              {podeReenviar && (
+                <Botao
+                  tom="secundario"
+                  tamanho="p"
+                  className="mt-2"
+                  carregando={enviando}
+                  onClick={() => void reenviarConfirmacao()}
+                >
+                  Reenviar o link de confirmação
+                </Botao>
+              )}
+            </Aviso>
+          )}
           {recado && (
             <Aviso tom="sucesso" titulo={recado.titulo}>
               {recado.texto}

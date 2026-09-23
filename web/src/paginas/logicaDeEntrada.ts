@@ -42,6 +42,18 @@ export function mensagemDeAuth(mensagem: string): string {
 }
 
 /**
+ * O erro é "falta confirmar o e-mail"?
+ *
+ * Importa porque esse caso tem saída própria: o convite já foi consumido no
+ * cadastro, então quem não confirmou não entra E não pode ser convidado de
+ * novo — `mv_convidar` recusa dizendo que já existe usuário com aquele
+ * e-mail. Sem oferecer o reenvio aqui, a pessoa fica presa.
+ */
+export function precisaConfirmar(mensagem: string): boolean {
+  return mensagem.toLowerCase().includes('email not confirmed')
+}
+
+/**
  * O que dizer depois de `signUp`.
  *
  * `sessao` vem nula quando o projeto exige confirmação de e-mail — o cadastro
@@ -64,7 +76,8 @@ export function depoisDoCadastro(temSessao: boolean): {
     entrou: false,
     titulo: 'Confirme o e-mail',
     texto:
-      'Enviamos um link para o e-mail que você digitou. Abra-o para confirmar a conta e depois volte aqui para entrar.',
+      'Este projeto do Supabase está exigindo confirmação: abra o link que acabou de chegar e você volta para cá já dentro do sistema. ' +
+      'Quem administra pode desligar essa exigência — o convite já diz quem é você.',
   }
 }
 

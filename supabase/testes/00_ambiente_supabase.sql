@@ -28,6 +28,11 @@ create table auth.users (
   id                 uuid primary key default gen_random_uuid(),
   email              text unique,
   raw_user_meta_data jsonb not null default '{}'::jsonb,
+  -- O GoTrue so deixa entrar depois desta data existir, quando o projeto
+  -- exige confirmacao. Sem a coluna aqui, o ambiente local nao conseguia
+  -- reproduzir o caso "cadastrou, nao confirmou, nao entra" — que e
+  -- justamente onde o convite ja foi consumido e a pessoa fica presa.
+  email_confirmed_at timestamptz default now(),
   created_at         timestamptz not null default now()
 );
 

@@ -27,6 +27,8 @@ const PORTA = Number(process.env.PORTA ?? 54321)
 const POSTGREST = process.env.POSTGREST ?? 'http://127.0.0.1:54325'
 const SEGREDO = process.env.JWT_SEGREDO ?? 'segredo-local-do-multiverso-com-32-caracteres'
 const SENHA = process.env.SENHA_LOCAL ?? 'multiverso'
+/** `CONFIRMAR=1` faz o portão exigir confirmação, como um projeto recém-criado. */
+const EXIGE_CONFIRMACAO = process.env.CONFIRMAR === '1'
 
 /**
  * Os usuários vêm do BANCO, não de uma lista aqui.
@@ -206,7 +208,20 @@ createServer(async (req, res) => {
         : responder(res, 401, { error: 'invalid_grant', error_description: 'Sessão expirada.' })
     }
 
-    const s = corpo.password === SENHA ? await sessao(String(corpo.email ?? '').toLowerCase()) : null
+    const alvo = String(corpo.email ?? '').toLowerCase()
+    if (corpo.password === SENHA && (await bancoLigado)) {
+      const conf = await BANCO.query(
+        'select email_confirmed_at from auth.users where lower(email) = $1',
+        [alvo],
+      )
+      if (conf.rows[0] && conf.rows[0].email_confirmed_at === null) {
+        return responder(res, 400, {
+          error: 'invalid_grant',
+          error_description: 'Email not confirmed',
+        })
+      }
+    }
+    const s = corpo.password === SENHA ? await sessao(alvo) : null
     return s
       ? responder(res, 200, s)
       : responder(res, 400, {
@@ -244,13 +259,39 @@ createServer(async (req, res) => {
     // um e-mail recriado (banco resetado entre execuções) receberia sessão com
     // o id antigo — e a pessoa entraria como um perfil que não existe mais.
     USUARIOS.delete(email)
-    await BANCO.query('insert into auth.users (id, email) values (gen_random_uuid(), $1)', [email])
+    await BANCO.query(
+      'insert into auth.users (id, email, email_confirmed_at) values (gen_random_uuid(), $1, $2)',
+      [email, EXIGE_CONFIRMACAO ? null : new Date().toISOString()],
+    )
     const s = await sessao(email)
-    // Com ou sem convite, a sessão abre — como no GoTrue com confirmação
-    // desligada. Quem não tem perfil entra e encontra a tela que explica.
-    return s
-      ? responder(res, 200, s)
-      : responder(res, 500, { msg: 'conta criada mas sem sessão: isto é defeito do portão' })
+    if (!s) {
+      return responder(res, 500, { msg: 'conta criada mas sem sessão: isto é defeito do portão' })
+    }
+    // Com confirmação exigida, o GoTrue devolve o USUÁRIO e nenhuma sessão —
+    // e é isso que faz a tela dizer "confirme o e-mail" em vez de entrar.
+    // Sem reproduzir essa diferença, o caso que o usuário encontrou não
+    // apareceria aqui nunca.
+    if (EXIGE_CONFIRMACAO) return responder(res, 200, s.user)
+    // Sem confirmação, a sessão abre na hora — com convite ou sem. Quem não
+    // tem perfil entra e encontra a tela que explica.
+    return responder(res, 200, s)
+  }
+
+  /**
+   * Reenvio da confirmação. Aqui não há e-mail: o portão confirma na hora,
+   * que é o efeito de clicar no link. Serve para exercitar a saída do caso
+   * "cadastrou e não confirmou".
+   */
+  if (url.pathname === '/auth/v1/resend') {
+    const corpo = JSON.parse((await lerCorpo(req)).toString() || '{}')
+    const alvo = String(corpo.email ?? '').toLowerCase()
+    if (await bancoLigado) {
+      await BANCO.query(
+        'update auth.users set email_confirmed_at = now() where lower(email) = $1',
+        [alvo],
+      )
+    }
+    return responder(res, 200, {})
   }
 
   /** Recuperação de senha: aqui não há e-mail para enviar, e o portão diz isso. */

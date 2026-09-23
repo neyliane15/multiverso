@@ -31,6 +31,18 @@ período dizia "sem CMV" e a tabela logo abaixo mostrava R$ 38.905,46 em
 bebidas, calculado com estoque final zero. Nenhum teste pegou; a tela aberta
 pegou.
 
+## Simular a confirmação de e-mail
+
+```bash
+CONFIRMAR=1 ferramentas/local/subir.sh
+```
+
+Reproduz um projeto Supabase recém-criado, que exige confirmação: o cadastro
+devolve usuário sem sessão, entrar responde `Email not confirmed`, e o
+"Reenviar o link de confirmação" confirma na hora (aqui não há e-mail para
+enviar). É o caminho em que o convite **já foi consumido** e a pessoa fica
+presa — sem o reenvio, só um master a destravaria.
+
 ## O que é de mentira
 
 Só a checagem de senha. O `portao.mjs` faz o papel do Kong + GoTrue, e o GoTrue

@@ -80,6 +80,7 @@ done
 postgrest "$TMP/postgrest.conf" > "$TMP/postgrest.log" 2>&1 &
 echo $! > "$TMP/postgrest.pid"
 JWT_SEGREDO="$SEGREDO" PORTA="$PORTA_PORTAO" POSTGREST="http://127.0.0.1:$PORTA_REST" \
+  CONFIRMAR="${CONFIRMAR:-}" BANCO="$BANCO" SOCK="$SOCK" \
   node "$RAIZ/ferramentas/local/portao.mjs" > "$TMP/portao.log" 2>&1 &
 echo $! > "$TMP/portao.pid"
 
