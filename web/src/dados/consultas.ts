@@ -24,6 +24,8 @@ import type {
   ContagemPorSetor,
   ContagemResumo,
   Estoque,
+  Ficha,
+  FichaCompleta,
   Fornecedor,
   ListaCompras,
   ListaComprasItem,
@@ -91,6 +93,7 @@ export const chaves = {
   categorias: (r: string) => ['categorias', r] as const,
   setores: (r: string) => ['setores', r] as const,
   estoques: (r: string) => ['estoques', r] as const,
+  fichas: (r: string) => ['fichas', r] as const,
   produtos: (r: string) => ['produtos', r] as const,
   contagens: (r: string) => ['contagens', r] as const,
   contagem: (id: string) => ['contagem', id] as const,
@@ -439,6 +442,131 @@ function invalidarCadastros(qc: ReturnType<typeof useQueryClient>, r: string) {
   void qc.invalidateQueries({ queryKey: chaves.categorias(r) })
   void qc.invalidateQueries({ queryKey: chaves.setores(r) })
   void qc.invalidateQueries({ queryKey: chaves.estoques(r) })
+}
+
+/* ────────────────────────────────────────────── módulo 5 · fichas técnicas ── */
+
+export function useFichas(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.fichas(restauranteId),
+    queryFn: () =>
+      buscarTudo<FichaCompleta>((de, ate) =>
+        supabase
+          .from('vw_fichas_completas')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('ordem')
+          .order('nome')
+          .range(de, ate),
+      ),
+  })
+}
+
+export function useSalvarFicha(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: Partial<Ficha> & { id?: string }) => {
+      const { id, ...resto } = dados
+      return buscar<Ficha>(
+        id
+          ? supabase.from('fichas').update(resto).eq('id', id).select().single()
+          : supabase
+              .from('fichas')
+              .insert({ ...resto, restaurante_id: restauranteId })
+              .select()
+              .single(),
+      )
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: chaves.fichas(restauranteId) }),
+  })
+}
+
+export function useApagarFicha(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      buscar<null>(supabase.from('fichas').delete().eq('id', id).select().maybeSingle()),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: chaves.fichas(restauranteId) }),
+  })
+}
+
+/** Um insumo como a tela o edita, antes de virar linha. */
+export interface ItemParaGravar {
+  produto_id: string
+  quantidade: number
+  unidade: string
+  perda_percentual: number
+  observacao?: string | null
+}
+
+/**
+ * Grava os insumos de UMA ficha, por diferença.
+ *
+ * Apagar tudo e reinserir seria uma linha de código a menos e um defeito a
+ * mais: o `id` de cada item mudaria a cada salvamento, e qualquer coisa que um
+ * dia aponte para o item — uma observação, um histórico — perderia o rastro.
+ * Aqui só sai o que saiu e só entra o que entrou.
+ */
+export function useSalvarItensDaFicha(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ fichaId, itens }: { fichaId: string; itens: ItemParaGravar[] }) => {
+      const atuais = await buscar<{ id: string; produto_id: string }[]>(
+        supabase.from('ficha_itens').select('id, produto_id').eq('ficha_id', fichaId),
+      )
+      const querida = new Set(itens.map((i) => i.produto_id))
+      const sair = atuais.filter((a) => !querida.has(a.produto_id)).map((a) => a.id)
+
+      if (sair.length > 0) {
+        await buscar(supabase.from('ficha_itens').delete().in('id', sair).select('id'))
+      }
+      if (itens.length > 0) {
+        // `upsert` na chave (ficha_id, produto_id): quem já estava muda de
+        // quantidade sem perder o id, quem é novo entra.
+        await buscar(
+          supabase
+            .from('ficha_itens')
+            .upsert(
+              itens.map((i, ordem) => ({ ...i, ficha_id: fichaId, ordem: ordem + 1 })),
+              { onConflict: 'ficha_id,produto_id' },
+            )
+            .select('id'),
+        )
+      }
+      return { entraram: itens.length, sairam: sair.length }
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: chaves.fichas(restauranteId) }),
+  })
+}
+
+/**
+ * Diz quanto cabe numa unidade de compra — a garrafa de 965 ML.
+ *
+ * Mora aqui, e não só no cadastro de produtos, porque é na ficha que a falta
+ * aparece: a pessoa escreve "60 ML de cachaça", vê "unidade incompatível" e
+ * resolve na hora, sem sair da receita. Dito uma vez, vale para todas as
+ * fichas que usarem aquele produto.
+ */
+export function useSalvarConteudoDoProduto(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: { id: string; conteudo_quantidade: number | null; conteudo_unidade: string | null }) =>
+      buscar<ProdutoCompleto>(
+        supabase
+          .from('produtos')
+          .update({
+            conteudo_quantidade: dados.conteudo_quantidade,
+            conteudo_unidade: dados.conteudo_unidade,
+          })
+          .eq('id', dados.id)
+          .select()
+          .single(),
+      ),
+    onSuccess: () => {
+      invalidarCadastros(qc, restauranteId)
+      void qc.invalidateQueries({ queryKey: chaves.fichas(restauranteId) })
+    },
+  })
 }
 
 export function useSalvarCategoria(restauranteId: string) {

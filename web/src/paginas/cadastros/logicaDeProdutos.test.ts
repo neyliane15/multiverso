@@ -60,6 +60,8 @@ function produto(
     codigo: null,
     codigo_barras: null,
     unidade: 'UND',
+    conteudo_quantidade: null,
+    conteudo_unidade: null,
     custo_medio: 0,
     custo_atualizado_em: null,
     estoque_minimo: 0,

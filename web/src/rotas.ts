@@ -129,6 +129,19 @@ export const MODULOS: Modulo[] = [
   },
   {
     numero: '4',
+    rotulo: 'Fichas técnicas',
+    itens: [
+      {
+        caminho: '/fichas',
+        rotulo: 'Fichas técnicas',
+        icone: 'ChefHat',
+        descricao: 'A receita de cada item do cardápio, com o custo vindo do catálogo e o CMV do prato.',
+        exigeRestaurante: true,
+      },
+    ],
+  },
+  {
+    numero: '5',
     rotulo: 'CMV',
     itens: [
       {

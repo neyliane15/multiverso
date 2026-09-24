@@ -641,4 +641,100 @@ begin
   reset role;
 end $$;
 
+-- ============================================================================
+-- Ficha tecnica: o custo vem do catalogo, e a conta do prato fecha
+-- ----------------------------------------------------------------------------
+-- Numeros redondos de proposito. Picanha a R$ 100/KG, 200 G liquidos com 20%
+-- de perda = 250 G comprados = R$ 25,00. Cerveja a R$ 10 a garrafa de 500 ML,
+-- 100 ML = R$ 2,00. Rende 2 porcoes: R$ 13,50 a porcao. Vendida a R$ 54,00, o
+-- CMV do prato e 25%.
+-- ============================================================================
+do $$
+declare r uuid; u uuid := '00000000-0000-0000-0000-0000000000f1';
+        f uuid; p_carne uuid; p_cerveja uuid; v numeric; b boolean; v_erro text;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  select id into p_carne   from produtos where restaurante_id = r and nome = 'Picanha';
+  select id into p_cerveja from produtos where restaurante_id = r and nome = 'Cerveja';
+
+  -- A cerveja e comprada por garrafa; a receita usa mililitro.
+  update produtos set unidade = 'UND', custo_medio = 10,
+         conteudo_quantidade = 500, conteudo_unidade = 'ML'
+   where id = p_cerveja;
+  update produtos set unidade = 'KG', custo_medio = 100 where id = p_carne;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+
+  insert into fichas (restaurante_id, nome, grupo, rendimento, preco_venda)
+  values (r, 'Picanha na cerveja', 'Pratos', 2, 54) returning id into f;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade, perda_percentual, ordem)
+  values (f, p_carne, 200, 'G', 20, 1), (f, p_cerveja, 100, 'ML', 0, 2);
+
+  select custo into v from vw_ficha_itens where ficha_id = f and produto_id = p_carne;
+  perform conferir('perda entra no custo: 200 G com 20% viram 250 G = R$ 25', v = 25);
+
+  select quantidade_bruta into v from vw_ficha_itens where ficha_id = f and produto_id = p_carne;
+  perform conferir('e o bruto aparece como 250 G', v = 250);
+
+  select custo into v from vw_ficha_itens where ficha_id = f and produto_id = p_cerveja;
+  perform conferir('a embalagem converte: 100 ML de uma garrafa de 500 ML a R$ 10 = R$ 2', v = 2);
+
+  perform conferir('custo total do prato e 27',
+    (select custo_total from vw_fichas_completas where id = f) = 27);
+  perform conferir('rendendo 2 porcoes, a porcao custa 13,50',
+    (select custo_porcao from vw_fichas_completas where id = f) = 13.5);
+  perform conferir('o CMV do prato e 25% do preco de venda',
+    (select cmv_percentual from vw_fichas_completas where id = f) = 25);
+  perform conferir('a margem e o que sobra da porcao',
+    (select margem from vw_fichas_completas where id = f) = 40.5);
+
+  -- O custo NAO esta guardado na ficha: muda a nota, muda o prato.
+  update produtos set custo_medio = 200 where id = p_carne;
+  perform conferir('dobrou o custo da carne, o prato acompanha sozinho',
+    (select custo_total from vw_fichas_completas where id = f) = 52);
+  update produtos set custo_medio = 100 where id = p_carne;
+
+  -- Unidade que nao converte nem pela embalagem: pendencia visivel, nao chute.
+  update produtos set conteudo_quantidade = null, conteudo_unidade = null where id = p_cerveja;
+  select unidade_incompativel into b from vw_ficha_itens where ficha_id = f and produto_id = p_cerveja;
+  perform conferir('sem embalagem, ML para UND fica marcado como incompativel', b);
+  perform conferir('e o item incompativel nao inventa custo',
+    (select custo from vw_ficha_itens where ficha_id = f and produto_id = p_cerveja) is null);
+  perform conferir('a ficha conta quantos itens estao incompativeis',
+    (select itens_incompativeis from vw_fichas_completas where id = f) = 1);
+  update produtos set conteudo_quantidade = 500, conteudo_unidade = 'ML' where id = p_cerveja;
+
+  -- Duas vezes o mesmo produto na mesma ficha e erro de digitacao, nao receita.
+  begin
+    insert into ficha_itens (ficha_id, produto_id, quantidade, unidade)
+    values (f, p_carne, 50, 'G');
+    v_erro := null;
+  exception when unique_violation then v_erro := 'recusado';
+  end;
+  perform conferir('o mesmo produto duas vezes na mesma ficha e recusado', v_erro = 'recusado');
+
+  -- Sem preco de venda a pergunta nao tem resposta — e nulo e melhor que zero.
+  update fichas set preco_venda = 0 where id = f;
+  perform conferir('sem preco de venda, o CMV do prato e nulo, nao zero',
+    (select cmv_percentual from vw_fichas_completas where id = f) is null);
+  update fichas set preco_venda = 54 where id = f;
+
+  reset role;
+end $$;
+
+-- ---------------------------------------------------- fator entre unidades --
+do $$
+begin
+  perform conferir('G para KG divide por mil', mv_fator_unidade('G', 'KG') = 0.001);
+  perform conferir('KG para G multiplica por mil', mv_fator_unidade('KG', 'G') = 1000);
+  perform conferir('ML para L divide por mil', mv_fator_unidade('ML', 'L') = 0.001);
+  perform conferir('a mesma unidade vale 1', mv_fator_unidade('UND', 'UND') = 1);
+  perform conferir('sinonimo de planilha tambem casa (GR = G)', mv_fator_unidade('GR', 'KG') = 0.001);
+  perform conferir('familias diferentes nao se convertem', mv_fator_unidade('G', 'ML') is null);
+  perform conferir('massa para unidade nao se converte', mv_fator_unidade('KG', 'UND') is null);
+  perform conferir('unidade desconhecida so serve para ela mesma',
+    mv_fator_unidade('CX', 'CX') = 1 and mv_fator_unidade('CX', 'KG') is null);
+end $$;
+
 \echo '  --- Fluxos: todos os casos passaram'

@@ -103,6 +103,9 @@ export interface Produto {
   perecivel: boolean
   observacao: string | null
   ativo: boolean
+  /** O que cabe numa unidade de compra: a garrafa de 965 ML. Nulo = não dito. */
+  conteudo_quantidade: number | null
+  conteudo_unidade: string | null
   criado_por: string | null
   criado_em: string
   atualizado_em: string
@@ -144,6 +147,64 @@ export interface ProdutoCompleto extends Omit<Produto, 'categoria_id' | 'criado_
   categoria_nome: string | null
   categoria_cor: string | null
   setores: SetorDoProduto[]
+}
+
+/* ────────────────────────────────────────────── módulo 5 · fichas técnicas ── */
+
+export interface Ficha {
+  id: string
+  restaurante_id: string
+  nome: string
+  /** Grupo do cardápio: Entradas, Pratos, Sobremesas. Texto livre. */
+  grupo: string | null
+  descricao: string | null
+  modo_preparo: string | null
+  /** Quantas porções a receita rende. */
+  rendimento: number
+  unidade_rendimento: string
+  preco_venda: number
+  /** A meta de CMV DESTE prato, em percentual. É da casa, não do manual. */
+  cmv_alvo: number
+  ativo: boolean
+  ordem: number
+  criado_em: string
+  atualizado_em: string
+}
+
+/** Um insumo dentro da ficha, já com a conta feita pelo servidor. */
+export interface ItemDaFicha {
+  id: string
+  produto_id: string
+  produto_nome: string
+  produto_unidade: string
+  categoria_nome: string | null
+  categoria_cor: string | null
+  /** Quantidade LÍQUIDA, como sai da receita. */
+  quantidade: number
+  unidade: string
+  perda_percentual: number
+  /** O que sai do estoque: o líquido mais a perda. */
+  quantidade_bruta: number
+  custo_unitario: number
+  /** Nulo quando a unidade da receita não converte para a de compra. */
+  custo: number | null
+  unidade_incompativel: boolean
+  sem_custo: boolean
+  observacao: string | null
+  ordem: number
+}
+
+export interface FichaCompleta extends Ficha {
+  itens: number
+  itens_incompativeis: number
+  itens_sem_custo: number
+  custo_total: number
+  custo_porcao: number
+  /** Nulo sem preço de venda: a pergunta ainda não tem resposta. */
+  cmv_percentual: number | null
+  margem: number | null
+  markup: number | null
+  itens_da_ficha: ItemDaFicha[]
 }
 
 export interface Contagem {

@@ -25,6 +25,7 @@ import { HistoricoDeContagens } from '@/paginas/contagem/Historico'
 import { Notas } from '@/paginas/compras/Notas'
 import { ListaDeCompras } from '@/paginas/compras/Lista'
 import { HistoricoDeCompras } from '@/paginas/compras/Historico'
+import { Fichas } from '@/paginas/fichas/Fichas'
 import { DashboardCmv } from '@/paginas/cmv/Dashboard'
 import { Restaurantes } from '@/paginas/admin/Restaurantes'
 import { Usuarios } from '@/paginas/admin/Usuarios'
@@ -101,6 +102,7 @@ export function App() {
           <Route path="compras/lista/:listaId" element={<ListaDeCompras />} />
           <Route path="compras/historico" element={<HistoricoDeCompras />} />
 
+          <Route path="fichas" element={<Fichas />} />
           <Route path="cmv" element={<DashboardCmv />} />
 
           <Route path="admin/restaurantes" element={<SoMaster><Restaurantes /></SoMaster>} />

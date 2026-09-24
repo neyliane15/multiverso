@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, ListPlus, Search, ShoppingCart, Store, Undo2 } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, ListPlus, Search, ShoppingCart, Store, Undo2 } from 'lucide-react'
 import clsx from 'clsx'
 import { useSessao } from '@/dados/sessao'
 import {
@@ -360,6 +360,16 @@ function Folha({
   }, [lista, rascunhos, emVoo])
   const visiveis = grupos.reduce((soma, g) => soma + g.itens.length, 0)
 
+  /** Categorias fechadas na mão. O que não está aqui, está aberto. */
+  const [fechados, setFechados] = useState<ReadonlySet<string>>(new Set())
+  const alternarGrupo = (id: string) =>
+    setFechados((antes) => {
+      const novo = new Set(antes)
+      if (novo.has(id)) novo.delete(id)
+      else novo.add(id)
+      return novo
+    })
+
   async function lancarQuantidade(item: ItemDeFolha, valor: number) {
     const anterior = quantidadeDoItem(item, rascunhos)
     if (valor === anterior) return
@@ -541,14 +551,42 @@ function Folha({
           </EstadoVazio>
         </Cartao>
       ) : (
-        grupos.map((grupo) => (
-          <Cartao key={grupo.categoriaId ?? 'sem-categoria'}>
-            <header className="flex items-center justify-between gap-3 border-b border-borda px-5 py-4">
-              <Selo cor={grupo.cor ?? undefined}>{grupo.nome}</Selo>
-              <span className="mv-numero text-apoio text-texto-fraco">
+        grupos.map((grupo) => {
+          const chave = grupo.categoriaId ?? 'sem-categoria'
+          const abertoAqui = !fechados.has(chave)
+          return (
+          <Cartao key={chave}>
+            {/* O cabeçalho é o botão: numa folha com vinte categorias, fechar
+                o que já foi comprado é o que deixa a lista caber na tela do
+                celular dentro do mercado. */}
+            <button
+              type="button"
+              onClick={() => alternarGrupo(chave)}
+              aria-expanded={abertoAqui}
+              className={clsx(
+                'flex min-h-toque w-full items-center justify-between gap-3 px-5 py-4 text-left',
+                'transition-colors hover:bg-primaria-06',
+                abertoAqui && 'border-b border-borda',
+              )}
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                {abertoAqui ? (
+                  <ChevronDown className="size-4 shrink-0 text-texto-fraco" aria-hidden />
+                ) : (
+                  <ChevronRight className="size-4 shrink-0 text-texto-fraco" aria-hidden />
+                )}
+                <Selo cor={grupo.cor ?? undefined}>{grupo.nome}</Selo>
+              </span>
+              <span className="mv-numero shrink-0 text-apoio text-texto-fraco">
+                {!abertoAqui && (
+                  <span className="mr-2">
+                    {grupo.itens.length} {plural(grupo.itens.length, 'item', 'itens')}
+                  </span>
+                )}
                 {dinheiro(grupo.total)}
               </span>
-            </header>
+            </button>
+            {abertoAqui && (
             <ul className="divide-y divide-borda/60">
               {grupo.itens.map((item) => {
                 const emVigor = quantidadeDoItem(item, rascunhos)
@@ -598,8 +636,10 @@ function Folha({
                 )
               })}
             </ul>
+            )}
           </Cartao>
-        ))
+          )
+        })
       )}
 
       {comprados.length > 0 && (

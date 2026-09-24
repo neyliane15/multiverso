@@ -17,6 +17,9 @@ import { LogoDoRestaurante } from '@/componentes/LogoDoRestaurante'
 import { Botao, Selecao } from '@/componentes/base'
 import { iniciais } from '@/util/formato'
 
+/** Chave dos módulos fechados no navegador. */
+const MODULOS_FECHADOS = 'multiverso:menu:fechados'
+
 function Icone({ nome, className }: { nome: string; className?: string }) {
   const C = (Icones as unknown as Record<string, Icones.LucideIcon>)[nome]
   return C ? <C className={className} aria-hidden /> : null
@@ -34,6 +37,56 @@ export function Casca() {
   useEffect(() => setAberto(false), [local.pathname])
 
   const modulos = menuVisivel(perfil?.papel ?? null, Boolean(restaurante))
+
+  /**
+   * Módulos fechados na mão. Só o que a pessoa fechou entra aqui — assim um
+   * módulo novo nasce aberto, e quem nunca mexeu vê a barra como sempre viu.
+   *
+   * Fica no `localStorage` porque é preferência de quem usa, não dado do
+   * restaurante: cada pessoa da equipe arruma a barra do seu jeito, e ela
+   * continua assim amanhã.
+   */
+  const [fechados, setFechados] = useState<ReadonlySet<string>>(() => {
+    try {
+      const salvo = localStorage.getItem(MODULOS_FECHADOS)
+      if (salvo) return new Set(JSON.parse(salvo) as string[])
+    } catch {
+      /* navegador anônimo, dados bloqueados, JSON estragado: abre tudo. */
+    }
+    return new Set()
+  })
+
+  const alternarModulo = (numero: string) =>
+    setFechados((antes) => {
+      const novo = new Set(antes)
+      if (novo.has(numero)) novo.delete(numero)
+      else novo.add(numero)
+      try {
+        localStorage.setItem(MODULOS_FECHADOS, JSON.stringify([...novo]))
+      } catch {
+        /* sem localStorage a escolha vale só para esta sessão. */
+      }
+      return novo
+    })
+
+  /**
+   * O módulo da página aberta nunca fica fechado. Sem isto, quem fechou
+   * "Cadastros" e depois clicou em Produtos pela busca veria a barra sem
+   * nenhuma marca de onde está.
+   */
+  useEffect(() => {
+    const doAtual = modulos.find((m) =>
+      m.itens.some((i) => (i.caminho === '/' ? local.pathname === '/' : local.pathname.startsWith(i.caminho))),
+    )
+    if (doAtual) {
+      setFechados((antes) => {
+        if (!antes.has(doAtual.numero)) return antes
+        const novo = new Set(antes)
+        novo.delete(doAtual.numero)
+        return novo
+      })
+    }
+  }, [local.pathname, modulos])
 
   return (
     <div className="min-h-dvh bg-fundo text-texto">
@@ -80,9 +133,38 @@ export function Casca() {
         )}
 
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Módulos">
-          {modulos.map((modulo) => (
+          {modulos.map((modulo) => {
+            const aberto = !fechados.has(modulo.numero)
+            return (
             <div key={modulo.numero} className="mb-5 last:mb-0">
-              <div className="mv-rotulo px-2 pb-1.5">{modulo.rotulo}</div>
+              {/* O título do módulo é o botão que abre e fecha. Com seis
+                  módulos e quatorze páginas, a barra não cabe mais numa tela
+                  de notebook — e rolar o menu para achar "Contagem" cansa mais
+                  que um clique a mais. O módulo em que se está nunca fecha
+                  sozinho: fechar o que a pessoa está usando seria esconder o
+                  contexto dela. */}
+              <button
+                type="button"
+                onClick={() => alternarModulo(modulo.numero)}
+                aria-expanded={aberto}
+                className={clsx(
+                  'mv-rotulo flex min-h-8 w-full items-center gap-1.5 rounded-marca-p px-2 pb-1.5 pt-1',
+                  'text-left transition-colors hover:bg-primaria-06 hover:text-texto',
+                )}
+              >
+                {aberto ? (
+                  <Icones.ChevronDown className="size-3.5 shrink-0" aria-hidden />
+                ) : (
+                  <Icones.ChevronRight className="size-3.5 shrink-0" aria-hidden />
+                )}
+                <span className="truncate">{modulo.rotulo}</span>
+                {!aberto && (
+                  <span className="mv-numero ml-auto shrink-0 text-micro text-texto-fraco">
+                    {modulo.itens.length}
+                  </span>
+                )}
+              </button>
+              {aberto && (
               <ul className="space-y-0.5">
                 {modulo.itens.map((item) => (
                   <li key={item.caminho}>
@@ -116,8 +198,10 @@ export function Casca() {
                   </li>
                 ))}
               </ul>
+              )}
             </div>
-          ))}
+            )
+          })}
         </nav>
 
         <div className="mv-segura-b border-t border-borda px-3 pt-3 [--mv-folga-b:0.75rem]">

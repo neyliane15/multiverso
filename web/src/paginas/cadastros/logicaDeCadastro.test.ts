@@ -37,6 +37,8 @@ function produto(
     custo_atualizado_em: null,
     estoque_minimo: 0,
     perecivel: false,
+    conteudo_quantidade: null,
+    conteudo_unidade: null,
     observacao: null,
     ativo: true,
     criado_em: '2026-01-01T00:00:00Z',

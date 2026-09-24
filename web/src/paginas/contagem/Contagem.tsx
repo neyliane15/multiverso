@@ -344,6 +344,20 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   const [falha, setFalha] = useState<string | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
 
+  /**
+   * Blocos fechados na mão, por id. Só o que a pessoa fechou entra aqui, então
+   * a folha abre inteira como sempre — e quem quiser esconder o que já contou
+   * fecha e segue.
+   */
+  const [gruposFechados, setGruposFechados] = useState<ReadonlySet<string>>(new Set())
+  const alternarGrupo = (id: string) =>
+    setGruposFechados((antes) => {
+      const novo = new Set(antes)
+      if (novo.has(id)) novo.delete(id)
+      else novo.add(id)
+      return novo
+    })
+
   /** Quantidade aceita localmente antes de o servidor confirmar. */
   const [rascunhos, setRascunhos] = useState<ReadonlyMap<string, number>>(new Map())
   /**
@@ -817,18 +831,45 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                 </EstadoVazio>
               </Cartao>
             ) : (
-              grupos.map((grupo) => (
+              grupos.map((grupo) => {
+                const abertoAqui = !gruposFechados.has(grupo.id)
+                return (
                 <Cartao key={grupo.id}>
                   {/* No eixo produto o cabeçalho seria um só, dizendo "Todos
-                      os produtos" — informação que o seletor acima já deu. */}
+                      os produtos" — informação que o seletor acima já deu.
+                      Nos outros, ele é o botão que fecha o bloco: dezessete
+                      categorias abertas numa folha de 455 linhas são meia hora
+                      de rolagem para achar a que falta contar. */}
                   {eixo !== 'produto' && (
-                    <header className="flex items-center justify-between gap-3 border-b border-borda px-5 py-3.5">
-                      <Selo cor={grupo.cor ?? undefined}>{grupo.nome}</Selo>
-                      <span className="mv-numero text-apoio text-texto-fraco">
+                    <button
+                      type="button"
+                      onClick={() => alternarGrupo(grupo.id)}
+                      aria-expanded={abertoAqui}
+                      className={clsx(
+                        'flex min-h-toque w-full items-center justify-between gap-3 px-5 py-3.5',
+                        'text-left transition-colors hover:bg-primaria-06',
+                        abertoAqui && 'border-b border-borda',
+                      )}
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        {abertoAqui ? (
+                          <ChevronDown className="size-4 shrink-0 text-texto-fraco" aria-hidden />
+                        ) : (
+                          <ChevronRight className="size-4 shrink-0 text-texto-fraco" aria-hidden />
+                        )}
+                        <Selo cor={grupo.cor ?? undefined}>{grupo.nome}</Selo>
+                      </span>
+                      <span className="mv-numero shrink-0 text-apoio text-texto-fraco">
+                        {!abertoAqui && (
+                          <span className="mr-2">
+                            {grupo.itens.length} {plural(grupo.itens.length, 'item', 'itens')}
+                          </span>
+                        )}
                         {dinheiro(grupo.total)}
                       </span>
-                    </header>
+                    </button>
                   )}
+                  {(abertoAqui || eixo === 'produto') && (
                   <ul className="divide-y divide-borda/60">
                     {grupo.itens.map((item) => {
                       const emVigor = quantidadeEmVigor(item, rascunhos)
@@ -874,8 +915,10 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                       )
                     })}
                   </ul>
+                  )}
                 </Cartao>
-              ))
+                )
+              })
             )}
           </div>
         </div>
