@@ -87,7 +87,14 @@ export function App() {
           <Route index element={inicio} />
           <Route path="rede" element={<SoMaster><Rede /></SoMaster>} />
 
-          <Route path="cadastros/produtos" element={<Produtos />} />
+          <Route path="cadastros/insumos" element={<Produtos />} />
+          {/* O endereço antigo continua funcionando: quem deixou a página nos
+              favoritos, ou colou o link para alguém, não bate em tela branca
+              porque o nome mudou. */}
+          <Route
+            path="cadastros/produtos"
+            element={<Navigate to="/cadastros/insumos" replace />}
+          />
           <Route path="cadastros/categorias" element={<Categorias />} />
           <Route path="cadastros/setores" element={<Setores />} />
           <Route path="cadastros/estoques" element={<Estoques />} />

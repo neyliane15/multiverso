@@ -208,7 +208,7 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
         />
         <Indicador rotulo="Notas" valor={quantidade(totais.notas)} />
         <Indicador
-          rotulo="Itens sem produto"
+          rotulo="Itens sem insumo"
           valor={quantidade(totais.itensPendentes)}
           tom={totais.itensPendentes > 0 ? 'alerta' : 'sucesso'}
           apoio={

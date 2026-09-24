@@ -67,7 +67,7 @@ export function Estoques(): JSX.Element {
   const cabecalho = (
     <CabecalhoDePagina
       titulo="Estoques de setor"
-      descricao="Onde, dentro do setor: Bar › Geladeira 1. Um produto pode ficar em mais de um lugar do mesmo setor — e cada lugar vira uma linha própria na folha de contagem."
+      descricao="Onde, dentro do setor: Bar › Geladeira 1. Um insumo pode ficar em mais de um lugar do mesmo setor — e cada lugar vira uma linha própria na folha de contagem."
     />
   )
 
@@ -124,7 +124,7 @@ export function Estoques(): JSX.Element {
       )}
 
       {aviso && (
-        <Aviso tom="sucesso" titulo="Produtos vinculados">
+        <Aviso tom="sucesso" titulo="Insumos vinculados">
           {aviso}
         </Aviso>
       )}
@@ -178,7 +178,7 @@ export function Estoques(): JSX.Element {
               })
               const partes = [
                 r.adicionados > 0
-                  ? `${r.adicionados} ${plural(r.adicionados, 'produto entrou', 'produtos entraram')}`
+                  ? `${r.adicionados} ${plural(r.adicionados, 'insumo entrou', 'insumos entraram')}`
                   : null,
                 r.removidos > 0
                   ? `${r.removidos} ${plural(r.removidos, 'saiu', 'saíram')}`
@@ -242,7 +242,7 @@ function SetorComEstoques({
       titulo={<Selo cor={setor.cor}>{setor.nome}</Selo>}
       descricao={
         visiveis.length === 0
-          ? 'Sem subdivisão: os produtos deste setor são contados uma vez, pelo setor inteiro.'
+          ? 'Sem subdivisão: os insumos deste setor são contados uma vez, pelo setor inteiro.'
           : `${visiveis.length} ${plural(visiveis.length, 'lugar', 'lugares')} dentro deste setor.`
       }
     >
@@ -283,7 +283,7 @@ function SetorComEstoques({
                       {estoque.nome}
                     </span>
                     <span className="mv-numero shrink-0 text-micro text-texto-fraco">
-                      {emUso} {plural(emUso, 'produto', 'produtos')}
+                      {emUso} {plural(emUso, 'insumo', 'insumos')}
                     </span>
                     {podeEditar && (
                       <>
@@ -296,7 +296,7 @@ function SetorComEstoques({
                           onClick={() => aoEscolherProdutos(estoque)}
                           icone={<Package className="size-4" aria-hidden />}
                         >
-                          Produtos
+                          Insumos
                         </Botao>
                         <Botao
                           tom="fantasma"
@@ -419,7 +419,7 @@ function EscolherProdutos({
         <>
           <span className="mr-auto text-apoio text-texto-fraco" role="status">
             {nadaMudou
-              ? `${marcados.size} ${plural(marcados.size, 'produto', 'produtos')} neste lugar`
+              ? `${marcados.size} ${plural(marcados.size, 'insumo', 'insumos')} neste lugar`
               : [
                   entram > 0 ? `${entram} a mais` : null,
                   saem > 0 ? `${saem} a menos` : null,
@@ -444,9 +444,9 @@ function EscolherProdutos({
     >
       <div className="space-y-4">
         {lista.length === 0 ? (
-          <Aviso tom="alerta" titulo="Nenhum produto neste setor">
-            Um produto só pode ficar num lugar do setor em que ele já existe. Vincule produtos a{' '}
-            {setor.nome} no cadastro de Produtos e volte aqui.
+          <Aviso tom="alerta" titulo="Nenhum insumo neste setor">
+            Um insumo só pode ficar num lugar do setor em que ele já existe. Vincule insumos a{' '}
+            {setor.nome} no cadastro de Insumos e volte aqui.
           </Aviso>
         ) : (
           <>
@@ -460,8 +460,8 @@ function EscolherProdutos({
                   type="search"
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
-                  placeholder={`Buscar entre os ${lista.length} produtos de ${setor.nome}`}
-                  aria-label="Buscar produto"
+                  placeholder={`Buscar entre os ${lista.length} insumos de ${setor.nome}`}
+                  aria-label="Buscar insumo"
                   className="pl-9"
                 />
               </div>
@@ -474,7 +474,7 @@ function EscolherProdutos({
             </div>
 
             {visiveis.length === 0 ? (
-              <p className="text-apoio text-texto-fraco">Nenhum produto bate com a busca.</p>
+              <p className="text-apoio text-texto-fraco">Nenhum insumo bate com a busca.</p>
             ) : (
               <ul className="divide-y divide-borda/60 rounded-marca border border-borda">
                 {visiveis.map((produto) => (

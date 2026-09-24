@@ -658,7 +658,7 @@ export function PreviaDaMarca({ marca, nome = 'Seu restaurante' }: PropsDaPrevia
             <table className="mt-2 w-full border-collapse text-apoio">
               <thead>
                 <tr style={{ color: 'var(--mv-texto-fraco)' }}>
-                  <th className="border-b border-borda py-1.5 text-left font-semibold">Produto</th>
+                  <th className="border-b border-borda py-1.5 text-left font-semibold">Insumo</th>
                   <th className="border-b border-borda py-1.5 text-right font-semibold">Qtd.</th>
                   <th className="border-b border-borda py-1.5 text-right font-semibold">Total</th>
                 </tr>

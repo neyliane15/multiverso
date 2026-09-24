@@ -298,7 +298,10 @@ export type Eixo = 'setor' | 'categoria' | 'produto'
 export const EIXOS: { valor: Eixo; rotulo: string; ajuda: string }[] = [
   { valor: 'setor', rotulo: 'Setor', ajuda: 'Uma parada por setor e por lugar — a ordem em que se anda pela casa.' },
   { valor: 'categoria', rotulo: 'Categoria', ajuda: 'Uma parada por categoria, com os setores agrupados dentro.' },
-  { valor: 'produto', rotulo: 'Produto', ajuda: 'A folha inteira numa lista só, em ordem alfabética.' },
+  // O `valor` continua 'produto': ele é a chave gravada no localStorage de quem
+  // conta, e trocá-la jogaria fora a preferência de eixo de todo mundo. O que
+  // a pessoa lê é o `rotulo`.
+  { valor: 'produto', rotulo: 'Insumo', ajuda: 'A folha inteira numa lista só, em ordem alfabética.' },
 ]
 
 /** Uma parada da navegação: um setor, um lugar, uma categoria. */
@@ -672,7 +675,7 @@ export function gruposDaParada(
     const pb = posicao.get(chaveDoLugar(b.setor_id, b.estoque_id)) ?? Number.MAX_SAFE_INTEGER
     return pa - pb
   })
-  return [{ id: 'todos', nome: 'Todos os produtos', cor: null, itens: ordenados, total: totalDosItens(ordenados, rascunhos) }]
+  return [{ id: 'todos', nome: 'Todos os insumos', cor: null, itens: ordenados, total: totalDosItens(ordenados, rascunhos) }]
 }
 
 /** Onde este item está, para a linha se explicar sozinha no eixo produto. */

@@ -139,7 +139,7 @@ function ThOrdenavel({
 function Setores({ produto }: { produto: ProdutoCompleto }): JSX.Element {
   if (produto.setores.length === 0) {
     return (
-      <span className="text-apoio text-alerta-texto" title="Produto sem setor não entra na contagem">
+      <span className="text-apoio text-alerta-texto" title="Insumo sem setor não entra na contagem">
         sem setor
       </span>
     )
@@ -179,7 +179,7 @@ function Custo({ produto }: { produto: ProdutoCompleto }): JSX.Element {
   return (
     <span
       className="inline-flex items-center gap-1.5"
-      title="Este produto tem custo ou unidade diferente em cada setor"
+      title="Este insumo tem custo ou unidade diferente em cada setor"
     >
       {dinheiro(faixa.minimo)}
       <span className="text-micro font-semibold text-acento">a {dinheiro(faixa.maximo)}</span>
@@ -285,8 +285,8 @@ export function Produtos(): JSX.Element {
   return (
     <>
       <CabecalhoDePagina
-        titulo="Produtos"
-        descricao="O catálogo. Um produto tem uma categoria e vive em um ou mais setores — cada setor com a própria unidade e o próprio custo."
+        titulo="Insumos"
+        descricao="O catálogo. Um insumo tem uma categoria e vive em um ou mais setores — cada setor com a própria unidade e o próprio custo."
         acoes={
           podeAdministrar && (
             <Botao
@@ -294,7 +294,7 @@ export function Produtos(): JSX.Element {
               icone={<Plus className="size-4" aria-hidden />}
               onClick={() => setEditando({ produto: null })}
             >
-              Novo produto
+              Novo insumo
             </Botao>
           )
         }
@@ -312,7 +312,7 @@ export function Produtos(): JSX.Element {
               type="search"
               className="pl-9"
               placeholder="Buscar por nome, código, categoria…"
-              aria-label="Buscar produto"
+              aria-label="Buscar insumo"
               value={filtro.busca}
               onChange={(e) => setFiltro((f) => ({ ...f, busca: e.target.value }))}
             />
@@ -349,7 +349,7 @@ export function Produtos(): JSX.Element {
           </Selecao>
 
           <Selecao
-            aria-label="Mostrar produtos ativos ou arquivados"
+            aria-label="Mostrar insumos ativos ou arquivados"
             value={filtro.situacao}
             onChange={(e) =>
               setFiltro((f) => ({ ...f, situacao: e.target.value as FiltroDeProdutos['situacao'] }))
@@ -365,7 +365,7 @@ export function Produtos(): JSX.Element {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-borda px-5 py-3">
           <p role="status" className="text-apoio text-texto-fraco">
             <span className="mv-numero text-texto">{quantidade(visiveis.length)}</span>{' '}
-            {visiveis.length === 1 ? 'produto' : 'produtos'} na tela
+            {visiveis.length === 1 ? 'insumo' : 'insumos'} na tela
             {visiveis.length !== lista.length && (
               <>
                 {' '}
@@ -415,7 +415,7 @@ export function Produtos(): JSX.Element {
         ) : visiveis.length === 0 ? (
           <EstadoVazio
             icone={<Search />}
-            titulo="Nenhum produto com esses filtros"
+            titulo="Nenhum insumo com esses filtros"
             acao={
               <Botao tom="secundario" onClick={() => setFiltro(FILTRO_INICIAL)}>
                 Limpar filtros
@@ -567,7 +567,7 @@ export function Produtos(): JSX.Element {
         )}
       </Cartao>
 
-      <Aviso tom="info" titulo="Produto não se apaga, se arquiva">
+      <Aviso tom="info" titulo="Insumo não se apaga, se arquiva">
         Um produto que já entrou em contagem fechada faz parte do histórico e do CMV daquele período.
         Arquivar tira ele das próximas folhas de contagem e das listas de compra, sem reescrever nada
         do que já aconteceu.

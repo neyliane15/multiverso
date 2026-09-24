@@ -219,7 +219,7 @@ export function Rede(): JSX.Element {
                       <Numero
                         icone={<Package className="size-3.5" aria-hidden />}
                         valor={r.produtos}
-                        rotulo="produtos"
+                        rotulo="insumos"
                       />
                       <Numero
                         icone={<Boxes className="size-3.5" aria-hidden />}

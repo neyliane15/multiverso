@@ -35,7 +35,7 @@ describe('similaridadeTexto', () => {
     expect(similaridadeTexto('ACUCAR REFINADO UNIAO', 'Açúcar Refinado União')).toBe(1)
   })
 
-  it('separa embalagens diferentes do mesmo produto', () => {
+  it('separa embalagens diferentes do mesmo insumo', () => {
     const mesmoTamanho = similaridadeTexto('REFRIGERANTE COCA COLA 2L PET', 'Refrigerante Coca-Cola 2L')
     const outroTamanho = similaridadeTexto('REFRIGERANTE COCA COLA 2L PET', 'Refrigerante Coca-Cola 600ml')
     expect(mesmoTamanho).toBeGreaterThan(CONFIANCA_MINIMA)
@@ -43,7 +43,7 @@ describe('similaridadeTexto', () => {
     expect(mesmoTamanho).toBeGreaterThan(outroTamanho)
   })
 
-  it('dá nota baixa para produtos que só compartilham uma palavra', () => {
+  it('dá nota baixa para insumos que só compartilham uma palavra', () => {
     expect(similaridadeTexto('QUEIJO MUSSARELA FATIADO KG', 'Presunto Cozido Fatiado')).toBeLessThan(0.4)
   })
 
@@ -109,7 +109,7 @@ describe('casarItem — apelido aprendido', () => {
     expect(casamento.motivo).toBe('apelido_fornecedor')
   })
 
-  it('o apelido vence o código de barras que aponta para outro produto', () => {
+  it('o apelido vence o código de barras que aponta para outro insumo', () => {
     const casamento = casarItem(
       { descricao: 'MUSSA FATIADA 2KG', ean: '7894900011517' },
       { produtos: PRODUTOS, apelidos, fornecedorId: FORNECEDOR_BEBIDAS },
@@ -134,10 +134,10 @@ describe('casarItem — código de barras', () => {
     expect(casamento.produtoId).toBe('p-coca-2l')
   })
 
-  it('recusa quando dois produtos dividem o mesmo EAN', () => {
+  it('recusa quando dois insumos dividem o mesmo EAN', () => {
     const duplicados: ProdutoCandidato[] = [
-      { id: 'p-a', nome: 'Produto A', codigo_barras: '7891000100103' },
-      { id: 'p-b', nome: 'Produto B', codigo_barras: '7891000100103' },
+      { id: 'p-a', nome: 'Insumo A', codigo_barras: '7891000100103' },
+      { id: 'p-b', nome: 'Insumo B', codigo_barras: '7891000100103' },
     ]
     const casamento = casarItem({ descricao: 'ALGO', ean: '7891000100103' }, { produtos: duplicados })
     expect(casamento.produtoId).toBeNull()
@@ -156,7 +156,7 @@ describe('casarItem — código de barras', () => {
 })
 
 describe('casarItem — código do fornecedor', () => {
-  it('vincula quando o código do item é o código do produto', () => {
+  it('vincula quando o código do item é o código do insumo', () => {
     const casamento = casarItem(
       { descricao: 'ITEM SEM NOME RECONHECIVEL', codigoFornecedor: 'beb-001' },
       CONTEXTO,
@@ -216,10 +216,10 @@ describe('casarItem — similaridade', () => {
     expect(casamento.produtoId).toBeNull()
     expect(casamento.confianca).toBe(0)
     expect(casamento.sugestoes).toEqual([])
-    expect(casamento.explicacao).toMatch(/Nenhum produto cadastrado/)
+    expect(casamento.explicacao).toMatch(/Nenhum insumo cadastrado/)
   })
 
-  it('sem produtos cadastrados não inventa vínculo', () => {
+  it('sem insumos cadastrados não inventa vínculo', () => {
     const casamento = casarItem({ descricao: 'QUALQUER COISA' }, { produtos: [] })
     expect(casamento.produtoId).toBeNull()
     expect(casamento.confianca).toBe(0)

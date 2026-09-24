@@ -70,7 +70,7 @@ export function Setores(): JSX.Element {
     <TelaDeCadastro
       tipo="setor"
       titulo="Setores"
-      descricao="Onde se conta: bar, estoque geral, câmara fria, hortifrúti. Um produto pode viver em vários, com unidade e custo próprios em cada um."
+      descricao="Onde se conta: bar, estoque geral, câmara fria, hortifrúti. Um insumo pode viver em vários, com unidade e custo próprios em cada um."
       itens={setores.data ?? []}
       usos={usos}
       carregando={setores.isPending}

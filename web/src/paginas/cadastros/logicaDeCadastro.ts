@@ -219,7 +219,7 @@ export function proximaOrdem(itens: readonly ItemDeCadastro[]): number {
  *                       agrupamento no CMV por categoria e o filtro da lista.
  */
 export function avisoDeDesativacao(tipo: TipoDeCadastro, emUso: number): string {
-  const nada = 'Nenhum produto ativo usa este cadastro hoje.'
+  const nada = 'Nenhum insumo ativo usa este cadastro hoje.'
   if (emUso === 0) return `${nada} Desativar não muda nenhuma contagem.`
 
   const quantos = `${emUso} ${emUso === 1 ? 'produto' : 'produtos'}`

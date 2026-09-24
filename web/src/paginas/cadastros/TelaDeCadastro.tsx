@@ -185,7 +185,7 @@ export function TelaDeCadastro({
                 <Th className="w-12">Cor</Th>
                 <Th>Nome</Th>
                 <Th className="hidden sm:table-cell">Descrição</Th>
-                <Th numerico>Produtos</Th>
+                <Th numerico>Insumos</Th>
                 <Th className="w-28">Ordem</Th>
                 <Th>Situação</Th>
               </tr>
@@ -372,8 +372,8 @@ function FormularioDeCadastro({
       titulo={item ? item.nome : rotulos.umNovo}
       descricao={
         tipo === 'categoria'
-          ? 'A categoria agrupa o produto no CMV e nos filtros.'
-          : 'O setor é onde o produto é contado — e onde ele tem unidade e custo próprios.'
+          ? 'A categoria agrupa o insumo no CMV e nos filtros.'
+          : 'O setor é onde o insumo é contado — e onde ele tem unidade e custo próprios.'
       }
       aoFechar={aoFechar}
       rodape={
@@ -502,7 +502,7 @@ function FormularioDeCadastro({
         {item && emUso > 0 && !vaiDesativar && (
           <p className="text-apoio text-texto-fraco">
             <span className="mv-numero text-texto">{quantidade(emUso)}</span>{' '}
-            {emUso === 1 ? 'produto ativo usa' : 'produtos ativos usam'} este cadastro hoje.
+            {emUso === 1 ? 'insumo ativo usa' : 'insumos ativos usam'} este cadastro hoje.
           </p>
         )}
       </fieldset>

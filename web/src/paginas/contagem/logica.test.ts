@@ -65,7 +65,7 @@ describe('filtrarItens · busca', () => {
     expect(filtrarItens(itens)).toHaveLength(3)
   })
 
-  it('item sem produto carregado não quebra a busca', () => {
+  it('item sem insumo carregado não quebra a busca', () => {
     const orfao = [item({ id: '9', produto: null })]
     expect(filtrarItens(orfao, { busca: 'qualquer' })).toEqual([])
     expect(filtrarItens(orfao)).toHaveLength(1)
@@ -73,7 +73,7 @@ describe('filtrarItens · busca', () => {
 })
 
 describe('foiTrabalhado · o que ainda falta contar', () => {
-  it('zero carimbado é item trabalhado: o produto acabou, não foi esquecido', () => {
+  it('zero carimbado é item trabalhado: o insumo acabou, não foi esquecido', () => {
     const zerado = item({ id: '1', quantidade: 0, contado_em: '2026-09-18T10:00:00Z' })
     expect(foiTrabalhado(zerado)).toBe(true)
     expect(filtrarItens([zerado], { soNaoContados: true })).toEqual([])
@@ -329,7 +329,7 @@ describe('o eixo da contagem · as mesmas linhas, tres recortes', () => {
     }
   })
 
-  it('no eixo produto nao ha parada: uma navegacao de uma entrada so e enfeite', () => {
+  it('no eixo insumo nao ha parada: uma navegacao de uma entrada so e enfeite', () => {
     expect(montarParadas('produto', LUGARES, CATS, ITENS)).toEqual([])
   })
 
@@ -354,7 +354,7 @@ describe('o eixo da contagem · as mesmas linhas, tres recortes', () => {
     expect(naCategoria.map((g) => g.nome)).toEqual(['Bar › Geladeira 1', 'Cozinha'])
   })
 
-  it('no eixo produto e um bloco so, em ordem alfabetica', () => {
+  it('no eixo insumo e um bloco so, em ordem alfabetica', () => {
     const grupos = gruposDaParada('produto', ITENS, CATS, LUGARES)
     expect(grupos).toHaveLength(1)
     expect(grupos[0]?.itens.map((i) => i.produto?.nome)).toEqual(['CERVEJA', 'GIN', 'PICANHA', 'SUCO'])
@@ -376,14 +376,14 @@ describe('o eixo da contagem · as mesmas linhas, tres recortes', () => {
     expect(resto?.itens.map((i) => i.id)).toEqual(['sumido'])
   })
 
-  it('produto sem categoria cai num balde proprio, nao no vazio', () => {
+  it('insumo sem categoria cai num balde proprio, nao no vazio', () => {
     const semCat = linha('avulso', 's-coz', null, null, 1)
     const grupos = gruposDaParada('setor', [semCat], CATS, LUGARES)
     expect(grupos.map((g) => g.nome)).toEqual(['Sem categoria'])
   })
 })
 
-describe('lista unica · o mesmo produto em varios lugares', () => {
+describe('lista unica · o mesmo insumo em varios lugares', () => {
   const LUGARES = [
     { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-g1', estoque_nome: 'Geladeira 1', itens: 1 },
     { setor_id: 's-bar', setor_nome: 'Bar', setor_cor: '#111111', estoque_id: 'e-g2', estoque_nome: 'Geladeira 2', itens: 1 },
@@ -407,7 +407,7 @@ describe('lista unica · o mesmo produto em varios lugares', () => {
     mesma('2', 's-bar', 'e-g2'),
   ]
 
-  it('as linhas do mesmo produto saem na ordem dos lugares, nao ao acaso', () => {
+  it('as linhas do mesmo insumo saem na ordem dos lugares, nao ao acaso', () => {
     // Cinco linhas com o mesmo nome em ordem aleatoria transformam preencher a
     // terceira geladeira em adivinhacao.
     const [grupo] = gruposDaParada('produto', ITENS, [], LUGARES)
@@ -432,7 +432,7 @@ describe('lista unica · o mesmo produto em varios lugares', () => {
     }
   })
 
-  it('no eixo categoria, o produto aparece uma vez por lugar', () => {
+  it('no eixo categoria, o insumo aparece uma vez por lugar', () => {
     const grupos = gruposDaParada(
       'categoria',
       itensDaParada('categoria', 'c-beb', ITENS),

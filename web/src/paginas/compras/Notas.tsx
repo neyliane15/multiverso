@@ -120,7 +120,7 @@ function EntradaDeNotas({ restauranteId }: { restauranteId: string }) {
     <>
       <CabecalhoDePagina
         titulo="Notas fiscais"
-        descricao="Toda compra entra por aqui. É ela que empurra o custo médio dos produtos e o CMV do período."
+        descricao="Toda compra entra por aqui. É ela que empurra o custo médio dos insumos e o CMV do período."
         acoes={
           <Botao tom="fantasma" onClick={() => navegar('/compras/historico')}>
             Histórico
@@ -567,7 +567,7 @@ function FormularioManual({
     evento.preventDefault()
     setErro(null)
     if (itens.length === 0) {
-      setErro('Escolha ao menos um produto e informe a quantidade.')
+      setErro('Escolha ao menos um insumo e informe a quantidade.')
       return
     }
     setGravando(true)
@@ -594,7 +594,7 @@ function FormularioManual({
   return (
     <Cartao
       titulo={origem === 'pdf' ? 'Itens da nota em PDF' : 'Compra de rua'}
-      descricao="O item já nasce vinculado ao produto do cadastro — por isso a nota sai pronta para lançar."
+      descricao="O item já nasce vinculado ao insumo do cadastro — por isso a nota sai pronta para lançar."
     >
       <form onSubmit={(e) => void enviar(e)} className="space-y-5 p-5">
         {erro && <Aviso tom="erro">{erro}</Aviso>}
@@ -649,7 +649,7 @@ function FormularioManual({
                   className="grid gap-2 rounded-marca-p border border-borda bg-superficie-2 p-3 sm:grid-cols-[minmax(0,1fr)_7rem_8rem_auto] sm:items-end"
                 >
                   <div className="space-y-1">
-                    <Rotulo para={`produto-${linha.chave}`}>Produto</Rotulo>
+                    <Rotulo para={`produto-${linha.chave}`}>Insumo</Rotulo>
                     <Selecao
                       id={`produto-${linha.chave}`}
                       value={linha.produtoId}
@@ -666,7 +666,7 @@ function FormularioManual({
                         })
                       }}
                     >
-                      <option value="">Escolha o produto</option>
+                      <option value="">Escolha o insumo</option>
                       {catalogo.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.nome} ({p.unidade})

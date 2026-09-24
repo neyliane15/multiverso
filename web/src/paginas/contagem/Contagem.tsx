@@ -782,19 +782,19 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                 {lugarSemLinha.vinculados === 0 ? (
                   <EstadoVazio
                     icone={<Refrigerator />}
-                    titulo={`${ondeEstou} ainda não tem produto nenhum`}
+                    titulo={`${ondeEstou} ainda não tem insumo nenhum`}
                     acao={
                       <Botao
                         tom="secundario"
                         onClick={() => navegar('/cadastros/estoques')}
                         icone={<Boxes />}
                       >
-                        Escolher os produtos deste lugar
+                        Escolher os insumos deste lugar
                       </Botao>
                     }
                   >
                     O lugar está criado, mas nada foi guardado nele ainda. Em Cadastros ›
-                    Estoques de setor, o botão <strong className="text-texto-suave">Produtos</strong>{' '}
+                    Estoques de setor, o botão <strong className="text-texto-suave">Insumos</strong>{' '}
                     abre a lista do setor e deixa marcar todos de uma vez.
                   </EstadoVazio>
                 ) : (
@@ -827,7 +827,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                 >
                   {soNaoContados
                     ? `Todos os itens de ${ondeEstou} já foram trabalhados — inclusive os que ficaram em zero de propósito.`
-                    : `Nenhum produto de ${ondeEstou} bate com a busca. Tente outro pedaço do nome.`}
+                    : `Nenhum insumo de ${ondeEstou} bate com a busca. Tente outro pedaço do nome.`}
                 </EstadoVazio>
               </Cartao>
             ) : (
@@ -885,7 +885,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                               htmlFor={`qtd-${item.id}`}
                               className="block truncate text-corpo text-texto"
                             >
-                              {item.produto?.nome ?? 'Produto removido do cadastro'}
+                              {item.produto?.nome ?? 'Insumo removido do cadastro'}
                             </label>
                             <span className="mv-numero block truncate text-micro text-texto-fraco">
                               {lugar !== null && <span className="text-texto-suave">{lugar} · </span>}
@@ -1100,8 +1100,8 @@ function BarraDeControle({
             type="search"
             value={busca}
             onChange={(e) => aoBuscar(e.target.value)}
-            placeholder={`Buscar produto em ${ondeEstou}`}
-            aria-label={`Buscar produto em ${ondeEstou}`}
+            placeholder={`Buscar insumo em ${ondeEstou}`}
+            aria-label={`Buscar insumo em ${ondeEstou}`}
             className="pl-9"
           />
         </div>

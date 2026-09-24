@@ -130,7 +130,7 @@ export function Restaurantes(): JSX.Element {
                 <Th className="hidden md:table-cell">Documento</Th>
                 <Th numerico>Usuários</Th>
                 <Th numerico className="hidden sm:table-cell">
-                  Produtos
+                  Insumos
                 </Th>
                 <Th className="hidden lg:table-cell">Cadastrado</Th>
                 <Th>Situação</Th>

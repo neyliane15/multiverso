@@ -101,13 +101,13 @@ describe('a conta do item', () => {
     expect(conta.incompativel).toBe(true)
   })
 
-  it('produto sem custo aparece marcado, e nao como custo zero disfarcado', () => {
+  it('insumo sem custo aparece marcado, e nao como custo zero disfarcado', () => {
     const conta = custoDoItem(item({ produto_id: 'x', quantidade: 1, unidade: 'KG' }), produto({ id: 'x', custo_medio: 0 }))
     expect(conta.custo).toBe(0)
     expect(conta.semCusto).toBe(true)
   })
 
-  it('produto que sumiu do catalogo nao derruba a conta', () => {
+  it('insumo que sumiu do catalogo nao derruba a conta', () => {
     const conta = custoDoItem(item({ produto_id: 'nao-existe' }), undefined)
     expect(conta.custo).toBeNull()
     expect(conta.incompativel).toBe(true)

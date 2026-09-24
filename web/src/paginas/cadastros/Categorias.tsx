@@ -72,7 +72,7 @@ export function Categorias(): JSX.Element {
     <TelaDeCadastro
       tipo="categoria"
       titulo="Categorias"
-      descricao="Como o estoque se agrupa no CMV: proteínas, mercearia, bebidas. Cada produto tem uma só."
+      descricao="Como o estoque se agrupa no CMV: proteínas, mercearia, bebidas. Cada insumo tem uma só."
       itens={categorias.data ?? []}
       usos={usos}
       carregando={categorias.isPending}

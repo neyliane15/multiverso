@@ -133,7 +133,7 @@ describe('busca sem acento', () => {
     expect(combina(textoDeBusca(arroz), '   ')).toBe(true)
   })
 
-  it('o índice guarda um texto por produto e é o mesmo de textoDeBusca', () => {
+  it('o índice guarda um texto por insumo e é o mesmo de textoDeBusca', () => {
     const indice = criarIndiceDeBusca(catalogo)
     expect(indice.size).toBe(3)
     expect(indice.get('p-tilapia')).toBe(textoDeBusca(tilapia))
@@ -161,7 +161,7 @@ describe('filtrarProdutos', () => {
     ])
   })
 
-  it('filtra por setor — o produto aparece se vive lá, mesmo com dois setores', () => {
+  it('filtra por setor — o insumo aparece se vive lá, mesmo com dois setores', () => {
     expect(filtrarProdutos(catalogo, filtro({ setorId: 's-porc' })).map((p) => p.id)).toEqual([
       'p-tilapia',
     ])
@@ -195,7 +195,7 @@ describe('faixaDeCusto e unidadesDoProduto', () => {
     expect(unidadesDoProduto(tilapia)).toEqual(['KG', 'UND'])
   })
 
-  it('produto de um setor só não é divergente', () => {
+  it('insumo de um setor só não é divergente', () => {
     expect(faixaDeCusto(arroz).divergente).toBe(false)
     expect(unidadesDoProduto(arroz)).toEqual(['KG'])
   })
@@ -212,7 +212,7 @@ describe('faixaDeCusto e unidadesDoProduto', () => {
     expect(faixaDeCusto(p).divergente).toBe(true)
   })
 
-  it('produto sem setor cai no custo e na unidade do próprio produto', () => {
+  it('insumo sem setor cai no custo e na unidade do próprio insumo', () => {
     const solto = produto({ id: 'y', nome: 'Y', unidade: 'CX', custo_medio: 12 })
     expect(faixaDeCusto(solto)).toEqual({ minimo: 12, maximo: 12, divergente: false })
     expect(unidadesDoProduto(solto)).toEqual(['CX'])
@@ -253,7 +253,7 @@ describe('ordenação', () => {
     expect(ids).toEqual(['p-tilapia', 'p-arroz'])
   })
 
-  it('produto sem categoria vai para o fim na ordem por categoria', () => {
+  it('insumo sem categoria vai para o fim na ordem por categoria', () => {
     const ids = ordenarProdutos([arquivado, tilapia], {
       coluna: 'categoria',
       direcao: 'crescente',
@@ -299,12 +299,12 @@ describe('rascunhoDeProduto', () => {
     expect(r.setores['s-porc']).toEqual({ marcado: true, unidade: 'UND', custo: 6.34, custoFixo: false, estoques: [] })
   })
 
-  it('setor não vinculado começa desmarcado, com o palpite do produto', () => {
+  it('setor não vinculado começa desmarcado, com o palpite do insumo', () => {
     const r = rascunhoDeProduto(tilapia, setoresDisponiveis)
     expect(r.setores['s-bar']).toEqual({ marcado: false, unidade: 'KG', custo: 41.5, custoFixo: false, estoques: [] })
   })
 
-  it('produto novo começa sem setor marcado', () => {
+  it('insumo novo começa sem setor marcado', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     expect(Object.values(r.setores).every((s) => !s.marcado)).toBe(true)
     expect(r.nome).toBe('')
@@ -324,7 +324,7 @@ describe('validarProduto', () => {
     const r = rascunhoDeProduto(null, setoresDisponiveis)
     r.nome = 'Tomate'
     const problema = validarProduto(r, setoresDisponiveis).find((p) => p.campo === 'setores')
-    expect(problema?.mensagem).toMatch(/onde este produto é contado/i)
+    expect(problema?.mensagem).toMatch(/onde este insumo é contado/i)
   })
 
   it('recusa custo negativo apontando o setor', () => {
@@ -350,7 +350,7 @@ describe('validarProduto', () => {
     expect(validarProduto(r, setoresDisponiveis, catalogo).some((p) => p.campo === 'nome')).toBe(true)
   })
 
-  it('editar o próprio produto não acusa nome repetido', () => {
+  it('editar o próprio insumo não acusa nome repetido', () => {
     const r = rascunhoDeProduto(tilapia, setoresDisponiveis)
     expect(validarProduto(r, setoresDisponiveis, catalogo)).toEqual([])
   })
@@ -513,17 +513,17 @@ describe('estoque de setor · o lugar dentro do setor', () => {
     })
   }
 
-  it('produto novo nasce sem lugar marcado', () => {
+  it('insumo novo nasce sem lugar marcado', () => {
     const r = rascunhoDeProduto(null, COM_LUGARES)
     expect(r.setores['s-bar']?.estoques).toEqual([])
   })
 
-  it('reabrir o produto traz os lugares que ele ja tinha', () => {
+  it('reabrir o insumo traz os lugares que ele ja tinha', () => {
     const r = rascunhoDeProduto(produtoNoBar([{ id: 'e-gel1', nome: 'Geladeira 1' }]), COM_LUGARES)
     expect(r.setores['s-bar']?.estoques).toEqual(['e-gel1'])
   })
 
-  it('o mesmo produto pode estar em duas geladeiras do mesmo bar', () => {
+  it('o mesmo insumo pode estar em duas geladeiras do mesmo bar', () => {
     const r = rascunhoDeProduto(
       produtoNoBar([
         { id: 'e-gel1', nome: 'Geladeira 1' },
@@ -634,7 +634,7 @@ describe('lugaresDoProduto · o peso de cada setor na folha', () => {
     expect(linhasDeContagem(p)).toBe(3)
   })
 
-  it('produto sem setor nenhum nao entra na folha', () => {
+  it('insumo sem setor nenhum nao entra na folha', () => {
     expect(linhasDeContagem(produto({ id: 'p-solto', nome: 'SOLTO' }))).toBe(0)
   })
 })

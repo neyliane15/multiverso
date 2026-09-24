@@ -63,7 +63,7 @@ const CATALOGO = [
 ]
 
 describe('produtosParaOEstoque · so o que o banco aceitaria', () => {
-  it('oferece os produtos DO SETOR, nao do restaurante', () => {
+  it('oferece os insumos DO SETOR, nao do restaurante', () => {
     // O banco recusa pendurar na Geladeira do Bar um produto que so existe na
     // Cozinha. Oferecer na tela o que o banco recusa e prometer o que nao se
     // cumpre.
@@ -71,7 +71,7 @@ describe('produtosParaOEstoque · so o que o banco aceitaria', () => {
     expect(lista.map((p) => p.nome)).toEqual(['CACHACA', 'CERVEJA', 'GIN'])
   })
 
-  it('produto arquivado fica de fora', () => {
+  it('insumo arquivado fica de fora', () => {
     expect(produtosParaOEstoque(CATALOGO, BAR, GEL1).some((p) => p.nome === 'SUMIU')).toBe(false)
   })
 
@@ -81,7 +81,7 @@ describe('produtosParaOEstoque · so o que o banco aceitaria', () => {
     expect(lista.find((p) => p.nome === 'GIN')?.dentro).toBe(false)
   })
 
-  it('avisa em que OUTROS lugares do mesmo setor o produto ja esta', () => {
+  it('avisa em que OUTROS lugares do mesmo setor o insumo ja esta', () => {
     // Quem monta a Geladeira 2 precisa ver que a cachaca ja esta na 1 — senao
     // marca sem perceber que criou uma segunda contagem do mesmo produto.
     const lista = produtosParaOEstoque(CATALOGO, BAR, GEL2)
@@ -100,7 +100,7 @@ describe('produtosParaOEstoque · so o que o banco aceitaria', () => {
     expect(nomes).toEqual([...nomes].sort((a, b) => a.localeCompare(b, 'pt-BR')))
   })
 
-  it('setor sem produto nenhum devolve lista vazia, nao erro', () => {
+  it('setor sem insumo nenhum devolve lista vazia, nao erro', () => {
     expect(produtosParaOEstoque(CATALOGO, 's-vazio', 'e-x')).toEqual([])
   })
 })
@@ -139,7 +139,7 @@ describe('diferencaDeMarcacao · o que muda, nao o total', () => {
 })
 
 describe('contarProdutosPorEstoque', () => {
-  it('conta por lugar, e o mesmo produto conta em cada um', () => {
+  it('conta por lugar, e o mesmo insumo conta em cada um', () => {
     const contagem = contarProdutosPorEstoque(CATALOGO)
     expect(contagem.get(GEL1)).toBe(2)
     expect(contagem.get(GEL2)).toBe(1)

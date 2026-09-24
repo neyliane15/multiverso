@@ -235,7 +235,7 @@ export function Inicio(): JSX.Element {
           )}
 
           {mes.notasPendentes > 0 && (
-            <Aviso tom="alerta" titulo="Notas com item ainda sem produto">
+            <Aviso tom="alerta" titulo="Notas com item ainda sem insumo">
               <p className="mt-1 flex flex-wrap items-center gap-2">
                 <span>
                   <span className="mv-numero">{quantidade(mes.itensPendentes)}</span>{' '}
@@ -323,10 +323,10 @@ export function Inicio(): JSX.Element {
                 descricao="O cadastro vira folha de pedido com sugestão."
               />
               <Atalho
-                para="/cadastros/produtos"
+                para="/cadastros/insumos"
                 icone={<Package className="size-5" aria-hidden />}
                 titulo="Ajustar o catálogo"
-                descricao="Produtos, categorias e setores."
+                descricao="Insumos, categorias e setores."
               />
             </div>
           </section>

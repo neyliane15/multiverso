@@ -68,11 +68,11 @@ describe('contarUso', () => {
     produto({ id: 'p3', nome: 'Arquivado', categoria_id: 'c-proteina', ativo: false }),
   ]
 
-  it('conta produto por categoria, ignorando arquivado', () => {
+  it('conta insumo por categoria, ignorando arquivado', () => {
     expect(contarUso(produtos, 'categoria').get('c-proteina')).toBe(2)
   })
 
-  it('um produto em dois setores conta uma vez em cada', () => {
+  it('um insumo em dois setores conta uma vez em cada', () => {
     const uso = contarUso(produtos, 'setor')
     expect(uso.get('s-geral')).toBe(2)
     expect(uso.get('s-porc')).toBe(1)
@@ -192,7 +192,7 @@ describe('avisoDeDesativacao', () => {
   })
 
   it('não assusta quando ninguém usa', () => {
-    expect(avisoDeDesativacao('setor', 0)).toMatch(/Nenhum produto/)
+    expect(avisoDeDesativacao('setor', 0)).toMatch(/Nenhum insumo/)
   })
 })
 

@@ -143,11 +143,11 @@ export function FormularioDeProduto({
     <PainelLateral
       aberto
       largura="larga"
-      titulo={produto ? produto.nome : 'Novo produto'}
+      titulo={produto ? produto.nome : 'Novo insumo'}
       descricao={
         produto
           ? 'Cada setor marcado guarda a própria unidade e o próprio custo.'
-          : 'Um produto, uma categoria, e um ou mais setores onde ele é contado.'
+          : 'Um insumo, uma categoria, e um ou mais setores onde ele é contado.'
       }
       aoFechar={aoFechar}
       rodape={
@@ -289,7 +289,7 @@ export function FormularioDeProduto({
               className="mt-1.5"
               valor={rascunho.custo_medio}
               aoMudar={(v) => setRascunho((r) => ({ ...r, custo_medio: v }))}
-              aria-label="Custo de referência do produto, em reais"
+              aria-label="Custo de referência do insumo, em reais"
             />
             <p className="mt-1.5 text-micro text-texto-fraco">
               Vale quando o setor não tem custo próprio.
@@ -412,7 +412,7 @@ export function FormularioDeProduto({
                             className="mt-1.5"
                             valor={linha.custo}
                             aoMudar={(v) => mudarSetor(setor.id, { custo: v })}
-                            aria-label={`Custo do produto no setor ${setor.nome}, em reais`}
+                            aria-label={`Custo do insumo no setor ${setor.nome}, em reais`}
                           />
                           <p className="mt-1 text-micro text-texto-fraco">
                             {dinheiro(linha.custo)} por {linha.unidade.trim() || '—'}
@@ -469,7 +469,7 @@ export function FormularioDeProduto({
                               </div>
                               <p className="mt-1.5 text-micro text-texto-fraco">
                                 {linha.estoques.length === 0
-                                  ? 'Nenhum marcado: o produto entra na folha uma vez, pelo setor inteiro.'
+                                  ? 'Nenhum marcado: o insumo entra na folha uma vez, pelo setor inteiro.'
                                   : `${linha.estoques.length} ${linha.estoques.length === 1 ? 'lugar' : 'lugares'}: ${linha.estoques.length} ${linha.estoques.length === 1 ? 'linha' : 'linhas'} na folha de contagem deste setor.`}
                               </p>
                             </>

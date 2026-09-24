@@ -233,7 +233,7 @@ describe('recalcularFatorAoVincular', () => {
     expect(resultado.aviso).toMatch(/caixa/)
   })
 
-  it('aceita produto sem unidade cadastrada', () => {
+  it('aceita insumo sem unidade cadastrada', () => {
     const resultado = recalcularFatorAoVincular(
       { descricao: 'OVOS CAIXA COM 30', unidade: 'CX' },
       { unidade: null },

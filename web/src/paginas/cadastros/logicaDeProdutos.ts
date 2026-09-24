@@ -293,11 +293,11 @@ export function validarProduto(
   const problemas: ProblemaDeProduto[] = []
 
   if (rascunho.nome.trim() === '') {
-    problemas.push({ campo: 'nome', mensagem: 'O produto precisa de um nome.' })
+    problemas.push({ campo: 'nome', mensagem: 'O insumo precisa de um nome.' })
   } else if (nomeJaUsado(rascunho.nome, produtos, rascunho.id)) {
     problemas.push({
       campo: 'nome',
-      mensagem: 'Já existe um produto com esse nome neste restaurante.',
+      mensagem: 'Já existe um insumo com esse nome neste restaurante.',
     })
   }
 
@@ -312,7 +312,7 @@ export function validarProduto(
   if (marcados.length === 0) {
     problemas.push({
       campo: 'setores',
-      mensagem: 'Marque ao menos um setor — é o setor que diz onde este produto é contado.',
+      mensagem: 'Marque ao menos um setor — é o setor que diz onde este insumo é contado.',
     })
   }
 

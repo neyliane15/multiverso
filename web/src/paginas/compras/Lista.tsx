@@ -251,11 +251,11 @@ function GerarLista({
               {escolhidas.size === 0
                 ? noCadastro === null
                   ? 'Nenhuma marcada: a folha vai sair com o cadastro inteiro.'
-                  : `Nenhuma marcada: a folha vai sair com o cadastro inteiro — ${noCadastro} ${plural(noCadastro, 'produto', 'produtos')}.`
+                  : `Nenhuma marcada: a folha vai sair com o cadastro inteiro — ${noCadastro} ${plural(noCadastro, 'insumo', 'insumos')}.`
                 : `${escolhidas.size} ${plural(escolhidas.size, 'categoria marcada', 'categorias marcadas')}` +
                   (naFolha === null
                     ? '. Só o que estiver nelas entra na folha.'
-                    : `: a folha vai sair com ${naFolha} ${plural(naFolha, 'produto', 'produtos')}, e não com ${noCadastro ?? 0}.`)}
+                    : `: a folha vai sair com ${naFolha} ${plural(naFolha, 'insumo', 'insumos')}, e não com ${noCadastro ?? 0}.`)}
             </p>
             {escolhidas.size > 0 && (
               <Botao tom="fantasma" tamanho="p" onClick={() => setEscolhidas(new Set())}>
@@ -432,8 +432,8 @@ function Folha({
       titulo={nome}
       descricao={
         referencia
-          ? `Gerada em ${formatarData(referencia)} · ${resumo.itens} produtos na folha`
-          : `${resumo.itens} produtos na folha`
+          ? `Gerada em ${formatarData(referencia)} · ${resumo.itens} insumos na folha`
+          : `${resumo.itens} insumos na folha`
       }
       acoes={
         <div className="flex flex-wrap items-center gap-2">
@@ -502,7 +502,7 @@ function Folha({
       {cobertura.parcial && (
         <Aviso tom="alerta" titulo="Esta folha não tem o cadastro inteiro">
           <p>
-            Ela nasceu com {resumo.itens} {plural(resumo.itens, 'produto', 'produtos')} de{' '}
+            Ela nasceu com {resumo.itens} {plural(resumo.itens, 'insumo', 'insumos')} de{' '}
             {noCadastro} — foi gerada com algumas categorias marcadas. O resto do estoque
             continua no cadastro; só não entrou nesta folha.
           </p>
@@ -526,8 +526,8 @@ function Folha({
           type="search"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar produto na folha"
-          aria-label="Buscar produto na folha"
+          placeholder="Buscar insumo na folha"
+          aria-label="Buscar insumo na folha"
           className="pl-9"
         />
       </div>
@@ -547,7 +547,7 @@ function Folha({
           >
             {busca === ''
               ? 'Todos os itens da folha já foram marcados como comprados.'
-              : 'Nenhum produto da folha bate com a busca.'}
+              : 'Nenhum insumo da folha bate com a busca.'}
           </EstadoVazio>
         </Cartao>
       ) : (
@@ -612,7 +612,7 @@ function Folha({
                         htmlFor={`pedido-${item.id}`}
                         className="block truncate text-corpo text-texto"
                       >
-                        {item.produto?.nome ?? 'Produto removido do cadastro'}
+                        {item.produto?.nome ?? 'Insumo removido do cadastro'}
                       </label>
                       <span className="mv-numero text-micro text-texto-fraco">
                         {item.unidade} · {dinheiro(item.custo_estimado)} estimado

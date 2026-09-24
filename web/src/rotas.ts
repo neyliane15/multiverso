@@ -51,10 +51,10 @@ export const MODULOS: Modulo[] = [
     rotulo: 'Cadastros',
     itens: [
       {
-        caminho: '/cadastros/produtos',
-        rotulo: 'Produtos',
+        caminho: '/cadastros/insumos',
+        rotulo: 'Insumos',
         icone: 'Package',
-        descricao: 'O catálogo. Cada produto tem uma categoria e vive em um ou mais setores.',
+        descricao: 'O catálogo. Cada insumo tem uma categoria e vive em um ou mais setores.',
         exigeRestaurante: true,
       },
       {

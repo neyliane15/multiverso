@@ -205,8 +205,8 @@ export function casarItem(item: ItemParaCasar, contexto: ContextoCasamento): Cas
       confianca: mesmoFornecedor ? CONFIANCA_APELIDO_FORNECEDOR : CONFIANCA_APELIDO_GERAL,
       motivo: mesmoFornecedor ? 'apelido_fornecedor' : 'apelido_geral',
       explicacao: mesmoFornecedor
-        ? 'Esta descrição já foi vinculada a este produto neste fornecedor.'
-        : 'Esta descrição já foi vinculada a este produto em outro fornecedor.',
+        ? 'Esta descrição já foi vinculada a este insumo neste fornecedor.'
+        : 'Esta descrição já foi vinculada a este insumo em outro fornecedor.',
       fatorSugerido: apelido.fator_conversao ?? null,
       unidadeSugerida: apelido.unidade ?? null,
       sugestoes,
@@ -232,7 +232,7 @@ export function casarItem(item: ItemParaCasar, contexto: ContextoCasamento): Cas
       return resultado({
         confianca: 0.5,
         motivo: 'ambiguo',
-        explicacao: `${porEan.length} produtos usam o código de barras ${item.ean}: escolha qual é.`,
+        explicacao: `${porEan.length} insumos usam o código de barras ${item.ean}: escolha qual é.`,
         sugestoes: porEan.slice(0, 3).map((p) => ({ produtoId: p.id, nome: p.nome, confianca: 0.5 })),
       })
     }
@@ -248,7 +248,7 @@ export function casarItem(item: ItemParaCasar, contexto: ContextoCasamento): Cas
         produtoId: escolhido.id,
         confianca: CONFIANCA_CODIGO,
         motivo: 'codigo_fornecedor',
-        explicacao: `Código ${item.codigoFornecedor} confere com o código do produto no cadastro.`,
+        explicacao: `Código ${item.codigoFornecedor} confere com o código do insumo no cadastro.`,
         unidadeSugerida: escolhido.unidade ?? null,
         sugestoes,
       })
@@ -261,7 +261,7 @@ export function casarItem(item: ItemParaCasar, contexto: ContextoCasamento): Cas
     return resultado({
       confianca: 0,
       motivo: 'sem_correspondencia',
-      explicacao: 'Nenhum produto cadastrado se parece com esta descrição.',
+      explicacao: 'Nenhum insumo cadastrado se parece com esta descrição.',
       sugestoes,
     })
   }
@@ -293,7 +293,7 @@ export function casarItem(item: ItemParaCasar, contexto: ContextoCasamento): Cas
     motivo: 'sem_correspondencia',
     explicacao:
       `O mais parecido é "${melhor.nome}" (${Math.round(melhor.confianca * 100)}%), ` +
-      'pouco para vincular sozinho. Confirme o produto.',
+      'pouco para vincular sozinho. Confirme o insumo.',
     sugestoes,
   })
 }

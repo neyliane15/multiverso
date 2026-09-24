@@ -652,7 +652,7 @@ function PainelDaFicha({
                 value={buscaDeProduto}
                 onChange={(e) => setBuscaDeProduto(e.target.value)}
                 placeholder={
-                  carregandoCatalogo ? 'Carregando o catálogo…' : 'Buscar produto do catálogo'
+                  carregandoCatalogo ? 'Carregando o catálogo…' : 'Buscar insumo do catálogo'
                 }
                 className="pl-9"
               />
@@ -768,7 +768,7 @@ function ItemDaFicha({
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-[140px] flex-1">
           <span className="block truncate text-corpo text-texto">
-            {produto?.nome ?? 'Produto fora do catálogo'}
+            {produto?.nome ?? 'Insumo fora do catálogo'}
           </span>
           <span className="mv-numero block text-micro text-texto-fraco">
             {produto ? `${dinheiro(produto.custo_medio)} / ${produto.unidade}` : 'sem custo'}

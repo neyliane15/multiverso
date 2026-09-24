@@ -221,7 +221,7 @@ describe('produtosDaEscolha · o tamanho da folha antes de gerar', () => {
     expect(produtosDaEscolha(porCategoria, new Set())).toBe(321)
   })
 
-  it('marcar APARAS e uma folha de sete produtos, nao do cadastro', () => {
+  it('marcar APARAS e uma folha de sete insumos, nao do cadastro', () => {
     expect(produtosDaEscolha(porCategoria, new Set(['aparas']))).toBe(7)
   })
 
@@ -229,13 +229,13 @@ describe('produtosDaEscolha · o tamanho da folha antes de gerar', () => {
     expect(produtosDaEscolha(porCategoria, new Set(['aparas', 'hortifruti']))).toBe(109)
   })
 
-  it('categoria marcada sem produto nenhum nao quebra a conta', () => {
+  it('categoria marcada sem insumo nenhum nao quebra a conta', () => {
     expect(produtosDaEscolha(porCategoria, new Set(['aparas', 'vazia']))).toBe(7)
   })
 })
 
 describe('coberturaDaFolha · a folha so de APARAS', () => {
-  it('sete produtos contra um cadastro de 854 e folha parcial', () => {
+  it('sete insumos contra um cadastro de 854 e folha parcial', () => {
     expect(coberturaDaFolha(7, 854)).toEqual({ parcial: true, faltam: 847 })
   })
 

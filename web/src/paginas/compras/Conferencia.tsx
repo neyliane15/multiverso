@@ -249,7 +249,7 @@ export function Conferencia({
       ) : resumo.pendentes > 0 ? (
         <Aviso
           tom="alerta"
-          titulo={`${resumo.pendentes} ${plural(resumo.pendentes, 'item sem produto vinculado', 'itens sem produto vinculado')}`}
+          titulo={`${resumo.pendentes} ${plural(resumo.pendentes, 'item sem insumo vinculado', 'itens sem insumo vinculado')}`}
         >
           O banco recusa lançar uma nota com item pendente, e faz bem: o valor desse item não
           teria em qual produto entrar. Vincule os destacados abaixo — ou, se o item não for
@@ -267,7 +267,7 @@ export function Conferencia({
 
       <Cartao
         titulo="Itens"
-        descricao="O que veio na nota, e em qual produto do cadastro cada linha entra."
+        descricao="O que veio na nota, e em qual insumo do cadastro cada linha entra."
         acao={
           !lancada && (
             <Botao
@@ -305,7 +305,7 @@ export function Conferencia({
       {confirmandoLancamento && (
         <Dialogo
           titulo="Lançar esta nota?"
-          descricao="Depois de lançada, o custo dos produtos já é outro."
+          descricao="Depois de lançada, o custo dos insumos já é outro."
           aoFechar={() => setConfirmandoLancamento(false)}
           rodape={
             <>
@@ -322,7 +322,7 @@ export function Conferencia({
             </>
           }
         >
-          <Aviso tom="alerta" titulo="Isto muda o custo dos produtos">
+          <Aviso tom="alerta" titulo="Isto muda o custo dos insumos">
             Lançar grava o custo unitário desta nota como <strong>custo médio</strong> de cada
             produto vinculado, e soma {dinheiro(nota.valor_total)} às compras de{' '}
             {formatarData(nota.emitida_em)}. O CMV do período muda na mesma hora.
@@ -396,7 +396,7 @@ function LinhaDeItem({
             else aoVincular(e.target.value)
           }}
         >
-          <option value="">— sem produto —</option>
+          <option value="">— sem insumo —</option>
           {catalogo.map((produto) => (
             <option key={produto.id} value={produto.id}>
               {produto.nome} ({produto.unidade})
