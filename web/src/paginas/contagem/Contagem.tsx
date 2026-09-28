@@ -919,9 +919,17 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
       */}
       {entregas.isError && (
         <Aviso tom="alerta" titulo="A entrega por setor ainda não está no banco">
-          Rode <strong className="text-texto-suave">supabase db push</strong> para aplicar a
-          migração que cria a entrega por setor. Contar e lançar continuam funcionando; o que falta
-          é o botão de finalizar.
+          {/*
+            Os dois comandos, e nesta ordem. `db push` sozinho responde "up to
+            date" quando a migração ainda não chegou ao computador — e aí a
+            mensagem parece mentira: o site está novo, o banco não, e o comando
+            diz que está tudo certo.
+          */}
+          Na pasta do projeto, rode <strong className="text-texto-suave">git pull</strong> e depois{' '}
+          <strong className="text-texto-suave">supabase db push</strong>. Os dois: sem o{' '}
+          <em>pull</em>, a migração nem chegou ao seu computador, e o <em>push</em> responde que
+          está tudo em dia. Contar e lançar continuam funcionando; o que falta é o botão de
+          finalizar.
         </Aviso>
       )}
 
