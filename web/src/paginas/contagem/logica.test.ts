@@ -14,6 +14,7 @@ import {
   montarArvoreDeSetores,
   montarParadas,
   ondeFica,
+  precisaLancar,
   resumoDoFechamento,
   rotuloDaAba,
   totalDosItens,
@@ -443,6 +444,38 @@ describe('lista unica · o mesmo insumo em varios lugares', () => {
       'Bar › Geladeira 1', 'Bar › Geladeira 2', 'Cozinha › Câmara fria', 'Cozinha › Despensa',
     ])
     expect(grupos.every((g) => g.itens.length === 1)).toBe(true)
+  })
+})
+
+describe('precisaLancar — zero tambem e resposta', () => {
+  const linha = (parcial: Partial<ItemContavel> = {}): ItemContavel => ({
+    id: 'i1', produto_id: 'p1', setor_id: 's1', quantidade: 0, unidade: 'UND',
+    custo_unitario: 10, total: 0, contado_em: null, produto: { nome: 'X', categoria_id: null },
+    ...parcial,
+  })
+
+  it('linha em branco: digitar ZERO precisa ser gravado', () => {
+    // O defeito que isto tranca: a linha nasce com quantidade zero e sem
+    // carimbo. Quem via a prateleira vazia e digitava 0 nao mudava numero
+    // nenhum, o lancamento era descartado, e o item seguia "em branco" — o
+    // gesto mais comum do fim da contagem era o unico que nao registrava.
+    expect(precisaLancar(linha(), 0, 0)).toBe(true)
+  })
+
+  it('linha ja respondida: repetir o mesmo numero nao gasta requisicao', () => {
+    expect(precisaLancar(linha({ contado_em: '2026-09-28T10:00:00Z' }), 0, 0)).toBe(false)
+    expect(precisaLancar(linha({ contado_em: '2026-09-28T10:00:00Z', quantidade: 7 }), 7, 7)).toBe(false)
+  })
+
+  it('numero diferente sempre vai', () => {
+    expect(precisaLancar(linha(), 3, 0)).toBe(true)
+    expect(precisaLancar(linha({ contado_em: '2026-09-28T10:00:00Z' }), 3, 0)).toBe(true)
+  })
+
+  it('o rascunho conta como resposta — nao manda duas vezes o mesmo', () => {
+    const rascunhos = new Map([['i1', 0]])
+    expect(precisaLancar(linha(), 0, 0, rascunhos)).toBe(false)
+    expect(precisaLancar(linha(), 0, 0, new Map([['outro', 1]]))).toBe(true)
   })
 })
 

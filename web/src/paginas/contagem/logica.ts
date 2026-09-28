@@ -227,6 +227,26 @@ export function agruparPorCategoria(
   return grupos
 }
 
+/**
+ * Vale a pena mandar este lançamento para o servidor?
+ *
+ * Só não vale quando o número é o mesmo E a linha já tinha resposta. A
+ * segunda metade dessa frase é o defeito que isto tranca: a linha nasce com
+ * quantidade zero e sem carimbo, então quem conferia a prateleira, via que
+ * tinha acabado e digitava 0 não mudava número nenhum — e o lançamento era
+ * descartado. O gesto mais comum do fim da contagem, responder zero, era o
+ * único que não registrava nada, e o item seguia "em branco" para o sistema.
+ */
+export function precisaLancar(
+  item: Pick<ItemContavel, 'id' | 'contado_em'>,
+  valor: number,
+  emVigor: number,
+  rascunhos?: Rascunhos,
+): boolean {
+  const jaRespondido = item.contado_em !== null || Boolean(rascunhos?.has(item.id))
+  return valor !== emVigor || !jaRespondido
+}
+
 export function totalDosItens(itens: readonly ItemContavel[], rascunhos?: Rascunhos): number {
   return itens.reduce((soma, item) => soma + totalDoItem(item, rascunhos), 0)
 }

@@ -86,6 +86,7 @@ import {
   montarArvoreDeSetores,
   montarParadas,
   ondeFica,
+  precisaLancar,
   quantidadeEmVigor,
   resumoDoFechamento,
   totalDosItens,
@@ -600,7 +601,17 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   async function lancarQuantidade(item: ItemContavel, valor: number) {
     if (somenteLeitura) return
     const anterior = quantidadeEmVigor(item, rascunhos)
-    if (valor === anterior) return
+    /**
+     * Digitar o mesmo número de novo não gasta requisição — MENOS quando a
+     * linha ainda não tinha resposta.
+     *
+     * A linha nasce com quantidade zero e sem carimbo. Alguém que conferia a
+     * prateleira, via que tinha acabado e digitava 0 batia neste `return`: o
+     * valor não mudou, nada foi enviado, e o item continuava "em branco" para
+     * o sistema. O gesto mais comum do fim da contagem — responder zero — era
+     * justamente o único que não registrava nada.
+     */
+    if (!precisaLancar(item, valor, anterior, rascunhos)) return
 
     setFalha(null)
     setRascunhos((atual) => new Map(atual).set(item.id, valor))
@@ -1077,6 +1088,10 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                     {grupo.itens.map((item) => {
                       const emVigor = quantidadeEmVigor(item, rascunhos)
                       const salvando = emVoo.has(item.id)
+                      // Respondido = alguém já disse alguma coisa sobre esta
+                      // linha, inclusive zero. O rascunho conta: o número
+                      // aparece antes de o servidor confirmar.
+                      const respondido = item.contado_em !== null || rascunhos.has(item.id)
                       // Na lista única, a linha precisa dizer de onde é: a
                       // tilápia aparece duas vezes, e sem isso não dá para
                       // saber qual delas se está preenchendo.
@@ -1090,9 +1105,15 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                             >
                               {item.produto?.nome ?? 'Insumo removido do cadastro'}
                             </label>
+                            {/* A palavra "custo" não é enfeite: sem ela, o valor
+                                cinza aqui e o total da linha ali do lado são
+                                dois números soltos, e o que a pessoa lê como
+                                "custo do insumo" é o R$ 0,00 de baixo. */}
                             <span className="mv-numero block truncate text-micro text-texto-fraco">
                               {lugar !== null && <span className="text-texto-suave">{lugar} · </span>}
-                              {item.unidade} · {dinheiro(item.custo_unitario)} por {item.unidade}
+                              custo{' '}
+                              <span className="text-texto-suave">{dinheiro(item.custo_unitario)}</span>{' '}
+                              por {item.unidade}
                             </span>
                           </div>
                           <div className="shrink-0 text-right">
@@ -1105,13 +1126,25 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                               aria-label={`Quantidade de ${item.produto?.nome ?? 'produto'} em ${item.unidade}`}
                               className="w-24"
                             />
+                            {/*
+                              Linha ainda sem resposta mostra travessão, não
+                              "R$ 0,00".
+                              Zero é uma resposta — "acabou" — e branco é a
+                              falta dela. Mostrar R$ 0,00 nos dois casos
+                              apagava justamente a diferença que a entrega
+                              cobra, e ainda fazia o total da linha parecer o
+                              custo do insumo.
+                            */}
                             <span
                               className={clsx(
                                 'mv-numero mt-0.5 block text-micro',
                                 salvando ? 'text-texto-fraco' : 'text-texto-suave',
                               )}
+                              title="Total desta linha: quantidade × custo"
                             >
-                              {dinheiro(emVigor * item.custo_unitario)}
+                              {respondido ? dinheiro(emVigor * item.custo_unitario) : (
+                                <span className="text-texto-fraco">—</span>
+                              )}
                             </span>
                           </div>
                         </li>
