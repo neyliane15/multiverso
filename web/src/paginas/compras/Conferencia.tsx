@@ -253,7 +253,7 @@ export function Conferencia({
         >
           O banco recusa lançar uma nota com item pendente, e faz bem: o valor desse item não
           teria em qual produto entrar. Vincule os destacados abaixo — ou, se o item não for
-          estoque (taxa, frete, brinde), ele precisa ser vinculado a um produto mesmo assim ou
+          estoque (taxa, frete, brinde), ele precisa ser vinculado a um insumo mesmo assim ou
           removido da nota.
         </Aviso>
       ) : (

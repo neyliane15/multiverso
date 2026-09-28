@@ -22,6 +22,11 @@ import { createServer } from 'node:http'
 import pg from 'pg'
 // A MESMA decisão que a tela e a edge function usam — nada reescrito aqui.
 import { podeExcluirUsuario } from '../../web/src/paginas/admin/regraDeExclusao.ts'
+import {
+  emailSintetico,
+  podeCriarOperador,
+  validarOperador,
+} from '../../web/src/paginas/admin/regraDeOperador.ts'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { request as pedir } from 'node:http'
 
@@ -42,6 +47,15 @@ const EXIGE_CONFIRMACAO = process.env.CONFIRMAR === '1'
  * nem tinha entrado. Duas listas da mesma coisa sempre divergem; esta some.
  */
 const USUARIOS = new Map()
+/**
+ * Senha própria de alguns acessos.
+ *
+ * O portão aceita uma senha só para todo mundo — é ambiente de desenvolvimento
+ * e isso poupa tempo. Mas o operador de setor nasce com senha escolhida por
+ * quem o criou, e é justamente isso que precisa ser exercitado: criar o acesso
+ * e entrar com ele. Quem está aqui usa a sua; quem não está, a de sempre.
+ */
+const SENHAS = new Map()
 
 /** Token de leitura assinado com o mesmo segredo que o PostgREST confere. */
 function tokenDeServico(sub) {
@@ -107,6 +121,11 @@ async function acharUsuario(email) {
   if (!conta) return null
   USUARIOS.set(email, { id: conta.id, nome: email.split('@')[0] })
   return USUARIOS.get(email)
+}
+
+/** Um token do papel `anon` — o que o Supabase entrega antes de haver login. */
+function tokenAnonimo() {
+  return assinar({ role: 'anon', exp: Math.floor(Date.now() / 1000) + 3600 })
 }
 
 const base64url = (buf) =>
@@ -211,7 +230,8 @@ createServer(async (req, res) => {
     }
 
     const alvo = String(corpo.email ?? '').toLowerCase()
-    if (corpo.password === SENHA && (await bancoLigado)) {
+    const esperada = SENHAS.get(alvo) ?? SENHA
+    if (corpo.password === esperada && (await bancoLigado)) {
       const conf = await BANCO.query(
         'select email_confirmed_at from auth.users where lower(email) = $1',
         [alvo],
@@ -223,7 +243,7 @@ createServer(async (req, res) => {
         })
       }
     }
-    const s = corpo.password === SENHA ? await sessao(alvo) : null
+    const s = corpo.password === esperada ? await sessao(alvo) : null
     return s
       ? responder(res, 200, s)
       : responder(res, 400, {
@@ -357,6 +377,90 @@ createServer(async (req, res) => {
     })
   }
 
+  /**
+   * `criar-operador`, reimplementada aqui pela mesma razão da anterior: ela
+   * cria conta com service_role, sem RLS por baixo, e a decisão de quem pode
+   * é a única barreira. O arquivo de regra é o MESMO que a tela e a função
+   * de produção usam.
+   */
+  if (url.pathname === '/functions/v1/criar-operador') {
+    const carga = conferir((req.headers.authorization ?? '').replace('Bearer ', ''))
+    if (!carga) return responder(res, 401, { erro: 'Token inválido ou expirado.' })
+    if (!(await bancoLigado)) return responder(res, 501, { erro: 'sem ligação com o banco' })
+
+    const corpo = JSON.parse((await lerCorpo(req)).toString() || '{}')
+    const dados = {
+      nome: corpo.nome ?? '',
+      usuario: corpo.usuario ?? '',
+      senha: corpo.senha ?? '',
+      setores: corpo.setores ?? [],
+    }
+    const problemas = validarOperador(dados)
+    if (problemas.length > 0) return responder(res, 400, { erro: problemas[0].mensagem })
+
+    const { rows: donos } = await BANCO.query(
+      'select id, papel, restaurante_id from perfis where id = $1',
+      [carga.sub],
+    )
+    const veredito = podeCriarOperador(donos[0] ?? null, corpo.restauranteId ?? '')
+    if (!veredito.permitido) return responder(res, 403, { erro: veredito.motivo })
+
+    const { rows: casas } = await BANCO.query('select slug from restaurantes where id = $1', [
+      corpo.restauranteId,
+    ])
+    if (!casas[0]) return responder(res, 404, { erro: 'Restaurante não encontrado.' })
+
+    const { rows: conferidos } = await BANCO.query(
+      'select id from setores where restaurante_id = $1 and id = any($2::uuid[])',
+      [corpo.restauranteId, dados.setores],
+    )
+    if (conferidos.length !== dados.setores.length) {
+      return responder(res, 400, { erro: 'Algum setor escolhido não é deste restaurante.' })
+    }
+
+    const { rows: repetido } = await BANCO.query(
+      'select id from perfis where lower(usuario) = lower($1)',
+      [dados.usuario.trim()],
+    )
+    if (repetido[0]) {
+      return responder(res, 409, { erro: `Já existe um acesso chamado "${dados.usuario.trim()}".` })
+    }
+
+    const email = emailSintetico(dados.usuario.trim(), casas[0].slug)
+    const { rows: novos } = await BANCO.query(
+      // Já confirmado: não há caixa de entrada para onde mandar confirmação —
+      // é o mesmo `email_confirm: true` que a função de produção usa.
+      `insert into auth.users (email, raw_user_meta_data, email_confirmed_at)
+       values ($1, $2, now()) returning id`,
+      [email, JSON.stringify({ nome: dados.nome.trim() })],
+    )
+    const novoId = novos[0].id
+    await BANCO.query(
+      `insert into perfis (id, restaurante_id, nome, email, papel, usuario, ativo, convite_aceito_em)
+       values ($1, $2, $3, $4, 'operador', $5, true, now())
+       on conflict (id) do update set nome = excluded.nome, usuario = excluded.usuario,
+         papel = 'operador', restaurante_id = excluded.restaurante_id`,
+      [novoId, corpo.restauranteId, dados.nome.trim(), email, dados.usuario.trim()],
+    )
+    for (const setor of dados.setores) {
+      await BANCO.query(
+        'insert into perfil_setores (perfil_id, setor_id) values ($1, $2) on conflict do nothing',
+        [novoId, setor],
+      )
+    }
+    SENHAS.set(email, dados.senha)
+    return responder(res, 200, {
+      criado: {
+        id: novoId,
+        nome: dados.nome.trim(),
+        usuario: dados.usuario.trim(),
+        email,
+        setores: dados.setores.length,
+      },
+      aviso: `Entre com o login "${dados.usuario.trim()}" e a senha escolhida.`,
+    })
+  }
+
   if (url.pathname.startsWith('/storage/v1') || url.pathname.startsWith('/functions/v1')) {
     const qual = url.pathname.startsWith('/storage/v1') ? 'O Storage' : 'As Edge Functions'
     return responder(res, 501, {
@@ -371,6 +475,19 @@ createServer(async (req, res) => {
     const cabecalhos = { ...req.headers, host: destino.host }
     delete cabecalhos.apikey
     delete cabecalhos['content-length']
+
+    /**
+     * Chamada sem sessão: entra como `anon`.
+     *
+     * Em produção a chave anônima do Supabase É um JWT, e o PostgREST a aceita
+     * sozinha. Aqui ela é um texto qualquer do .env, e o PostgREST devolvia
+     * 401 — o que fazia a tela de entrada recusar o login por nome de usuário,
+     * que é justamente a única consulta feita antes de existir sessão.
+     */
+    const token = String(cabecalhos.authorization ?? '').replace('Bearer ', '')
+    if (!token || !conferir(token)) {
+      cabecalhos.authorization = `Bearer ${tokenAnonimo()}`
+    }
 
     const adiante = pedir(
       {

@@ -19,6 +19,16 @@ interface EstadoSessao {
   /** Restaurantes que este usuário enxerga. Para o master, a rede inteira. */
   restaurantesVisiveis: Restaurante[]
   ehMaster: boolean
+  /** Setores a que este acesso está preso. Vazio = enxerga a casa inteira. */
+  setoresDoPerfil: string[]
+  /**
+   * Este acesso só enxerga alguns setores.
+   *
+   * Vale para o operador de setor — aquele que só conta o bar, ou só a
+   * cozinha. O menu e as rotas obedecem a isto; quem de fato tranca a porta é
+   * a RLS, porque esconder botão não impede ninguém de digitar o endereço.
+   */
+  restritoASetores: boolean
   /** Chegou pelo link de recuperação: a senha ainda é a antiga. */
   recuperandoSenha: boolean
   concluirRecuperacao: () => void
@@ -65,6 +75,7 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
   const [sessao, setSessao] = useState<Session | null>(null)
   const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [restaurantes, setRestaurantes] = useState<Restaurante[]>([])
+  const [setoresDoPerfil, setSetoresDoPerfil] = useState<string[]>([])
   const [escolhido, setEscolhido] = useState<string | null>(
     () => localStorage.getItem(CHAVE_ESCOLHA),
   )
@@ -81,6 +92,7 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
     if (!s) {
       setPerfil(null)
       setRestaurantes([])
+      setSetoresDoPerfil([])
       return
     }
     /**
@@ -95,13 +107,17 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
      */
     let perfilDito: { data: unknown; error: { message: string } | null }
     let restaurantesDitos: { data: unknown }
+    let setoresDitos: { data: unknown }
     try {
       // A RLS já limita o que volta: o master recebe a rede, os demais recebem
       // só o próprio restaurante. Não filtramos nada no cliente.
-      ;[perfilDito, restaurantesDitos] = await comPrazo(
+      ;[perfilDito, restaurantesDitos, setoresDitos] = await comPrazo(
         Promise.all([
           supabase.from('perfis').select('*').eq('id', s.user.id).maybeSingle(),
           supabase.from('restaurantes').select('*').eq('ativo', true).order('nome'),
+          // A RLS de `perfil_setores` já limita a linha ao próprio usuário —
+          // o filtro aqui é para deixar a intenção explícita, não segurança.
+          supabase.from('perfil_setores').select('setor_id').eq('perfil_id', s.user.id),
         ]),
         PRAZO_DO_PERFIL,
       )
@@ -126,6 +142,9 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
     setFalhaAoCarregar(null)
     setPerfil((perfilDito.data as Perfil) ?? null)
     setRestaurantes((restaurantesDitos.data as Restaurante[]) ?? [])
+    setSetoresDoPerfil(
+      ((setoresDitos.data as { setor_id: string }[] | null) ?? []).map((l) => l.setor_id),
+    )
 
     /**
      * Carimba a presença. O `.then()` vazio não é enfeite: as consultas do
@@ -206,6 +225,8 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
     restaurante,
     restaurantesVisiveis: restaurantes,
     ehMaster: Boolean(ehMaster),
+    setoresDoPerfil,
+    restritoASetores: setoresDoPerfil.length > 0,
     recuperandoSenha,
     concluirRecuperacao: () => setRecuperandoSenha(false),
     falhaAoCarregar,

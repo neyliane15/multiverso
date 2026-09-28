@@ -241,7 +241,7 @@ export function Inicio(): JSX.Element {
                   <span className="mv-numero">{quantidade(mes.itensPendentes)}</span>{' '}
                   {mes.itensPendentes === 1 ? 'item' : 'itens'} em{' '}
                   <span className="mv-numero">{quantidade(mes.notasPendentes)}</span>{' '}
-                  {mes.notasPendentes === 1 ? 'nota' : 'notas'} ainda não foram ligados a um produto
+                  {mes.notasPendentes === 1 ? 'nota' : 'notas'} ainda não foram ligados a um insumo
                   do catálogo. Enquanto isso, eles não entram no CMV.
                 </span>
                 <Link

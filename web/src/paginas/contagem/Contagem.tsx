@@ -157,6 +157,7 @@ function ContagemDoRestaurante({ restauranteId }: { restauranteId: string }) {
 
 function AbrirContagem({ restauranteId }: { restauranteId: string }) {
   const navegar = useNavigate()
+  const { restritoASetores } = useSessao()
   const setores = useSetores(restauranteId)
   const abrir = useAbrirContagem(restauranteId)
 
@@ -185,6 +186,23 @@ function AbrirContagem({ restauranteId }: { restauranteId: string }) {
     }
   }
 
+  /*
+    Quem conta um setor não abre contagem — quem abre é a casa. Oferecer o
+    formulário a ele seria mostrar um caminho que a RLS recusa no fim.
+  */
+  if (restritoASetores) {
+    return (
+      <>
+        <CabecalhoDePagina titulo="Contagem" descricao="Nenhuma contagem aberta agora." />
+        <Cartao>
+          <EstadoVazio icone={<ClipboardList />} titulo="Nada para contar agora">
+            Quando a contagem for aberta, a folha do seu setor aparece aqui.
+          </EstadoVazio>
+        </Cartao>
+      </>
+    )
+  }
+
   return (
     <>
       <CabecalhoDePagina
@@ -197,7 +215,7 @@ function AbrirContagem({ restauranteId }: { restauranteId: string }) {
           icone={<ClipboardList />}
           titulo="Sem contagem aberta"
         >
-          A contagem monta a folha a partir do cadastro: cada produto ativo, em cada
+          A contagem monta a folha a partir do cadastro: cada insumo ativo, em cada
           setor onde ele vive, vira uma linha zerada esperando a quantidade.
         </EstadoVazio>
       </Cartao>
@@ -302,7 +320,7 @@ function AbrirContagem({ restauranteId }: { restauranteId: string }) {
 
 function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemId: string }) {
   const navegar = useNavigate()
-  const { podeAdministrar } = useSessao()
+  const { podeAdministrar, restritoASetores } = useSessao()
 
   const contagem = useContagem(contagemId)
   const itens = useItensDaContagem(contagemId)
@@ -475,6 +493,15 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
    * significa "este lugar está vazio no cadastro"; mais que zero significa
    * "a folha é mais velha que o cadastro, é só refazer".
    */
+  /**
+   * A navegação não tem o que oferecer: um setor só, sem lugares dentro, ou
+   * uma categoria só. Some em vez de ocupar uma coluna inteira.
+   */
+  const navegacaoInutil =
+    eixo === 'setor'
+      ? arvore.length <= 1 && (arvore[0]?.lugares.length ?? 0) === 0
+      : eixo === 'categoria' && paradas.length <= 1
+
   const lugarSemLinha = useMemo(() => {
     if (eixo !== 'setor' || itensDaqui.length > 0) return null
     const estoque = estoqueDaSelecao(paradaId)
@@ -638,7 +665,14 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
         descricao={`Referência ${formatarData(cabecalho?.referencia)} · ${resumo.itens} itens na folha`}
         acoes={
           <>
-            {!somenteLeitura && (
+            {/*
+              O operador de setor não tem nada aqui.
+              Refazer a folha, ver o histórico e fechar a contagem são decisões
+              da casa inteira, e a RLS já recusa as três. Mostrar o botão só
+              para ele receber "não autorizado" seria transformar regra em
+              defeito aparente.
+            */}
+            {!somenteLeitura && !restritoASetores && (
               <Botao
                 tom="fantasma"
                 icone={<RefreshCw className="size-4" aria-hidden />}
@@ -648,11 +682,14 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                 Refazer a folha
               </Botao>
             )}
-            <Botao tom="fantasma" onClick={() => navegar('/contagem/historico')}>
-              Histórico
-            </Botao>
+            {!restritoASetores && (
+              <Botao tom="fantasma" onClick={() => navegar('/contagem/historico')}>
+                Histórico
+              </Botao>
+            )}
             {somenteLeitura ? (
               podeAdministrar &&
+              !restritoASetores &&
               fechada && (
                 <Botao
                   tom="secundario"
@@ -664,19 +701,23 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                 </Botao>
               )
             ) : (
-              <Botao
-                tom="primario"
-                icone={<Lock className="size-4" aria-hidden />}
-                onClick={() => setConfirmando(true)}
-              >
-                Fechar contagem
-              </Botao>
+              !restritoASetores && (
+                <Botao
+                  tom="primario"
+                  icone={<Lock className="size-4" aria-hidden />}
+                  onClick={() => setConfirmando(true)}
+                >
+                  Fechar contagem
+                </Botao>
+              )
             )}
           </>
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2">
+      {/* No celular estes selos repetem o que o título e o rodapé já dizem, e
+          cada linha a mais aqui é uma linha a menos de folha na tela. */}
+      <div className="hidden flex-wrap items-center gap-2 sm:flex">
         <Selo tom={fechada ? 'sucesso' : cancelada ? 'erro' : 'marca'}>
           {fechada ? (
             <>
@@ -738,8 +779,8 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
       {todos.length === 0 ? (
         <Cartao>
           <EstadoVazio icone={<ClipboardList />} titulo="Folha vazia">
-            Esta contagem nasceu sem nenhuma linha — provavelmente não havia produto ativo
-            vinculado aos setores escolhidos. Confira o cadastro de produtos.
+            Esta contagem nasceu sem nenhuma linha — provavelmente não havia insumo ativo
+            vinculado aos setores escolhidos. Confira o cadastro de insumos.
           </EstadoVazio>
         </Cartao>
       ) : (
@@ -748,10 +789,15 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
             'grid gap-4',
             // No eixo produto não há navegação, e a lista toma a largura
             // inteira: uma coluna vazia de 240px seria só enfeite.
-            eixo !== 'produto' && 'lg:grid-cols-[240px_minmax(0,1fr)]',
+            eixo !== 'produto' && !navegacaoInutil && 'lg:grid-cols-[240px_minmax(0,1fr)]',
           )}
         >
-          {eixo === 'setor' ? (
+          {/*
+            Navegação de uma entrada só é decoração — e no celular é decoração
+            que empurra a folha para fora da tela. É exatamente o caso do
+            operador de setor: um setor, uma parada, nada a escolher.
+          */}
+          {navegacaoInutil ? null : eixo === 'setor' ? (
             <NavegacaoPorSetor
               ramos={arvore}
               escolhida={paradaId}
@@ -768,7 +814,12 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
             )
           )}
 
-          <div className="min-w-0 space-y-4">
+          {/*
+            A folga embaixo não é estética: a barra de totais é grudada no pé
+            da tela, e sem ela a última linha da folha fica atrás do total —
+            justo a linha que alguém ainda precisa preencher.
+          */}
+          <div className="min-w-0 space-y-4 pb-24 sm:pb-16">
             {categorias.isError && <ErroDaConsulta erro={categorias.error} />}
 
             {/*
@@ -1091,7 +1142,7 @@ function BarraDeControle({
           })}
         </div>
 
-        <div className="relative min-w-[200px] flex-1">
+        <div className="relative min-w-[150px] flex-1">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-fraco"
             aria-hidden
@@ -1106,12 +1157,16 @@ function BarraDeControle({
           />
         </div>
 
+        {/* No celular o rótulo encolhe para "Pendentes": o botão cabe ao lado
+            da busca, e a folha começa uma linha acima. */}
         <Botao
           tom={soNaoContados ? 'primario' : 'secundario'}
           aria-pressed={soNaoContados}
           onClick={aoAlternarNaoContados}
+          className="shrink-0"
         >
-          Só os não contados
+          <span className="sm:hidden">Pendentes</span>
+          <span className="hidden sm:inline">Só os não contados</span>
         </Botao>
       </div>
 
@@ -1130,7 +1185,9 @@ function BarraDeControle({
         </span>
       </div>
 
-      <p className="mt-2 text-micro text-texto-fraco">{ajuda}</p>
+      {/* No celular esta linha só empurra a folha para baixo: quem está de pé
+          no estoque já sabe por que clicou. No desktop ela explica os eixos. */}
+      <p className="mt-2 hidden text-micro text-texto-fraco sm:block">{ajuda}</p>
     </Cartao>
   )
 }

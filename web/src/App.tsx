@@ -5,8 +5,9 @@
  * conhecido — senão o app pintaria com a marca da plataforma e trocaria de cor
  * meio segundo depois, na cara de quem está usando.
  */
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useSessao } from '@/dados/sessao'
+import { rotaPermitidaNoSetor } from '@/rotas'
 import { ProvedorDeMarca } from '@/tema/ProvedorDeMarca'
 import { Casca } from '@/layout/Casca'
 import { Logo } from '@/componentes/Logo'
@@ -60,6 +61,22 @@ function SoAdministracao({ children }: { children: React.ReactNode }) {
   return ehMaster || perfil?.papel === 'admin' ? <>{children}</> : <Navigate to="/" replace />
 }
 
+/**
+ * O operador de setor entra na contagem e fica nela.
+ *
+ * Sem este guarda, digitar `/cmv` mostraria a casca da tela e uma consulta
+ * negada — feio, e pior: pareceria defeito, e não regra. A RLS já recusaria os
+ * dados; aqui o sistema só se comporta como o que ele é para essa pessoa.
+ */
+function SoAContagem({ children }: { children: React.ReactNode }) {
+  const { restritoASetores } = useSessao()
+  const local = useLocation()
+  if (restritoASetores && !rotaPermitidaNoSetor(local.pathname)) {
+    return <Navigate to="/contagem" replace />
+  }
+  return <>{children}</>
+}
+
 export function App() {
   const { carregando, sessao, perfil, restaurante, ehMaster, recuperandoSenha, falhaAoCarregar } =
     useSessao()
@@ -83,7 +100,7 @@ export function App() {
   return (
     <ProvedorDeMarca restaurante={restaurante}>
       <Routes>
-        <Route element={<Casca />}>
+        <Route element={<SoAContagem><Casca /></SoAContagem>}>
           <Route index element={inicio} />
           <Route path="rede" element={<SoMaster><Rede /></SoMaster>} />
 

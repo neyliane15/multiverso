@@ -33,6 +33,7 @@ import {
 import {
   Aviso,
   Botao,
+  Chip,
   CabecalhoDePagina,
   Campo,
   Carregando,
@@ -52,9 +53,13 @@ import {
   useCancelarConvite,
   useConvidar,
   useConvites,
+  useCriarOperador,
   useExcluirUsuario,
   useEquipe,
   useSalvarPerfil,
+  useSalvarSetoresDoPerfil,
+  useSetores,
+  useSetoresDaEquipe,
 } from '@/dados/consultas'
 import type { Convite } from '@/tipos/banco'
 import { useSessao } from '@/dados/sessao'
@@ -62,6 +67,7 @@ import { dataHora, iniciais } from '@/util/formato'
 import type { PapelUsuario, Perfil } from '@/tipos/banco'
 import { PainelLateral } from '../PainelLateral'
 import { podeExcluirUsuario } from './regraDeExclusao'
+import { MINIMO_DA_SENHA, validarOperador } from './regraDeOperador'
 import {
   DESCRICAO_DO_PAPEL,
   FILTRO_DE_EQUIPE,
@@ -98,7 +104,19 @@ export function Usuarios(): JSX.Element {
   const [filtro, setFiltro] = useState<FiltroDeEquipe>(FILTRO_DE_EQUIPE)
   const [editando, setEditando] = useState<Perfil | null>(null)
   const [confirmandoExclusao, setConfirmandoExclusao] = useState<Perfil | null>(null)
+  const [criandoOperador, setCriandoOperador] = useState(false)
+  const [recado, setRecado] = useState<string | null>(null)
   const excluir = useExcluirUsuario(restaurante?.id ?? null)
+  const setores = useSetores(restaurante?.id ?? '')
+  const setoresDaEquipe = useSetoresDaEquipe(restaurante?.id ?? null)
+  const criarOperador = useCriarOperador(restaurante?.id ?? null)
+  const salvarSetores = useSalvarSetoresDoPerfil(restaurante?.id ?? null)
+
+  /** O nome do setor, para a lista e para os painéis. */
+  const nomeDoSetor = useMemo(() => {
+    const mapa = new Map((setores.data ?? []).map((s) => [s.id, s.nome]))
+    return (id: string) => mapa.get(id) ?? 'setor arquivado'
+  }, [setores.data])
 
   const ator = perfil ? comoEnvolvido(perfil) : null
   const podeEditar = podeEditarEquipe(ator)
@@ -116,7 +134,20 @@ export function Usuarios(): JSX.Element {
       <CabecalhoDePagina
         titulo="Usuários"
         descricao="Quem entra no sistema, com que papel e em qual restaurante. O papel decide o que a pessoa enxerga e o que ela pode gravar."
+        acoes={
+          podeEditar && restaurante ? (
+            <Botao tom="secundario" icone={<UserPlus />} onClick={() => setCriandoOperador(true)}>
+              Novo acesso de operador
+            </Botao>
+          ) : undefined
+        }
       />
+
+      {recado && (
+        <Aviso tom="sucesso" titulo="Acesso criado">
+          <p className="mt-1">{recado}</p>
+        </Aviso>
+      )}
 
       {!podeEditar && (
         <Aviso tom="info" titulo="Você está só olhando">
@@ -247,7 +278,17 @@ export function Usuarios(): JSX.Element {
                     </span>
                   </Td>
                   <Td>
-                    <Selo tom={TOM_DO_PAPEL[p.papel]}>{p.papel}</Selo>
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <Selo tom={TOM_DO_PAPEL[p.papel]}>{p.papel}</Selo>
+                      {/* O papel sozinho não diz o que este acesso enxerga: um
+                          "operador" preso ao Bar e outro que vê a casa inteira
+                          apareceriam iguais na lista. */}
+                      {(setoresDaEquipe.data?.get(p.id) ?? []).map((setorId) => (
+                        <Selo key={setorId} tom="neutro">
+                          {nomeDoSetor(setorId)}
+                        </Selo>
+                      ))}
+                    </span>
                   </Td>
                   {ehMaster && (
                     <Td className="hidden md:table-cell">
@@ -296,12 +337,52 @@ export function Usuarios(): JSX.Element {
                 : null
           }
           aoSalvar={(patch) => salvar.mutate(patch, { onSuccess: () => setEditando(null) })}
+          setores={(setores.data ?? []).filter((x) => x.ativo)}
+          setoresDoAlvo={setoresDaEquipe.data?.get(editando.id) ?? []}
+          aoSalvarSetores={(lista) =>
+            salvarSetores.mutate(
+              { perfilId: editando.id, setores: lista },
+              {
+                onSuccess: () =>
+                  setRecado(
+                    lista.length === 0
+                      ? `${editando.nome} voltou a enxergar a casa inteira.`
+                      : `${editando.nome} agora enxerga ${lista.length === 1 ? 'um setor' : `${lista.length} setores`}.`,
+                  ),
+              },
+            )
+          }
           aoPedirExclusao={() => setConfirmandoExclusao(editando)}
           aoFechar={() => {
             setEditando(null)
             salvar.reset()
             excluir.reset()
           }}
+        />
+      )}
+
+      {criandoOperador && restaurante && (
+        <PainelDeOperador
+          restauranteId={restaurante.id}
+          setores={(setores.data ?? []).filter((x) => x.ativo)}
+          salvando={criarOperador.isPending}
+          erroDoServidor={criarOperador.error instanceof Error ? criarOperador.error.message : null}
+          aoFechar={() => {
+            setCriandoOperador(false)
+            criarOperador.reset()
+          }}
+          aoCriar={(dados) =>
+            criarOperador.mutate(dados, {
+              onSuccess: (r) => {
+                setCriandoOperador(false)
+                setRecado(
+                  `${r.criado.nome} entra com o login "${r.criado.usuario}" e enxerga ` +
+                    `${r.criado.setores === 1 ? 'um setor' : `${r.criado.setores} setores`}. ` +
+                    'O e-mail é interno e não recebe mensagem.',
+                )
+              },
+            })
+          }
         />
       )}
 
@@ -600,6 +681,9 @@ function FormularioDeUsuario({
   aoSalvar,
   aoPedirExclusao,
   aoFechar,
+  setores,
+  setoresDoAlvo,
+  aoSalvarSetores,
 }: {
   alvo: Perfil
   ator: Envolvido | null
@@ -611,11 +695,15 @@ function FormularioDeUsuario({
   aoSalvar: (patch: Partial<Perfil> & { id: string }) => void
   aoPedirExclusao: () => void
   aoFechar: () => void
+  setores: readonly { id: string; nome: string }[]
+  setoresDoAlvo: readonly string[]
+  aoSalvarSetores: (setores: string[]) => void
 }): JSX.Element {
   const envolvido = comoEnvolvido(alvo)
   const [papel, setPapel] = useState<PapelUsuario>(alvo.papel)
   const [restauranteId, setRestauranteId] = useState<string | null>(alvo.restaurante_id)
   const [ativo, setAtivo] = useState(alvo.ativo)
+  const [marcados, setMarcados] = useState<ReadonlySet<string>>(() => new Set(setoresDoAlvo))
 
   const opcoes = useMemo(() => opcoesDePapel(ator, envolvido), [ator, envolvido])
   const permissaoDoAtivo = podeAlternarAtivo(ator, envolvido)
@@ -628,6 +716,8 @@ function FormularioDeUsuario({
   )
 
   const mudouPapel = papel !== alvo.papel || restauranteId !== alvo.restaurante_id
+  const mudouSetores =
+    marcados.size !== setoresDoAlvo.length || [...marcados].some((id) => !setoresDoAlvo.includes(id))
   const mudouAtivo = ativo !== alvo.ativo
   const precisaEscolherRestaurante = papel !== 'master' && !restauranteId
 
@@ -771,6 +861,59 @@ function FormularioDeUsuario({
           <Aviso tom="alerta" titulo="Falta um dado para salvar">
             <p className="mt-1">{alteracao.erro}</p>
           </Aviso>
+        )}
+
+        {/*
+          O que este acesso enxerga, quando ele é de operador.
+          Marcar um setor é o que transforma um operador comum no "Operador
+          Bar": ele passa a ver a contagem daquele setor e mais nada. Nenhum
+          setor marcado = a casa inteira, que é como o operador sempre foi.
+        */}
+        {papel === 'operador' && setores.length > 0 && (
+          <section>
+            <h3 className="font-titulo text-destaque font-semibold text-texto">
+              Setores que este acesso enxerga
+            </h3>
+            <p className="mt-1 text-apoio leading-relaxed text-texto-fraco">
+              Marque para prender este operador a um ou mais setores: ele passa a ver só a contagem
+              deles, sem cadastro, compras, CMV nem equipe. Sem marca nenhuma, ele enxerga a casa
+              inteira.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {setores.map((setor) => (
+                <Chip
+                  key={setor.id}
+                  marcado={marcados.has(setor.id)}
+                  aoAlternar={() =>
+                    setMarcados((antes) => {
+                      const novo = new Set(antes)
+                      if (novo.has(setor.id)) novo.delete(setor.id)
+                      else novo.add(setor.id)
+                      return novo
+                    })
+                  }
+                >
+                  {setor.nome}
+                </Chip>
+              ))}
+            </div>
+            {mudouSetores && (
+              <div className="mt-3 flex items-center gap-3">
+                <Botao
+                  tom="secundario"
+                  tamanho="p"
+                  onClick={() => aoSalvarSetores([...marcados])}
+                >
+                  Salvar setores
+                </Botao>
+                <span className="text-apoio text-texto-fraco">
+                  {marcados.size === 0
+                    ? 'Sem restrição: volta a enxergar a casa inteira.'
+                    : `${marcados.size} ${marcados.size === 1 ? 'setor' : 'setores'}.`}
+                </span>
+              </div>
+            )}
+          </section>
         )}
 
         <section>
@@ -976,5 +1119,192 @@ function ConfirmarExclusao({
         <strong className="text-texto-suave"> desative</strong> em vez de excluir.
       </p>
     </Dialogo>
+  )
+}
+
+/* ────────────────────────────────────── o acesso que só conta um setor ──── */
+
+/**
+ * O painel que cria o "Operador Bar".
+ *
+ * Três coisas que ele faz diferente do convite comum, e todas pela mesma
+ * razão — esta pessoa não tem e-mail de trabalho:
+ *
+ * - o login é o nome ("Operador Bar"), e não um endereço;
+ * - a senha é escolhida aqui, na hora, por quem cria — não há caixa de
+ *   entrada para receber convite;
+ * - a conta já nasce pronta para entrar, sem confirmação nenhuma.
+ *
+ * O que ela vai enxergar do sistema inteiro é a contagem dos setores marcados
+ * abaixo. Não é o menu escondido: é a RLS do banco.
+ */
+function PainelDeOperador({
+  restauranteId,
+  setores,
+  salvando,
+  erroDoServidor,
+  aoFechar,
+  aoCriar,
+}: {
+  restauranteId: string
+  setores: { id: string; nome: string; cor: string | null }[]
+  salvando: boolean
+  erroDoServidor: string | null
+  aoFechar: () => void
+  aoCriar: (dados: {
+    restauranteId: string
+    nome: string
+    usuario: string
+    senha: string
+    setores: string[]
+  }) => void
+}): JSX.Element {
+  const [nome, setNome] = useState('')
+  const [usuario, setUsuario] = useState('')
+  const [senha, setSenha] = useState('')
+  const [marcados, setMarcados] = useState<ReadonlySet<string>>(new Set())
+  const [tentou, setTentou] = useState(false)
+
+  const escolhidos = useMemo(() => [...marcados], [marcados])
+  const problemas = validarOperador({ nome, usuario, senha, setores: escolhidos })
+  const problemaDe = (campo: 'nome' | 'usuario' | 'senha' | 'setores') =>
+    tentou ? problemas.find((p) => p.campo === campo)?.mensagem : undefined
+
+  /**
+   * Um setor marcado sugere o nome e o login: "Operador Bar" é o que a casa
+   * vai chamar de qualquer jeito, e digitar duas vezes a mesma coisa é
+   * trabalho que a tela pode poupar. Quem quiser outro nome, é só escrever.
+   */
+  const alternarSetor = (id: string, nomeDoSetor: string) => {
+    setMarcados((antes) => {
+      const novo = new Set(antes)
+      if (novo.has(id)) novo.delete(id)
+      else novo.add(id)
+      if (novo.size === 1) {
+        const unico = novo.has(id) ? nomeDoSetor : setores.find((s) => novo.has(s.id))?.nome
+        if (unico) {
+          const sugestao = `Operador ${unico}`
+          setNome((atual) => (atual === '' || atual.startsWith('Operador ') ? sugestao : atual))
+          setUsuario((atual) => (atual === '' || atual.startsWith('Operador ') ? sugestao : atual))
+        }
+      }
+      return novo
+    })
+  }
+
+  return (
+    <PainelLateral
+      aberto
+      titulo="Novo acesso de operador"
+      descricao="Entra com login e senha, e enxerga só a contagem dos setores marcados."
+      aoFechar={aoFechar}
+      rodape={
+        <>
+          <Botao tom="fantasma" onClick={aoFechar}>
+            Cancelar
+          </Botao>
+          <Botao
+            tom="primario"
+            carregando={salvando}
+            onClick={() => {
+              setTentou(true)
+              if (problemas.length > 0) return
+              aoCriar({
+                restauranteId,
+                nome: nome.trim(),
+                usuario: usuario.trim(),
+                senha,
+                setores: escolhidos,
+              })
+            }}
+          >
+            Criar acesso
+          </Botao>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        {erroDoServidor && (
+          <Aviso tom="erro" titulo="Não consegui criar">
+            <p className="mt-1">{erroDoServidor}</p>
+          </Aviso>
+        )}
+
+        <section>
+          <h3 className="font-titulo text-destaque font-semibold text-texto">
+            Quais setores este acesso enxerga
+          </h3>
+          <p className="mt-1 text-apoio leading-relaxed text-texto-fraco">
+            Só a contagem desses setores — nada de cadastro, compras, CMV ou equipe. Marcar mais de
+            um é permitido: quem cobre o bar e a cozinha no mesmo turno usa um acesso só.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {setores.map((setor) => (
+              <Chip
+                key={setor.id}
+                marcado={marcados.has(setor.id)}
+                aoAlternar={() => alternarSetor(setor.id, setor.nome)}
+              >
+                {setor.nome}
+              </Chip>
+            ))}
+          </div>
+          {problemaDe('setores') && (
+            <p className="mt-2 text-apoio text-alerta-texto">{problemaDe('setores')}</p>
+          )}
+        </section>
+
+        <div className="space-y-1.5">
+          <Rotulo para="op-nome">Nome que aparece na tela</Rotulo>
+          <Campo
+            id="op-nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Operador Bar"
+          />
+          {problemaDe('nome') && (
+            <p className="text-apoio text-alerta-texto">{problemaDe('nome')}</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Rotulo para="op-usuario">Login</Rotulo>
+          <Campo
+            id="op-usuario"
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
+            placeholder="Operador Bar"
+            autoComplete="off"
+          />
+          <p className="text-micro text-texto-fraco">
+            É o que a pessoa digita para entrar. Sem e-mail: o sistema guarda um endereço interno
+            que não recebe mensagem nenhuma.
+          </p>
+          {problemaDe('usuario') && (
+            <p className="text-apoio text-alerta-texto">{problemaDe('usuario')}</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Rotulo para="op-senha">Senha</Rotulo>
+          <Campo
+            id="op-senha"
+            type="text"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            placeholder={`ao menos ${MINIMO_DA_SENHA} caracteres`}
+            autoComplete="new-password"
+          />
+          <p className="text-micro text-texto-fraco">
+            Visível de propósito: quem cria precisa anotar para passar à pessoa. Ela pode trocar
+            depois em Esqueci minha senha? Não — esses acessos não têm e-mail. Para trocar, crie
+            outro ou peça a um admin.
+          </p>
+          {problemaDe('senha') && (
+            <p className="text-apoio text-alerta-texto">{problemaDe('senha')}</p>
+          )}
+        </div>
+      </div>
+    </PainelLateral>
   )
 }

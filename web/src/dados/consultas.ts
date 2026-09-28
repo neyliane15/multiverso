@@ -247,6 +247,113 @@ export function useExcluirUsuario(restauranteId: string | null) {
   })
 }
 
+/* ─────────────────────────────────────────── acesso de operador de setor ── */
+
+export interface OperadorCriado {
+  criado: { id: string; nome: string; usuario: string; email: string; setores: number }
+  aviso: string
+}
+
+/**
+ * Cria de uma vez a conta, o perfil de operador e os setores que ele enxerga.
+ *
+ * Passa pela edge function porque criar conta no Auth exige a `service_role`,
+ * que nunca pode chegar ao navegador. A mesma regra que a tela usa para
+ * habilitar o botão é a que a função aplica do outro lado.
+ */
+export function useCriarOperador(restauranteId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (dados: {
+      restauranteId: string
+      nome: string
+      usuario: string
+      senha: string
+      setores: string[]
+    }) => {
+      const { data, error } = await supabase.functions.invoke('criar-operador', { body: dados })
+      if (error) {
+        const resposta = (error as { context?: unknown }).context
+        if (resposta instanceof Response) {
+          const corpo = (await resposta.json().catch(() => null)) as { erro?: string } | null
+          throw new Error(corpo?.erro ?? error.message)
+        }
+        throw new Error(error.message)
+      }
+      return data as OperadorCriado
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.equipe(restauranteId ?? 'rede') })
+      void qc.invalidateQueries({ queryKey: ['perfil-setores'] })
+    },
+  })
+}
+
+/** Os setores de cada pessoa da equipe, para a lista dizer quem vê o quê. */
+export function useSetoresDaEquipe(restauranteId: string | null) {
+  return useQuery({
+    queryKey: ['perfil-setores', restauranteId ?? 'rede'],
+    queryFn: async () => {
+      const linhas = await buscar<{ perfil_id: string; setor_id: string }[]>(
+        supabase.from('perfil_setores').select('perfil_id, setor_id'),
+      )
+      const porPerfil = new Map<string, string[]>()
+      for (const l of linhas) {
+        const lista = porPerfil.get(l.perfil_id)
+        if (lista) lista.push(l.setor_id)
+        else porPerfil.set(l.perfil_id, [l.setor_id])
+      }
+      return porPerfil
+    },
+  })
+}
+
+/**
+ * Troca os setores de um acesso, por diferença.
+ *
+ * Lista vazia tira a restrição — e isso é uma decisão, não um esquecimento:
+ * sem linha nenhuma o operador volta a enxergar a casa toda, que é o
+ * comportamento de quem nunca foi restringido.
+ */
+export function useSalvarSetoresDoPerfil(restauranteId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ perfilId, setores }: { perfilId: string; setores: string[] }) => {
+      const atuais = await buscar<{ setor_id: string }[]>(
+        supabase.from('perfil_setores').select('setor_id').eq('perfil_id', perfilId),
+      )
+      const tem = new Set(atuais.map((a) => a.setor_id))
+      const querido = new Set(setores)
+      const sair = [...tem].filter((id) => !querido.has(id))
+      const entrar = setores.filter((id) => !tem.has(id))
+
+      if (sair.length > 0) {
+        await buscar(
+          supabase
+            .from('perfil_setores')
+            .delete()
+            .eq('perfil_id', perfilId)
+            .in('setor_id', sair)
+            .select('setor_id'),
+        )
+      }
+      if (entrar.length > 0) {
+        await buscar(
+          supabase
+            .from('perfil_setores')
+            .insert(entrar.map((setor_id) => ({ perfil_id: perfilId, setor_id })))
+            .select('setor_id'),
+        )
+      }
+      return { entraram: entrar.length, sairam: sair.length }
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['perfil-setores'] })
+      void qc.invalidateQueries({ queryKey: chaves.equipe(restauranteId ?? 'rede') })
+    },
+  })
+}
+
 export function useSalvarPerfil() {
   const qc = useQueryClient()
   return useMutation({

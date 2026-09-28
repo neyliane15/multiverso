@@ -96,7 +96,28 @@ export function Entrar() {
     setEnviando(true)
     try {
       if (modo === 'entrar') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
+        /**
+         * Login sem arroba é acesso de casa: "Operador Bar". O GoTrue só
+         * conhece e-mail, então o nome vira endereço aqui antes de a senha
+         * sair da tela.
+         *
+         * `mv_email_de_login` só resolve quem tem nome de usuário — as contas
+         * sintéticas criadas pelo painel. O e-mail de uma pessoa de verdade
+         * nunca sai por esta porta.
+         */
+        const identificacao = email.trim()
+        let endereco = identificacao
+        if (!identificacao.includes('@')) {
+          const { data } = await supabase.rpc('mv_email_de_login', { p_usuario: identificacao })
+          if (typeof data === 'string' && data !== '') endereco = data
+          else {
+            // Dizer "este login não existe" entregaria quais existem. A
+            // mensagem é a mesma de senha errada, de propósito.
+            setErro('Login ou senha incorretos.')
+            return
+          }
+        }
+        const { error } = await supabase.auth.signInWithPassword({ email: endereco, password: senha })
         if (error) {
           setErro(mensagemDeAuth(error.message))
           // O convite já foi consumido no cadastro, então quem não confirmou
@@ -188,15 +209,19 @@ export function Entrar() {
           )}
 
           <div className="space-y-1.5">
-            <Rotulo para="email">E-mail</Rotulo>
+            <Rotulo para="email">{modo === 'entrar' ? 'E-mail ou login' : 'E-mail'}</Rotulo>
+            {/* No modo entrar o tipo é `text`, e não `email`: os acessos de
+                casa entram por "Operador Bar", e o navegador recusaria o campo
+                antes de o formulário sair — com uma mensagem que a pessoa não
+                teria como entender. */}
             <Campo
               id="email"
-              type="email"
-              autoComplete="email"
+              type={modo === 'entrar' ? 'text' : 'email'}
+              autoComplete={modo === 'entrar' ? 'username' : 'email'}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="voce@restaurante.com.br"
+              placeholder={modo === 'entrar' ? 'voce@restaurante.com.br ou Operador Bar' : 'voce@restaurante.com.br'}
             />
           </div>
 

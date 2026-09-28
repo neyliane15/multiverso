@@ -183,9 +183,19 @@ export const MODULOS: Modulo[] = [
   },
 ]
 
+/**
+ * As telas que o operador preso a setores enxerga — e são só estas.
+ *
+ * Ele entra para contar o setor dele e mais nada: cadastro, compras, CMV e
+ * equipe não são assunto seu. Esconder o menu é conforto; o que de fato
+ * tranca a porta é a RLS, porque endereço se digita na mão.
+ */
+export const ROTAS_DO_OPERADOR_DE_SETOR = ['/contagem']
+
 export function menuVisivel(
   papel: PapelUsuario | null,
   temRestaurante: boolean,
+  restritoASetores = false,
 ): Modulo[] {
   if (!papel) return []
   return MODULOS.map((m) => ({
@@ -193,9 +203,17 @@ export function menuVisivel(
     itens: m.itens.filter(
       (i) =>
         (!i.papeis || i.papeis.includes(papel)) &&
-        (!i.exigeRestaurante || temRestaurante),
+        (!i.exigeRestaurante || temRestaurante) &&
+        (!restritoASetores || ROTAS_DO_OPERADOR_DE_SETOR.includes(i.caminho)),
     ),
   })).filter((m) => m.itens.length > 0)
+}
+
+/** Este endereço é permitido para quem só conta um setor? */
+export function rotaPermitidaNoSetor(caminho: string): boolean {
+  return ROTAS_DO_OPERADOR_DE_SETOR.some(
+    (raiz) => caminho === raiz || caminho.startsWith(`${raiz}/`),
+  )
 }
 
 /** Todos os caminhos, para o guarda de rota e a busca por comando. */

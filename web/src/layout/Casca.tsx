@@ -26,7 +26,7 @@ function Icone({ nome, className }: { nome: string; className?: string }) {
 }
 
 export function Casca() {
-  const { perfil, restaurante, restaurantesVisiveis, ehMaster, trocarRestaurante, sair } =
+  const { perfil, restaurante, restaurantesVisiveis, ehMaster, restritoASetores, trocarRestaurante, sair } =
     useSessao()
   const { tema, definirTema } = useMarca()
   const [aberto, setAberto] = useState(false)
@@ -36,7 +36,7 @@ export function Casca() {
   // a pessoa acabou de pedir.
   useEffect(() => setAberto(false), [local.pathname])
 
-  const modulos = menuVisivel(perfil?.papel ?? null, Boolean(restaurante))
+  const modulos = menuVisivel(perfil?.papel ?? null, Boolean(restaurante), restritoASetores)
 
   /**
    * Módulos fechados na mão. Só o que a pessoa fechou entra aqui — assim um

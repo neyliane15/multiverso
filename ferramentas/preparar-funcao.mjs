@@ -34,6 +34,11 @@ const REGRA_ORIGEM = join(RAIZ, 'web/src/paginas/admin')
 const REGRA_DESTINO = join(RAIZ, 'supabase/functions/remover-usuario/_compartilhado')
 const REGRA_MODULOS = ['regraDeExclusao']
 
+// A regra de quem cria acesso de operador, copiada para a `criar-operador`
+// pela mesma razão: aquela função também roda com a service_role.
+const REGRA_OPERADOR_DESTINO = join(RAIZ, 'supabase/functions/criar-operador/_compartilhado')
+const REGRA_OPERADOR_MODULOS = ['regraDeOperador']
+
 const CABECALHO_REGRA = `// ============================================================================
 // ARQUIVO GERADO por ferramentas/preparar-funcao.mjs — nao edite aqui.
 // A fonte e web/src/paginas/admin/%s.ts, o mesmo modulo que a TELA usa.
@@ -114,5 +119,28 @@ for (const arquivo of REGRA_MODULOS) {
   }
 }
 
+// ------------------------------------------------- criar-operador ----------
+rmSync(REGRA_OPERADOR_DESTINO, { recursive: true, force: true })
+mkdirSync(REGRA_OPERADOR_DESTINO, { recursive: true })
+
+for (const modulo of REGRA_OPERADOR_MODULOS) {
+  const codigo = readFileSync(join(REGRA_ORIGEM, `${modulo}.ts`), 'utf8')
+  writeFileSync(
+    join(REGRA_OPERADOR_DESTINO, `${modulo}.ts`),
+    CABECALHO_REGRA.replace('%s', modulo) + paraDeno(codigo),
+  )
+}
+
+for (const arquivo of REGRA_OPERADOR_MODULOS) {
+  const codigo = readFileSync(join(REGRA_OPERADOR_DESTINO, `${arquivo}.ts`), 'utf8')
+  const fuga = [...codigo.matchAll(/from '([^']+)'/g)]
+    .map((m) => m[1])
+    .filter((caminho) => caminho.startsWith('..') || caminho.startsWith('@/'))
+  if (fuga.length > 0) {
+    throw new Error(`${arquivo}.ts ainda importa de fora da pasta: ${fuga.join(', ')}`)
+  }
+}
+
 console.log(`funcao preparada: ${MODULOS.length + 1} arquivos em supabase/functions/importar-nfe/_compartilhado/`)
 console.log(`regra copiada:    ${REGRA_MODULOS.length} arquivo em supabase/functions/remover-usuario/_compartilhado/`)
+console.log(`regra copiada:    ${REGRA_OPERADOR_MODULOS.length} arquivo em supabase/functions/criar-operador/_compartilhado/`)

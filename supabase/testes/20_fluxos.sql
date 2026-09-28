@@ -737,4 +737,121 @@ begin
     mv_fator_unidade('CX', 'CX') = 1 and mv_fator_unidade('CX', 'KG') is null);
 end $$;
 
+-- ============================================================================
+-- Operador de setor: uma pessoa, um setor, uma tela
+-- ----------------------------------------------------------------------------
+-- O que importa aqui nao e o menu escondido — e a porta trancada. Se a RLS
+-- deixar passar, basta digitar outro endereco no navegador.
+-- ============================================================================
+do $$
+declare r uuid; c uuid; s_bar uuid; s_coz uuid;
+        u_bar uuid := '00000000-0000-0000-0000-00000000f1b1';
+        n integer; v_erro text; item_coz uuid;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  select id into s_bar from setores where restaurante_id = r and nome = 'Bar';
+  select id into s_coz from setores where restaurante_id = r and nome = 'Cozinha';
+
+  insert into auth.users (id, email) values (u_bar, 'operador.bar@casa-teste.local');
+  insert into perfis (id, restaurante_id, nome, email, papel, usuario)
+  values (u_bar, r, 'Operador Bar', 'operador.bar@casa-teste.local', 'operador', 'Operador Bar');
+  insert into perfil_setores (perfil_id, setor_id) values (u_bar, s_bar);
+
+  -- uma contagem com linha nos dois setores, aberta por quem pode
+  select id into c from contagens where restaurante_id = r and status = 'aberta' limit 1;
+  if c is null then
+    c := mv_abrir_contagem(r, current_date, 'avulsa', null);
+  end if;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_bar::text, true);
+
+  select count(*) into n from setores;
+  perform conferir('o operador de setor enxerga so o setor dele', n = 1);
+
+  select count(distinct i.setor_id) into n from contagem_itens i;
+  perform conferir('e so as linhas de contagem daquele setor', n = 1);
+
+  select count(*) into n from contagem_itens i join setores s on s.id = i.setor_id
+   where s.nome = 'Cozinha';
+  perform conferir('a contagem da cozinha nao existe para ele', n = 0);
+
+  -- Lancar no proprio setor: pode.
+  update contagem_itens i set quantidade = 3
+    where i.contagem_id = c and i.setor_id = s_bar;
+  get diagnostics n = row_count;
+  perform conferir('ele lanca quantidade no proprio setor', n > 0);
+
+  -- O caso que ja nos mordeu: UPDATE sem clausula que mencione o setor. A
+  -- politica de SELECT so protege quem LE colunas, entao este e o teste que
+  -- importa de verdade.
+  update contagem_itens i set observacao = 'tentativa' where i.contagem_id = c;
+  get diagnostics n = row_count;
+  perform conferir('update sem filtro de setor so alcanca as linhas dele',
+    n = (select count(*) from contagem_itens i2 where i2.contagem_id = c and i2.setor_id = s_bar));
+
+  reset role;
+  -- E, visto por fora, a cozinha ficou intocada.
+  select count(*) into n from contagem_itens i
+   where i.contagem_id = c and i.setor_id = s_coz and i.observacao = 'tentativa';
+  perform conferir('nenhuma linha da cozinha foi tocada', n = 0);
+
+  -- Calendario da casa: nao e dele.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_bar::text, true);
+  begin
+    perform mv_abrir_contagem(r, current_date + 30, 'avulsa', null);
+    v_erro := 'passou';
+  exception when others then v_erro := 'recusado';
+  end;
+  perform conferir('operador de setor nao abre contagem', v_erro = 'recusado');
+
+  update contagens set status = 'fechada' where id = c;
+  get diagnostics n = row_count;
+  perform conferir('nem fecha', n = 0);
+  reset role;
+end $$;
+
+-- ------------------------------------------------------ entrar sem e-mail ---
+do $$
+declare v text;
+begin
+  select mv_email_de_login('Operador Bar') into v;
+  perform conferir('o nome de usuario resolve para o e-mail sintetico',
+    v = 'operador.bar@casa-teste.local');
+  select mv_email_de_login('  operador bar  ') into v;
+  perform conferir('espaco e caixa nao atrapalham quem digita', v = 'operador.bar@casa-teste.local');
+  select mv_email_de_login('chef@casa-teste.com') into v;
+  perform conferir('quem entra por e-mail nao e resolvivel por nome', v is null);
+  select mv_email_de_login('nao existe') into v;
+  perform conferir('nome que nao existe devolve nulo, nao erro', v is null);
+end $$;
+
+-- --------------------------------------------- o que a restricao nao faz ----
+do $$
+declare r uuid; u_bar uuid := '00000000-0000-0000-0000-00000000f1b1';
+        s_coz uuid; v_erro text; v_admin uuid;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  select id into s_coz from setores where restaurante_id = r and nome = 'Cozinha';
+  select id into v_admin from perfis where restaurante_id = r and papel = 'admin' limit 1;
+
+  -- Prender um admin a um setor esconderia dele a propria administracao.
+  begin
+    insert into perfil_setores (perfil_id, setor_id) values (v_admin, s_coz);
+    v_erro := 'passou';
+  exception when others then v_erro := 'recusado';
+  end;
+  perform conferir('admin nao se prende a setor', v_erro = 'recusado');
+
+  -- E um setor de outro restaurante nao entra na lista de ninguem.
+  begin
+    insert into perfil_setores (perfil_id, setor_id)
+    values (u_bar, (select id from setores where restaurante_id <> r limit 1));
+    v_erro := 'passou';
+  exception when others then v_erro := 'recusado';
+  end;
+  perform conferir('setor de outro restaurante e recusado', v_erro = 'recusado');
+end $$;
+
 \echo '  --- Fluxos: todos os casos passaram'

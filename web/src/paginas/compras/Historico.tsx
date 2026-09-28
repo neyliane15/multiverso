@@ -271,7 +271,7 @@ function ComprasDoRestaurante({ restauranteId }: { restauranteId: string }) {
                         {compra.itens_pendentes > 0 && (
                           <Selo tom="alerta">
                             <AlertTriangle className="size-3.5" aria-hidden />
-                            {compra.itens_pendentes} sem produto
+                            {compra.itens_pendentes} sem insumo
                           </Selo>
                         )}
                       </span>

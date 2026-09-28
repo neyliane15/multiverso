@@ -187,7 +187,7 @@ function GerarLista({
           icone={<ShoppingCart />}
           titulo={aberta ? `"${aberta.nome}" continua aberta` : 'Nenhuma lista em aberto'}
         >
-          A folha nasce com todos os produtos ativos e já sugere quanto pedir de cada um,
+          A folha nasce com todos os insumos ativos e já sugere quanto pedir de cada um,
           comparando o estoque mínimo com a última contagem fechada.
           {aberta && (
             <Botao
@@ -535,7 +535,7 @@ function Folha({
       {lista.length === 0 ? (
         <Cartao>
           <EstadoVazio icone={<ShoppingCart />} titulo="Folha vazia">
-            Esta lista nasceu sem produto nenhum. Confira se há produtos ativos nas categorias
+            Esta lista nasceu sem insumo nenhum. Confira se há insumos ativos nas categorias
             escolhidas.
           </EstadoVazio>
         </Cartao>
