@@ -12,14 +12,16 @@
  */
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowDownRight, ArrowUpRight, History, Minus, Store } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, History, Minus, Store, Trash2 } from 'lucide-react'
 import clsx from 'clsx'
 import { useSessao } from '@/dados/sessao'
-import { useContagens } from '@/dados/consultas'
+import { useApagarContagem, useContagens } from '@/dados/consultas'
 import type { ContagemResumo, StatusContagem, TipoContagem } from '@/tipos/banco'
 import {
+  Aviso,
   Botao,
   CabecalhoDePagina,
+  Dialogo,
   Carregando,
   Cartao,
   ErroDaConsulta,
@@ -65,8 +67,22 @@ export function HistoricoDeContagens() {
 
 function HistoricoDoRestaurante({ restauranteId }: { restauranteId: string }) {
   const navegar = useNavigate()
+  const { perfil, ehMaster } = useSessao()
   const contagens = useContagens(restauranteId)
+  const apagar = useApagarContagem(restauranteId)
   const [tipo, setTipo] = useState<TipoContagem | 'todos'>('todos')
+  const [apagando, setApagando] = useState<ContagemResumo | null>(null)
+  const [falha, setFalha] = useState<string | null>(null)
+
+  /**
+   * Apagar contagem é de master e admin — não de quem administra.
+   *
+   * `podeAdministrar` inclui gerente, e cobre o cadastro do restaurante.
+   * Apagar destrói histórico e muda o CMV de um período inteiro: é da mesma
+   * família de equipe e identidade. A política do banco diz o mesmo; aqui o
+   * botão só não aparece para quem levaria uma recusa.
+   */
+  const podeApagar = ehMaster || perfil?.papel === 'admin'
 
   // A variação é calculada com a lista **inteira**: filtrar por tipo na tela
   // não pode mudar contra quem cada contagem foi comparada.
@@ -143,20 +159,93 @@ function HistoricoDoRestaurante({ restauranteId }: { restauranteId: string }) {
     )
   }
 
+  const dialogo = apagando && (
+    <Dialogo
+      titulo="Apagar esta contagem?"
+      aoFechar={() => setApagando(null)}
+      rodape={
+        <>
+          <Botao tom="fantasma" onClick={() => setApagando(null)}>
+            Não apagar
+          </Botao>
+          <Botao
+            tom="perigo"
+            carregando={apagar.isPending}
+            onClick={() =>
+              apagar.mutate(apagando.id, {
+                onSuccess: () => setApagando(null),
+                onError: (erro) => {
+                  setApagando(null)
+                  setFalha(erro instanceof Error ? erro.message : String(erro))
+                },
+              })
+            }
+          >
+            Apagar a contagem
+          </Botao>
+        </>
+      }
+    >
+      <div className="space-y-3 text-corpo leading-relaxed text-texto-suave">
+        <p>
+          A contagem de{' '}
+          <strong className="mv-numero text-texto">{formatarData(apagando.referencia)}</strong> some
+          do sistema, com <strong className="text-texto">{apagando.itens_total} linhas</strong> e{' '}
+          <strong className="mv-numero text-texto">{dinheiro(apagando.total)}</strong> contados.
+        </p>
+        {/*
+          O aviso do CMV não é formalidade: a contagem é estoque inicial de um
+          período e final de outro. Apagar uma do meio muda duas contas de uma
+          vez, e quem olhar o gráfico depois não vai ter como saber por quê.
+        */}
+        <p>
+          O CMV dos períodos que usavam esta foto passa a ser calculado sem ela. Se a ideia é só
+          tirar do caminho uma contagem errada, considere cancelá-la: ela fica no histórico,
+          marcada, e não entra em cálculo nenhum.
+        </p>
+        <p className="text-alerta-texto">Não tem desfazer.</p>
+      </div>
+    </Dialogo>
+  )
+
   return (
     <>
       {cabecalho}
+
+      {falha && (
+        <Aviso tom="erro" titulo="Não deu para apagar">
+          {falha}
+        </Aviso>
+      )}
+      {dialogo}
 
       {/* Celular: cartões. Uma tabela de oito colunas ou corta informação ou
           vira rolagem horizontal cega — e aqui nenhuma coluna é dispensável. */}
       <ul className="space-y-3 lg:hidden">
         {lista.map((contagem) => (
-          <li key={contagem.id}>
+          <li key={contagem.id} className="relative">
             <CartaoDeContagem
               contagem={contagem}
               variacao={variacoes.get(contagem.id)}
               aoAbrir={() => navegar(`/contagem/${contagem.id}`)}
             />
+            {/* Fora do cartão, e não dentro: botão dentro de botão é HTML
+                inválido, e no celular o toque acabaria abrindo a contagem que
+                a pessoa quer apagar. */}
+            {podeApagar && (
+              <Botao
+                tom="fantasma"
+                tamanho="p"
+                className="absolute bottom-2 right-2"
+                aria-label={`Apagar a contagem de ${formatarData(contagem.referencia)}`}
+                onClick={() => {
+                  setFalha(null)
+                  setApagando(contagem)
+                }}
+              >
+                <Trash2 className="size-4" aria-hidden />
+              </Botao>
+            )}
           </li>
         ))}
       </ul>
@@ -172,6 +261,7 @@ function HistoricoDoRestaurante({ restauranteId }: { restauranteId: string }) {
               <Th numerico>Total</Th>
               <Th numerico>Variação</Th>
               <Th>Fechada por</Th>
+              {podeApagar && <Th className="w-10" />}
             </tr>
           </thead>
           <tbody>
@@ -211,6 +301,24 @@ function HistoricoDoRestaurante({ restauranteId }: { restauranteId: string }) {
                     </span>
                   )}
                 </Td>
+                {podeApagar && (
+                  <Td>
+                    <Botao
+                      tom="fantasma"
+                      tamanho="p"
+                      aria-label={`Apagar a contagem de ${formatarData(contagem.referencia)}`}
+                      onClick={(e) => {
+                        // A linha inteira abre a contagem; este botão não pode
+                        // levar junto para a folha que está prestes a sumir.
+                        e.stopPropagation()
+                        setFalha(null)
+                        setApagando(contagem)
+                      }}
+                    >
+                      <Trash2 className="size-4" aria-hidden />
+                    </Botao>
+                  </Td>
+                )}
               </Linha>
             ))}
           </tbody>

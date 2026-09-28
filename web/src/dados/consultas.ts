@@ -889,6 +889,58 @@ export function useItensDaContagem(contagemId: string | undefined) {
  */
 /* ──────────────────────────────────────────── a entrega de cada setor ───── */
 
+/**
+ * Corrige a data de referência de uma contagem aberta.
+ *
+ * A data é o dia da foto do estoque, e ela envelhece: contagem aberta na
+ * segunda e contada na quinta ficava carimbada com segunda, e o número ia
+ * para o CMV no dia errado.
+ */
+export function useMudarReferencia(contagemId: string, restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (referencia: string) =>
+      buscar<Contagem>(
+        supabase.rpc('mv_mudar_referencia', {
+          p_contagem: contagemId,
+          p_referencia: referencia,
+        }),
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.contagem(contagemId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagens(restauranteId) })
+    },
+  })
+}
+
+/**
+ * Apaga uma contagem inteira — as linhas vão junto, por cascade.
+ *
+ * Só master e admin alcançam: a política do banco recusa o resto. É destruição
+ * de histórico, e o CMV do período muda com ela.
+ */
+export function useApagarContagem(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (contagemId: string) => {
+      const apagadas = await buscar<{ id: string }[]>(
+        supabase.from('contagens').delete().eq('id', contagemId).select('id'),
+      )
+      // O delete que não alcança linha nenhuma volta 200 com lista vazia: a
+      // RLS não erra, ela simplesmente não enxerga. Sem esta checagem, a tela
+      // diria "apagada" para quem não tem permissão.
+      if (apagadas.length === 0) {
+        throw new Error('Esta contagem não foi apagada — só master e admin podem apagar.')
+      }
+      return apagadas[0]!
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.contagens(restauranteId) })
+      void qc.invalidateQueries({ queryKey: chaves.panorama })
+    },
+  })
+}
+
 export function useEntregaPorSetor(contagemId: string | undefined) {
   return useQuery({
     queryKey: chaves.contagemEntregas(contagemId ?? ''),

@@ -610,7 +610,8 @@ export function CabecalhoDePagina({
   acoes,
 }: {
   titulo: string
-  descricao?: string
+  /** Texto, ou um pedaço de tela — a contagem põe a data editável aqui. */
+  descricao?: ReactNode
   acoes?: ReactNode
 }) {
   return (

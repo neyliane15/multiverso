@@ -41,6 +41,7 @@ import {
   useEntregaPorSetor,
   useEntregarSetor,
   useFecharContagem,
+  useMudarReferencia,
   useItensDaContagem,
   useLancarQuantidade,
   useReabrirContagem,
@@ -331,6 +332,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
 
   const contagem = useContagem(contagemId)
   const entregas = useEntregaPorSetor(contagemId)
+  const mudarData = useMudarReferencia(contagemId, restauranteId)
   const entregar = useEntregarSetor(contagemId)
   const recontar = useRecontarSetor(contagemId)
   const zerar = useZerarPendentes(contagemId)
@@ -765,7 +767,44 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
     <>
       <CabecalhoDePagina
         titulo={tituloDaTela}
-        descricao={`Referência ${formatarData(cabecalho?.referencia)} · ${resumo.itens} itens na folha`}
+        descricao={
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {/*
+              A data é editável enquanto a contagem está aberta.
+              Ela é o dia da foto do estoque, e envelhece: contagem aberta na
+              segunda e contada na quinta ficava carimbada com segunda, e o
+              número entrava no CMV no dia errado. Depois de fechada ela vira
+              número de um período e só se corrige reabrindo.
+            */}
+            {podeAdministrar && !somenteLeitura ? (
+              <label className="flex items-center gap-2">
+                <span>Referência</span>
+                <Campo
+                  type="date"
+                  value={cabecalho?.referencia?.slice(0, 10) ?? ''}
+                  disabled={mudarData.isPending}
+                  aria-label="Data de referência desta contagem"
+                  className="w-[9.5rem]"
+                  onChange={(e) => {
+                    const nova = e.target.value
+                    if (nova === '' || nova === cabecalho?.referencia?.slice(0, 10)) return
+                    setFalha(null)
+                    mudarData.mutate(nova, {
+                      onSuccess: () => {
+                        setTituloDoAviso('Data corrigida')
+                        setAviso(`Esta contagem passou a valer para ${formatarData(nova)}.`)
+                      },
+                      onError: (erro) => setFalha(mensagemDoErro(erro)),
+                    })
+                  }}
+                />
+              </label>
+            ) : (
+              <span>Referência {formatarData(cabecalho?.referencia)}</span>
+            )}
+            <span className="text-texto-fraco">· {resumo.itens} itens na folha</span>
+          </span>
+        }
         acoes={
           <>
             {/*
@@ -872,6 +911,19 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
           </span>
         )}
       </div>
+
+      {/*
+        A entrega depende da migração 0019. Sem ela a consulta falha e o botão
+        de finalizar simplesmente não existiria — e "sumiu o botão" é o pior
+        jeito de descobrir que falta uma migração.
+      */}
+      {entregas.isError && (
+        <Aviso tom="alerta" titulo="A entrega por setor ainda não está no banco">
+          Rode <strong className="text-texto-suave">supabase db push</strong> para aplicar a
+          migração que cria a entrega por setor. Contar e lançar continuam funcionando; o que falta
+          é o botão de finalizar.
+        </Aviso>
+      )}
 
       {entregueEfechado && (
         <Aviso tom="sucesso" titulo="Setor entregue">

@@ -952,4 +952,81 @@ begin
   reset role;
 end $$;
 
+-- ============================================================================
+-- A data da contagem se corrige; apagar e de master e admin
+-- ============================================================================
+do $$
+declare r uuid; c uuid; v_erro text; v_linha contagens;
+        u_admin uuid; u_gerente uuid; u_op uuid := '00000000-0000-0000-0000-00000000f1b1';
+        n integer;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  select id into u_admin   from perfis where restaurante_id = r and papel = 'admin'   limit 1;
+  select id into u_gerente from perfis where restaurante_id = r and papel = 'gerente' limit 1;
+  select id into c from contagens where restaurante_id = r and status = 'aberta' limit 1;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_admin::text, true);
+
+  v_linha := mv_mudar_referencia(c, current_date);
+  perform conferir('o admin corrige a data da contagem aberta', v_linha.referencia = current_date);
+  perform conferir('e o titulo automatico acompanha a data nova',
+    v_linha.titulo = initcap(v_linha.tipo::text) || ' · ' || to_char(current_date, 'DD/MM/YYYY'));
+
+  -- Titulo dado por gente nao e reescrito por robo.
+  update contagens set titulo = 'Inventario anual' where id = c;
+  v_linha := mv_mudar_referencia(c, current_date - 1);
+  perform conferir('titulo escrito a mao sobrevive a troca de data',
+    v_linha.titulo = 'Inventario anual');
+  update contagens set titulo = initcap(v_linha.tipo::text) || ' · ' ||
+    to_char(v_linha.referencia, 'DD/MM/YYYY') where id = c;
+
+  -- O operador de setor nao mexe na data da casa.
+  perform set_config('request.jwt.claim.sub', u_op::text, true);
+  begin
+    v_linha := mv_mudar_referencia(c, current_date);
+    v_erro := 'passou';
+  exception when others then v_erro := 'recusado';
+  end;
+  perform conferir('operador de setor nao muda a data da contagem', v_erro = 'recusado');
+  reset role;
+end $$;
+
+do $$
+declare r uuid; c uuid; n integer;
+        u_admin uuid; u_gerente uuid; u_op uuid := '00000000-0000-0000-0000-00000000f1b1';
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  select id into u_admin   from perfis where restaurante_id = r and papel = 'admin'   limit 1;
+  select id into u_gerente from perfis where restaurante_id = r and papel = 'gerente' limit 1;
+
+  -- uma contagem descartavel, so para este teste
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_admin::text, true);
+  c := mv_abrir_contagem(r, current_date - 40, 'avulsa', null);
+  reset role;
+
+  -- gerente NAO apaga: apagar contagem destroi historico e muda o CMV.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_gerente::text, true);
+  delete from contagens where id = c;
+  get diagnostics n = row_count;
+  perform conferir('gerente nao apaga contagem', n = 0);
+
+  -- operador de setor, menos ainda
+  perform set_config('request.jwt.claim.sub', u_op::text, true);
+  delete from contagens where id = c;
+  get diagnostics n = row_count;
+  perform conferir('operador de setor nao apaga contagem', n = 0);
+
+  -- admin apaga, e leva as linhas junto
+  perform set_config('request.jwt.claim.sub', u_admin::text, true);
+  delete from contagens where id = c;
+  get diagnostics n = row_count;
+  perform conferir('admin apaga a contagem', n = 1);
+  reset role;
+  perform conferir('e as linhas dela vao junto',
+    not exists (select 1 from contagem_itens where contagem_id = c));
+end $$;
+
 \echo '  --- Fluxos: todos os casos passaram'
