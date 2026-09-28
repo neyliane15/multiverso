@@ -854,4 +854,102 @@ begin
   perform conferir('setor de outro restaurante e recusado', v_erro = 'recusado');
 end $$;
 
+-- ============================================================================
+-- A entrega do setor: zero e resposta, vazio nao e
+-- ============================================================================
+do $$
+declare r uuid; c uuid; s_bar uuid; s_coz uuid;
+        u_bar uuid := '00000000-0000-0000-0000-00000000f1b1';
+        n integer; v_erro text; v_linha contagem_setores;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  select id into s_bar from setores where restaurante_id = r and nome = 'Bar';
+  select id into s_coz from setores where restaurante_id = r and nome = 'Cozinha';
+  select id into c from contagens where restaurante_id = r and status = 'aberta' limit 1;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_bar::text, true);
+
+  -- 1. Entregar com item sem resposta e recusado, e a mensagem diz quantos.
+  update contagem_itens set contado_em = null
+   where contagem_id = c and setor_id = s_bar;
+  begin
+    v_linha := mv_entregar_setor(c, s_bar);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('entregar com item em branco e recusado', v_erro like 'faltam %sem resposta%');
+  perform conferir('e a recusa diz quantos faltam, para a pessoa saber onde agir',
+    v_erro ~ '\d+');
+
+  -- 2. Zerar os pendentes responde por eles — com zero, que e resposta.
+  select mv_zerar_pendentes(c, s_bar) into n;
+  perform conferir('zerar pendentes carimba as linhas em branco', n > 0);
+  perform conferir('e nenhuma linha do setor fica sem resposta',
+    (select count(*) from contagem_itens
+      where contagem_id = c and setor_id = s_bar and contado_em is null) = 0);
+  perform conferir('zerar nao inventa quantidade',
+    (select count(*) from contagem_itens
+      where contagem_id = c and setor_id = s_bar and quantidade <> 0 and contado_em is not null)
+    >= 0);
+
+  -- 3. Agora entrega.
+  v_linha := mv_entregar_setor(c, s_bar);
+  perform conferir('entrega registra quantas linhas foram entregues', v_linha.itens > 0);
+  perform conferir('e quem entregou', v_linha.entregue_por = u_bar);
+
+  -- 4. Entregue congela: a quantidade nao muda mais em silencio.
+  begin
+    update contagem_itens set quantidade = 99
+     where contagem_id = c and setor_id = s_bar;
+    v_erro := 'passou';
+  exception when others then v_erro := 'recusado';
+  end;
+  perform conferir('setor entregue nao aceita mudanca de quantidade', v_erro = 'recusado');
+
+  -- 5. A entrega NAO fecha a contagem — isso e decisao de quem ve a casa.
+  perform conferir('a contagem continua aberta depois da entrega',
+    (select status from contagens where id = c) = 'aberta');
+
+  -- 6. Recontagem destrava, e a correcao passa a ser possivel de novo.
+  perform mv_recontar_setor(c, s_bar);
+  perform conferir('recontagem apaga o registro da entrega',
+    not exists (select 1 from contagem_setores where contagem_id = c and setor_id = s_bar));
+  update contagem_itens set quantidade = 5
+   where contagem_id = c and setor_id = s_bar;
+  get diagnostics n = row_count;
+  perform conferir('e a quantidade volta a aceitar correcao', n > 0);
+
+  -- 7. O setor do vizinho continua fora do alcance dele.
+  begin
+    v_linha := mv_entregar_setor(c, s_coz);
+    v_erro := 'passou';
+  exception when others then v_erro := 'recusado';
+  end;
+  perform conferir('operador do Bar nao entrega a cozinha', v_erro = 'recusado');
+  reset role;
+end $$;
+
+-- --------------------------------------------- o andamento que o gerente ve -
+do $$
+declare r uuid; c uuid; s_bar uuid; u uuid := '00000000-0000-0000-0000-0000000000f1';
+        v_pendentes integer; v_entregue timestamptz;
+begin
+  select id into r from restaurantes where slug = 'casa-teste';
+  select id into s_bar from setores where restaurante_id = r and nome = 'Bar';
+  select id into c from contagens where restaurante_id = r and status = 'aberta' limit 1;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+
+  perform conferir('o gerente ve o andamento de todos os setores',
+    (select count(*) from vw_entrega_por_setor where contagem_id = c) >= 2);
+
+  select pendentes, entregue_em into v_pendentes, v_entregue
+    from vw_entrega_por_setor where contagem_id = c and setor_id = s_bar;
+  perform conferir('e ve que o Bar esta sem entrega depois da recontagem', v_entregue is null);
+  perform conferir('com a conta de quantos itens ainda faltam responder', v_pendentes >= 0);
+  reset role;
+end $$;
+
 \echo '  --- Fluxos: todos os casos passaram'

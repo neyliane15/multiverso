@@ -207,6 +207,22 @@ export interface FichaCompleta extends Ficha {
   itens_da_ficha: ItemDaFicha[]
 }
 
+/** O andamento de um setor dentro de uma contagem. */
+export interface EntregaDeSetor {
+  contagem_id: string
+  setor_id: string
+  setor_nome: string
+  setor_cor: string | null
+  setor_ordem: number
+  itens: number
+  respondidos: number
+  pendentes: number
+  total: number
+  /** Nulo enquanto o setor não foi entregue. */
+  entregue_em: string | null
+  entregue_por_nome: string | null
+}
+
 export interface Contagem {
   id: string
   restaurante_id: string

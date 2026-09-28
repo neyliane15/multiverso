@@ -439,7 +439,7 @@ export function Produtos(): JSX.Element {
                 <thead>
                   <tr>
                     <ThOrdenavel coluna="nome" atual={ordem} aoOrdenar={(c) => setOrdem(alternarOrdem(ordem, c))}>
-                      Produto
+                      Insumo
                     </ThOrdenavel>
                     <ThOrdenavel coluna="categoria" atual={ordem} aoOrdenar={(c) => setOrdem(alternarOrdem(ordem, c))}>
                       Categoria

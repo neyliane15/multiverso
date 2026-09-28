@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  ClipboardCheck,
   ClipboardList,
   Refrigerator,
   Lock,
@@ -28,6 +29,7 @@ import {
   RefreshCw,
   Search,
   Store,
+  Undo2,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useSessao } from '@/dados/sessao'
@@ -36,17 +38,21 @@ import {
   useCategorias,
   useContagem,
   useContagens,
+  useEntregaPorSetor,
+  useEntregarSetor,
   useFecharContagem,
   useItensDaContagem,
   useLancarQuantidade,
   useReabrirContagem,
+  useRecontarSetor,
   useRefazerFolha,
   useEstoques,
   useSetores,
   useTotaisPorEstoque,
   useVinculosPorEstoque,
+  useZerarPendentes,
 } from '@/dados/consultas'
-import type { TipoContagem } from '@/tipos/banco'
+import type { EntregaDeSetor, TipoContagem } from '@/tipos/banco'
 import {
   Aviso,
   BarraDeTotais,
@@ -67,7 +73,7 @@ import {
   TotalDaBarra,
   plural,
 } from '@/componentes/base'
-import { data as formatarData, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
+import { data as formatarData, dataHora, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
 import {
   EIXOS,
   chaveDoSetor,
@@ -320,9 +326,13 @@ function AbrirContagem({ restauranteId }: { restauranteId: string }) {
 
 function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemId: string }) {
   const navegar = useNavigate()
-  const { podeAdministrar, restritoASetores } = useSessao()
+  const { podeAdministrar, restritoASetores, setoresDoPerfil } = useSessao()
 
   const contagem = useContagem(contagemId)
+  const entregas = useEntregaPorSetor(contagemId)
+  const entregar = useEntregarSetor(contagemId)
+  const recontar = useRecontarSetor(contagemId)
+  const zerar = useZerarPendentes(contagemId)
   const itens = useItensDaContagem(contagemId)
   const porSetor = useTotaisPorEstoque(contagemId)
   const categorias = useCategorias(restauranteId)
@@ -361,12 +371,17 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
   const [confirmando, setConfirmando] = useState(false)
   const [falha, setFalha] = useState<string | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
+  /** O título do aviso — "Folha refeita" só serve para uma das ações. */
+  const [tituloDoAviso, setTituloDoAviso] = useState('Pronto')
 
   /**
    * Blocos fechados na mão, por id. Só o que a pessoa fechou entra aqui, então
    * a folha abre inteira como sempre — e quem quiser esconder o que já contou
    * fecha e segue.
    */
+  /** O setor que está na tela de revisão, antes de entregar. */
+  const [revisando, setRevisando] = useState<EntregaDeSetor | null>(null)
+
   const [gruposFechados, setGruposFechados] = useState<ReadonlySet<string>>(new Set())
   const alternarGrupo = (id: string) =>
     setGruposFechados((antes) => {
@@ -393,7 +408,37 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
 
   const fechada = contagem.data?.status === 'fechada'
   const cancelada = contagem.data?.status === 'cancelada'
-  const somenteLeitura = fechada || cancelada
+
+  /**
+   * Os setores deste acesso, com o andamento de cada um.
+   *
+   * Para quem enxerga a casa inteira é a lista toda — é o quadro que diz se a
+   * contagem já pode ser fechada. Para o operador de setor são só os dele.
+   */
+  const minhasEntregas = useMemo(() => {
+    const todas = entregas.data ?? []
+    if (!restritoASetores) return todas
+    return todas.filter((e) => setoresDoPerfil.includes(e.setor_id))
+  }, [entregas.data, restritoASetores, setoresDoPerfil])
+
+  /** Setor entregue não se digita mais: a folha dele vira leitura. */
+  const setoresEntregues = useMemo(
+    () => new Set((entregas.data ?? []).filter((e) => e.entregue_em !== null).map((e) => e.setor_id)),
+    [entregas.data],
+  )
+  const tudoEntregue =
+    minhasEntregas.length > 0 && minhasEntregas.every((e) => e.entregue_em !== null)
+
+  /**
+   * Entregue trava a digitação, mas NÃO é o mesmo que fechada.
+   *
+   * As duas travam a folha, e é só isso que têm em comum: fechada congela o
+   * CMV do período e só um gerente reabre; entregue é o operador dizendo "o
+   * meu está pronto", e ele mesmo destrava com Recontar. Misturar as duas
+   * fazia a tela dizer "peça a um gerente" para quem tinha o botão na mão.
+   */
+  const entregueEfechado = restritoASetores && tudoEntregue && !fechada && !cancelada
+  const somenteLeitura = fechada || cancelada || entregueEfechado
 
   const todos = useMemo(() => itens.data ?? [], [itens.data])
 
@@ -581,6 +626,52 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
     }
   }
 
+  /**
+   * Entrega o setor. O servidor recusa se houver linha em branco — e essa
+   * recusa é a regra, não um detalhe da tela: zero é resposta, vazio não é.
+   */
+  async function entregarSetor(entrega: EntregaDeSetor) {
+    setFalha(null)
+    setAviso(null)
+    try {
+      await entregar.mutateAsync(entrega.setor_id)
+      setRevisando(null)
+      setTituloDoAviso('Setor entregue')
+      setAviso(
+        `${entrega.setor_nome} entregue com ${entrega.itens} ${plural(entrega.itens, 'item', 'itens')}. ` +
+          'A contagem só fecha quando o responsável fechar — o seu já está pronto.',
+      )
+    } catch (erro) {
+      setFalha(mensagemDoErro(erro))
+    }
+  }
+
+  async function recontarSetor(entrega: EntregaDeSetor) {
+    setFalha(null)
+    setAviso(null)
+    try {
+      await recontar.mutateAsync(entrega.setor_id)
+      setTituloDoAviso('De volta para contagem')
+      setAviso(`${entrega.setor_nome} voltou para contagem. Corrija o que precisar e finalize de novo.`)
+    } catch (erro) {
+      setFalha(mensagemDoErro(erro))
+    }
+  }
+
+  async function zerarPendentes(entrega: EntregaDeSetor) {
+    setFalha(null)
+    try {
+      const quantos = await zerar.mutateAsync(entrega.setor_id)
+      setTituloDoAviso('Pendentes respondidos com zero')
+      setAviso(
+        `${quantos} ${plural(quantos, 'item foi marcado', 'itens foram marcados')} com zero. ` +
+          'Confira antes de entregar.',
+      )
+    } catch (erro) {
+      setFalha(mensagemDoErro(erro))
+    }
+  }
+
   async function confirmarFechamento() {
     setFalha(null)
     try {
@@ -611,6 +702,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
             'fora do cadastro atual — ficaram na folha, agrupadas como "Fora do cadastro"',
         )
       }
+      setTituloDoAviso('Folha refeita')
       setAviso(`${partes.join(', ')}. Nada do que já foi contado se perdeu.`)
     } catch (erro) {
       setFalha(`Não consegui refazer a folha: ${mensagemDoErro(erro)}`)
@@ -682,11 +774,44 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                 Refazer a folha
               </Botao>
             )}
-            {!restritoASetores && (
-              <Botao tom="fantasma" onClick={() => navegar('/contagem/historico')}>
-                Histórico
-              </Botao>
-            )}
+            <Botao tom="fantasma" onClick={() => navegar('/contagem/historico')}>
+              Histórico
+            </Botao>
+
+            {/*
+              O fim do trabalho de quem conta um setor.
+              Entregar não fecha a contagem — fechar congela o CMV do período e
+              continua sendo de quem enxerga a casa. Entregar diz "o meu está
+              pronto", e é isso que o operador precisa poder dizer.
+            */}
+            {!fechada &&
+              !cancelada &&
+              minhasEntregas.map((entrega) =>
+                entrega.entregue_em === null ? (
+                  <Botao
+                    key={entrega.setor_id}
+                    tom="primario"
+                    icone={<ClipboardCheck className="size-4" aria-hidden />}
+                    onClick={() => setRevisando(entrega)}
+                  >
+                    {minhasEntregas.length === 1
+                      ? 'Finalizar contagem'
+                      : `Finalizar ${entrega.setor_nome}`}
+                  </Botao>
+                ) : (
+                  <Botao
+                    key={entrega.setor_id}
+                    tom="secundario"
+                    icone={<Undo2 className="size-4" aria-hidden />}
+                    carregando={recontar.isPending}
+                    onClick={() => void recontarSetor(entrega)}
+                  >
+                    {minhasEntregas.length === 1
+                      ? 'Recontar'
+                      : `Recontar ${entrega.setor_nome}`}
+                  </Botao>
+                ),
+              )}
             {somenteLeitura ? (
               podeAdministrar &&
               !restritoASetores &&
@@ -737,7 +862,15 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
         )}
       </div>
 
-      {somenteLeitura && (
+      {entregueEfechado && (
+        <Aviso tom="sucesso" titulo="Setor entregue">
+          A sua folha está travada para não mudar sem querer. Achou um erro ou lembrou de um item?{' '}
+          <strong className="text-texto-suave">Recontar</strong> destrava — e fica registrado que
+          houve recontagem.
+        </Aviso>
+      )}
+
+      {somenteLeitura && !entregueEfechado && (
         <Aviso tom={cancelada ? 'erro' : 'info'} titulo={cancelada ? 'Contagem cancelada' : 'Contagem fechada'}>
           {cancelada
             ? 'Esta contagem foi cancelada e não entra em nenhum cálculo.'
@@ -754,7 +887,26 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
         </Aviso>
       )}
 
-      {aviso && <Aviso tom="info" titulo="Folha refeita">{aviso}</Aviso>}
+      {aviso && <Aviso tom="info" titulo={tituloDoAviso}>{aviso}</Aviso>}
+
+      {/*
+        O quadro das entregas.
+        Para quem fecha a contagem, é o que responde "já posso fechar?" — e
+        para o operador, é o recibo do que ele entregou. Só aparece quando há
+        mais de um setor ou quando alguém já entregou: numa contagem de um
+        setor só, antes de qualquer entrega, seria uma linha dizendo o óbvio.
+      */}
+      {(entregas.data ?? []).length > 0 &&
+        ((entregas.data ?? []).length > 1 ||
+          (entregas.data ?? []).some((e) => e.entregue_em !== null)) && (
+          <QuadroDeEntregas
+            entregas={entregas.data ?? []}
+            podeRecontar={!fechada && !cancelada}
+            meusSetores={restritoASetores ? setoresDoPerfil : null}
+            recontando={recontar.isPending}
+            aoRecontar={(entrega) => void recontarSetor(entrega)}
+          />
+        )}
 
       <BarraDeControle
         eixo={eixo}
@@ -949,7 +1101,7 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
                               id={`qtd-${item.id}`}
                               valor={emVigor}
                               aoMudar={(valor) => void lancarQuantidade(item, valor)}
-                              disabled={somenteLeitura}
+                              disabled={somenteLeitura || setoresEntregues.has(item.setor_id)}
                               aria-label={`Quantidade de ${item.produto?.nome ?? 'produto'} em ${item.unidade}`}
                               className="w-24"
                             />
@@ -989,6 +1141,20 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
           <span className="mv-numero">{resumo.itens}</span> itens com quantidade
         </div>
       </BarraDeTotais>
+
+      {revisando && (
+        <RevisarAntesDeEntregar
+          entrega={
+            (entregas.data ?? []).find((e) => e.setor_id === revisando.setor_id) ?? revisando
+          }
+          itensDoSetor={todos.filter((i) => i.setor_id === revisando.setor_id)}
+          zerando={zerar.isPending}
+          entregando={entregar.isPending}
+          aoZerar={() => void zerarPendentes(revisando)}
+          aoEntregar={() => void entregarSetor(revisando)}
+          aoFechar={() => setRevisando(null)}
+        />
+      )}
 
       {confirmando && (
         <ConfirmarFechamento
@@ -1435,5 +1601,240 @@ function NavegacaoPorSetor({
         })}
       </ul>
     </nav>
+  )
+}
+
+/* ────────────────────────────────────── a revisão antes de entregar ─────── */
+
+/**
+ * O passo que faltava entre contar e entregar.
+ *
+ * Quem conta duzentos itens de pé não lembra se pulou algum — e o item pulado
+ * não se parece com nada na tela: ele é só uma linha em branco no meio de
+ * outras duzentas. Esta tela mostra a conta antes de assinar: quantos foram
+ * respondidos, quantos ficaram em branco, e QUAIS são.
+ *
+ * **Zero é resposta; branco não é.** É por isso que a entrega não sai com item
+ * em branco — nem aqui, nem no servidor. "Zero" significa "acabou", e entra no
+ * CMV; branco significa "não sei", e não existe conta de estoque com "não sei"
+ * no meio. O atalho para responder tudo com zero existe, mas diz quantos são
+ * antes: zerar duzentos itens sem ler o número seria assinar sem olhar.
+ */
+function RevisarAntesDeEntregar({
+  entrega,
+  itensDoSetor,
+  zerando,
+  entregando,
+  aoZerar,
+  aoEntregar,
+  aoFechar,
+}: {
+  entrega: EntregaDeSetor
+  itensDoSetor: readonly ItemContavel[]
+  zerando: boolean
+  entregando: boolean
+  aoZerar: () => void
+  aoEntregar: () => void
+  aoFechar: () => void
+}): JSX.Element {
+  const emBranco = itensDoSetor.filter((i) => i.contado_em === null)
+  const zerados = itensDoSetor.filter((i) => i.contado_em !== null && i.quantidade === 0).length
+  const comQuantidade = itensDoSetor.filter((i) => i.quantidade > 0).length
+  const pendentes = emBranco.length
+  const MOSTRA = 12
+
+  return (
+    <Dialogo
+      titulo={`Revisar ${entrega.setor_nome} antes de entregar`}
+      aoFechar={aoFechar}
+      rodape={
+        <>
+          <Botao tom="fantasma" onClick={aoFechar}>
+            Continuar contando
+          </Botao>
+          {pendentes > 0 ? (
+            <Botao tom="secundario" carregando={zerando} onClick={aoZerar}>
+              Marcar {pendentes === 1 ? 'o item' : `os ${pendentes} itens`} em branco como zero
+            </Botao>
+          ) : (
+            <Botao
+              tom="primario"
+              icone={<ClipboardCheck className="size-4" aria-hidden />}
+              carregando={entregando}
+              onClick={aoEntregar}
+            >
+              Entregar {entrega.setor_nome}
+            </Botao>
+          )}
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <dl className="mv-numero grid grid-cols-3 gap-3 text-center">
+          <div className="rounded-marca-p bg-superficie-2 p-3">
+            <dt className="text-micro text-texto-fraco">com quantidade</dt>
+            <dd className="text-destaque text-texto">{comQuantidade}</dd>
+          </div>
+          <div className="rounded-marca-p bg-superficie-2 p-3">
+            <dt className="text-micro text-texto-fraco">zerados</dt>
+            <dd className="text-destaque text-texto">{zerados}</dd>
+          </div>
+          <div
+            className={clsx(
+              'rounded-marca-p p-3',
+              pendentes > 0 ? 'bg-alerta-fundo' : 'bg-superficie-2',
+            )}
+          >
+            <dt className="text-micro text-texto-fraco">em branco</dt>
+            <dd
+              className={clsx(
+                'text-destaque',
+                pendentes > 0 ? 'text-alerta-texto' : 'text-texto',
+              )}
+            >
+              {pendentes}
+            </dd>
+          </div>
+        </dl>
+
+        {pendentes > 0 ? (
+          <>
+            <p className="text-corpo leading-relaxed text-texto-suave">
+              <strong className="text-texto">Zero é resposta; em branco não é.</strong> Um item sem
+              quantidade pode significar "acabou" ou "esqueci", e a diferença entre os dois é um CMV
+              errado. Volte e responda, ou marque todos como zero de uma vez.
+            </p>
+            <div className="rounded-marca border border-borda">
+              <ul className="max-h-48 divide-y divide-borda/60 overflow-y-auto">
+                {emBranco.slice(0, MOSTRA).map((item) => (
+                  <li key={item.id} className="truncate px-3 py-2 text-apoio text-texto">
+                    {item.produto?.nome ?? 'Insumo removido do cadastro'}
+                  </li>
+                ))}
+              </ul>
+              {pendentes > MOSTRA && (
+                <p className="border-t border-borda px-3 py-2 text-micro text-texto-fraco">
+                  e mais {pendentes - MOSTRA}. Feche esta janela e use o filtro{' '}
+                  <strong className="text-texto-suave">Pendentes</strong> para ver todos.
+                </p>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-corpo leading-relaxed text-texto-suave">
+              Tudo respondido. O seu setor soma{' '}
+              <strong className="mv-numero text-texto">{dinheiro(entrega.total)}</strong> em{' '}
+              {entrega.itens} {plural(entrega.itens, 'item', 'itens')}.
+            </p>
+            <Aviso tom="info" titulo="Depois de entregar">
+              A folha do seu setor fica travada e a contagem vai para o histórico. Se perceber um
+              erro, o botão <strong className="text-texto-suave">Recontar</strong> destrava — e fica
+              registrado que houve recontagem.
+            </Aviso>
+          </>
+        )}
+      </div>
+    </Dialogo>
+  )
+}
+
+/* ──────────────────────────────────────────── o andamento das entregas ──── */
+
+/**
+ * Quem já terminou, e quanto entregou.
+ *
+ * Antes disto, "a contagem está pronta?" era uma pergunta de WhatsApp. O
+ * gerente olhava a folha inteira e não tinha como saber se o bar ainda estava
+ * contando ou se tinha acabado com metade zerada.
+ *
+ * Cada linha diz o que importa para decidir: quantos itens, quantos ainda em
+ * branco, quanto soma, e — quando entregue — quem entregou e quando.
+ */
+function QuadroDeEntregas({
+  entregas,
+  podeRecontar,
+  meusSetores,
+  recontando,
+  aoRecontar,
+}: {
+  entregas: readonly EntregaDeSetor[]
+  podeRecontar: boolean
+  /** Nulo para quem enxerga a casa inteira. */
+  meusSetores: readonly string[] | null
+  recontando: boolean
+  aoRecontar: (entrega: EntregaDeSetor) => void
+}): JSX.Element {
+  const entregues = entregas.filter((e) => e.entregue_em !== null).length
+  return (
+    <Cartao>
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-borda px-4 py-3">
+        <h2 className="font-titulo text-destaque font-semibold text-texto">
+          {meusSetores ? 'A sua entrega' : 'Entregas por setor'}
+        </h2>
+        <span className="mv-numero text-apoio text-texto-fraco" role="status">
+          {entregues} de {entregas.length} {plural(entregas.length, 'setor', 'setores')} entregue
+          {entregues === 1 ? '' : 's'}
+        </span>
+      </header>
+      <ul className="divide-y divide-borda/60">
+        {entregas.map((entrega) => {
+          const entregue = entrega.entregue_em !== null
+          const meu = meusSetores === null || meusSetores.includes(entrega.setor_id)
+          return (
+            <li
+              key={entrega.setor_id}
+              className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3"
+            >
+              <span className="flex min-w-0 flex-1 items-center gap-2">
+                {entrega.setor_cor !== null && <Ponto cor={entrega.setor_cor} />}
+                <span className="truncate text-corpo text-texto">{entrega.setor_nome}</span>
+              </span>
+
+              <span className="mv-numero shrink-0 text-apoio text-texto-fraco">
+                {entrega.respondidos}/{entrega.itens}
+                {entrega.pendentes > 0 && (
+                  <span className="text-alerta-texto">
+                    {' '}
+                    · {entrega.pendentes} em branco
+                  </span>
+                )}
+              </span>
+
+              <span className="mv-numero shrink-0 text-apoio text-texto-suave">
+                {dinheiro(entrega.total)}
+              </span>
+
+              <span className="shrink-0">
+                {entregue ? (
+                  <Selo tom="sucesso">
+                    <CheckCircle2 className="size-3.5" aria-hidden /> entregue
+                  </Selo>
+                ) : (
+                  <Selo tom="neutro">contando</Selo>
+                )}
+              </span>
+
+              {entregue && (
+                <span className="w-full text-micro text-texto-fraco sm:w-auto">
+                  {entrega.entregue_por_nome ?? 'alguém'} · {dataHora(entrega.entregue_em)}
+                </span>
+              )}
+
+              {entregue && podeRecontar && meu && (
+                <Botao
+                  tom="fantasma"
+                  tamanho="p"
+                  carregando={recontando}
+                  onClick={() => aoRecontar(entrega)}
+                >
+                  Recontar
+                </Botao>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </Cartao>
   )
 }

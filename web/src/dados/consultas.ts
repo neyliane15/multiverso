@@ -23,6 +23,7 @@ import type {
   ContagemPorEstoque,
   ContagemPorSetor,
   ContagemResumo,
+  EntregaDeSetor,
   Estoque,
   Ficha,
   FichaCompleta,
@@ -100,6 +101,7 @@ export const chaves = {
   contagemItens: (id: string) => ['contagem-itens', id] as const,
   contagemSetores: (id: string) => ['contagem-setores', id] as const,
   contagemEstoques: (id: string) => ['contagem-estoques', id] as const,
+  contagemEntregas: (id: string) => ['contagem-entregas', id] as const,
   fornecedores: (r: string) => ['fornecedores', r] as const,
   compras: (r: string) => ['compras', r] as const,
   notaItens: (id: string) => ['nota-itens', id] as const,
@@ -885,6 +887,67 @@ export function useItensDaContagem(contagemId: string | undefined) {
  * Totais por lugar dentro da contagem. O setor sem subdivisão vem com
  * `estoque_id` nulo — uma linha só, que é a tela de antes dos estoques.
  */
+/* ──────────────────────────────────────────── a entrega de cada setor ───── */
+
+export function useEntregaPorSetor(contagemId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.contagemEntregas(contagemId ?? ''),
+    enabled: Boolean(contagemId),
+    queryFn: () =>
+      buscar<EntregaDeSetor[]>(
+        supabase
+          .from('vw_entrega_por_setor')
+          .select('*')
+          .eq('contagem_id', contagemId!)
+          .order('setor_ordem')
+          .order('setor_nome'),
+      ),
+  })
+}
+
+/**
+ * As três ações da entrega, numa só fábrica.
+ *
+ * Todas invalidam a folha inteira, e não só a entrega: entregar congela as
+ * linhas, recontar as destrava e zerar muda quantidade. Atualizar só metade
+ * deixaria a tela mostrando campo editável em setor entregue — e o servidor
+ * recusando, sem ninguém entender por quê.
+ */
+function usarAcaoDeEntrega<T>(
+  contagemId: string,
+  chamar: (setorId: string) => PromiseLike<{ data: unknown; error: unknown }>,
+) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (setorId: string) => buscar<T>(chamar(setorId)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.contagemEntregas(contagemId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagemItens(contagemId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagemEstoques(contagemId) })
+      void qc.invalidateQueries({ queryKey: chaves.contagem(contagemId) })
+    },
+  })
+}
+
+export function useEntregarSetor(contagemId: string) {
+  return usarAcaoDeEntrega<unknown>(contagemId, (setorId) =>
+    supabase.rpc('mv_entregar_setor', { p_contagem: contagemId, p_setor: setorId }),
+  )
+}
+
+export function useRecontarSetor(contagemId: string) {
+  return usarAcaoDeEntrega<unknown>(contagemId, (setorId) =>
+    supabase.rpc('mv_recontar_setor', { p_contagem: contagemId, p_setor: setorId }),
+  )
+}
+
+/** Responde com zero tudo o que ficou em branco naquele setor. */
+export function useZerarPendentes(contagemId: string) {
+  return usarAcaoDeEntrega<number>(contagemId, (setorId) =>
+    supabase.rpc('mv_zerar_pendentes', { p_contagem: contagemId, p_setor: setorId }),
+  )
+}
+
 export function useTotaisPorEstoque(contagemId: string | undefined) {
   return useQuery({
     queryKey: chaves.contagemEstoques(contagemId ?? ''),
@@ -961,6 +1024,10 @@ export function useLancarQuantidade(contagemId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chaves.contagemItens(contagemId) })
       void qc.invalidateQueries({ queryKey: chaves.contagemSetores(contagemId) })
+      // A entrega conta quantos ainda faltam responder e quanto o setor soma:
+      // sem isto, a revisão antes de entregar mostraria o número de antes do
+      // último item digitado — justamente o que a pessoa acabou de conferir.
+      void qc.invalidateQueries({ queryKey: chaves.contagemEntregas(contagemId) })
     },
   })
 }

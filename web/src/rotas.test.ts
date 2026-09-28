@@ -14,10 +14,13 @@ describe('o menu de cada papel', () => {
     expect(caminhos).not.toContain('/admin/usuarios')
   })
 
-  it('o operador preso a setores ve SO a contagem', () => {
+  it('o operador preso a setores ve a contagem e o historico dela — nada mais', () => {
+    // O historico entrou porque a contagem entregue tem de ir para algum
+    // lugar que a pessoa possa consultar. Os numeros que ele mostra ali sao os
+    // do setor dele: a vista soma atraves da RLS.
     const modulos = menuVisivel('operador', true, true)
     const caminhos = modulos.flatMap((m) => m.itens.map((i) => i.caminho))
-    expect(caminhos).toEqual(['/contagem'])
+    expect(caminhos).toEqual(['/contagem', '/contagem/historico'])
     // E um modulo sem item nenhum nao aparece como titulo solto.
     expect(modulos.every((m) => m.itens.length > 0)).toBe(true)
   })
@@ -26,7 +29,7 @@ describe('o menu de cada papel', () => {
     // Prender um admin a setor e recusado no banco; se um dia passar, a tela
     // nao pode ser o elo que abre tudo de novo.
     expect(menuVisivel('admin', true, true).flatMap((m) => m.itens.map((i) => i.caminho)))
-      .toEqual(['/contagem'])
+      .toEqual(['/contagem', '/contagem/historico'])
   })
 
   it('sem restaurante em foco, some o que depende de um', () => {
@@ -40,6 +43,10 @@ describe('o guarda de rota do operador de setor', () => {
   it('deixa passar a contagem e o que pendura nela', () => {
     expect(rotaPermitidaNoSetor('/contagem')).toBe(true)
     expect(rotaPermitidaNoSetor('/contagem/abc-123')).toBe(true)
+  })
+
+  it('deixa passar o historico da contagem', () => {
+    expect(rotaPermitidaNoSetor('/contagem/historico')).toBe(true)
   })
 
   it('barra o resto do sistema', () => {

@@ -190,7 +190,7 @@ export const MODULOS: Modulo[] = [
  * equipe não são assunto seu. Esconder o menu é conforto; o que de fato
  * tranca a porta é a RLS, porque endereço se digita na mão.
  */
-export const ROTAS_DO_OPERADOR_DE_SETOR = ['/contagem']
+export const ROTAS_DO_OPERADOR_DE_SETOR = ['/contagem', '/contagem/historico']
 
 export function menuVisivel(
   papel: PapelUsuario | null,
