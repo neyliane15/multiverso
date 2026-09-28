@@ -1,0 +1,14 @@
+{
+  "//": [
+    "Mapa de importação da edge function criar-operador.",
+    "Sem este arquivo o deploy falha em 'Relative import path \"@supabase/supabase-js\"",
+    "not prefixed with / or ./ or ../': o Deno não conhece import nu, e cada função",
+    "carrega o próprio mapa.",
+    "A regra de quem pode criar acesso vive em web/src/paginas/admin/regraDeOperador.ts",
+    "e é COPIADA para _compartilhado/ por ferramentas/preparar-funcao.mjs antes do deploy.",
+    "Publicação: npm run funcao:preparar && supabase functions deploy criar-operador"
+  ],
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.47.10"
+  }
+}

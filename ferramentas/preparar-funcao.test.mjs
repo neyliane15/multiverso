@@ -7,8 +7,8 @@
  * quebraria o deploy.
  */
 import { execFileSync } from 'node:child_process'
-import { readFileSync, existsSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it, beforeAll } from 'vitest'
 import { chaveBusca } from '../web/src/util/formato.ts'
@@ -123,4 +123,32 @@ describe('a regra de exclusao copiada para a remover-usuario', () => {
     expect(copiada).toContain('ARQUIVO GERADO')
     expect(copiada).toContain('web/src/paginas/admin/regraDeExclusao.ts')
   })
+})
+
+/* ───────────────────── o mapa de importação de cada função ──────────────── */
+
+describe('toda função tem deno.json, e ele mapeia o que o index importa', () => {
+  // O defeito que isto tranca: `criar-operador` foi ao ar sem deno.json e o
+  // deploy morreu em "Relative import path @supabase/supabase-js not prefixed
+  // with / or ./ or ../" — longe daqui e perto do cliente.
+  const pastaDasFuncoes = resolve(RAIZ, 'supabase/functions')
+
+  const funcoes = readdirSync(pastaDasFuncoes, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && existsSync(join(pastaDasFuncoes, d.name, 'index.ts')))
+    .map((d) => d.name)
+
+  it('há função para conferir', () => {
+    expect(funcoes.length).toBeGreaterThan(0)
+  })
+
+  for (const nome of funcoes) {
+    it(`${nome} mapeia todos os pacotes que importa`, () => {
+      const mapa = join(pastaDasFuncoes, nome, 'deno.json')
+      expect(existsSync(mapa)).toBe(true)
+      const declarados = Object.keys(JSON.parse(readFileSync(mapa, 'utf8')).imports ?? {})
+      const nus = [...readFileSync(join(pastaDasFuncoes, nome, 'index.ts'), 'utf8')
+        .matchAll(/from '([^'.\/][^']*)'/g)].map((m) => m[1])
+      expect(nus.filter((p) => !declarados.includes(p))).toEqual([])
+    })
+  }
 })

@@ -13,7 +13,7 @@
  *
  * Uso: node ferramentas/preparar-funcao.mjs
  */
-import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -30,6 +30,7 @@ const MODULOS = ['parsearXml', 'conversaoUnidade', 'casarProdutos']
  * checagem dela e a unica que sobra. Se a regra virasse uma segunda copia
  * escrita a mao, o lado que divergisse seria justamente o que apaga.
  */
+const PASTA_DAS_FUNCOES = join(RAIZ, 'supabase/functions')
 const REGRA_ORIGEM = join(RAIZ, 'web/src/paginas/admin')
 const REGRA_DESTINO = join(RAIZ, 'supabase/functions/remover-usuario/_compartilhado')
 const REGRA_MODULOS = ['regraDeExclusao']
@@ -138,6 +139,36 @@ for (const arquivo of REGRA_OPERADOR_MODULOS) {
     .filter((caminho) => caminho.startsWith('..') || caminho.startsWith('@/'))
   if (fuga.length > 0) {
     throw new Error(`${arquivo}.ts ainda importa de fora da pasta: ${fuga.join(', ')}`)
+  }
+}
+
+/**
+ * Toda função precisa do próprio `deno.json`, e ele precisa mapear o que o
+ * `index.ts` importa sem caminho.
+ *
+ * O Deno não conhece import nu: sem o mapa, o deploy morre em "Relative import
+ * path not prefixed with / or ./ or ../" — e morre no `supabase functions
+ * deploy`, que é longe daqui e perto do cliente. Esta conferência custa
+ * milissegundos e acontece no comando que sempre vem antes do deploy.
+ */
+for (const pasta of readdirSync(PASTA_DAS_FUNCOES, { withFileTypes: true })) {
+  if (!pasta.isDirectory()) continue
+  const indice = join(PASTA_DAS_FUNCOES, pasta.name, 'index.ts')
+  if (!existsSync(indice)) continue
+
+  const mapa = join(PASTA_DAS_FUNCOES, pasta.name, 'deno.json')
+  if (!existsSync(mapa)) {
+    throw new Error(
+      `a funcao ${pasta.name} nao tem deno.json — o deploy falharia no import de pacote`,
+    )
+  }
+  const declarados = Object.keys(JSON.parse(readFileSync(mapa, 'utf8')).imports ?? {})
+  const nus = [...readFileSync(indice, 'utf8').matchAll(/from '([^'.\/][^']*)'/g)].map((m) => m[1])
+  const faltando = nus.filter((pacote) => !declarados.includes(pacote))
+  if (faltando.length > 0) {
+    throw new Error(
+      `${pasta.name}/deno.json nao mapeia: ${faltando.join(', ')} — o deploy falharia`,
+    )
   }
 }
 
