@@ -151,6 +151,19 @@
    "id": "91d1be2a-67ee-5bd6-8407-6baa72eaa5d7"
   },
   {
+   "nome": "BARBECUE DE GOIABADA (KG)",
+   "categoria": "MOLHOS",
+   "categoria_id": "5d3fdd64-e6e6-56f1-91f6-7c4f96dbf811",
+   "setor": "Cozinha",
+   "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
+   "unidade": "KG",
+   "custo": 11.36,
+   "ordem": 2,
+   "origem": "Molhos!A3",
+   "quantidade": 3.45,
+   "id": "035e4add-c354-58e3-a0b8-f5de8bb8e0d7"
+  },
+  {
    "nome": "CANELA EM PÓ",
    "categoria": "MERCEARIA",
    "categoria_id": "156b289f-4bb4-5914-8190-08695ef3e83c",
@@ -201,6 +214,19 @@
    "origem": "Geral!H33",
    "quantidade": 3.0,
    "id": "9959d999-3e4a-5dcf-9605-aec9bfe8b039"
+  },
+  {
+   "nome": "GRÃO DE BICO (KG)",
+   "categoria": "MERCEARIA",
+   "categoria_id": "156b289f-4bb4-5914-8190-08695ef3e83c",
+   "setor": "Cozinha",
+   "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
+   "unidade": "KG",
+   "custo": 13.8,
+   "ordem": 2,
+   "origem": "Geral!H24",
+   "quantidade": 2.0,
+   "id": "9962b08b-0b13-5a2e-a13d-57167bc99df5"
   },
   {
    "nome": "LENTILHA",
@@ -701,30 +727,6 @@
  ],
  "custos_retidos_por_unidade": [
   {
-   "produto": "BARBECUE DE GOIABADA 600GR",
-   "setor": "Cozinha",
-   "categoria": "MOLHOS",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "KG",
-   "custo_cadastro": 17.08,
-   "custo_outubro": 11.36,
-   "percentual": -33.49,
-   "aba": "Molhos",
-   "origem": "Molhos!A3"
-  },
-  {
-   "produto": "GRÃO DE BICO",
-   "setor": "Cozinha",
-   "categoria": "MERCEARIA",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "KG",
-   "custo_cadastro": 13.2,
-   "custo_outubro": 13.8,
-   "percentual": 4.55,
-   "aba": "Geral",
-   "origem": "Geral!H24"
-  },
-  {
    "produto": "MOLHO SHOYO (1lt)",
    "setor": "Cozinha",
    "categoria": "MERCEARIA",
@@ -935,16 +937,6 @@
    "origem": "Porcionados!A8"
   },
   {
-   "produto": "BARBECUE DE GOIABADA 600GR",
-   "setor": "Cozinha",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "KG",
-   "custo_cadastro": 17.08,
-   "custo_outubro": 11.36,
-   "aba": "Molhos",
-   "origem": "Molhos!A3"
-  },
-  {
    "produto": "CARNE ASSADA SANDUICHE (120g)",
    "setor": "Cozinha",
    "unidade_cadastro": "UND",
@@ -963,16 +955,6 @@
    "custo_outubro": 12.84,
    "aba": "Porcionados",
    "origem": "Porcionados!A19"
-  },
-  {
-   "produto": "GRÃO DE BICO",
-   "setor": "Cozinha",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "KG",
-   "custo_cadastro": 13.2,
-   "custo_outubro": 13.8,
-   "aba": "Geral",
-   "origem": "Geral!H24"
   },
   {
    "produto": "MASSA DE PASTEL",
@@ -8560,8 +8542,8 @@
    "novo": false
   },
   {
-   "produto": "GRÃO DE BICO",
-   "produto_id": "cc31ed51-f9c3-5d80-9362-7cd05c8823d1",
+   "produto": "GRÃO DE BICO (KG)",
+   "produto_id": "9962b08b-0b13-5a2e-a13d-57167bc99df5",
    "setor": "Cozinha",
    "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
    "categoria": "MERCEARIA",
@@ -8570,7 +8552,7 @@
    "custo_unitario": 13.8,
    "total": 27.6,
    "origem": "Geral!H24",
-   "novo": false
+   "novo": true
   },
   {
    "produto": "HONDASHI (500g)",
@@ -9054,8 +9036,8 @@
    "novo": false
   },
   {
-   "produto": "BARBECUE DE GOIABADA 600GR",
-   "produto_id": "8c654692-7e3b-54f9-b3ff-6222caec95ea",
+   "produto": "BARBECUE DE GOIABADA (KG)",
+   "produto_id": "035e4add-c354-58e3-a0b8-f5de8bb8e0d7",
    "setor": "Cozinha",
    "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
    "categoria": "MOLHOS",
@@ -9064,7 +9046,7 @@
    "custo_unitario": 11.36,
    "total": 39.192,
    "origem": "Molhos!A3",
-   "novo": false
+   "novo": true
   },
   {
    "produto": "BOBO DE CAMARÃO 400gr",
@@ -12478,6 +12460,34 @@
     "custo_cadastro": 3.0
    }
   ],
+  "desdobrados_por_medida": [
+   {
+    "planilha": "GRÃO DE BICO",
+    "catalogo_novo": "GRÃO DE BICO (KG)",
+    "origem": "Geral!H24",
+    "aba": "Geral",
+    "bloco": "MERCEARIA",
+    "unidade_outubro": "KG",
+    "custo_outubro": 13.8,
+    "unidade_antiga": "UND",
+    "custo_antigo": 13.2,
+    "quantidade": 2.0,
+    "total": 27.6
+   },
+   {
+    "planilha": "BARBECUE DE GOIABADA 600GR",
+    "catalogo_novo": "BARBECUE DE GOIABADA (KG)",
+    "origem": "Molhos!A3",
+    "aba": "Molhos",
+    "bloco": "MOLHOS",
+    "unidade_outubro": "KG",
+    "custo_outubro": 11.36,
+    "unidade_antiga": "UND",
+    "custo_antigo": 17.08,
+    "quantidade": 3.45,
+    "total": 39.192
+   }
+  ],
   "regrafados": [
    {
     "planilha": "MOLHO SHOYO (1lts)",
@@ -12516,6 +12526,12 @@
     "custo": 7.0
    },
    {
+    "nome": "BARBECUE DE GOIABADA 600GR",
+    "categoria": "MOLHOS",
+    "setor": "Cozinha",
+    "custo": 17.08
+   },
+   {
     "nome": "CALDO DE CARNE",
     "categoria": "MERCEARIA",
     "setor": "Cozinha",
@@ -12544,6 +12560,12 @@
     "categoria": "PROTEÍNAS CLIENTE",
     "setor": "Cozinha",
     "custo": 8.43
+   },
+   {
+    "nome": "GRÃO DE BICO",
+    "categoria": "MERCEARIA",
+    "setor": "Cozinha",
+    "custo": 13.2
    },
    {
     "nome": "MASSA LASANHA",

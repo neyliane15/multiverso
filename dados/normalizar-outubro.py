@@ -114,6 +114,32 @@ GRAFIA = {
     ('MOLHO SHOYO 1LTS', 'Geral', 'MERCEARIA'): 'MOLHO SHOYO (1lt)',
 }
 
+# Produto que a casa passou a contar numa MEDIDA diferente, com preco diferente.
+# Regra da cliente: "se tem medidas diferentes e precos diferentes, considere
+# como novo produto e adicione em sua categoria e setor adequado".
+#
+# E a mesma logica do desdobramento de agosto, mudando o eixo: la o que separava
+# era o setor (BACON do estoque x BACON da feijoada), aqui e a unidade de medida.
+# E o motivo e o mesmo: um cadastro so nao consegue guardar dois precos que
+# dividem por denominadores diferentes.
+#
+#   BARBECUE DE GOIABADA: agosto contou 8 PORCOES a R$ 17,08 (o pote de 600 g);
+#   outubro contou 3,45 KG a R$ 11,36 (o molho a granel). Um e preco de pote,
+#   o outro e preco de quilo — pela planilha, 600 g a R$ 11,36/kg dariam R$ 6,82.
+#   Sao duas mercadorias com dois precos, e viram dois cadastros.
+#
+#   GRAO DE BICO: a coluna MEDIDA trocou de UND (o pacote, R$ 13,20) para KG
+#   (o granel, R$ 13,80).
+#
+# O cadastro antigo fica como esta, com a unidade e o custo dele. O novo nasce
+# com a unidade e o custo de outubro, na categoria do bloco e no setor da aba —
+# e e dele a linha de contagem deste mes. O total da contagem nao se mexe: a
+# linha so troca de dono.
+DESDOBRAR_POR_MEDIDA = {
+    ('BARBECUE DE GOIABADA 600GR', 'Molhos', 'MOLHOS'): 'BARBECUE DE GOIABADA (KG)',
+    ('GRAO DE BICO', 'Geral', 'MERCEARIA'): 'GRÃO DE BICO (KG)',
+}
+
 # Produto que a planilha lista DUAS VEZES em blocos de setor diferente, sendo um
 # so item. Decisao de agosto, mantida: POLIFLOR aparece em DESCARTAVEIS e de
 # novo em MATERIAL DE LIMPEZA; e o mesmo frasco, e vale a primeira ocorrencia.
@@ -145,6 +171,7 @@ for p in catalogo['produtos']:
 # ------------------------------------------------------------- 1. limpeza ---
 descartados = []
 desdobrados = []
+desdobrados_por_medida = []
 regrafados = []
 achados = []
 limpos = []
@@ -181,6 +208,20 @@ for i in bruta['itens']:
                             'custo_outubro': item['custo_unitario'],
                             'custo_cadastro': por_chave[chave(novo)]['setores'][0]['custo']})
         item['produto'] = novo
+    elif k in DESDOBRAR_POR_MEDIDA:
+        novo = DESDOBRAR_POR_MEDIDA[k]
+        antigo = por_chave.get(chave(nome))
+        desdobrados_por_medida.append({
+            'planilha': nome, 'catalogo_novo': novo, 'origem': i['origem'],
+            'aba': item['aba'], 'bloco': item['categoria'],
+            'unidade_outubro': item['unidade'], 'custo_outubro': item['custo_unitario'],
+            'unidade_antiga': antigo['setores'][0]['unidade'] if antigo else None,
+            'custo_antigo': antigo['setores'][0]['custo'] if antigo else None,
+            'quantidade': item['quantidade'], 'total': item['total'],
+        })
+        # Renomeado, ele deixa de casar com o catalogo e segue pelo caminho de
+        # produto novo — que ja sabe escolher categoria e setor pelo bloco.
+        item['produto'] = novo
     elif k in GRAFIA:
         novo = GRAFIA[k]
         regrafados.append({'planilha': nome, 'catalogo': novo, 'origem': i['origem']})
@@ -195,6 +236,12 @@ usadas = {(d['planilha'] and chave(d['planilha']), d['aba'], d['bloco']) for d i
 for regra in DESDOBRAR:
     if regra not in usadas:
         achados.append(f'regra de desdobramento {regra} nao casou com nenhuma linha de outubro')
+# Idem para o desdobramento por medida: regra que nao casa e regra que mente
+# sobre o que a carga fez.
+usadas_medida = {(chave(d['planilha']), d['aba'], d['bloco']) for d in desdobrados_por_medida}
+for regra in DESDOBRAR_POR_MEDIDA:
+    if regra not in usadas_medida:
+        achados.append(f'regra de desdobramento por medida {regra} nao casou com nenhuma linha')
 for nome_cat in (p['nome'] for p in catalogo['produtos']):
     if re.match(r'^.* \((HORTIFRUTI|PORCIONADO|SUÍNOS|FEIJOADA|MOLHOS|CARNES)\)$', nome_cat) \
        and nome_cat not in DESDOBRAR.values():
@@ -482,6 +529,7 @@ saida = {
         'itens_na_planilha': len(bruta['itens']),
         'descartados': descartados,
         'desdobrados': desdobrados,
+        'desdobrados_por_medida': desdobrados_por_medida,
         'regrafados': regrafados,
         'linhas_repetidas_somadas': repetidas,
         'conflitos_de_setor': conflitos_setor,
@@ -607,6 +655,45 @@ A('-' * 78)
 for u, n in sorted(collections.Counter(l['unidade'] for l in linhas).items(),
                    key=lambda x: -x[1]):
     A('   %-6s %4d   %s' % (u, n, 'ok' if u in UNIDADES_ACEITAS else '<<< FORA DO CONJUNTO DE AGOSTO'))
+A('')
+A('-' * 78)
+A('4b. DESDOBRAMENTO POR MEDIDA — PRODUTO NOVO  (%d)' % len(desdobrados_por_medida))
+A('-' * 78)
+A('Regra da cliente: "se tem medidas diferentes e precos diferentes, considere')
+A('como novo produto e adicione em sua categoria e setor adequado".')
+A('')
+A('E a mesma logica do desdobramento de agosto, mudando o eixo: la o que separava')
+A('os produtos era o setor, aqui e a unidade de medida. O cadastro antigo fica')
+A('intocado, com a unidade e o custo dele; o novo nasce com a unidade e o custo')
+A('de outubro, e e dele a linha de contagem deste mes. O total nao se mexe — a')
+A('linha so troca de dono.')
+if desdobrados_por_medida:
+    A('')
+    A('    %-28s %-6s %10s   %-28s %-6s %10s'
+      % ('CADASTRO QUE FICA', 'UN', 'CUSTO', 'CADASTRO NOVO', 'UN', 'CUSTO'))
+    for x in desdobrados_por_medida:
+        A('    %-28s %-6s %10.4f   %-28s %-6s %10.4f'
+          % (x['planilha'][:28], x['unidade_antiga'] or '?', x['custo_antigo'] or 0,
+             x['catalogo_novo'][:28], x['unidade_outubro'], x['custo_outubro']))
+    A('')
+    A('    %-28s %-22s %-13s %9s %11s  %s'
+      % ('CADASTRO NOVO', 'CATEGORIA', 'SETOR', 'QTD', 'NO TOTAL', 'CELULA'))
+    for x in desdobrados_por_medida:
+        linha = next(l for l in linhas if l['produto'] == x['catalogo_novo'])
+        A('    %-28s %-22s %-13s %9.4f %11.4f  %s'
+          % (x['catalogo_novo'][:28], linha['categoria'], linha['setor'],
+             x['quantidade'], x['total'], x['origem']))
+    A('')
+    A('    O que cada um quer dizer, para a decisao ficar conferivel:')
+    A('    BARBECUE DE GOIABADA — agosto contou 8 PORCOES a R$ 17,08 (o pote de')
+    A('    600 g); outubro contou 3,45 KG a R$ 11,36 (o molho a granel). Pela')
+    A('    planilha, 600 g a R$ 11,36/kg dariam R$ 6,82: sao duas mercadorias.')
+    A('    GRAO DE BICO — a coluna MEDIDA trocou de UND (pacote, R$ 13,20) para')
+    A('    KG (granel, R$ 13,80).')
+    A('')
+    A('    Os dois cadastros antigos continuam existindo e nao foram contados')
+    A('    neste mes nessa medida — aparecem na secao de ausentes, que e o certo:')
+    A('    deixar de ser contado uma vez nao e deixar de existir.')
 A('')
 A('-' * 78)
 A('5. DESEMPATE DOS NOMES REPETIDOS / DESDOBRADOS')

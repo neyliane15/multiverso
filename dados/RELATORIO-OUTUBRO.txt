@@ -14,7 +14,7 @@ celulas de produto lidas na planilha ........ 877
 descartadas (titulo / sem nome / repetida) .. 7
 linhas de contagem .......................... 868
 produtos unicos ............................. 868
-produtos novos .............................. 9
+produtos novos .............................. 11
 
 total calculado (soma de quantidade x custo, 4 casas) .      71961.3510
 total da planilha (Geral!B93, VALOR FINAL) ...........      71961.3511
@@ -78,6 +78,37 @@ conferencias do extrator:
    BDJ       3   ok
 
 ------------------------------------------------------------------------------
+4b. DESDOBRAMENTO POR MEDIDA — PRODUTO NOVO  (2)
+------------------------------------------------------------------------------
+Regra da cliente: "se tem medidas diferentes e precos diferentes, considere
+como novo produto e adicione em sua categoria e setor adequado".
+
+E a mesma logica do desdobramento de agosto, mudando o eixo: la o que separava
+os produtos era o setor, aqui e a unidade de medida. O cadastro antigo fica
+intocado, com a unidade e o custo dele; o novo nasce com a unidade e o custo
+de outubro, e e dele a linha de contagem deste mes. O total nao se mexe — a
+linha so troca de dono.
+
+    CADASTRO QUE FICA            UN          CUSTO   CADASTRO NOVO                UN          CUSTO
+    GRÃO DE BICO                 UND       13.2000   GRÃO DE BICO (KG)            KG        13.8000
+    BARBECUE DE GOIABADA 600GR   UND       17.0800   BARBECUE DE GOIABADA (KG)    KG        11.3600
+
+    CADASTRO NOVO                CATEGORIA              SETOR               QTD    NO TOTAL  CELULA
+    GRÃO DE BICO (KG)            MERCEARIA              Cozinha          2.0000     27.6000  Geral!H24
+    BARBECUE DE GOIABADA (KG)    MOLHOS                 Cozinha          3.4500     39.1920  Molhos!A3
+
+    O que cada um quer dizer, para a decisao ficar conferivel:
+    BARBECUE DE GOIABADA — agosto contou 8 PORCOES a R$ 17,08 (o pote de
+    600 g); outubro contou 3,45 KG a R$ 11,36 (o molho a granel). Pela
+    planilha, 600 g a R$ 11,36/kg dariam R$ 6,82: sao duas mercadorias.
+    GRAO DE BICO — a coluna MEDIDA trocou de UND (pacote, R$ 13,20) para
+    KG (granel, R$ 13,80).
+
+    Os dois cadastros antigos continuam existindo e nao foram contados
+    neste mes nessa medida — aparecem na secao de ausentes, que e o certo:
+    deixar de ser contado uma vez nao e deixar de existir.
+
+------------------------------------------------------------------------------
 5. DESEMPATE DOS NOMES REPETIDOS / DESDOBRADOS
 ------------------------------------------------------------------------------
 Cada linha abaixo e uma decisao: o nome que a planilha escreve, a aba e o
@@ -128,7 +159,7 @@ bloco de onde ele veio, e o produto do catalogo que ficou com a linha.
    a grafia corrente da casa. Tratar como novo criaria cadastro duplicado.
 
 ------------------------------------------------------------------------------
-7. PRODUTOS NOVOS  (9)
+7. PRODUTOS NOVOS  (11)
 ------------------------------------------------------------------------------
 Cada um entra numa das 21 categorias que ja existem. Nenhuma categoria nova
 foi criada, e nenhuma precisou ser criada.
@@ -139,13 +170,15 @@ foi criada, e nenhuma precisou ser criada.
    CANELA EM PÓ               MERCEARIA              Cozinha        KG       48.0000    0.5000  Geral!H21
    FARINHA DE KIBE            MERCEARIA              Cozinha        KG        5.9000    1.0000  Geral!H26
    FEIJÃO CARIOCA             MERCEARIA              Cozinha        KG        9.6500    3.0000  Geral!H33
+   GRÃO DE BICO (KG)          MERCEARIA              Cozinha        KG       13.8000    2.0000  Geral!H24
    LENTILHA                   MERCEARIA              Cozinha        UND       7.4500    5.0000  Geral!H43
    MOSTARDA ESCURA (3,100)    MERCEARIA              Cozinha        UND      47.4000    0.0000  Geral!H55
+   BARBECUE DE GOIABADA (KG)  MOLHOS                 Cozinha        KG       11.3600    3.4500  Molhos!A3
    CUPIM                      PROTEÍNAS CLIENTE      Cozinha        KG       31.4700    0.0000  Geral!A14
    NOZ MOSCADA                TEMPEROS E AFINS       Cozinha        KG      146.0000    0.2040  Geral!O69
 
-   por categoria: HORTIFRUTI=1, MERCEARIA=6, PROTEÍNAS CLIENTE=1, TEMPEROS E AFINS=1
-   por setor    : Cozinha=9
+   por categoria: HORTIFRUTI=1, MERCEARIA=7, MOLHOS=1, PROTEÍNAS CLIENTE=1, TEMPEROS E AFINS=1
+   por setor    : Cozinha=11
 
 ------------------------------------------------------------------------------
 8. CUSTOS DO CADASTRO — ATUALIZADOS (26)
@@ -160,8 +193,8 @@ denominador diferente nao se compara com o anterior.
    cairam .................................... 1
    ficaram iguais (nao entram no update) ..... 768
    nao atualizados por serem zero na planilha  0
-   RETIDOS por unidade incompativel (secao 9a)  3
-   produtos novos (custo nasce da planilha) .. 9
+   RETIDOS por unidade incompativel (secao 9a)  1
+   produtos novos (custo nasce da planilha) .. 11
 
    PRODUTO                          SETOR          UN-C  UN-O     ANTERIOR     OUTUBRO   DIFERENCA         %
    ALECRIM (HORTIFRUTI)             Cozinha        KG    KG        35.5000     27.9000     -7.6000   -21.41%
@@ -204,13 +237,11 @@ linha. Problema e quando o numero NAO E PRECO: quando a unidade da planilha e
 a do cadastro sao diferentes e os dois valores dividem por denominadores
 diferentes. E so isso que esta secao cobra.
 
-9a. CUSTOS RETIDOS — A UNIDADE NAO BATE COM A DO CADASTRO  (3)
+9a. CUSTOS RETIDOS — A UNIDADE NAO BATE COM A DO CADASTRO  (1)
     <<< E AQUI QUE O CADASTRO PODERIA PASSAR A MENTIR. ESTES NAO FORAM
         ATUALIZADOS: a carga segurou o custo e esta devolvendo a decisao.
 
     PRODUTO                          SETOR          UN-CAD UN-PLAN    CADASTRO     OUTUBRO         %  CELULA
-    BARBECUE DE GOIABADA 600GR       Cozinha        UND    KG         17.0800     11.3600   -33.49%  Molhos!A3
-    GRÃO DE BICO                     Cozinha        UND    KG         13.2000     13.8000    +4.55%  Geral!H24
     MOLHO SHOYO (1lt)                Cozinha        UND    LTS        18.0800     15.9000   -12.06%  Geral!H51
 
     O caso que ensinou a regra, para a decisao ficar concreta:
@@ -335,7 +366,7 @@ se muda produto de setor sem a cliente decidir.
    logo o total nao se move.
 
 ------------------------------------------------------------------------------
-14. PRODUTOS DO CATALOGO SEM LINHA EM OUTUBRO  (9 de 868)
+14. PRODUTOS DO CATALOGO SEM LINHA EM OUTUBRO  (11 de 868)
 ------------------------------------------------------------------------------
 Nao foram desativados nem apagados: a contagem de outubro simplesmente nao
 os lista. O cadastro e o historico de agosto continuam intactos.
@@ -346,11 +377,13 @@ os lista. O cadastro e o historico de agosto continuam intactos.
    CHIMICHURRI                                  MERCEARIA                Cozinha        custo 45.0
    ERVILHA SECA                                 MERCEARIA                Cozinha        custo 5.9
    FEIJÃO BRANCO                                MERCEARIA                Cozinha        custo 10.99
+   GRÃO DE BICO                                 MERCEARIA                Cozinha        custo 13.2
    MASSA LASANHA                                MERCEARIA                Cozinha        custo 14.4
+   BARBECUE DE GOIABADA 600GR                   MOLHOS                   Cozinha        custo 17.08
    FIGADO                                       PROTEÍNAS CLIENTE        Cozinha        custo 8.43
    ZIMBRO                                       TEMPEROS E AFINS         Cozinha        custo 299.8
 
-   por categoria: HORTIFRUTI=1, MERCEARIA=6, PROTEÍNAS CLIENTE=1, TEMPEROS E AFINS=1
+   por categoria: HORTIFRUTI=1, MERCEARIA=7, MOLHOS=1, PROTEÍNAS CLIENTE=1, TEMPEROS E AFINS=1
 
 ------------------------------------------------------------------------------
 15. FORA DA CONTAGEM, DE PROPOSITO

@@ -15,7 +15,7 @@
 -- 4 setores ativos continuam os mesmos; nenhuma categoria nova foi criada.
 --
 -- O que este arquivo faz:
---     9 produtos novos (e 9 vinculos produto x setor novos)
+--    11 produtos novos (e 11 vinculos produto x setor novos)
 --    26 custos de vinculo atualizados para os precos de outubro
 --       (25 subiram, 1 cairam; custo ZERO na planilha nao sobrescreve
 --        custo real — zero e "linha nao precificada", nao "de graca")
@@ -103,13 +103,15 @@ begin
 end $$;
 -- @fim:precondicoes
 
--- Os 9 produtos que outubro trouxe e agosto nao tinha. Cada um entra numa
+-- Os 11 produtos que outubro trouxe e agosto nao tinha. Cada um entra numa
 -- das 21 categorias que ja existem, e no setor em que essa categoria vive hoje:
 --   · ALCAPARRAS — MERCEARIA / Cozinha — KG R$ 74.9 (Geral!H10)
+--   · BARBECUE DE GOIABADA (KG) — MOLHOS / Cozinha — KG R$ 11.36 (Molhos!A3)
 --   · CANELA EM PÓ — MERCEARIA / Cozinha — KG R$ 48 (Geral!H21)
 --   · CUPIM — PROTEÍNAS CLIENTE / Cozinha — KG R$ 31.47 (Geral!A14)
 --   · FARINHA DE KIBE — MERCEARIA / Cozinha — KG R$ 5.9 (Geral!H26)
 --   · FEIJÃO CARIOCA — MERCEARIA / Cozinha — KG R$ 9.65 (Geral!H33)
+--   · GRÃO DE BICO (KG) — MERCEARIA / Cozinha — KG R$ 13.8 (Geral!H24)
 --   · LENTILHA — MERCEARIA / Cozinha — UND R$ 7.45 (Geral!H43)
 --   · MOSTARDA ESCURA (3,100) — MERCEARIA / Cozinha — UND R$ 47.4 (Geral!H55)
 --   · NIRÁ — HORTIFRUTI / Cozinha — UND R$ 42 (Hortifruti!A71)
@@ -120,10 +122,12 @@ end $$;
 -- @bloco:produtos_novos
 insert into produtos (id, restaurante_id, categoria_id, nome, unidade, custo_medio, custo_atualizado_em) values
   ('91d1be2a-67ee-5bd6-8407-6baa72eaa5d7', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'ALCAPARRAS', 'KG', 74.9, '2026-10-01 23:59:00-03'::timestamptz),
+  ('035e4add-c354-58e3-a0b8-f5de8bb8e0d7', 'b0a12eca-0000-4000-8000-000000000001', '5d3fdd64-e6e6-56f1-91f6-7c4f96dbf811', 'BARBECUE DE GOIABADA (KG)', 'KG', 11.36, '2026-10-01 23:59:00-03'::timestamptz),
   ('8920ea55-3eab-5152-9edd-28891b32101d', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'CANELA EM PÓ', 'KG', 48, '2026-10-01 23:59:00-03'::timestamptz),
   ('e9ea8342-5254-5c32-897b-7ca432c80b79', 'b0a12eca-0000-4000-8000-000000000001', 'a384c88a-08b3-516a-9336-b08527a69b48', 'CUPIM', 'KG', 31.47, '2026-10-01 23:59:00-03'::timestamptz),
   ('c7f0c817-62e9-5809-bc27-9f068af99220', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'FARINHA DE KIBE', 'KG', 5.9, '2026-10-01 23:59:00-03'::timestamptz),
   ('9959d999-3e4a-5dcf-9605-aec9bfe8b039', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'FEIJÃO CARIOCA', 'KG', 9.65, '2026-10-01 23:59:00-03'::timestamptz),
+  ('9962b08b-0b13-5a2e-a13d-57167bc99df5', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'GRÃO DE BICO (KG)', 'KG', 13.8, '2026-10-01 23:59:00-03'::timestamptz),
   ('2488f153-b644-5276-8941-d533bd3f17c3', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'LENTILHA', 'UND', 7.45, '2026-10-01 23:59:00-03'::timestamptz),
   ('0650c4cc-231a-52aa-9a1c-e9340869d6b1', 'b0a12eca-0000-4000-8000-000000000001', '156b289f-4bb4-5914-8190-08695ef3e83c', 'MOSTARDA ESCURA (3,100)', 'UND', 47.4, '2026-10-01 23:59:00-03'::timestamptz),
   ('86f6cf42-8762-5530-aff5-f45c1ec67f71', 'b0a12eca-0000-4000-8000-000000000001', '3a614052-826e-58a0-856b-bbfe118fe9f8', 'NIRÁ', 'UND', 42, '2026-10-01 23:59:00-03'::timestamptz),
@@ -140,10 +144,12 @@ on conflict (id) do update set
 -- @bloco:vinculos_novos
 insert into produto_setores (produto_id, setor_id, unidade, custo, ordem, custo_fixo, custo_atualizado_em) values
   ('91d1be2a-67ee-5bd6-8407-6baa72eaa5d7', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 74.9, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
+  ('035e4add-c354-58e3-a0b8-f5de8bb8e0d7', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 11.36, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
   ('8920ea55-3eab-5152-9edd-28891b32101d', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 48, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
   ('e9ea8342-5254-5c32-897b-7ca432c80b79', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 31.47, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
   ('c7f0c817-62e9-5809-bc27-9f068af99220', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 5.9, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
   ('9959d999-3e4a-5dcf-9605-aec9bfe8b039', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 9.65, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
+  ('9962b08b-0b13-5a2e-a13d-57167bc99df5', '19a7379f-949c-565a-b11d-16eaf91dab37', 'KG', 13.8, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
   ('2488f153-b644-5276-8941-d533bd3f17c3', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 7.45, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
   ('0650c4cc-231a-52aa-9a1c-e9340869d6b1', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 47.4, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
   ('86f6cf42-8762-5530-aff5-f45c1ec67f71', '19a7379f-949c-565a-b11d-16eaf91dab37', 'UND', 42, 2, false, '2026-10-01 23:59:00-03'::timestamptz),
@@ -175,7 +181,7 @@ on conflict (produto_id, setor_id) do update set
 --
 -- A lista completa, com custo anterior, custo novo, diferenca e percentual,
 -- esta na secao 8 de dados/RELATORIO-OUTUBRO.txt. As variacoes acima de +/-50%
--- e as 8 linhas em que a unidade de outubro difere da do cadastro estao
+-- e as 6 linhas em que a unidade de outubro difere da do cadastro estao
 -- destacadas na secao 9, para a cliente revisar de olho aberto.
 -- ---------------------------------------------------------------------------
 -- @bloco:custos_vinculos
@@ -896,7 +902,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '4d226279-1aa2-52dd-8866-fec0c2c0d625', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 19.75),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '54b70cce-8431-52ab-a172-52cd09aba15d', '19a7379f-949c-565a-b11d-16eaf91dab37', 4, 'KG', 3.5),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'd8052992-5d1c-5d9a-8ae1-9a8f03ea74bc', '19a7379f-949c-565a-b11d-16eaf91dab37', 2, 'UND', 26.95),
-  ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'cc31ed51-f9c3-5d80-9362-7cd05c8823d1', '19a7379f-949c-565a-b11d-16eaf91dab37', 2, 'KG', 13.8),
+  ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '9962b08b-0b13-5a2e-a13d-57167bc99df5', '19a7379f-949c-565a-b11d-16eaf91dab37', 2, 'KG', 13.8),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '1ec2486f-ef4c-55cc-af4b-2f9c9c403054', '19a7379f-949c-565a-b11d-16eaf91dab37', 2.5, 'KG', 40.98),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'd4e43739-2482-5dc9-951a-348acc46a4f3', '19a7379f-949c-565a-b11d-16eaf91dab37', 2, 'UND', 27.58),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'f1e2e805-1415-55d7-abe2-c1b5a4342900', '19a7379f-949c-565a-b11d-16eaf91dab37', 2, 'CX', 21.53),
@@ -939,7 +945,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'c7a2520e-4112-5968-a2a0-5826c9c5d25f', '19a7379f-949c-565a-b11d-16eaf91dab37', 4, 'UND', 181.5),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'c65d4802-dedd-5790-9dcc-8315a7835c82', '19a7379f-949c-565a-b11d-16eaf91dab37', 29, 'UND', 7.7),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'd11f2374-bef0-5e32-852f-e293685e6dea', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'LTS', 7.8),
-  ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '8c654692-7e3b-54f9-b3ff-6222caec95ea', '19a7379f-949c-565a-b11d-16eaf91dab37', 3.45, 'KG', 11.36),
+  ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '035e4add-c354-58e3-a0b8-f5de8bb8e0d7', '19a7379f-949c-565a-b11d-16eaf91dab37', 3.45, 'KG', 11.36),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '9cceda95-e9ea-50e3-9d0f-59a72056c823', '19a7379f-949c-565a-b11d-16eaf91dab37', 8.45, 'KG', 16.07),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'e3609169-b7ab-5bd1-a5ba-20e37a1c7ea6', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'KG', 0),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '338b1ed7-6519-5ecf-83fe-c173a8c39f9d', '19a7379f-949c-565a-b11d-16eaf91dab37', 11.6, 'KG', 17.31),
@@ -1256,13 +1262,13 @@ begin
     raise exception '0003: % itens na contagem de outubro, esperado 868', v_itens;
   end if;
 
-  -- 877 = os 868 produtos que a 0001/0002 deixaram + os 9 de outubro.
-  if v_produtos <> 877 then
-    raise exception '0003: % produtos cadastrados, esperado 877', v_produtos;
+  -- 879 = os 868 produtos que a 0001/0002 deixaram + os 11 de outubro.
+  if v_produtos <> 879 then
+    raise exception '0003: % produtos cadastrados, esperado 879', v_produtos;
   end if;
 
-  if v_vinculos <> 877 then
-    raise exception '0003: % vinculos produto x setor, esperado 877', v_vinculos;
+  if v_vinculos <> 879 then
+    raise exception '0003: % vinculos produto x setor, esperado 879', v_vinculos;
   end if;
 
   if v_categorias <> 21 then
