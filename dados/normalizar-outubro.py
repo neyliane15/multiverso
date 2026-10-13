@@ -22,6 +22,7 @@ import collections
 import json
 import os
 import re
+import statistics
 import unicodedata
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -308,11 +309,34 @@ for par, n in pares.items():
         raise SystemExit(f'par produto x setor repetido depois do casamento: {par} ({n}x)')
 
 # ----------------------------------------------- 4. os custos do cadastro ---
-# A cliente pediu para atualizar. Regras: so custo > 0 sobrescreve (zero na
-# planilha e "linha nao precificada", nao "de graca"); custo_fixo NAO bloqueia,
-# porque a planilha de outubro e justamente a planilha da casa.
+# A cliente pediu para atualizar. Tres regras, e a terceira nasceu de um erro
+# que esta carga chegou a cometer:
+#
+#   1. so custo > 0 sobrescreve. Zero na planilha e "linha nao precificada",
+#      nao "de graca" — em agosto categorias inteiras fecharam em R$ 0,00.
+#
+#   2. custo_fixo NAO bloqueia, porque a planilha de outubro e justamente a
+#      planilha da casa: as abas Porcionados, Massas e Molhos sao onde os
+#      custos proprios da casa sao mantidos.
+#
+#   3. unidade da planilha diferente da unidade do cadastro RETEM a
+#      atualizacao. Esta e a regra nova. Custo so se compara com custo quando
+#      os dois dividem pelo mesmo denominador: BARBECUE DE GOIABADA 600GR foi
+#      contado em 8 PORCOES a R$ 17,08 em agosto e em 3,45 KG a R$ 11,36 em
+#      outubro, e gravar R$ 11,36 num cadastro que diz UND faz o sistema
+#      afirmar que um pote de 600 g custa o preco de um quilo. Nao e queda de
+#      preco de 33%: e preco de porcao contra preco de quilo. Esses pares nao
+#      entram na atualizacao; saem listados para a cliente dizer qual unidade
+#      e a verdadeira, e o custo entra no mes seguinte ja resolvido.
+#
+# A regra 3 e deliberadamente mais larga do que o estrago conhecido: ela
+# tambem retem caso em que os numeros provavelmente SE comparam (MOLHO SHOYO,
+# cadastro em UND e planilha em LTS, sendo a mesma garrafa de 1 litro). Reter
+# um custo certo custa uma linha de relatorio; gravar um custo errado custa
+# CMV de ficha tecnica ate alguem perceber.
 custos = []
 custos_zerados = []
+custos_retidos = []
 custos_iguais = 0
 
 for l in sorted(linhas, key=lambda x: (x['produto'], x['setor'])):
@@ -329,6 +353,16 @@ for l in sorted(linhas, key=lambda x: (x['produto'], x['setor'])):
         continue
     if abs(novo_custo - anterior) <= 1e-6:
         custos_iguais += 1
+        continue
+    if l['unidade_cadastro'] != l['unidade']:
+        # Regra 3: denominadores diferentes, numeros incomparaveis.
+        custos_retidos.append({
+            'produto': l['produto'], 'setor': l['setor'], 'categoria': l['categoria'],
+            'unidade_cadastro': l['unidade_cadastro'], 'unidade_outubro': l['unidade'],
+            'custo_cadastro': anterior, 'custo_outubro': novo_custo,
+            'percentual': round((novo_custo - anterior) / anterior * 100, 2) if anterior else None,
+            'aba': l['aba'], 'origem': l['origem'],
+        })
         continue
     diferenca = round(novo_custo - anterior, 6)
     percentual = round(diferenca / anterior * 100, 2) if anterior else None
@@ -433,6 +467,7 @@ saida = {
                    for n in categorias_usadas],
     'produtos_novos': sorted(novos.values(), key=lambda p: p['nome']),
     'custos_atualizados': custos,
+    'custos_retidos_por_unidade': custos_retidos,
     'custo_medio_atualizado': custo_medio_novo,
     'custo_fixo_recalculado': custo_fixo_planejado,
     'custos_nao_atualizados_por_zero': custos_zerados,
@@ -470,6 +505,42 @@ with open(DEST, 'w') as fh:
 def rel(linhas_txt):
     return '\n'.join(linhas_txt)
 
+
+# ---- insumos da secao 9 do relatorio -----------------------------------------
+# Divergencia de unidade SEM mudanca de custo: o cadastro nao foi tocado, so a
+# unidade fica a confirmar. As com mudanca de custo estao em custos_retidos.
+_retidos = {(c['produto'], c['setor']) for c in custos_retidos}
+so_unidade = [u for u in unidades_divergentes if (u['produto'], u['setor']) not in _retidos]
+
+# Preco de fardo digitado em linha de unidade. Compara cada item com os IRMAOS
+# da mesma familia de produto (as duas primeiras palavras do nome) e mesma
+# unidade: a mediana da categoria inteira e diluida demais para enxergar isso.
+# 50x e o corte que separa o defeito real do fardo legitimo — "SACO DE 60L
+# (FARDO C/100)" a R$ 60,10 e preco certo de um fardo de 100 e nao pode entrar.
+def _familia(nome):
+    t = unicodedata.normalize('NFKD', nome.upper())
+    t = ''.join(ch for ch in t if not unicodedata.combining(ch)).split('(')[0]
+    return ' '.join(re.sub(r'[^A-Z0-9]+', ' ', t).split()[:2])
+
+_por_familia = collections.defaultdict(list)
+for l in linhas:
+    if l['custo_unitario'] > 0:
+        _por_familia[(_familia(l['produto']), l['unidade'])].append(l)
+
+embalagem = []
+for _chave, _irmaos in _por_familia.items():
+    if len(_irmaos) < 3:
+        continue
+    _med = statistics.median(x['custo_unitario'] for x in _irmaos)
+    if _med <= 0:
+        continue
+    for x in _irmaos:
+        if x['custo_unitario'] >= 50 * _med:
+            embalagem.append({'produto': x['produto'], 'categoria': x['categoria'],
+                              'unidade': x['unidade'], 'custo': x['custo_unitario'],
+                              'mediana': _med, 'quantidade': x['quantidade'],
+                              'total': x['total'], 'origem': x['origem']})
+embalagem.sort(key=lambda e: -e['total'])
 
 L = []
 A = L.append
@@ -598,7 +669,9 @@ A('8. CUSTOS DO CADASTRO — ATUALIZADOS (%d)' % len(custos))
 A('-' * 78)
 A('A cliente pediu: "Atualize os custos tambem". produto_setores.custo passa a')
 A('ser o custo de outubro e custo_atualizado_em recebe %s.' % CARGA_EM)
-A('Custo ZERO na planilha nao sobrescreve custo real (secao 9c).')
+A('Custo ZERO na planilha nao sobrescreve custo real (secao 9d), e custo cuja')
+A('unidade nao bate com a do cadastro fica RETIDO (secao 9a) — numero com')
+A('denominador diferente nao se compara com o anterior.')
 A('')
 sobe = [c for c in custos if c['diferenca'] > 0]
 cai = [c for c in custos if c['diferenca'] < 0]
@@ -606,6 +679,7 @@ A('   subiram ................................... %d' % len(sobe))
 A('   cairam .................................... %d' % len(cai))
 A('   ficaram iguais (nao entram no update) ..... %d' % custos_iguais)
 A('   nao atualizados por serem zero na planilha  %d' % len(custos_zerados))
+A('   RETIDOS por unidade incompativel (secao 9a)  %d' % len(custos_retidos))
 A('   produtos novos (custo nasce da planilha) .. %d' % len(novos))
 A('')
 A('   %-32s %-14s %-5s %-5s %11s %11s %11s %9s'
@@ -619,47 +693,87 @@ A('')
 A('   produtos.custo_medio atualizado (custo do setor principal): %d' % len(custo_medio_novo))
 A('')
 A('-' * 78)
-A('9. CUSTOS QUE PEDEM O OLHO DA CLIENTE')
+A('9. CUSTOS: O QUE PEDE DECISAO, E O QUE E SO HISTORICO')
 A('-' * 78)
 A('')
-grandes = [c for c in custos if c['percentual'] is not None and abs(c['percentual']) > 50]
-A('9a. VARIACAO ACIMA DE +/-50%%  (%d)' % len(grandes))
-A('    Variacao desse tamanho quase nunca e aumento de preco: e mudanca de')
-A('    unidade na planilha (de KG para UND, de garrafa para caixa), e aí os dois')
-A('    custos nem sao comparaveis.')
-if grandes:
+A('Variacao de preco NAO e problema e nao pede confirmacao de ninguem: o custo')
+A('oscila por fornecedor e por inflacao, o custo de agosto fica em agosto e o de')
+A('outubro em outubro — cada contagem guarda o proprio custo_unitario, linha por')
+A('linha. Problema e quando o numero NAO E PRECO: quando a unidade da planilha e')
+A('a do cadastro sao diferentes e os dois valores dividem por denominadores')
+A('diferentes. E so isso que esta secao cobra.')
+A('')
+A('9a. CUSTOS RETIDOS — A UNIDADE NAO BATE COM A DO CADASTRO  (%d)' % len(custos_retidos))
+A('    <<< E AQUI QUE O CADASTRO PODERIA PASSAR A MENTIR. ESTES NAO FORAM')
+A('        ATUALIZADOS: a carga segurou o custo e esta devolvendo a decisao.')
+if custos_retidos:
     A('')
-    A('    %-32s %-14s %-5s %-5s %11s %11s %9s'
-      % ('PRODUTO', 'SETOR', 'UN-C', 'UN-O', 'ANTERIOR', 'OUTUBRO', '%'))
-    for c in sorted(grandes, key=lambda x: -abs(x['percentual'])):
-        A('    %-32s %-14s %-5s %-5s %11.4f %11.4f %+8.2f%%   %s'
+    A('    %-32s %-14s %-6s %-6s %11s %11s %9s  %s'
+      % ('PRODUTO', 'SETOR', 'UN-CAD', 'UN-PLAN', 'CADASTRO', 'OUTUBRO', '%', 'CELULA'))
+    for c in sorted(custos_retidos, key=lambda x: x['produto']):
+        A('    %-32s %-14s %-6s %-6s %11.4f %11.4f %+8.2f%%  %s'
           % (c['produto'][:32], c['setor'], c['unidade_cadastro'], c['unidade_outubro'],
-             c['custo_anterior'], c['custo_outubro'], c['percentual'],
-             'UNIDADE MUDOU' if c['unidade_divergente'] else ''))
-else:
-    A('    nenhuma')
-A('')
-A('9b. UNIDADE DE OUTUBRO DIFERENTE DA UNIDADE DO CADASTRO  (%d)' % len(unidades_divergentes))
-A('    Esta e a bandeira vermelha de verdade: trocar o custo sem trocar a')
-A('    unidade (ou o contrario) deixa o cadastro mentindo.')
-A('')
-A('    A unidade do cadastro NAO foi sobrescrita, de proposito. Nas abas')
-A('    Porcionados / Massas / Molhos a unidade e derivada de "a linha tem numero')
-A('    na coluna PORCAO?" — ou seja, muda conforme a casa contou ou nao aquele')
-A('    item no mes. Deixar essa regra reescrever o cadastro estragaria o')
-A('    cadastro em vez de corrigi-lo. Decisao de unidade e da cliente.')
-if unidades_divergentes:
+             c['custo_cadastro'], c['custo_outubro'],
+             c['percentual'] if c['percentual'] is not None else 0.0, c['origem']))
     A('')
-    A('    %-32s %-14s %-6s %-6s %11s %11s %-13s %s'
-      % ('PRODUTO', 'SETOR', 'UN-CAD', 'UN-OUT', 'CUSTO-CAD', 'CUSTO-OUT', 'ABA', 'CELULA'))
-    for u in unidades_divergentes:
-        A('    %-32s %-14s %-6s %-6s %11.4f %11.4f %-13s %s'
+    A('    O caso que ensinou a regra, para a decisao ficar concreta:')
+    A('    BARBECUE DE GOIABADA 600GR foi contado em agosto como 8 na coluna')
+    A('    PORCOES a R$ 17,08, e em outubro como 3,45 na coluna ESTOQUE/KG a')
+    A('    R$ 11,36. Os "-33%" nao sao queda de preco: e preco de porcao contra')
+    A('    preco de quilo. Gravar R$ 11,36 num cadastro que diz UND faria o')
+    A('    sistema afirmar que um pote de 600 g custa o preco de um quilo —')
+    A('    600 g a R$ 11,36/kg dariam R$ 6,82. A decisao e entre "KG, R$ 11,36" e')
+    A('    "UND, R$ 6,82", e a planilha nao responde isso sozinha.')
+    A('')
+    A('    MOLHO SHOYO esta retido por prudencia, nao por duvida real: cadastro em')
+    A('    UND, planilha em LTS, e e a mesma garrafa de 1 litro, entao os numeros')
+    A('    provavelmente se comparam. Reter um custo certo custa uma linha deste')
+    A('    relatorio; gravar um errado custa CMV de ficha tecnica.')
+else:
+    A('    nenhum')
+A('')
+A('9b. UNIDADE DIFERENTE, MAS CUSTO IGUAL NOS DOIS  (%d)' % len(so_unidade))
+A('    Nada foi alterado no cadastro — o custo e o mesmo numero. Fica so a')
+A('    unidade a confirmar na tela de Produtos, quando sobrar tempo.')
+A('')
+A('    Nas abas Porcionados / Massas / Molhos a unidade nao vem escrita: ela e')
+A('    derivada de "a linha tem numero na coluna PORCAO?", ou seja muda conforme')
+A('    a casa contou ou nao aquele item naquele mes. Por isso a unidade do')
+A('    cadastro nunca e sobrescrita por esta carga: deixar essa regra reescrever')
+A('    o cadastro estragaria o cadastro em vez de corrigi-lo.')
+if so_unidade:
+    A('')
+    A('    %-32s %-14s %-6s %-6s %11s  %-13s %s'
+      % ('PRODUTO', 'SETOR', 'UN-CAD', 'UN-PLAN', 'CUSTO', 'ABA', 'CELULA'))
+    for u in so_unidade:
+        A('    %-32s %-14s %-6s %-6s %11.4f  %-13s %s'
           % (u['produto'][:32], u['setor'], u['unidade_cadastro'], u['unidade_outubro'],
-             u['custo_cadastro'], u['custo_outubro'], u['aba'], u['origem']))
+             u['custo_cadastro'], u['aba'], u['origem']))
+A('')
+A('9c. NUMERO DE EMBALAGEM LANCADO COMO NUMERO DE UNIDADE  (%d)' % len(embalagem))
+A('    Linhas cujo custo e pelo menos 50x a mediana dos irmaos da MESMA familia')
+A('    de produto e MESMA unidade. Esse padrao costuma ser preco de fardo ou de')
+A('    caixa digitado numa linha que diz UND.')
+A('')
+A('    Nada aqui foi alterado por esta carga: estes custos sao identicos aos de')
+A('    agosto e aos do cadastro. E defeito da planilha de origem, anterior a')
+A('    outubro — por isso entra como aviso, nao como mudanca.')
+if embalagem:
+    A('')
+    A('    %-32s %-20s %-5s %11s %10s %9s %11s  %s'
+      % ('PRODUTO', 'CATEGORIA', 'UN', 'CUSTO', 'MEDIANA', 'QTD', 'NO TOTAL', 'CELULA'))
+    for e in embalagem:
+        A('    %-32s %-20s %-5s %11.2f %10.4f %9.4f %11.2f  %s'
+          % (e['produto'][:32], e['categoria'], e['unidade'], e['custo'], e['mediana'],
+             e['quantidade'], e['total'], e['origem']))
+    A('')
+    A('    O que vale dinheiro agora e so a linha com quantidade > 0. As de')
+    A('    quantidade zero nao entram no total deste mes, mas valorizariam')
+    A('    qualquer contagem futura desse item.')
 else:
     A('    nenhuma')
 A('')
-A('9c. CUSTO QUE CAIRIA DE VALOR REAL PARA ZERO  (%d)' % len(custos_zerados))
+A('9d. CUSTO QUE CAIRIA DE VALOR REAL PARA ZERO  (%d)' % len(custos_zerados))
 A('    Nao foi atualizado: zero na planilha significa "linha nao precificada".')
 if custos_zerados:
     A('')
@@ -671,6 +785,24 @@ if custos_zerados:
              z['custo_cadastro'], z['origem']))
 else:
     A('    nenhum')
+A('')
+A('9e. HISTORICO DE PRECO — INFORMACAO, NAO PENDENCIA  (%d custos alterados)' % len(custos))
+A('    Estas linhas sao o historico de preco de outubro. Nao pedem confirmacao:')
+A('    o custo de agosto continua valendo em agosto e o de outubro passa a valer')
+A('    em outubro. Todas tem a MESMA unidade no cadastro e na planilha — as que')
+A('    nao tinham estao retidas na 9a.')
+A('')
+maiores = sorted([c for c in custos if c['percentual'] is not None],
+                 key=lambda x: -abs(x['percentual']))[:10]
+if maiores:
+    A('    As maiores variacoes:')
+    A('')
+    A('    %-32s %-14s %-5s %11s %11s %9s  %s'
+      % ('PRODUTO', 'SETOR', 'UN', 'ANTERIOR', 'OUTUBRO', '%', 'CELULA'))
+    for c in maiores:
+        A('    %-32s %-14s %-5s %11.4f %11.4f %+8.2f%%  %s'
+          % (c['produto'][:32], c['setor'], c['unidade_cadastro'],
+             c['custo_anterior'], c['custo_outubro'], c['percentual'], c['origem']))
 A('')
 A('-' * 78)
 A('10. custo_fixo RECALCULADO')

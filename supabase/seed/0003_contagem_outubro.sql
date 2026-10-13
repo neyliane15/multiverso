@@ -16,10 +16,10 @@
 --
 -- O que este arquivo faz:
 --     9 produtos novos (e 9 vinculos produto x setor novos)
---    29 custos de vinculo atualizados para os precos de outubro
---       (26 subiram, 3 cairam; custo ZERO na planilha nao sobrescreve
+--    26 custos de vinculo atualizados para os precos de outubro
+--       (25 subiram, 1 cairam; custo ZERO na planilha nao sobrescreve
 --        custo real — zero e "linha nao precificada", nao "de graca")
---    29 produtos com custo_medio atualizado (custo do setor principal)
+--    26 produtos com custo_medio atualizado (custo do setor principal)
 --     0 vinculos com custo_fixo recalculado
 --   868 itens de contagem (342 com quantidade maior que zero)
 --
@@ -161,7 +161,7 @@ on conflict (produto_id, setor_id) do update set
 -- Decisao da cliente ("atualize os custos tambem"). Tres cuidados que estao na
 -- clausula where e nao no comentario:
 --
---   1. so entram na lista os 29 pares cujo custo de outubro e MAIOR QUE ZERO e
+--   1. so entram na lista os 26 pares cujo custo de outubro e MAIOR QUE ZERO e
 --      diferente do atual. Zero na planilha e "linha nao precificada" — em
 --      agosto categorias inteiras (APARAS, PROTEINAS FUNCIONARIO, SORVETES)
 --      fecharam em R$ 0,00, e deixar isso virar custo apagaria preco real;
@@ -185,7 +185,6 @@ update produto_setores ps
     ('185a14a5-42fe-52ef-9e2d-98780c8a7317', '19a7379f-949c-565a-b11d-16eaf91dab37', 27.9),  -- ALECRIM (HORTIFRUTI) · Cozinha · KG · 35.5 -> 27.9 (-21.41%)
     ('4ea9c961-eee6-5d6d-ace3-48b350c52965', '19a7379f-949c-565a-b11d-16eaf91dab37', 30.5),  -- ALFACE AMERICANA · Cozinha · KG · 8.16 -> 30.5 (+273.77%)
     ('035df35a-3b86-5ba5-af0e-202305f58947', '19a7379f-949c-565a-b11d-16eaf91dab37', 4.97),  -- ARROZ PARBOILIZADO · Cozinha · KG · 3.92 -> 4.97 (+26.79%)
-    ('8c654692-7e3b-54f9-b3ff-6222caec95ea', '19a7379f-949c-565a-b11d-16eaf91dab37', 11.36),  -- BARBECUE DE GOIABADA 600GR · Cozinha · UND · 17.08 -> 11.36 (-33.49%) · UNIDADE DIVERGE: planilha em KG
     ('9cceda95-e9ea-50e3-9d0f-59a72056c823', '19a7379f-949c-565a-b11d-16eaf91dab37', 16.07),  -- BOBO DE CAMARÃO 400gr · Cozinha · KG · 14.06 -> 16.07 (+14.3%)
     ('f74461b4-33c2-5b32-aabe-b717a62f3b6d', '19a7379f-949c-565a-b11d-16eaf91dab37', 28.55),  -- BROCOLIS · Cozinha · UND · 11 -> 28.55 (+159.55%)
     ('cc83f357-7621-58d0-955d-d0e4991e92aa', '19a7379f-949c-565a-b11d-16eaf91dab37', 53.55),  -- BRÓCOLIS AMERICANO · Cozinha · UND · 19.9 -> 53.55 (+169.1%)
@@ -196,11 +195,9 @@ update produto_setores ps
     ('87c945e4-cb26-5333-a93e-16d6a01e2a87', '19a7379f-949c-565a-b11d-16eaf91dab37', 42.9),  -- FILÉ DE TILÁPIA · Cozinha · KG · 41.5 -> 42.9 (+3.37%)
     ('34460fc8-97a7-55d0-b8a6-d8c258b0f5ea', '19a7379f-949c-565a-b11d-16eaf91dab37', 10.15),  -- FRANGO A PASSARINHO · Cozinha · UND · 6.43 -> 10.15 (+57.85%)
     ('02838b3e-7653-59c2-9112-0e72888864a4', '19a7379f-949c-565a-b11d-16eaf91dab37', 9.48),  -- GELEIA DE PIMENTA 600GR · Cozinha · KG · 8.99 -> 9.48 (+5.45%)
-    ('cc31ed51-f9c3-5d80-9362-7cd05c8823d1', '19a7379f-949c-565a-b11d-16eaf91dab37', 13.8),  -- GRÃO DE BICO · Cozinha · UND · 13.2 -> 13.8 (+4.55%) · UNIDADE DIVERGE: planilha em KG
     ('3c99acda-e717-5aa7-98fb-a0c4c38ff3ed', '19a7379f-949c-565a-b11d-16eaf91dab37', 5.74),  -- LEITE INTEGRAL (1lts) · Cozinha · UND · 5.7 -> 5.74 (+0.7%)
     ('8a6b0418-c3d8-57fe-9e71-80f30ce622d9', '19a7379f-949c-565a-b11d-16eaf91dab37', 14.1),  -- MASSA FUNCIONÁRIO (1kg) · Cozinha · KG · 5.68 -> 14.1 (+148.24%)
     ('b6397ef5-3551-5712-a3c2-dae5abb37007', '19a7379f-949c-565a-b11d-16eaf91dab37', 11.22),  -- MOLHO DE TOMATE E MANJERICÃO · Cozinha · KG · 7.4 -> 11.22 (+51.62%)
-    ('d11f6aba-42c1-5545-a400-b239eddd9d24', '19a7379f-949c-565a-b11d-16eaf91dab37', 15.9),  -- MOLHO SHOYO (1lt) · Cozinha · UND · 18.08 -> 15.9 (-12.06%) · UNIDADE DIVERGE: planilha em LTS
     ('9693737a-87e4-53d5-8b2e-cfdff05ad438', '19a7379f-949c-565a-b11d-16eaf91dab37', 59.67),  -- MORANGO · Cozinha · UND · 22.02 -> 59.67 (+170.98%)
     ('e738b469-24fd-586c-a989-120e304a0248', '19a7379f-949c-565a-b11d-16eaf91dab37', 34.5),  -- MUSSARELA COMUM · Cozinha · KG · 33.98 -> 34.5 (+1.53%)
     ('f8528782-daae-56e9-93a0-851850871bb7', '19a7379f-949c-565a-b11d-16eaf91dab37', 34.5),  -- MUSSARELA FATIADA · Cozinha · KG · 33.98 -> 34.5 (+1.53%)
@@ -227,7 +224,6 @@ update produtos p
     ('185a14a5-42fe-52ef-9e2d-98780c8a7317', 27.9),  -- ALECRIM (HORTIFRUTI) · setor principal Cozinha · 35.5 -> 27.9
     ('4ea9c961-eee6-5d6d-ace3-48b350c52965', 30.5),  -- ALFACE AMERICANA · setor principal Cozinha · 8.16 -> 30.5
     ('035df35a-3b86-5ba5-af0e-202305f58947', 4.97),  -- ARROZ PARBOILIZADO · setor principal Cozinha · 3.92 -> 4.97
-    ('8c654692-7e3b-54f9-b3ff-6222caec95ea', 11.36),  -- BARBECUE DE GOIABADA 600GR · setor principal Cozinha · 17.08 -> 11.36
     ('9cceda95-e9ea-50e3-9d0f-59a72056c823', 16.07),  -- BOBO DE CAMARÃO 400gr · setor principal Cozinha · 14.06 -> 16.07
     ('f74461b4-33c2-5b32-aabe-b717a62f3b6d', 28.55),  -- BROCOLIS · setor principal Cozinha · 11 -> 28.55
     ('cc83f357-7621-58d0-955d-d0e4991e92aa', 53.55),  -- BRÓCOLIS AMERICANO · setor principal Cozinha · 19.9 -> 53.55
@@ -238,11 +234,9 @@ update produtos p
     ('87c945e4-cb26-5333-a93e-16d6a01e2a87', 42.9),  -- FILÉ DE TILÁPIA · setor principal Cozinha · 41.5 -> 42.9
     ('34460fc8-97a7-55d0-b8a6-d8c258b0f5ea', 10.15),  -- FRANGO A PASSARINHO · setor principal Cozinha · 6.43 -> 10.15
     ('02838b3e-7653-59c2-9112-0e72888864a4', 9.48),  -- GELEIA DE PIMENTA 600GR · setor principal Cozinha · 8.99 -> 9.48
-    ('cc31ed51-f9c3-5d80-9362-7cd05c8823d1', 13.8),  -- GRÃO DE BICO · setor principal Cozinha · 13.2 -> 13.8
     ('3c99acda-e717-5aa7-98fb-a0c4c38ff3ed', 5.74),  -- LEITE INTEGRAL (1lts) · setor principal Cozinha · 5.7 -> 5.74
     ('8a6b0418-c3d8-57fe-9e71-80f30ce622d9', 14.1),  -- MASSA FUNCIONÁRIO (1kg) · setor principal Cozinha · 5.68 -> 14.1
     ('b6397ef5-3551-5712-a3c2-dae5abb37007', 11.22),  -- MOLHO DE TOMATE E MANJERICÃO · setor principal Cozinha · 7.4 -> 11.22
-    ('d11f6aba-42c1-5545-a400-b239eddd9d24', 15.9),  -- MOLHO SHOYO (1lt) · setor principal Cozinha · 18.08 -> 15.9
     ('9693737a-87e4-53d5-8b2e-cfdff05ad438', 59.67),  -- MORANGO · setor principal Cozinha · 22.02 -> 59.67
     ('e738b469-24fd-586c-a989-120e304a0248', 34.5),  -- MUSSARELA COMUM · setor principal Cozinha · 33.98 -> 34.5
     ('f8528782-daae-56e9-93a0-851850871bb7', 34.5),  -- MUSSARELA FATIADA · setor principal Cozinha · 33.98 -> 34.5
@@ -308,7 +302,7 @@ delete from contagem_itens i
 --
 -- custo_unitario e o custo DA PLANILHA DE OUTUBRO, linha por linha. E ele que
 -- da valor a contagem e alimenta o CMV, e e o mesmo numero que acabou de ser
--- gravado no cadastro nos 29 pares que mudaram de preco.
+-- gravado no cadastro nos 26 pares que mudaram de preco.
 -- @bloco:contagem_itens
 insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario) values
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '11c3c2ce-1adc-5429-92fa-5269e2ac6e32', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 152.9),
@@ -1283,7 +1277,7 @@ begin
     raise exception '0003: a contagem de 2026-10-01 ficou com status %, esperado fechada', v_status;
   end if;
 
-  -- Os custos: os 29 pares da lista tem de existir e tem de estar valendo o
+  -- Os custos: os 26 pares da lista tem de existir e tem de estar valendo o
   -- preco de outubro. Um id errado faria o update casar zero linhas e a carga
   -- "passar" sem ter atualizado nada — isto e o que impede esse silencio.
   select count(*), count(*) filter (where ps.custo = x.custo)
@@ -1292,7 +1286,6 @@ begin
       ('185a14a5-42fe-52ef-9e2d-98780c8a7317'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 27.9::numeric),
       ('4ea9c961-eee6-5d6d-ace3-48b350c52965'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 30.5::numeric),
       ('035df35a-3b86-5ba5-af0e-202305f58947'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 4.97::numeric),
-      ('8c654692-7e3b-54f9-b3ff-6222caec95ea'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 11.36::numeric),
       ('9cceda95-e9ea-50e3-9d0f-59a72056c823'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 16.07::numeric),
       ('f74461b4-33c2-5b32-aabe-b717a62f3b6d'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 28.55::numeric),
       ('cc83f357-7621-58d0-955d-d0e4991e92aa'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 53.55::numeric),
@@ -1303,11 +1296,9 @@ begin
       ('87c945e4-cb26-5333-a93e-16d6a01e2a87'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 42.9::numeric),
       ('34460fc8-97a7-55d0-b8a6-d8c258b0f5ea'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 10.15::numeric),
       ('02838b3e-7653-59c2-9112-0e72888864a4'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 9.48::numeric),
-      ('cc31ed51-f9c3-5d80-9362-7cd05c8823d1'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 13.8::numeric),
       ('3c99acda-e717-5aa7-98fb-a0c4c38ff3ed'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 5.74::numeric),
       ('8a6b0418-c3d8-57fe-9e71-80f30ce622d9'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 14.1::numeric),
       ('b6397ef5-3551-5712-a3c2-dae5abb37007'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 11.22::numeric),
-      ('d11f6aba-42c1-5545-a400-b239eddd9d24'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 15.9::numeric),
       ('9693737a-87e4-53d5-8b2e-cfdff05ad438'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 59.67::numeric),
       ('e738b469-24fd-586c-a989-120e304a0248'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 34.5::numeric),
       ('f8528782-daae-56e9-93a0-851850871bb7'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 34.5::numeric),
@@ -1322,11 +1313,11 @@ begin
     join produto_setores ps
       on ps.produto_id = x.produto_id and ps.setor_id = x.setor_id;
 
-  if v_alvos <> 29 then
-    raise exception '0003: % dos 29 pares de custo existem em produto_setores', v_alvos;
+  if v_alvos <> 26 then
+    raise exception '0003: % dos 26 pares de custo existem em produto_setores', v_alvos;
   end if;
-  if v_aplicados <> 29 then
-    raise exception '0003: % dos 29 custos de outubro foram aplicados', v_aplicados;
+  if v_aplicados <> 26 then
+    raise exception '0003: % dos 26 custos de outubro foram aplicados', v_aplicados;
   end if;
 
   -- Nenhum custo do cadastro pode ter virado zero por causa desta carga. A

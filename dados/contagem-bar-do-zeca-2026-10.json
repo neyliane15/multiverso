@@ -308,23 +308,6 @@
    "origem": "Geral!H11"
   },
   {
-   "produto": "BARBECUE DE GOIABADA 600GR",
-   "produto_id": "8c654692-7e3b-54f9-b3ff-6222caec95ea",
-   "setor": "Cozinha",
-   "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
-   "categoria": "MOLHOS",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "KG",
-   "unidade_divergente": true,
-   "custo_anterior": 17.08,
-   "custo_outubro": 11.36,
-   "diferenca": -5.72,
-   "percentual": -33.49,
-   "vinculo_ordem": 5,
-   "custo_fixo_cadastro": false,
-   "origem": "Molhos!A3"
-  },
-  {
    "produto": "BOBO DE CAMARÃO 400gr",
    "produto_id": "9cceda95-e9ea-50e3-9d0f-59a72056c823",
    "setor": "Cozinha",
@@ -495,23 +478,6 @@
    "origem": "Molhos!A16"
   },
   {
-   "produto": "GRÃO DE BICO",
-   "produto_id": "cc31ed51-f9c3-5d80-9362-7cd05c8823d1",
-   "setor": "Cozinha",
-   "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
-   "categoria": "MERCEARIA",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "KG",
-   "unidade_divergente": true,
-   "custo_anterior": 13.2,
-   "custo_outubro": 13.8,
-   "diferenca": 0.6,
-   "percentual": 4.55,
-   "vinculo_ordem": 2,
-   "custo_fixo_cadastro": false,
-   "origem": "Geral!H24"
-  },
-  {
    "produto": "LEITE INTEGRAL (1lts)",
    "produto_id": "3c99acda-e717-5aa7-98fb-a0c4c38ff3ed",
    "setor": "Cozinha",
@@ -561,23 +527,6 @@
    "vinculo_ordem": 5,
    "custo_fixo_cadastro": false,
    "origem": "Molhos!A25"
-  },
-  {
-   "produto": "MOLHO SHOYO (1lt)",
-   "produto_id": "d11f6aba-42c1-5545-a400-b239eddd9d24",
-   "setor": "Cozinha",
-   "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
-   "categoria": "MERCEARIA",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "LTS",
-   "unidade_divergente": true,
-   "custo_anterior": 18.08,
-   "custo_outubro": 15.9,
-   "diferenca": -2.18,
-   "percentual": -12.06,
-   "vinculo_ordem": 2,
-   "custo_fixo_cadastro": false,
-   "origem": "Geral!H51"
   },
   {
    "produto": "MORANGO",
@@ -750,6 +699,44 @@
    "origem": "Molhos!A29"
   }
  ],
+ "custos_retidos_por_unidade": [
+  {
+   "produto": "BARBECUE DE GOIABADA 600GR",
+   "setor": "Cozinha",
+   "categoria": "MOLHOS",
+   "unidade_cadastro": "UND",
+   "unidade_outubro": "KG",
+   "custo_cadastro": 17.08,
+   "custo_outubro": 11.36,
+   "percentual": -33.49,
+   "aba": "Molhos",
+   "origem": "Molhos!A3"
+  },
+  {
+   "produto": "GRÃO DE BICO",
+   "setor": "Cozinha",
+   "categoria": "MERCEARIA",
+   "unidade_cadastro": "UND",
+   "unidade_outubro": "KG",
+   "custo_cadastro": 13.2,
+   "custo_outubro": 13.8,
+   "percentual": 4.55,
+   "aba": "Geral",
+   "origem": "Geral!H24"
+  },
+  {
+   "produto": "MOLHO SHOYO (1lt)",
+   "setor": "Cozinha",
+   "categoria": "MERCEARIA",
+   "unidade_cadastro": "UND",
+   "unidade_outubro": "LTS",
+   "custo_cadastro": 18.08,
+   "custo_outubro": 15.9,
+   "percentual": -12.06,
+   "aba": "Geral",
+   "origem": "Geral!H51"
+  }
+ ],
  "custo_medio_atualizado": [
   {
    "produto": "ALECRIM (HORTIFRUTI)",
@@ -771,13 +758,6 @@
    "setor": "Cozinha",
    "custo_medio_anterior": 3.92,
    "custo_medio_novo": 4.97
-  },
-  {
-   "produto": "BARBECUE DE GOIABADA 600GR",
-   "produto_id": "8c654692-7e3b-54f9-b3ff-6222caec95ea",
-   "setor": "Cozinha",
-   "custo_medio_anterior": 17.08,
-   "custo_medio_novo": 11.36
   },
   {
    "produto": "BOBO DE CAMARÃO 400gr",
@@ -850,13 +830,6 @@
    "custo_medio_novo": 9.48
   },
   {
-   "produto": "GRÃO DE BICO",
-   "produto_id": "cc31ed51-f9c3-5d80-9362-7cd05c8823d1",
-   "setor": "Cozinha",
-   "custo_medio_anterior": 13.2,
-   "custo_medio_novo": 13.8
-  },
-  {
    "produto": "LEITE INTEGRAL (1lts)",
    "produto_id": "3c99acda-e717-5aa7-98fb-a0c4c38ff3ed",
    "setor": "Cozinha",
@@ -876,13 +849,6 @@
    "setor": "Cozinha",
    "custo_medio_anterior": 7.4,
    "custo_medio_novo": 11.22
-  },
-  {
-   "produto": "MOLHO SHOYO (1lt)",
-   "produto_id": "d11f6aba-42c1-5545-a400-b239eddd9d24",
-   "setor": "Cozinha",
-   "custo_medio_anterior": 18.08,
-   "custo_medio_novo": 15.9
   },
   {
    "produto": "MORANGO",
