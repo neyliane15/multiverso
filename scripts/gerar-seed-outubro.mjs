@@ -453,14 +453,25 @@ on conflict (id) do update set
   status = 'aberta', fechada_em = null, fechado_por = null,
   total = 0, itens_contados = 0;
 
--- Sobra de uma carga anterior: item cujo par produto x setor saiu do cadastro.
--- Sem esta limpeza, uma reextracao menor da planilha deixaria linhas orfas
--- inflando o total — e o bloco de verificacao acusaria sem dizer o porque.
+-- Sobra de carga anterior. Esta contagem tem exatamente as ${modelo.itens.length} linhas
+-- que o arquivo lista adiante: qualquer outra linha e resto de uma carga
+-- passada e sai agora.
+--
+-- Nao basta apagar o par que saiu do CADASTRO. O caso que ensinou isso foi o
+-- desdobramento por medida: BARBECUE DE GOIABADA 600GR continua existindo no
+-- cadastro, mas a linha de outubro passou a ser do BARBECUE DE GOIABADA (KG).
+-- A linha velha ficava para tras, a contagem terminava com duas linhas onde
+-- devia ter uma, e o total subia R$ 66,79 — o bloco de verificacao recusava a
+-- carga inteira sem dizer o porque.
+--
+-- Por isso a condicao e a lista de pares desta carga, e nao o cadastro: assim
+-- reaplicar converge para o conjunto certo mesmo quando a lista ENCOLHE, que e
+-- justamente quando o resto passa despercebido.
 delete from contagem_itens i
  where i.contagem_id = ${C}
-   and not exists (
-     select 1 from produto_setores ps
-      where ps.produto_id = i.produto_id and ps.setor_id = i.setor_id);
+   and (i.produto_id, i.setor_id) not in (
+${modelo.itens.map((x) => `     (${txt(x.produto_id)}, ${txt(x.setor_id)})`).join(",\n")}
+   );
 -- @fim:contagem
 `)
 
