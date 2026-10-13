@@ -100,6 +100,40 @@ try {
   console.error('  ' + (erro.message ?? erro))
   if (erro.where) console.error('  em: ' + erro.where)
   if (erro.hint) console.error('  dica: ' + erro.hint)
+  // 28P01 = senha recusada. A rede funcionou e o servidor respondeu, entao o
+  // que falta e so a credencial — e no PowerShell a causa mais comum nao e
+  // senha errada, e aspas: "..." interpola $ e `, entao uma senha com cifrao
+  // chega truncada sem ninguem perceber. Por isso o diagnostico mostra o
+  // TAMANHO do que chegou (nunca o conteudo): se nao bate com o que foi
+  // digitado, o problema e a aspa, nao a senha.
+  if (erro.code === '28P01') {
+    const senha = process.env.PGPASSWORD ?? (url ?? '').split(':')[2]?.split('@')[0] ?? ''
+    console.error('')
+    console.error(`  A senha chegou aqui com ${senha.length} caractere(s).`)
+    if (senha.length === 0) {
+      console.error('  Ou seja: chegou VAZIA. A variavel nao foi definida nesta')
+      console.error('  mesma janela do PowerShell, ou foi definida com outro nome.')
+    }
+    if (/^\[.*\]$/.test(senha)) {
+      console.error('  Ela ainda esta entre colchetes — o [YOUR-PASSWORD] do painel')
+      console.error('  ficou no lugar da senha de verdade.')
+    }
+    if (senha !== senha.trim()) {
+      console.error('  Ela tem espaco sobrando no comeco ou no fim.')
+    }
+    console.error('')
+    console.error('  Confira o tamanho sem revelar a senha:')
+    console.error('    $env:PGPASSWORD.Length')
+    console.error('')
+    console.error('  Se o numero nao bater com o que voce digitou, o problema e a')
+    console.error('  ASPA. No PowerShell, aspas duplas interpretam $ e crase:')
+    console.error('    $env:PGPASSWORD = "Bar$Zeca"   <- vira "Bar" + variavel vazia')
+    console.error('    $env:PGPASSWORD = \'Bar$Zeca\'   <- correto, aspas SIMPLES')
+    console.error('')
+    console.error('  Se o numero bater, a senha e outra mesmo: use "Reset database')
+    console.error('  password" no painel (nao apaga dado nenhum) e escolha uma so')
+    console.error('  com letras e numeros.')
+  }
   if (['ENETUNREACH', 'ETIMEDOUT', 'EHOSTUNREACH', 'EAI_AGAIN'].includes(erro.code)) {
     console.error('')
     console.error('  Isso e a rede, nao o banco. A conexao direta do Supabase')
