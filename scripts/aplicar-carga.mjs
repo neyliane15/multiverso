@@ -19,9 +19,47 @@
 //   npm run carga -- supabase/seed/0003_contagem_outubro.sql
 // ============================================================================
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import pg from 'pg'
+
+// --------------------------------------------------------------- o .env ----
+// As variaveis do PowerShell (`$env:...`) morrem junto com a janela. Quem
+// aplica a carga uma vez por mes nao tem por que redigitar a conexao toda vez —
+// e redigitar senha e justamente como se erra senha.
+//
+// Entao a conexao pode morar num .env.local (ou .env) na raiz do projeto. Os
+// dois ja estao no .gitignore desde o comeco do projeto, que e a razao de usar
+// arquivo em vez de variavel permanente do Windows: fica visivel, fica num
+// lugar so, e some junto com a pasta.
+//
+// O que ja estiver no ambiente ganha do arquivo: assim da para sobrescrever
+// pontualmente, por exemplo para apontar para um banco de teste, sem editar
+// nada.
+function carregarEnv() {
+  for (const nome of ['.env.local', '.env']) {
+    const caminho = resolve(process.cwd(), nome)
+    if (!existsSync(caminho)) continue
+    for (const bruta of readFileSync(caminho, 'utf8').split(/\r?\n/)) {
+      const linha = bruta.trim()
+      if (!linha || linha.startsWith('#')) continue
+      const corte = linha.indexOf('=')
+      if (corte < 1) continue
+      const chave = linha.slice(0, corte).trim()
+      let valor = linha.slice(corte + 1).trim()
+      // Aspas em volta do valor sao delimitador, nao conteudo — tirar as duas
+      // so quando forem iguais e estiverem nas duas pontas.
+      if (valor.length > 1 && (valor.at(0) === valor.at(-1)) && ['"', "'"].includes(valor.at(0))) {
+        valor = valor.slice(1, -1)
+      }
+      if (process.env[chave] === undefined) process.env[chave] = valor
+    }
+    return nome
+  }
+  return null
+}
+
+const envUsado = carregarEnv()
 
 const arquivo = process.argv[2]
 const url = process.env.DATABASE_URL
@@ -39,21 +77,28 @@ if (!arquivo) {
   process.exit(1)
 }
 if (!url && !avulso) {
-  console.error('falta dizer qual e o banco. Ha duas formas; a segunda e a mais')
-  console.error('segura quando a senha tem caractere especial (@ # / : ?).')
+  console.error('falta dizer qual e o banco.')
   console.error('')
-  console.error('1) a string inteira (painel: Connect -> Connection string):')
-  console.error('   $env:DATABASE_URL = "postgresql://postgres:SENHA@HOST:5432/postgres"')
+  console.error('O jeito que nao precisa ser refeito toda vez: criar um arquivo')
+  console.error('.env.local na raiz do projeto (ele ja esta no .gitignore) com os')
+  console.error('valores que o painel do Supabase mostra em Connect ->')
+  console.error('Connection parameters:')
   console.error('')
-  console.error('2) os campos separados (painel: Connect -> Connection parameters):')
-  console.error('   $env:PGHOST     = "db.SEUPROJETO.supabase.co"')
-  console.error('   $env:PGPORT     = "5432"')
-  console.error('   $env:PGDATABASE = "postgres"')
-  console.error('   $env:PGUSER     = "postgres"')
-  console.error('   $env:PGPASSWORD = "sua senha, inteira, sem escapar nada"')
+  console.error('   PGHOST=db.SEUPROJETO.supabase.co')
+  console.error('   PGPORT=5432')
+  console.error('   PGDATABASE=postgres')
+  console.error('   PGUSER=postgres')
+  console.error('   PGPASSWORD=sua senha, inteira, sem escapar nada')
+  console.error('')
+  console.error('Feito isso, `npm run carga` funciona em qualquer janela, sempre.')
+  console.error('')
+  console.error('Para uma vez so, as mesmas variaveis servem no PowerShell')
+  console.error('($env:PGHOST = ...), mas morrem quando a janela fecha.')
   console.error('')
   console.error('A senha da acesso total ao banco, por fora do RLS:')
   console.error('nao va para o git nem para print.')
+  if (envUsado === null) console.error('')
+  if (envUsado === null) console.error('(nenhum .env.local nem .env foi encontrado nesta pasta)')
   process.exit(1)
 }
 
@@ -85,7 +130,11 @@ cliente.on('notice', (n) => {
 })
 
 const comecou = Date.now()
-console.log(`aplicando ${arquivo} (${(sql.length / 1024).toFixed(0)} KB) ...`)
+const alvoVisivel = url
+  ? (url.match(/@([^/?]+)/)?.[1] ?? 'conexao da DATABASE_URL')
+  : `${process.env.PGHOST}:${process.env.PGPORT ?? 5432}/${process.env.PGDATABASE ?? 'postgres'}`
+console.log(`aplicando ${arquivo} (${(sql.length / 1024).toFixed(0)} KB)`)
+console.log(`         em ${alvoVisivel}${envUsado ? `  (conexao lida de ${envUsado})` : ''}`)
 console.log('')
 
 try {
