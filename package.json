@@ -21,7 +21,8 @@
     "funcao:preparar": "node ferramentas/preparar-funcao.mjs",
     "implantar": "ferramentas/implantar.sh",
     "seed:carregar": "node ferramentas/carregar-seed.mjs",
-    "vercel:conferir": "node ferramentas/conferir-vercel.mjs"
+    "vercel:conferir": "node ferramentas/conferir-vercel.mjs",
+    "carga": "node scripts/aplicar-carga.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",
