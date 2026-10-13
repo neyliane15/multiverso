@@ -555,6 +555,23 @@
    "origem": "Molhos!A25"
   },
   {
+   "produto": "MOLHO SHOYO (1lt)",
+   "produto_id": "d11f6aba-42c1-5545-a400-b239eddd9d24",
+   "setor": "Cozinha",
+   "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
+   "categoria": "MERCEARIA",
+   "unidade_cadastro": "UND",
+   "unidade_outubro": "UND",
+   "unidade_divergente": false,
+   "custo_anterior": 18.08,
+   "custo_outubro": 15.9,
+   "diferenca": -2.18,
+   "percentual": -12.06,
+   "vinculo_ordem": 2,
+   "custo_fixo_cadastro": false,
+   "origem": "Geral!H51"
+  },
+  {
    "produto": "MORANGO",
    "produto_id": "9693737a-87e4-53d5-8b2e-cfdff05ad438",
    "setor": "Cozinha",
@@ -725,18 +742,17 @@
    "origem": "Molhos!A29"
   }
  ],
- "custos_retidos_por_unidade": [
+ "custos_retidos_por_unidade": [],
+ "cadastro_unidade_corrigida": [
   {
-   "produto": "MOLHO SHOYO (1lt)",
-   "setor": "Cozinha",
-   "categoria": "MERCEARIA",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "LTS",
-   "custo_cadastro": 18.08,
-   "custo_outubro": 15.9,
-   "percentual": -12.06,
-   "aba": "Geral",
-   "origem": "Geral!H51"
+   "produto": "SACO Á VÁCUO (20x30)",
+   "produto_id": "22722fbc-6914-5b6e-810f-677633b71347",
+   "setor": "Descartáveis",
+   "setor_id": "725e4111-5f1e-50b4-9ea7-c2c3e1eab915",
+   "de": "UND",
+   "para": "FD",
+   "custo": 424.0,
+   "origem": "Geral!V54"
   }
  ],
  "custo_medio_atualizado": [
@@ -853,6 +869,13 @@
    "custo_medio_novo": 11.22
   },
   {
+   "produto": "MOLHO SHOYO (1lt)",
+   "produto_id": "d11f6aba-42c1-5545-a400-b239eddd9d24",
+   "setor": "Cozinha",
+   "custo_medio_anterior": 18.08,
+   "custo_medio_novo": 15.9
+  },
+  {
    "produto": "MORANGO",
    "produto_id": "9693737a-87e4-53d5-8b2e-cfdff05ad438",
    "setor": "Cozinha",
@@ -967,16 +990,6 @@
    "origem": "Massas!A26"
   },
   {
-   "produto": "MOLHO SHOYO (1lt)",
-   "setor": "Cozinha",
-   "unidade_cadastro": "UND",
-   "unidade_outubro": "LTS",
-   "custo_cadastro": 18.08,
-   "custo_outubro": 15.9,
-   "aba": "Geral",
-   "origem": "Geral!H51"
-  },
-  {
    "produto": "NHOQUE 150gr",
    "setor": "Cozinha",
    "unidade_cadastro": "UND",
@@ -985,6 +998,16 @@
    "custo_outubro": 1.65,
    "aba": "Massas",
    "origem": "Massas!A31"
+  },
+  {
+   "produto": "SACO Á VÁCUO (20x30)",
+   "setor": "Descartáveis",
+   "unidade_cadastro": "UND",
+   "unidade_outubro": "FD",
+   "custo_cadastro": 424.0,
+   "custo_outubro": 424.0,
+   "aba": "Geral",
+   "origem": "Geral!V54"
   }
  ],
  "linhas": [
@@ -8742,7 +8765,7 @@
    "setor": "Cozinha",
    "setor_id": "19a7379f-949c-565a-b11d-16eaf91dab37",
    "categoria": "MERCEARIA",
-   "unidade": "LTS",
+   "unidade": "UND",
    "quantidade": 3.0,
    "custo_unitario": 15.9,
    "total": 47.7,
@@ -11212,7 +11235,7 @@
    "setor": "Descartáveis",
    "setor_id": "725e4111-5f1e-50b4-9ea7-c2c3e1eab915",
    "categoria": "DESCARTÁVEIS",
-   "unidade": "UND",
+   "unidade": "FD",
    "quantidade": 1.0,
    "custo_unitario": 424.0,
    "total": 424.0,

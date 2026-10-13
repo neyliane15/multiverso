@@ -114,6 +114,27 @@ GRAFIA = {
     ('MOLHO SHOYO 1LTS', 'Geral', 'MERCEARIA'): 'MOLHO SHOYO (1lt)',
 }
 
+# Unidade em que a cliente ja deu a palavra. Sem isso, a regra que retem custo
+# quando a unidade da planilha difere da do cadastro voltaria a reter os mesmos
+# itens todo mes — a decisao dela precisa ficar registrada em algum lugar, e
+# este e o lugar.
+#
+#   'confirmada' — as duas unidades medem a mesma coisa, so mudou o rotulo.
+#                  O cadastro fica como esta e o custo de outubro pode entrar.
+#                  MOLHO SHOYO: cadastro em UND, planilha em LTS, mesma garrafa
+#                  de um litro. Decisao dela: "custo passa para 15,90".
+#
+#   'corrigida'  — a planilha e que esta errada, e a unidade certa e a desta
+#                  tabela. Vale para a linha da contagem E para o cadastro.
+#                  SACO A VACUO (20x30): R$ 424,00 marcado UND, sendo que o
+#                  mesmo R$ 424,00 esta duas linhas acima (Geral!V53) como preco
+#                  de FD, e os irmaos em UND custam de R$ 0,25 a R$ 0,85.
+#                  Decisao dela: "mude a unidade para fardo".
+UNIDADE_DECIDIDA = {
+    ('MOLHO SHOYO 1LTS', 'Geral', 'MERCEARIA'): ('confirmada', None),
+    ('SACO A VACUO 20X30', 'Geral', 'DESCARTÁVEIS'): ('corrigida', 'FD'),
+}
+
 # Produto que a casa passou a contar numa MEDIDA diferente, com preco diferente.
 # Regra da cliente: "se tem medidas diferentes e precos diferentes, considere
 # como novo produto e adicione em sua categoria e setor adequado".
@@ -173,6 +194,9 @@ descartados = []
 desdobrados = []
 desdobrados_por_medida = []
 regrafados = []
+unidades_corrigidas = []
+unidades_alinhadas = []
+decisoes_de_unidade_usadas = set()
 achados = []
 limpos = []
 
@@ -227,6 +251,19 @@ for i in bruta['itens']:
         regrafados.append({'planilha': nome, 'catalogo': novo, 'origem': i['origem']})
         item['produto'] = novo
 
+    decisao = UNIDADE_DECIDIDA.get(k)
+    if decisao:
+        decisoes_de_unidade_usadas.add(k)
+    if decisao and decisao[0] == 'corrigida':
+        # A planilha e que esta errada. A unidade decidida vale para a linha da
+        # contagem, e o cadastro e corrigido junto, mais adiante.
+        unidades_corrigidas.append({'produto': item['produto'], 'origem': i['origem'],
+                                    'de': item['unidade'], 'para': decisao[1],
+                                    'custo': item['custo_unitario'],
+                                    'quantidade': item['quantidade']})
+        item['unidade'] = decisao[1]
+    item['unidade_decidida'] = decisao[0] if decisao else None
+
     limpos.append(item)
 
 # Prova de que a tabela DESDOBRAR nao ficou com entrada morta nem incompleta:
@@ -242,6 +279,11 @@ usadas_medida = {(chave(d['planilha']), d['aba'], d['bloco']) for d in desdobrad
 for regra in DESDOBRAR_POR_MEDIDA:
     if regra not in usadas_medida:
         achados.append(f'regra de desdobramento por medida {regra} nao casou com nenhuma linha')
+# Idem para a decisao de unidade da cliente: se a planilha mudar e a linha
+# sumir, a decisao vira letra morta e ninguem perceberia.
+for regra in UNIDADE_DECIDIDA:
+    if regra not in decisoes_de_unidade_usadas:
+        achados.append(f'decisao de unidade {regra} nao casou com nenhuma linha de outubro')
 for nome_cat in (p['nome'] for p in catalogo['produtos']):
     if re.match(r'^.* \((HORTIFRUTI|PORCIONADO|SUÍNOS|FEIJOADA|MOLHOS|CARNES)\)$', nome_cat) \
        and nome_cat not in DESDOBRAR.values():
@@ -287,6 +329,16 @@ for l in linhas:
         l['unidade_cadastro'] = vinculo['unidade']
         l['custo_cadastro'] = vinculo['custo']
         l['custo_fixo_cadastro'] = vinculo['custo_fixo']
+        if l.get('unidade_decidida') == 'confirmada' and l['unidade'] != vinculo['unidade']:
+            # A cliente confirmou que as duas unidades medem a mesma coisa, entao
+            # a linha passa a usar o rotulo do cadastro. Nao e a planilha mandando
+            # no cadastro — e o contrario, e so depois da palavra dela. Sem isto a
+            # folha de contagem mostraria LTS onde o cadastro de Insumos mostra
+            # UND, para a mesma garrafa, e quem conta ficaria em duvida.
+            unidades_alinhadas.append({'produto': l['produto'], 'setor': l['setor'],
+                                       'planilha': l['unidade'], 'cadastro': vinculo['unidade'],
+                                       'origem': l['origem']})
+            l['unidade'] = vinculo['unidade']
         if vinculo['setor'] != l['setor']:
             # Nao se cria vinculo novo num setor diferente por conta propria: o
             # produto mudaria de lugar no sistema sem ninguem decidir. Fica como
@@ -401,8 +453,11 @@ for l in sorted(linhas, key=lambda x: (x['produto'], x['setor'])):
     if abs(novo_custo - anterior) <= 1e-6:
         custos_iguais += 1
         continue
-    if l['unidade_cadastro'] != l['unidade']:
-        # Regra 3: denominadores diferentes, numeros incomparaveis.
+    if l['unidade_cadastro'] != l['unidade'] and l.get('unidade_decidida') is None:
+        # Regra 3: denominadores diferentes, numeros incomparaveis. Nao vale
+        # quando a cliente ja decidiu sobre esta unidade (UNIDADE_DECIDIDA):
+        # 'confirmada' diz que as duas medem a mesma coisa, e reter de novo
+        # seria ignorar a resposta que ela ja deu.
         custos_retidos.append({
             'produto': l['produto'], 'setor': l['setor'], 'categoria': l['categoria'],
             'unidade_cadastro': l['unidade_cadastro'], 'unidade_outubro': l['unidade'],
@@ -440,6 +495,23 @@ unidades_divergentes = [
     for l in sorted(linhas, key=lambda x: x['produto'])
     if not l['novo'] and l['unidade_cadastro'] != l['unidade']
 ]
+
+# Unidade a corrigir no CADASTRO. So entram os pares em que a cliente decidiu
+# 'corrigida' e em que o cadastro ainda nao esta na unidade certa. O custo nao
+# se mexe aqui: o numero ja era R$ 424,00 nos dois lados — o que estava errado
+# era o rotulo dizendo que aquilo era o preco de uma unidade.
+cadastro_unidade_corrigida = []
+for l in linhas:
+    if l['novo'] or l.get('unidade_decidida') != 'corrigida':
+        continue
+    if l['unidade_cadastro'] == l['unidade']:
+        continue
+    cadastro_unidade_corrigida.append({
+        'produto': l['produto'], 'produto_id': l['produto_id'],
+        'setor': l['setor'], 'setor_id': l['setor_id'],
+        'de': l['unidade_cadastro'], 'para': l['unidade'],
+        'custo': l['custo_unitario'], 'origem': l['origem'],
+    })
 
 # custo_medio do produto = custo do vinculo de menor ordem (o setor principal),
 # a mesma regra do gerar-seed.mjs de agosto. Como hoje todo produto do catalogo
@@ -515,6 +587,7 @@ saida = {
     'produtos_novos': sorted(novos.values(), key=lambda p: p['nome']),
     'custos_atualizados': custos,
     'custos_retidos_por_unidade': custos_retidos,
+    'cadastro_unidade_corrigida': cadastro_unidade_corrigida,
     'custo_medio_atualizado': custo_medio_novo,
     'custo_fixo_recalculado': custo_fixo_planejado,
     'custos_nao_atualizados_por_zero': custos_zerados,

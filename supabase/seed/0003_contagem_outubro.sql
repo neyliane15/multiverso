@@ -16,10 +16,10 @@
 --
 -- O que este arquivo faz:
 --    11 produtos novos (e 11 vinculos produto x setor novos)
---    26 custos de vinculo atualizados para os precos de outubro
---       (25 subiram, 1 cairam; custo ZERO na planilha nao sobrescreve
+--    27 custos de vinculo atualizados para os precos de outubro
+--       (25 subiram, 2 cairam; custo ZERO na planilha nao sobrescreve
 --        custo real — zero e "linha nao precificada", nao "de graca")
---    26 produtos com custo_medio atualizado (custo do setor principal)
+--    27 produtos com custo_medio atualizado (custo do setor principal)
 --     0 vinculos com custo_fixo recalculado
 --   868 itens de contagem (342 com quantidade maior que zero)
 --
@@ -167,7 +167,7 @@ on conflict (produto_id, setor_id) do update set
 -- Decisao da cliente ("atualize os custos tambem"). Tres cuidados que estao na
 -- clausula where e nao no comentario:
 --
---   1. so entram na lista os 26 pares cujo custo de outubro e MAIOR QUE ZERO e
+--   1. so entram na lista os 27 pares cujo custo de outubro e MAIOR QUE ZERO e
 --      diferente do atual. Zero na planilha e "linha nao precificada" — em
 --      agosto categorias inteiras (APARAS, PROTEINAS FUNCIONARIO, SORVETES)
 --      fecharam em R$ 0,00, e deixar isso virar custo apagaria preco real;
@@ -204,6 +204,7 @@ update produto_setores ps
     ('3c99acda-e717-5aa7-98fb-a0c4c38ff3ed', '19a7379f-949c-565a-b11d-16eaf91dab37', 5.74),  -- LEITE INTEGRAL (1lts) · Cozinha · UND · 5.7 -> 5.74 (+0.7%)
     ('8a6b0418-c3d8-57fe-9e71-80f30ce622d9', '19a7379f-949c-565a-b11d-16eaf91dab37', 14.1),  -- MASSA FUNCIONÁRIO (1kg) · Cozinha · KG · 5.68 -> 14.1 (+148.24%)
     ('b6397ef5-3551-5712-a3c2-dae5abb37007', '19a7379f-949c-565a-b11d-16eaf91dab37', 11.22),  -- MOLHO DE TOMATE E MANJERICÃO · Cozinha · KG · 7.4 -> 11.22 (+51.62%)
+    ('d11f6aba-42c1-5545-a400-b239eddd9d24', '19a7379f-949c-565a-b11d-16eaf91dab37', 15.9),  -- MOLHO SHOYO (1lt) · Cozinha · UND · 18.08 -> 15.9 (-12.06%)
     ('9693737a-87e4-53d5-8b2e-cfdff05ad438', '19a7379f-949c-565a-b11d-16eaf91dab37', 59.67),  -- MORANGO · Cozinha · UND · 22.02 -> 59.67 (+170.98%)
     ('e738b469-24fd-586c-a989-120e304a0248', '19a7379f-949c-565a-b11d-16eaf91dab37', 34.5),  -- MUSSARELA COMUM · Cozinha · KG · 33.98 -> 34.5 (+1.53%)
     ('f8528782-daae-56e9-93a0-851850871bb7', '19a7379f-949c-565a-b11d-16eaf91dab37', 34.5),  -- MUSSARELA FATIADA · Cozinha · KG · 33.98 -> 34.5 (+1.53%)
@@ -220,6 +221,48 @@ update produto_setores ps
    and ps.custo is distinct from v.custo;
 
 -- @fim:custos_vinculos
+
+-- ---------------------------------------------------------------------------
+-- UNIDADE CORRIGIDA NO CADASTRO  (1)
+--
+-- Esta carga nunca reescreve unidade por conta propria: nas abas Porcionados,
+-- Massas e Molhos a unidade e derivada de "a linha tem numero na coluna
+-- PORCAO?", e deixar essa regra mandar no cadastro estragaria o cadastro. As
+-- linhas abaixo sao a excecao, e a excecao e a palavra da cliente.
+--
+-- SACO A VACUO (20x30) estava com R$ 424,00 marcado UND. O mesmo R$ 424,00
+-- aparece duas linhas acima, em Geral!V53, como preco de FD, e os irmaos da
+-- familia em UND custam de R$ 0,25 a R$ 0,85: era preco de fardo com rotulo de
+-- unidade. Decisao dela: "mude a unidade para fardo".
+--
+-- O custo NAO se mexe aqui — ele ja era R$ 424,00 dos dois lados. O que estava
+-- errado era o cadastro afirmar que aquilo era o preco de uma unidade, e com
+-- isso a contagem de 1 unidade valer o que vale um fardo inteiro.
+-- ---------------------------------------------------------------------------
+-- @bloco:unidade_decidida_vinculo
+update produto_setores ps
+   set unidade = v.unidade
+  from (values
+    ('22722fbc-6914-5b6e-810f-677633b71347', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 'FD')  -- SACO Á VÁCUO (20x30) · Descartáveis · UND -> FD · R$ 424 (Geral!V54)
+  ) as v(produto_id, setor_id, unidade)
+ where ps.produto_id = v.produto_id::uuid
+   and ps.setor_id = v.setor_id::uuid
+   and ps.unidade is distinct from v.unidade;
+
+-- @fim:unidade_decidida_vinculo
+
+-- A unidade de referencia do produto acompanha a do vinculo principal, como
+-- em toda a carga.
+-- @bloco:unidade_decidida_produto
+update produtos p
+   set unidade = v.unidade
+  from (values
+    ('22722fbc-6914-5b6e-810f-677633b71347', 'FD')  -- SACO Á VÁCUO (20x30) · UND -> FD
+  ) as v(id, unidade)
+ where p.id = v.id::uuid
+   and p.unidade is distinct from v.unidade;
+
+-- @fim:unidade_decidida_produto
 
 -- produtos.custo_medio = custo do setor principal (o vinculo de menor ordem),
 -- a mesma regra que a 0001 usa para escolher o custo de referencia do cadastro.
@@ -243,6 +286,7 @@ update produtos p
     ('3c99acda-e717-5aa7-98fb-a0c4c38ff3ed', 5.74),  -- LEITE INTEGRAL (1lts) · setor principal Cozinha · 5.7 -> 5.74
     ('8a6b0418-c3d8-57fe-9e71-80f30ce622d9', 14.1),  -- MASSA FUNCIONÁRIO (1kg) · setor principal Cozinha · 5.68 -> 14.1
     ('b6397ef5-3551-5712-a3c2-dae5abb37007', 11.22),  -- MOLHO DE TOMATE E MANJERICÃO · setor principal Cozinha · 7.4 -> 11.22
+    ('d11f6aba-42c1-5545-a400-b239eddd9d24', 15.9),  -- MOLHO SHOYO (1lt) · setor principal Cozinha · 18.08 -> 15.9
     ('9693737a-87e4-53d5-8b2e-cfdff05ad438', 59.67),  -- MORANGO · setor principal Cozinha · 22.02 -> 59.67
     ('e738b469-24fd-586c-a989-120e304a0248', 34.5),  -- MUSSARELA COMUM · setor principal Cozinha · 33.98 -> 34.5
     ('f8528782-daae-56e9-93a0-851850871bb7', 34.5),  -- MUSSARELA FATIADA · setor principal Cozinha · 33.98 -> 34.5
@@ -1186,7 +1230,7 @@ delete from contagem_itens i
 --
 -- custo_unitario e o custo DA PLANILHA DE OUTUBRO, linha por linha. E ele que
 -- da valor a contagem e alimenta o CMV, e e o mesmo numero que acabou de ser
--- gravado no cadastro nos 26 pares que mudaram de preco.
+-- gravado no cadastro nos 27 pares que mudaram de preco.
 -- @bloco:contagem_itens
 insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario) values
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '11c3c2ce-1adc-5429-92fa-5269e2ac6e32', 'd08c7059-341f-5415-b00d-db72edd7ba7a', 0, 'UND', 152.9),
@@ -1795,7 +1839,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '94f7b844-272d-5fde-b03a-f2b61d736693', '19a7379f-949c-565a-b11d-16eaf91dab37', 4, 'UND', 12.94),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'c4af041a-fa60-5829-a47f-729fdc14b7f2', '19a7379f-949c-565a-b11d-16eaf91dab37', 5, 'KG', 13.5),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '2300caa6-241d-53f7-9225-53b638e678fe', '19a7379f-949c-565a-b11d-16eaf91dab37', 2, 'LTS', 6.89),
-  ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'd11f6aba-42c1-5545-a400-b239eddd9d24', '19a7379f-949c-565a-b11d-16eaf91dab37', 3, 'LTS', 15.9),
+  ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'd11f6aba-42c1-5545-a400-b239eddd9d24', '19a7379f-949c-565a-b11d-16eaf91dab37', 3, 'UND', 15.9),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'ed93ee87-bc92-542f-bdcc-794b568ea53b', '19a7379f-949c-565a-b11d-16eaf91dab37', 1.105, 'UND', 48.24),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '0650c4cc-231a-52aa-9a1c-e9340869d6b1', '19a7379f-949c-565a-b11d-16eaf91dab37', 0, 'UND', 47.4),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'd9d72ed0-f5b7-55c1-9b79-5c93129dff86', '19a7379f-949c-565a-b11d-16eaf91dab37', 11, 'UND', 5.48)
@@ -1990,7 +2034,7 @@ insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unida
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '5daaec1c-866a-534a-b0ac-fcc52b58b92c', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 0, 'UND', 0.423),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'a4c1f2da-9fb4-587d-b470-d8f8bf41ded1', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 0, 'FD', 295),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '4c3ba689-14f5-510e-8147-ca6da3c81b1a', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 0, 'FD', 424),
-  ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '22722fbc-6914-5b6e-810f-677633b71347', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 1, 'UND', 424),
+  ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '22722fbc-6914-5b6e-810f-677633b71347', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 1, 'FD', 424),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', 'c2fc8bb5-eb6c-5483-8457-7805523cbb20', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 0, 'UND', 0.85),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '5c1ac00f-4745-5af4-8a8d-2677ac2adcce', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 0, 'UND', 870),
   ('29b20768-dcdc-52e2-adc3-6e3ae17c5173', '881fce83-bb73-5378-bfc4-5cabb09c31e9', '725e4111-5f1e-50b4-9ea7-c2c3e1eab915', 1, 'FD', 59.99),
@@ -2161,7 +2205,7 @@ begin
     raise exception '0003: a contagem de 2026-10-01 ficou com status %, esperado fechada', v_status;
   end if;
 
-  -- Os custos: os 26 pares da lista tem de existir e tem de estar valendo o
+  -- Os custos: os 27 pares da lista tem de existir e tem de estar valendo o
   -- preco de outubro. Um id errado faria o update casar zero linhas e a carga
   -- "passar" sem ter atualizado nada — isto e o que impede esse silencio.
   select count(*), count(*) filter (where ps.custo = x.custo)
@@ -2183,6 +2227,7 @@ begin
       ('3c99acda-e717-5aa7-98fb-a0c4c38ff3ed'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 5.74::numeric),
       ('8a6b0418-c3d8-57fe-9e71-80f30ce622d9'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 14.1::numeric),
       ('b6397ef5-3551-5712-a3c2-dae5abb37007'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 11.22::numeric),
+      ('d11f6aba-42c1-5545-a400-b239eddd9d24'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 15.9::numeric),
       ('9693737a-87e4-53d5-8b2e-cfdff05ad438'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 59.67::numeric),
       ('e738b469-24fd-586c-a989-120e304a0248'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 34.5::numeric),
       ('f8528782-daae-56e9-93a0-851850871bb7'::uuid, '19a7379f-949c-565a-b11d-16eaf91dab37'::uuid, 34.5::numeric),
@@ -2197,11 +2242,11 @@ begin
     join produto_setores ps
       on ps.produto_id = x.produto_id and ps.setor_id = x.setor_id;
 
-  if v_alvos <> 26 then
-    raise exception '0003: % dos 26 pares de custo existem em produto_setores', v_alvos;
+  if v_alvos <> 27 then
+    raise exception '0003: % dos 27 pares de custo existem em produto_setores', v_alvos;
   end if;
-  if v_aplicados <> 26 then
-    raise exception '0003: % dos 26 custos de outubro foram aplicados', v_aplicados;
+  if v_aplicados <> 27 then
+    raise exception '0003: % dos 27 custos de outubro foram aplicados', v_aplicados;
   end if;
 
   -- Nenhum custo do cadastro pode ter virado zero por causa desta carga. A

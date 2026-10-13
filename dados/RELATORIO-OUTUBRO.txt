@@ -72,9 +72,9 @@ conferencias do extrator:
    UND     470   ok
    KG      341   ok
    CX       25   ok
-   LTS      12   ok
+   LTS      11   ok
    PCT      11   ok
-   FD        6   ok
+   FD        7   ok
    BDJ       3   ok
 
 ------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ foi criada, e nenhuma precisou ser criada.
    por setor    : Cozinha=11
 
 ------------------------------------------------------------------------------
-8. CUSTOS DO CADASTRO — ATUALIZADOS (26)
+8. CUSTOS DO CADASTRO — ATUALIZADOS (27)
 ------------------------------------------------------------------------------
 A cliente pediu: "Atualize os custos tambem". produto_setores.custo passa a
 ser o custo de outubro e custo_atualizado_em recebe 2026-10-01 23:59:00-03.
@@ -190,10 +190,10 @@ unidade nao bate com a do cadastro fica RETIDO (secao 9a) — numero com
 denominador diferente nao se compara com o anterior.
 
    subiram ................................... 25
-   cairam .................................... 1
+   cairam .................................... 2
    ficaram iguais (nao entram no update) ..... 768
    nao atualizados por serem zero na planilha  0
-   RETIDOS por unidade incompativel (secao 9a)  1
+   RETIDOS por unidade incompativel (secao 9a)  0
    produtos novos (custo nasce da planilha) .. 11
 
    PRODUTO                          SETOR          UN-C  UN-O     ANTERIOR     OUTUBRO   DIFERENCA         %
@@ -213,6 +213,7 @@ denominador diferente nao se compara com o anterior.
    LEITE INTEGRAL (1lts)            Cozinha        UND   UND        5.7000      5.7400     +0.0400    +0.70%
    MASSA FUNCIONÁRIO (1kg)          Cozinha        KG    KG         5.6800     14.1000     +8.4200  +148.24%
    MOLHO DE TOMATE E MANJERICÃO     Cozinha        KG    KG         7.4000     11.2200     +3.8200   +51.62%
+   MOLHO SHOYO (1lt)                Cozinha        UND   UND       18.0800     15.9000     -2.1800   -12.06%
    MORANGO                          Cozinha        UND   UND       22.0200     59.6700    +37.6500  +170.98%
    MUSSARELA COMUM                  Cozinha        KG    KG        33.9800     34.5000     +0.5200    +1.53%
    MUSSARELA FATIADA                Cozinha        KG    KG        33.9800     34.5000     +0.5200    +1.53%
@@ -224,7 +225,7 @@ denominador diferente nao se compara com o anterior.
    QUEIJO PARMESÃO                  Cozinha        KG    KG        45.5000     58.9600    +13.4600   +29.58%
    VINAGRETE                        Cozinha        KG    KG         8.2300     13.2300     +5.0000   +60.75%
 
-   produtos.custo_medio atualizado (custo do setor principal): 26
+   produtos.custo_medio atualizado (custo do setor principal): 27
 
 ------------------------------------------------------------------------------
 9. CUSTOS: O QUE PEDE DECISAO, E O QUE E SO HISTORICO
@@ -237,28 +238,12 @@ linha. Problema e quando o numero NAO E PRECO: quando a unidade da planilha e
 a do cadastro sao diferentes e os dois valores dividem por denominadores
 diferentes. E so isso que esta secao cobra.
 
-9a. CUSTOS RETIDOS — A UNIDADE NAO BATE COM A DO CADASTRO  (1)
+9a. CUSTOS RETIDOS — A UNIDADE NAO BATE COM A DO CADASTRO  (0)
     <<< E AQUI QUE O CADASTRO PODERIA PASSAR A MENTIR. ESTES NAO FORAM
         ATUALIZADOS: a carga segurou o custo e esta devolvendo a decisao.
+    nenhum
 
-    PRODUTO                          SETOR          UN-CAD UN-PLAN    CADASTRO     OUTUBRO         %  CELULA
-    MOLHO SHOYO (1lt)                Cozinha        UND    LTS        18.0800     15.9000   -12.06%  Geral!H51
-
-    O caso que ensinou a regra, para a decisao ficar concreta:
-    BARBECUE DE GOIABADA 600GR foi contado em agosto como 8 na coluna
-    PORCOES a R$ 17,08, e em outubro como 3,45 na coluna ESTOQUE/KG a
-    R$ 11,36. Os "-33%" nao sao queda de preco: e preco de porcao contra
-    preco de quilo. Gravar R$ 11,36 num cadastro que diz UND faria o
-    sistema afirmar que um pote de 600 g custa o preco de um quilo —
-    600 g a R$ 11,36/kg dariam R$ 6,82. A decisao e entre "KG, R$ 11,36" e
-    "UND, R$ 6,82", e a planilha nao responde isso sozinha.
-
-    MOLHO SHOYO esta retido por prudencia, nao por duvida real: cadastro em
-    UND, planilha em LTS, e e a mesma garrafa de 1 litro, entao os numeros
-    provavelmente se comparam. Reter um custo certo custa uma linha deste
-    relatorio; gravar um errado custa CMV de ficha tecnica.
-
-9b. UNIDADE DIFERENTE, MAS CUSTO IGUAL NOS DOIS  (5)
+9b. UNIDADE DIFERENTE, MAS CUSTO IGUAL NOS DOIS  (6)
     Nada foi alterado no cadastro — o custo e o mesmo numero. Fica so a
     unidade a confirmar na tela de Produtos, quando sobrar tempo.
 
@@ -274,8 +259,9 @@ diferentes. E so isso que esta secao cobra.
     CAVALO DO REI (250G)             Cozinha        UND    KG         12.8400  Porcionados   Porcionados!A19
     MASSA DE PASTEL                  Cozinha        KG     UND         7.2000  Massas        Massas!A26
     NHOQUE 150gr                     Cozinha        UND    KG          1.6500  Massas        Massas!A31
+    SACO Á VÁCUO (20x30)             Descartáveis   UND    FD        424.0000  Geral         Geral!V54
 
-9c. NUMERO DE EMBALAGEM LANCADO COMO NUMERO DE UNIDADE  (2)
+9c. NUMERO DE EMBALAGEM LANCADO COMO NUMERO DE UNIDADE  (1)
     Linhas cujo custo e pelo menos 50x a mediana dos irmaos da MESMA familia
     de produto e MESMA unidade. Esse padrao costuma ser preco de fardo ou de
     caixa digitado numa linha que diz UND.
@@ -285,8 +271,7 @@ diferentes. E so isso que esta secao cobra.
     outubro — por isso entra como aviso, nao como mudanca.
 
     PRODUTO                          CATEGORIA            UN          CUSTO    MEDIANA       QTD    NO TOTAL  CELULA
-    SACO Á VÁCUO (20x30)             DESCARTÁVEIS         UND        424.00     0.8480    1.0000      424.00  Geral!V54
-    SACO Á VÁCUO (30x40)             DESCARTÁVEIS         UND        870.00     0.8480    0.0000        0.00  Geral!V57
+    SACO Á VÁCUO (30x40)             DESCARTÁVEIS         UND        870.00     0.8460    0.0000        0.00  Geral!V57
 
     O que vale dinheiro agora e so a linha com quantidade > 0. As de
     quantidade zero nao entram no total deste mes, mas valorizariam
@@ -296,7 +281,7 @@ diferentes. E so isso que esta secao cobra.
     Nao foi atualizado: zero na planilha significa "linha nao precificada".
     nenhum
 
-9e. HISTORICO DE PRECO — INFORMACAO, NAO PENDENCIA  (26 custos alterados)
+9e. HISTORICO DE PRECO — INFORMACAO, NAO PENDENCIA  (27 custos alterados)
     Estas linhas sao o historico de preco de outubro. Nao pedem confirmacao:
     o custo de agosto continua valendo em agosto e o de outubro passa a valer
     em outubro. Todas tem a MESMA unidade no cadastro e na planilha — as que

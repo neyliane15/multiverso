@@ -195,6 +195,7 @@ export function montarModelo(dados) {
   return {
     produtosNovos,
     custos,
+    unidadesCorrigidas: dados.cadastro_unidade_corrigida ?? [],
     custoMedio,
     custoFixo,
     itens,
@@ -382,6 +383,56 @@ ${modelo.produtosNovos.map((x) => `--   · ${x.nome} — ${x.categoria} / ${x.se
    and ps.custo is distinct from v.custo`,
   ))
   p.push('')
+
+  // ------------------------------------------- unidade decidida pela cliente --
+  if (modelo.unidadesCorrigidas.length > 0) {
+    p.push(`-- ---------------------------------------------------------------------------
+-- UNIDADE CORRIGIDA NO CADASTRO  (${modelo.unidadesCorrigidas.length})
+--
+-- Esta carga nunca reescreve unidade por conta propria: nas abas Porcionados,
+-- Massas e Molhos a unidade e derivada de "a linha tem numero na coluna
+-- PORCAO?", e deixar essa regra mandar no cadastro estragaria o cadastro. As
+-- linhas abaixo sao a excecao, e a excecao e a palavra da cliente.
+--
+-- SACO A VACUO (20x30) estava com R$ 424,00 marcado UND. O mesmo R$ 424,00
+-- aparece duas linhas acima, em Geral!V53, como preco de FD, e os irmaos da
+-- familia em UND custam de R$ 0,25 a R$ 0,85: era preco de fardo com rotulo de
+-- unidade. Decisao dela: "mude a unidade para fardo".
+--
+-- O custo NAO se mexe aqui — ele ja era R$ 424,00 dos dois lados. O que estava
+-- errado era o cadastro afirmar que aquilo era o preco de uma unidade, e com
+-- isso a contagem de 1 unidade valer o que vale um fardo inteiro.
+-- ---------------------------------------------------------------------------`)
+    p.push(blocoUpdate(
+      'unidade_decidida_vinculo',
+      `update produto_setores ps
+   set unidade = v.unidade`,
+      modelo.unidadesCorrigidas.map((u) => ({
+        sql: [txt(u.produto_id), txt(u.setor_id), txt(u.para)].join(', '),
+        nota: `${u.produto} · ${u.setor} · ${u.de} -> ${u.para} · R$ ${u.custo} (${u.origem})`,
+      })),
+      ['produto_id', 'setor_id', 'unidade'],
+      `where ps.produto_id = v.produto_id::uuid
+   and ps.setor_id = v.setor_id::uuid
+   and ps.unidade is distinct from v.unidade`,
+    ))
+    p.push('')
+    p.push(`-- A unidade de referencia do produto acompanha a do vinculo principal, como
+-- em toda a carga.`)
+    p.push(blocoUpdate(
+      'unidade_decidida_produto',
+      `update produtos p
+   set unidade = v.unidade`,
+      modelo.unidadesCorrigidas.map((u) => ({
+        sql: [txt(u.produto_id), txt(u.para)].join(', '),
+        nota: `${u.produto} · ${u.de} -> ${u.para}`,
+      })),
+      ['id', 'unidade'],
+      `where p.id = v.id::uuid
+   and p.unidade is distinct from v.unidade`,
+    ))
+    p.push('')
+  }
 
   p.push(`-- produtos.custo_medio = custo do setor principal (o vinculo de menor ordem),
 -- a mesma regra que a 0001 usa para escolher o custo de referencia do cadastro.`)
