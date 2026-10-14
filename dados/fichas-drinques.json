@@ -20,37 +20,29 @@
   "fichas_de_servico": 148,
   "servicos_que_envolvem_bebida": 89,
   "excluidas_por_serem_prato": 7,
-  "fichas_de_bebida": 79,
+  "fichas_de_bebida": 56,
   "fichas_sem_nenhum_item": 3,
-  "itens": 219,
-  "produtos_distintos_usados": 83,
+  "itens": 196,
+  "produtos_distintos_usados": 66,
   "preparos_virando_produto": 12,
-  "linhas_do_depara": 95,
+  "linhas_do_depara": 96,
   "componentes_sem_produto": 5,
   "itens_somados_por_unique": 1,
   "itens_nao_criados_por_falta_de_produto": 6,
   "itens_com_unidade_divergente": 39,
   "achados_garrafa_inteira": 2,
   "hh_vazia_com_versao_normal": 4,
-  "custo_total_das_fichas": 542.5965
+  "custo_total_das_fichas": 445.5417
  },
  "grupos": {
-  "Cervejas e Chopps": 3,
-  "Cervejas e Chopps · Happy Hour": 1,
-  "Cortesias": 17,
   "Drinques": 49,
   "Drinques · Happy Hour": 3,
-  "Drinques · Sem Álcool": 4,
-  "Refrigerantes e Águas": 2
+  "Drinques · Sem Álcool": 4
  },
  "cmv_alvo_por_grupo": {
-  "Cervejas e Chopps": 30,
-  "Cervejas e Chopps · Happy Hour": 30,
-  "Cortesias": 100,
   "Drinques": 20,
   "Drinques · Happy Hour": 20,
-  "Drinques · Sem Álcool": 20,
-  "Refrigerantes e Águas": 30
+  "Drinques · Sem Álcool": 20
  },
  "produtos_novos": [
   {
@@ -59,7 +51,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "preparo de bar sem alcool, medido em litro",
-   "custo": 5.91,
+   "custo": 6.3812,
    "custo_fixo": true,
    "total_impresso_no_pdf": 5.91,
    "ingredientes_no_pdf": [
@@ -76,6 +68,26 @@
      "valor_unitario": 20.9
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "XAROPE DE GENGIBRE",
+     "produto": "XAROPE DE GENGIBRE",
+     "quantidade": 0.8,
+     "unidade": "LT",
+     "custo_unitario_catalogo": 6.07,
+     "valor_unitario_pdf": 5.82,
+     "custo": 4.856
+    },
+    {
+     "componente_pdv": "EMULSIFICANTE",
+     "produto": "EMULSIFICANTE",
+     "quantidade": 0.06,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 25.42,
+     "valor_unitario_pdf": 20.9,
+     "custo": 1.5252
+    }
+   ],
    "usado_por": [
     "BI-SAMBAS",
     "BRISANDO",
@@ -89,7 +101,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "preparo de bar sem alcool, medido em litro",
-   "custo": 19.6136,
+   "custo": 21.3466,
    "custo_fixo": true,
    "total_impresso_no_pdf": 19.61,
    "ingredientes_no_pdf": [
@@ -112,6 +124,35 @@
      "valor_unitario": 6.59
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "EMULSIFICANTE",
+     "produto": "EMULSIFICANTE",
+     "quantidade": 0.06,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 25.42,
+     "valor_unitario_pdf": 20.9,
+     "custo": 1.5252
+    },
+    {
+     "componente_pdv": "XAROPE DE HIBISCO",
+     "produto": "XAROPE DE HIBISCO",
+     "quantidade": 0.7,
+     "unidade": "LT",
+     "custo_unitario_catalogo": 26.81,
+     "valor_unitario_pdf": 24.34,
+     "custo": 18.767
+    },
+    {
+     "componente_pdv": "CONCENTRADO DE GENGIBRE",
+     "produto": "CONCENTRADO DE GENGIBRE",
+     "quantidade": 0.2,
+     "unidade": "LT",
+     "custo_unitario_catalogo": 5.272,
+     "valor_unitario_pdf": 6.59,
+     "custo": 1.0544
+    }
+   ],
    "usado_por": [
     "GIN COM ESPUMA",
     "GIN PINK",
@@ -125,7 +166,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "mix de leites para coquetel, medido em litro",
-   "custo": 13.714,
+   "custo": 13.483,
    "custo_fixo": true,
    "total_impresso_no_pdf": 13.71,
    "ingredientes_no_pdf": [
@@ -148,6 +189,35 @@
      "valor_unitario": 5.69
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "LEITE DE COCO",
+     "produto": "LEITE DE COCO",
+     "quantidade": 0.2,
+     "unidade": "UND",
+     "custo_unitario_catalogo": 19.63,
+     "valor_unitario_pdf": 19.75,
+     "custo": 3.926
+    },
+    {
+     "componente_pdv": "CREME DE LEITE 17% - 1,030KG",
+     "produto": "CREME DE LEITE",
+     "quantidade": 0.3,
+     "unidade": "UND",
+     "custo_unitario_catalogo": 12.89,
+     "valor_unitario_pdf": 13.58,
+     "custo": 3.867
+    },
+    {
+     "componente_pdv": "LEITE CONDENSADO",
+     "produto": "LEITE CONDENSADO (395ml)",
+     "quantidade": 1.0,
+     "unidade": "UND",
+     "custo_unitario_catalogo": 5.69,
+     "valor_unitario_pdf": 5.69,
+     "custo": 5.69
+    }
+   ],
    "usado_por": [
     "DOM AMORES EM VERMELHO",
     "NOAH PAGODINHO"
@@ -159,7 +229,7 @@
    "setor": "Bar",
    "unidade": "UND",
    "motivo": "suco de laranja espremido na casa, servido em copo (UND)",
-   "custo": 0.897,
+   "custo": 0.837,
    "custo_fixo": true,
    "total_impresso_no_pdf": 0.9,
    "ingredientes_no_pdf": [
@@ -168,6 +238,17 @@
      "unidade_pdv": "KG",
      "quantidade": 0.3,
      "valor_unitario": 2.99
+    }
+   ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "LARANJA PÊRA",
+     "produto": "LARANJA PERA",
+     "quantidade": 0.3,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 2.79,
+     "valor_unitario_pdf": 2.99,
+     "custo": 0.837
     }
    ],
    "usado_por": [
@@ -180,7 +261,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "xarope da casa, medido em litro",
-   "custo": 0.39,
+   "custo": 0.335,
    "custo_fixo": true,
    "total_impresso_no_pdf": 0.39,
    "ingredientes_no_pdf": [
@@ -189,6 +270,17 @@
      "unidade_pdv": "KG",
      "quantidade": 0.1,
      "valor_unitario": 3.9
+    }
+   ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "ACUCAR REFINADO",
+     "produto": "AÇUCAR REFINADO (1kg)",
+     "quantidade": 0.1,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 3.35,
+     "valor_unitario_pdf": 3.9,
+     "custo": 0.335
     }
    ],
    "usado_por": [
@@ -204,7 +296,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "xarope da casa, medido em litro",
-   "custo": 58.19,
+   "custo": 29.545,
    "custo_fixo": true,
    "total_impresso_no_pdf": 58.19,
    "ingredientes_no_pdf": [
@@ -221,6 +313,26 @@
      "valor_unitario": 50.2
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "CANELA PAU",
+     "produto": "CANELA EM PAU",
+     "quantidade": 0.1,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 65.45,
+     "valor_unitario_pdf": 79.9,
+     "custo": 6.545
+    },
+    {
+     "componente_pdv": "MEL 500G",
+     "produto": "MEL (500g)",
+     "quantidade": 1.0,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 23.0,
+     "valor_unitario_pdf": 50.2,
+     "custo": 23.0
+    }
+   ],
    "usado_por": [
     "CAIPIRINHA COM MEL"
    ]
@@ -231,7 +343,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "xarope da casa, medido em litro",
-   "custo": 5.82,
+   "custo": 6.07,
    "custo_fixo": true,
    "total_impresso_no_pdf": 5.82,
    "ingredientes_no_pdf": [
@@ -248,6 +360,26 @@
      "valor_unitario": 6.96
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "ACUCAR REFINADO",
+     "produto": "AÇUCAR REFINADO (1kg)",
+     "quantidade": 0.6,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 3.35,
+     "valor_unitario_pdf": 3.9,
+     "custo": 2.01
+    },
+    {
+     "componente_pdv": "GENGIBRE",
+     "produto": "GENGIBRE",
+     "quantidade": 0.5,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 8.12,
+     "valor_unitario_pdf": 6.96,
+     "custo": 4.06
+    }
+   ],
    "usado_por": [
     "MATE DA CASA SABORES",
     "MOSCOW IN ZECA",
@@ -260,7 +392,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "xarope da casa, medido em litro",
-   "custo": 24.34,
+   "custo": 26.81,
    "custo_fixo": true,
    "total_impresso_no_pdf": 24.34,
    "ingredientes_no_pdf": [
@@ -277,6 +409,26 @@
      "valor_unitario": 55.0
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "ACUCAR REFINADO",
+     "produto": "AÇUCAR REFINADO (1kg)",
+     "quantidade": 0.6,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 3.35,
+     "valor_unitario_pdf": 3.9,
+     "custo": 2.01
+    },
+    {
+     "componente_pdv": "HIBISCUS",
+     "produto": "HIBISCUS",
+     "quantidade": 0.4,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 62.0,
+     "valor_unitario_pdf": 55.0,
+     "custo": 24.8
+    }
+   ],
    "usado_por": [
     "TO CALMA"
    ]
@@ -287,7 +439,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "xarope da casa, medido em litro",
-   "custo": 14.64,
+   "custo": 15.21,
    "custo_fixo": true,
    "total_impresso_no_pdf": 14.64,
    "ingredientes_no_pdf": [
@@ -304,6 +456,26 @@
      "valor_unitario": 12.3
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "ACUCAR REFINADO",
+     "produto": "AÇUCAR REFINADO (1kg)",
+     "quantidade": 0.6,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 3.35,
+     "valor_unitario_pdf": 3.9,
+     "custo": 2.01
+    },
+    {
+     "componente_pdv": "MARACUJÁ AZEDO",
+     "produto": "MARACUJÁ",
+     "quantidade": 1.0,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 13.2,
+     "valor_unitario_pdf": 12.3,
+     "custo": 13.2
+    }
+   ],
    "usado_por": [
     "BI-SAMBAS",
     "BLUE TA DE CAO",
@@ -317,7 +489,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "xarope da casa, medido em litro",
-   "custo": 62.788,
+   "custo": 24.8,
    "custo_fixo": true,
    "total_impresso_no_pdf": 62.79,
    "ingredientes_no_pdf": [
@@ -334,6 +506,26 @@
      "valor_unitario": 20.98
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "MEL 500G",
+     "produto": "MEL (500g)",
+     "quantidade": 1.0,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 23.0,
+     "valor_unitario_pdf": 50.2,
+     "custo": 23.0
+    },
+    {
+     "componente_pdv": "AGUA 1 5 L",
+     "produto": "ÁGUA SEM GÁS (1,5lts)",
+     "quantidade": 0.6,
+     "unidade": "UND",
+     "custo_unitario_catalogo": 3.0,
+     "valor_unitario_pdf": 20.98,
+     "custo": 1.8
+    }
+   ],
    "usado_por": [
     "FOLIA DO DOM"
    ]
@@ -344,7 +536,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "xarope da casa, medido em litro",
-   "custo": 33.844,
+   "custo": 51.086,
    "custo_fixo": true,
    "total_impresso_no_pdf": 33.85,
    "ingredientes_no_pdf": [
@@ -361,6 +553,26 @@
      "valor_unitario": 37.43
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "ACUCAR REFINADO",
+     "produto": "AÇUCAR REFINADO (1kg)",
+     "quantidade": 1.0,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 3.35,
+     "valor_unitario_pdf": 3.9,
+     "custo": 3.35
+    },
+    {
+     "componente_pdv": "MORANGO",
+     "produto": "MORANGO",
+     "quantidade": 0.8,
+     "unidade": "UND",
+     "custo_unitario_catalogo": 59.67,
+     "valor_unitario_pdf": 37.43,
+     "custo": 47.736
+    }
+   ],
    "usado_por": [
     "EXPLOSAO DO ZECA",
     "GT TANQUERAY"
@@ -372,7 +584,7 @@
    "setor": "Bar",
    "unidade": "LT",
    "motivo": "xarope da casa, medido em litro",
-   "custo": 27.11,
+   "custo": 75.465,
    "custo_fixo": true,
    "total_impresso_no_pdf": 27.11,
    "ingredientes_no_pdf": [
@@ -389,12 +601,682 @@
      "valor_unitario": 12.19
     }
    ],
+   "receita_no_nosso_catalogo": [
+    {
+     "componente_pdv": "ACUCAR REFINADO",
+     "produto": "AÇUCAR REFINADO (1kg)",
+     "quantidade": 0.7,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 3.35,
+     "valor_unitario_pdf": 3.9,
+     "custo": 2.345
+    },
+    {
+     "componente_pdv": "UVA ROXA",
+     "produto": "UVA CRISON ROXA",
+     "quantidade": 2.0,
+     "unidade": "KG",
+     "custo_unitario_catalogo": 36.56,
+     "valor_unitario_pdf": 12.19,
+     "custo": 73.12
+    }
+   ],
    "usado_por": [
     "SEGREDO DO ZECA"
    ]
   }
  ],
  "preparos_nao_usados": [],
+ "recorte": {
+  "prefixo_de_grupo": "Drinques",
+  "fichas_que_ficam": 56,
+  "fichas_recortadas": 23,
+  "itens_recortados": 23,
+  "custo_recortado": 102.6525,
+  "grupos_recortados": {
+   "Cervejas e Chopps": 3,
+   "Cervejas e Chopps · Happy Hour": 1,
+   "Cortesias": 17,
+   "Refrigerantes e Águas": 2
+  },
+  "calibracao_do_depara": [
+   {
+    "ficha": "AGUA COM GAS APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "AGUA COM GAS"
+    ],
+    "produtos": [
+     "ÁGUA COM GÁS (350ml)"
+    ],
+    "custo_nosso": 1.19,
+    "total_recalculado_pdf": 1.2,
+    "total_impresso_pdf": 1.2,
+    "diferenca_relativa_pct": -0.83
+   },
+   {
+    "ficha": "AGUA SEM GAS APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "AGUA SEM GAS"
+    ],
+    "produtos": [
+     "ÁGUA SEM GÁS (350ml)"
+    ],
+    "custo_nosso": 1.19,
+    "total_recalculado_pdf": 1.2,
+    "total_impresso_pdf": 1.2,
+    "diferenca_relativa_pct": -0.83
+   },
+   {
+    "ficha": "AMSTEL CHOPP 300 ML HH",
+    "grupo": "Cervejas e Chopps · Happy Hour",
+    "itens": 1,
+    "componentes_pdv": [
+     "CHOPP AMSTEL BARRIL 50L"
+    ],
+    "produtos": [
+     "CHOPP AMSTEL (30LT)"
+    ],
+    "custo_nosso": 3.4685,
+    "total_recalculado_pdf": 3.6435,
+    "total_impresso_pdf": 3.64,
+    "diferenca_relativa_pct": -4.8
+   },
+   {
+    "ficha": "ANTARTICA ORIG600 ML APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "ANTARTICA ORIG600 ML"
+    ],
+    "produtos": [
+     "CERVEJA ANTARCTICA ORIGINAL (600ml)"
+    ],
+    "custo_nosso": 6.68,
+    "total_recalculado_pdf": 7.05,
+    "total_impresso_pdf": 7.05,
+    "diferenca_relativa_pct": -5.25
+   },
+   {
+    "ficha": "BRAHMA CHOPP 300ML",
+    "grupo": "Cervejas e Chopps",
+    "itens": 1,
+    "componentes_pdv": [
+     "CHOPP BRAHMA CLARO BARRIL 50L"
+    ],
+    "produtos": [
+     "CHOPP BRAHMA (50lts)"
+    ],
+    "custo_nosso": 4.5115,
+    "total_recalculado_pdf": 4.9595,
+    "total_impresso_pdf": 4.96,
+    "diferenca_relativa_pct": -9.03
+   },
+   {
+    "ficha": "BRAHMA GF 600 ML APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "BRAHMA GF 600 ML"
+    ],
+    "produtos": [
+     "CERVEJA BRAHMA (600ml)"
+    ],
+    "custo_nosso": 6.36,
+    "total_recalculado_pdf": 6.59,
+    "total_impresso_pdf": 6.59,
+    "diferenca_relativa_pct": -3.49
+   },
+   {
+    "ficha": "CHOPP 220 ML - APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "CHOPP BRAHMA CLARO BARRIL 50L"
+    ],
+    "produtos": [
+     "CHOPP BRAHMA (50lts)"
+    ],
+    "custo_nosso": 3.2225,
+    "total_recalculado_pdf": 3.5425,
+    "total_impresso_pdf": 3.54,
+    "diferenca_relativa_pct": -9.03
+   },
+   {
+    "ficha": "COCA COCA ZERO APOIO KS",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "COCA-COLA ZERO KS"
+    ],
+    "produtos": [
+     "COCA COLA ZERO KS"
+    ],
+    "custo_nosso": 2.25,
+    "total_recalculado_pdf": 2.26,
+    "total_impresso_pdf": 2.26,
+    "diferenca_relativa_pct": -0.44
+   },
+   {
+    "ficha": "COCA COLA APOIO KS",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "COCA-COLA KS"
+    ],
+    "produtos": [
+     "COCA COLA KS"
+    ],
+    "custo_nosso": 2.25,
+    "total_recalculado_pdf": 2.26,
+    "total_impresso_pdf": 2.26,
+    "diferenca_relativa_pct": -0.44
+   },
+   {
+    "ficha": "COCA COLA KS",
+    "grupo": "Refrigerantes e Águas",
+    "itens": 1,
+    "componentes_pdv": [
+     "COCA-COLA KS"
+    ],
+    "produtos": [
+     "COCA COLA KS"
+    ],
+    "custo_nosso": 2.25,
+    "total_recalculado_pdf": 2.26,
+    "total_impresso_pdf": 2.26,
+    "diferenca_relativa_pct": -0.44
+   },
+   {
+    "ficha": "COCA COLA ZERO KS",
+    "grupo": "Refrigerantes e Águas",
+    "itens": 1,
+    "componentes_pdv": [
+     "COCA-COLA ZERO KS"
+    ],
+    "produtos": [
+     "COCA COLA ZERO KS"
+    ],
+    "custo_nosso": 2.25,
+    "total_recalculado_pdf": 2.26,
+    "total_impresso_pdf": 2.26,
+    "diferenca_relativa_pct": -0.44
+   },
+   {
+    "ficha": "GUARANA APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "GUARANA"
+    ],
+    "produtos": [
+     "GUARANÁ ANTARCTICA (350ml)"
+    ],
+    "custo_nosso": 2.83,
+    "total_recalculado_pdf": 2.83,
+    "total_impresso_pdf": 2.83,
+    "diferenca_relativa_pct": 0.0
+   },
+   {
+    "ficha": "GUARANA ZERO APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "GUARANA ZERO"
+    ],
+    "produtos": [
+     "GUARANÁ ANTARCTICA ZERO (350ml)"
+    ],
+    "custo_nosso": 2.83,
+    "total_recalculado_pdf": 2.83,
+    "total_impresso_pdf": 2.83,
+    "diferenca_relativa_pct": 0.0
+   },
+   {
+    "ficha": "HEINEKEN LONGNECK",
+    "grupo": "Cervejas e Chopps",
+    "itens": 1,
+    "componentes_pdv": [
+     "CERVEJA HEINEKEN 330 ML"
+    ],
+    "produtos": [
+     "CERVEJA HEINEKEN 330 ML"
+    ],
+    "custo_nosso": 6.2,
+    "total_recalculado_pdf": 6.2,
+    "total_impresso_pdf": 6.2,
+    "diferenca_relativa_pct": 0.0
+   },
+   {
+    "ficha": "Heineken Ultimate LN 330ML",
+    "grupo": "Cervejas e Chopps",
+    "itens": 1,
+    "componentes_pdv": [
+     "CERVEJA HEINEKEN ULTIMATE"
+    ],
+    "produtos": [
+     "CERVEJA HEINEKEN 330 ML ULTIMATE"
+    ],
+    "custo_nosso": 6.23,
+    "total_recalculado_pdf": 6.55,
+    "total_impresso_pdf": 6.55,
+    "diferenca_relativa_pct": -4.89
+   },
+   {
+    "ficha": "RED BULL ACAI 250 ML APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "RED BULL ACAI 250 ML"
+    ],
+    "produtos": [
+     "RED BULL AÇAI"
+    ],
+    "custo_nosso": 5.94,
+    "total_recalculado_pdf": 0.0,
+    "total_impresso_pdf": 0.0,
+    "diferenca_relativa_pct": null
+   },
+   {
+    "ficha": "RED BULL C APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "RED BULL C"
+    ],
+    "produtos": [
+     "RED BULL"
+    ],
+    "custo_nosso": 7.49,
+    "total_recalculado_pdf": 7.49,
+    "total_impresso_pdf": 7.49,
+    "diferenca_relativa_pct": 0.0
+   },
+   {
+    "ficha": "RED BULL MELANCIA 250 ML C APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "RED BULL MELANCIA 250 ML C"
+    ],
+    "produtos": [
+     "RED BULL MELANCIA (250ml)"
+    ],
+    "custo_nosso": 7.49,
+    "total_recalculado_pdf": 0.0,
+    "total_impresso_pdf": 0.0,
+    "diferenca_relativa_pct": null
+   },
+   {
+    "ficha": "RED BULL SUGAR FREE APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "RED BULL SUGAR FREE"
+    ],
+    "produtos": [
+     "RED BULL ZERO"
+    ],
+    "custo_nosso": 7.49,
+    "total_recalculado_pdf": 7.19,
+    "total_impresso_pdf": 7.19,
+    "diferenca_relativa_pct": 4.17
+   },
+   {
+    "ficha": "RED BULL TROPICAL 250 ML C APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "RED BULL TROPICAL 250 ML C"
+    ],
+    "produtos": [
+     "RED BULL THE TROPICAL EDITION (250ml)"
+    ],
+    "custo_nosso": 7.49,
+    "total_recalculado_pdf": 7.49,
+    "total_impresso_pdf": 7.49,
+    "diferenca_relativa_pct": 0.0
+   },
+   {
+    "ficha": "STELA LONG NECK APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "STELLA LONG NECK"
+    ],
+    "produtos": [
+     "CERVEJA STELLA LONG NECK (330ml)"
+    ],
+    "custo_nosso": 5.88,
+    "total_recalculado_pdf": 5.04,
+    "total_impresso_pdf": 5.04,
+    "diferenca_relativa_pct": 16.67
+   },
+   {
+    "ficha": "TONICA APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "TONICA C"
+    ],
+    "produtos": [
+     "TÔNICA SCHWEPPES"
+    ],
+    "custo_nosso": 3.58,
+    "total_recalculado_pdf": 3.59,
+    "total_impresso_pdf": 3.59,
+    "diferenca_relativa_pct": -0.28
+   },
+   {
+    "ficha": "TONICA ZERO APOIO",
+    "grupo": "Cortesias",
+    "itens": 1,
+    "componentes_pdv": [
+     "TONICA ZERO C"
+    ],
+    "produtos": [
+     "TÔNICA SCHWEPPES ZERO"
+    ],
+    "custo_nosso": 3.58,
+    "total_recalculado_pdf": 3.58,
+    "total_impresso_pdf": 3.58,
+    "diferenca_relativa_pct": 0.0
+   }
+  ]
+ },
+ "valor_unitario_no_pdf": {
+  "ABACAXI": [
+   5.88
+  ],
+  "ACUCAR REFINADO": [
+   3.9
+  ],
+  "AGUA 1 5 L": [
+   20.98
+  ],
+  "AGUA COM GAS": [
+   1.2
+  ],
+  "AGUA SEM GAS": [
+   1.2
+  ],
+  "ANTARTICA ORIG600 ML": [
+   7.05
+  ],
+  "BITTER ANGOSTURA AROMATIC": [
+   780.0
+  ],
+  "BITTER ANGOSTURA AROMATIC 100ML": [
+   0.0
+  ],
+  "BRAHMA GF 600 ML": [
+   6.59
+  ],
+  "CACHAÇA SAGATIBA": [
+   25.0
+  ],
+  "CACHAÇA YPIOCA PRATA": [
+   0.0
+  ],
+  "CAFÉ NESPRESSO BRAZIL ORGANIC": [
+   2.05
+  ],
+  "CAFÉ NESPRESSO RISTRETTO": [
+   2.05
+  ],
+  "CANELA PAU": [
+   79.9
+  ],
+  "CEREJA EM CALDAS": [
+   66.61
+  ],
+  "CERVEJA HEINEKEN 330 ML": [
+   6.2
+  ],
+  "CERVEJA HEINEKEN ULTIMATE": [
+   6.55
+  ],
+  "CHOPP AMSTEL BARRIL 50L": [
+   10.41
+  ],
+  "CHOPP BRAHMA CLARO BARRIL 50L": [
+   14.17
+  ],
+  "COCA-COLA KS": [
+   2.26
+  ],
+  "COCA-COLA ZERO KS": [
+   2.26
+  ],
+  "CREME DE LEITE 17% - 1,030KG": [
+   13.58
+  ],
+  "EMULSIFICANTE": [
+   20.9
+  ],
+  "ESPUMANTE SALTON BRUT 750 ML": [
+   38.0
+  ],
+  "GENGIBRE": [
+   6.96
+  ],
+  "GF ABSOLUT": [
+   52.0
+  ],
+  "GF AMARETO DEL ORSO": [
+   0.0
+  ],
+  "GF APEROL": [
+   43.93
+  ],
+  "GF ARPO BAG": [
+   44.4
+  ],
+  "GF BACARDI BRANCO": [
+   32.2
+  ],
+  "GF BACARDI ORO": [
+   0.0
+  ],
+  "GF BANANINHA": [
+   40.71
+  ],
+  "GF CACHACA SALINAS": [
+   13.35
+  ],
+  "GF CAMPARI": [
+   44.99
+  ],
+  "GF CINZANO VERMOUTH ROSSO": [
+   31.55
+  ],
+  "GF GABRIELA": [
+   49.2
+  ],
+  "GF GIN BEEFETER 750 ML": [
+   65.0
+  ],
+  "GF GIN BEEFETER PINK 750 ML": [
+   89.9
+  ],
+  "GF GIN BOMBAY": [
+   70.9
+  ],
+  "GF GIN TANQUERAY BOSSA NOVA": [
+   122.71
+  ],
+  "GF JACK DANIELS": [
+   122.0
+  ],
+  "GF JACK DANIELS APPLE": [
+   133.0
+  ],
+  "GF JACK HONEY": [
+   125.0
+  ],
+  "GF LICOR 43": [
+   174.29
+  ],
+  "GF LIMONCELLO": [
+   131.9
+  ],
+  "GF MALIBU": [
+   43.94
+  ],
+  "GF PRATEADA": [
+   54.9
+  ],
+  "GF TANQUERAY": [
+   98.64
+  ],
+  "GF TEQUILA JOSE CUERVO": [
+   127.99
+  ],
+  "GF TEQUILA JOSE CUERVO ORO": [
+   99.0
+  ],
+  "GF VELVO BOTANIC GIN": [
+   0.0
+  ],
+  "GF VODKA SKYY": [
+   28.5
+  ],
+  "GUARANA": [
+   2.83
+  ],
+  "GUARANA ZERO": [
+   2.83
+  ],
+  "HIBISCUS": [
+   55.0
+  ],
+  "LARANJA BAHIA": [
+   7.33
+  ],
+  "LARANJA PÊRA": [
+   2.99
+  ],
+  "LEITE CONDENSADO": [
+   5.69
+  ],
+  "LEITE DE COCO": [
+   19.75
+  ],
+  "LIMA DA PERSIA": [
+   9.5
+  ],
+  "LIMÃO": [
+   10.7
+  ],
+  "LIMÃO SICILIANO": [
+   7.33
+  ],
+  "MANJERICAO": [
+   27.8
+  ],
+  "MARACUJÁ AZEDO": [
+   12.3
+  ],
+  "MARSHMALLOW": [
+   6.0
+  ],
+  "MEL 500G": [
+   50.2
+  ],
+  "MONSTER ENERGETICO SEM ACUCAR": [
+   7.66
+  ],
+  "MONSTER PACIFIC PUNCH 473 ML": [
+   7.67
+  ],
+  "MONSTER SABORES": [
+   7.66
+  ],
+  "MONSTER ULTRA FIESTA MANGO 473 ML": [
+   7.64
+  ],
+  "MONSTER ULTRA PEACHY KEEN 473 ML": [
+   7.64
+  ],
+  "MORANGO": [
+   37.43
+  ],
+  "RED BULL ACAI 250 ML": [
+   0.0
+  ],
+  "RED BULL C": [
+   7.49
+  ],
+  "RED BULL MELANCIA 250 ML C": [
+   0.0
+  ],
+  "RED BULL SUGAR FREE": [
+   7.19
+  ],
+  "RED BULL TROPICAL 250 ML C": [
+   7.49
+  ],
+  "STELLA LONG NECK": [
+   5.04
+  ],
+  "TANGERINA IMPORTADA": [
+   14.44
+  ],
+  "TONICA C": [
+   3.59
+  ],
+  "TONICA PINK LIMONADE": [
+   4.08
+  ],
+  "TONICA RED MINT": [
+   4.0
+  ],
+  "TONICA SCHWEPPES": [
+   0.0
+  ],
+  "TONICA ZERO C": [
+   3.58
+  ],
+  "UVA ROXA": [
+   12.19
+  ],
+  "UVA THOMPSON": [
+   10.7
+  ],
+  "VINHO SALTON ATOS LICOROSO": [
+   0.0
+  ],
+  "XAROPE FRANCES BAUNILHA": [
+   66.86
+  ],
+  "XAROPE FRANCES GRENADINE MONIN": [
+   66.86
+  ],
+  "XAROPE FRANCES TANGERINA MONIN 700ML": [
+   0.0
+  ],
+  "XAROPE MONIN ACAI": [
+   46.8
+  ],
+  "XAROPE MONIN AMORA 700 ML": [
+   46.9
+  ],
+  "XAROPE MONIN CARAMELO 700 ML": [
+   0.0
+  ],
+  "XAROPE MONIN DE MACA VERDE 700ML": [
+   68.43
+  ],
+  "XAROPE MONIN MANGA 700ML": [
+   0.0
+  ],
+  "XAROPE MONIN SPICE MANGO": [
+   0.0
+  ]
+ },
  "depara": [
   {
    "componente_pdv": "ABACAXI",
@@ -499,6 +1381,14 @@
    "categoria_catalogo": "MERCEARIA",
    "custo_catalogo": 2.35,
    "motivo": "a capsula de cafe do catalogo; custo PDF 2,05 x catalogo 2,35, que e preco de CAPSULA e nao de quilo — a unidade KG do cadastro esta errada e e achado"
+  },
+  {
+   "componente_pdv": "CANELA PAU",
+   "produto_catalogo": "CANELA EM PAU",
+   "unidade_catalogo": "KG",
+   "categoria_catalogo": "TEMPEROS E AFINS",
+   "custo_catalogo": 65.45,
+   "motivo": "nome quase exato (o PDV inverte as duas ultimas palavras). O catalogo tem CANELA EM PAU (KG, R$ 65,45, TEMPEROS E AFINS) e CANELA EM PÓ (KG, R$ 48,00, MERCEARIA); o xarope usa a canela EM PAU, que e a que se infunde. Entrou na auditoria: era o unico ingrediente de preparo sem linha aqui, e sem ele o XAROPE DE CANELA E MEL nao tem preco proprio no nosso catalogo"
   },
   {
    "componente_pdv": "CEREJA EM CALDAS",
@@ -1329,16 +2219,19 @@
  ],
  "fichas_sem_nenhum_item": [
   {
-   "ficha": "Cerpa Long Neck",
-   "grupo": "Cervejas e Chopps"
+   "ficha": "MATE",
+   "grupo": "Drinques · Sem Álcool",
+   "dentro_do_recorte": true
   },
   {
-   "ficha": "MATE",
-   "grupo": "Drinques · Sem Álcool"
+   "ficha": "Cerpa Long Neck",
+   "grupo": "Cervejas e Chopps",
+   "dentro_do_recorte": false
   },
   {
    "ficha": "SPATEN 600 ML APOIO",
-   "grupo": "Cortesias"
+   "grupo": "Cortesias",
+   "dentro_do_recorte": false
   }
  ],
  "achados": {
@@ -1845,17 +2738,44 @@
     "preparo": "XAROPE DE ACUCAR",
     "quantidade": 0.01
    }
+  ],
+  "garrafa_fechada_fora_do_recorte": [
+   {
+    "ficha": "ANTARTICA ORIG600 ML APOIO",
+    "produto": "CERVEJA ANTARCTICA ORIGINAL (600ml)",
+    "quantidade": 1.0
+   },
+   {
+    "ficha": "BRAHMA GF 600 ML APOIO",
+    "produto": "CERVEJA BRAHMA (600ml)",
+    "quantidade": 1.0
+   },
+   {
+    "ficha": "HEINEKEN LONGNECK",
+    "produto": "CERVEJA HEINEKEN 330 ML",
+    "quantidade": 1.0
+   },
+   {
+    "ficha": "Heineken Ultimate LN 330ML",
+    "produto": "CERVEJA HEINEKEN 330 ML ULTIMATE",
+    "quantidade": 1.0
+   },
+   {
+    "ficha": "STELA LONG NECK APOIO",
+    "produto": "CERVEJA STELLA LONG NECK (330ml)",
+    "quantidade": 1.0
+   }
   ]
  },
  "comparacao_de_custo": [
   {
    "ficha": "GIN COM ESPUMA",
    "grupo": "Drinques",
-   "custo_nosso": 4.6407,
+   "custo_nosso": 4.7273,
    "total_impresso_pdf": 0.96,
    "total_recalculado_pdf": 0.9807,
-   "diferenca": 3.66,
-   "diferenca_relativa_pct": 373.2,
+   "diferenca": 3.7466,
+   "diferenca_relativa_pct": 382.03,
    "itens": 2,
    "itens_faltando": 0
   },
@@ -1882,13 +2802,24 @@
    "itens_faltando": 0
   },
   {
+   "ficha": "SEGREDO DO ZECA",
+   "grupo": "Drinques",
+   "custo_nosso": 13.2124,
+   "total_impresso_pdf": 4.97,
+   "total_recalculado_pdf": 4.9945,
+   "diferenca": 8.2179,
+   "diferenca_relativa_pct": 164.54,
+   "itens": 5,
+   "itens_faltando": 0
+  },
+  {
    "ficha": "BI-SAMBAS",
    "grupo": "Drinques",
-   "custo_nosso": 3.9534,
+   "custo_nosso": 4.0084,
    "total_impresso_pdf": 1.81,
    "total_recalculado_pdf": 1.8222,
-   "diferenca": 2.1312,
-   "diferenca_relativa_pct": 116.96,
+   "diferenca": 2.1862,
+   "diferenca_relativa_pct": 119.98,
    "itens": 3,
    "itens_faltando": 0
   },
@@ -1906,11 +2837,11 @@
   {
    "ficha": "MOSCOW IN ZECA",
    "grupo": "Drinques",
-   "custo_nosso": 1.2717,
+   "custo_nosso": 1.3708,
    "total_impresso_pdf": 6.4,
    "total_recalculado_pdf": 6.4217,
-   "diferenca": -5.15,
-   "diferenca_relativa_pct": -80.2,
+   "diferenca": -5.0509,
+   "diferenca_relativa_pct": -78.65,
    "itens": 2,
    "itens_faltando": 1
   },
@@ -1928,23 +2859,12 @@
   {
    "ficha": "BRISANDO",
    "grupo": "Drinques",
-   "custo_nosso": 5.177,
+   "custo_nosso": 5.2526,
    "total_impresso_pdf": 2.97,
    "total_recalculado_pdf": 3.0558,
-   "diferenca": 2.1212,
-   "diferenca_relativa_pct": 69.42,
+   "diferenca": 2.1968,
+   "diferenca_relativa_pct": 71.89,
    "itens": 4,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "SEGREDO DO ZECA",
-   "grupo": "Drinques",
-   "custo_nosso": 8.2903,
-   "total_impresso_pdf": 4.97,
-   "total_recalculado_pdf": 4.9945,
-   "diferenca": 3.2958,
-   "diferenca_relativa_pct": 65.99,
-   "itens": 5,
    "itens_faltando": 0
   },
   {
@@ -1992,6 +2912,17 @@
    "itens_faltando": 0
   },
   {
+   "ficha": "EXPLOSAO DO ZECA",
+   "grupo": "Drinques",
+   "custo_nosso": 12.4836,
+   "total_impresso_pdf": 9.07,
+   "total_recalculado_pdf": 9.0672,
+   "diferenca": 3.4164,
+   "diferenca_relativa_pct": 37.68,
+   "itens": 4,
+   "itens_faltando": 0
+  },
+  {
    "ficha": "VAI VIVER",
    "grupo": "Drinques",
    "custo_nosso": 7.882,
@@ -2014,13 +2945,24 @@
    "itens_faltando": 0
   },
   {
+   "ficha": "CAIPIRINHA COM MEL",
+   "grupo": "Drinques",
+   "custo_nosso": 7.5085,
+   "total_impresso_pdf": 6.89,
+   "total_recalculado_pdf": 10.732,
+   "diferenca": -3.2235,
+   "diferenca_relativa_pct": -30.04,
+   "itens": 3,
+   "itens_faltando": 0
+  },
+  {
    "ficha": "NOAH PAGODINHO",
    "grupo": "Drinques",
-   "custo_nosso": 9.6733,
+   "custo_nosso": 9.664,
    "total_impresso_pdf": 7.68,
    "total_recalculado_pdf": 7.6347,
-   "diferenca": 2.0386,
-   "diferenca_relativa_pct": 26.7,
+   "diferenca": 2.0293,
+   "diferenca_relativa_pct": 26.58,
    "itens": 6,
    "itens_faltando": 0
   },
@@ -2038,23 +2980,34 @@
   {
    "ficha": "DEIXA ARDER",
    "grupo": "Drinques",
-   "custo_nosso": 4.0874,
+   "custo_nosso": 4.0869,
    "total_impresso_pdf": 3.31,
    "total_recalculado_pdf": 3.3119,
-   "diferenca": 0.7755,
-   "diferenca_relativa_pct": 23.42,
+   "diferenca": 0.775,
+   "diferenca_relativa_pct": 23.4,
    "itens": 5,
    "itens_faltando": 0
   },
   {
    "ficha": "XEREM",
    "grupo": "Drinques",
-   "custo_nosso": 3.1778,
+   "custo_nosso": 3.1773,
    "total_impresso_pdf": 4.12,
    "total_recalculado_pdf": 4.1189,
-   "diferenca": -0.9411,
-   "diferenca_relativa_pct": -22.85,
+   "diferenca": -0.9416,
+   "diferenca_relativa_pct": -22.86,
    "itens": 5,
+   "itens_faltando": 0
+  },
+  {
+   "ficha": "GT TANQUERAY",
+   "grupo": "Drinques",
+   "custo_nosso": 12.5971,
+   "total_impresso_pdf": 10.52,
+   "total_recalculado_pdf": 10.5229,
+   "diferenca": 2.0742,
+   "diferenca_relativa_pct": 19.71,
+   "itens": 3,
    "itens_faltando": 0
   },
   {
@@ -2080,24 +3033,13 @@
    "itens_faltando": 0
   },
   {
-   "ficha": "EXPLOSAO DO ZECA",
-   "grupo": "Drinques",
-   "custo_nosso": 10.7594,
-   "total_impresso_pdf": 9.07,
-   "total_recalculado_pdf": 9.0672,
-   "diferenca": 1.6922,
-   "diferenca_relativa_pct": 18.66,
-   "itens": 4,
-   "itens_faltando": 0
-  },
-  {
    "ficha": "GIN PINK",
    "grupo": "Drinques",
-   "custo_nosso": 15.8269,
+   "custo_nosso": 16.0002,
    "total_impresso_pdf": 13.45,
    "total_recalculado_pdf": 13.4867,
-   "diferenca": 2.3402,
-   "diferenca_relativa_pct": 17.35,
+   "diferenca": 2.5135,
+   "diferenca_relativa_pct": 18.64,
    "itens": 4,
    "itens_faltando": 0
   },
@@ -2110,17 +3052,6 @@
    "diferenca": -2.7369,
    "diferenca_relativa_pct": -16.87,
    "itens": 4,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "STELA LONG NECK APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 5.88,
-   "total_impresso_pdf": 5.04,
-   "total_recalculado_pdf": 5.04,
-   "diferenca": 0.84,
-   "diferenca_relativa_pct": 16.67,
-   "itens": 1,
    "itens_faltando": 0
   },
   {
@@ -2137,11 +3068,11 @@
   {
    "ficha": "CAMISA 10",
    "grupo": "Drinques",
-   "custo_nosso": 9.0206,
+   "custo_nosso": 9.032,
    "total_impresso_pdf": 7.86,
    "total_recalculado_pdf": 7.8568,
-   "diferenca": 1.1638,
-   "diferenca_relativa_pct": 14.81,
+   "diferenca": 1.1752,
+   "diferenca_relativa_pct": 14.96,
    "itens": 3,
    "itens_faltando": 0
   },
@@ -2165,28 +3096,6 @@
    "diferenca": -0.7062,
    "diferenca_relativa_pct": -10.59,
    "itens": 3,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "BRAHMA CHOPP 300ML",
-   "grupo": "Cervejas e Chopps",
-   "custo_nosso": 4.5115,
-   "total_impresso_pdf": 4.96,
-   "total_recalculado_pdf": 4.9595,
-   "diferenca": -0.448,
-   "diferenca_relativa_pct": -9.03,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "CHOPP 220 ML - APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 3.2225,
-   "total_impresso_pdf": 3.54,
-   "total_recalculado_pdf": 3.5425,
-   "diferenca": -0.32,
-   "diferenca_relativa_pct": -9.03,
-   "itens": 1,
    "itens_faltando": 0
   },
   {
@@ -2236,33 +3145,22 @@
   {
    "ficha": "BOSSA SOUR",
    "grupo": "Drinques",
-   "custo_nosso": 9.3221,
+   "custo_nosso": 9.3166,
    "total_impresso_pdf": 1.11,
    "total_recalculado_pdf": 8.717,
-   "diferenca": 0.6051,
-   "diferenca_relativa_pct": 6.94,
+   "diferenca": 0.5996,
+   "diferenca_relativa_pct": 6.88,
    "itens": 3,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "TO CALMA",
-   "grupo": "Drinques · Sem Álcool",
-   "custo_nosso": 5.219,
-   "total_impresso_pdf": 5.58,
-   "total_recalculado_pdf": 5.583,
-   "diferenca": -0.364,
-   "diferenca_relativa_pct": -6.52,
-   "itens": 5,
    "itens_faltando": 0
   },
   {
    "ficha": "DOM AMORES EM VERMELHO",
    "grupo": "Drinques",
-   "custo_nosso": 13.0146,
+   "custo_nosso": 13.0409,
    "total_impresso_pdf": 12.15,
    "total_recalculado_pdf": 12.2283,
-   "diferenca": 0.7863,
-   "diferenca_relativa_pct": 6.43,
+   "diferenca": 0.8126,
+   "diferenca_relativa_pct": 6.65,
    "itens": 6,
    "itens_faltando": 0
   },
@@ -2278,17 +3176,6 @@
    "itens_faltando": 0
   },
   {
-   "ficha": "ANTARTICA ORIG600 ML APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 6.68,
-   "total_impresso_pdf": 7.05,
-   "total_recalculado_pdf": 7.05,
-   "diferenca": -0.37,
-   "diferenca_relativa_pct": -5.25,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
    "ficha": "CARAJILLO BDZ",
    "grupo": "Drinques",
    "custo_nosso": 13.51,
@@ -2297,28 +3184,6 @@
    "diferenca": 0.654,
    "diferenca_relativa_pct": 5.09,
    "itens": 2,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "Heineken Ultimate LN 330ML",
-   "grupo": "Cervejas e Chopps",
-   "custo_nosso": 6.23,
-   "total_impresso_pdf": 6.55,
-   "total_recalculado_pdf": 6.55,
-   "diferenca": -0.32,
-   "diferenca_relativa_pct": -4.89,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "FOLIA DO DOM",
-   "grupo": "Drinques",
-   "custo_nosso": 18.2356,
-   "total_impresso_pdf": 17.4,
-   "total_recalculado_pdf": 17.3976,
-   "diferenca": 0.838,
-   "diferenca_relativa_pct": 4.82,
-   "itens": 5,
    "itens_faltando": 0
   },
   {
@@ -2333,37 +3198,15 @@
    "itens_faltando": 0
   },
   {
-   "ficha": "AMSTEL CHOPP 300 ML HH",
-   "grupo": "Cervejas e Chopps · Happy Hour",
-   "custo_nosso": 3.4685,
-   "total_impresso_pdf": 3.64,
-   "total_recalculado_pdf": 3.6435,
-   "diferenca": -0.175,
-   "diferenca_relativa_pct": -4.8,
+   "ficha": "MATE DA CASA SABORES",
+   "grupo": "Drinques · Sem Álcool",
+   "custo_nosso": 0.607,
+   "total_impresso_pdf": 0.58,
+   "total_recalculado_pdf": 0.582,
+   "diferenca": 0.025,
+   "diferenca_relativa_pct": 4.3,
    "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "RED BULL SUGAR FREE APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 7.49,
-   "total_impresso_pdf": 7.19,
-   "total_recalculado_pdf": 7.19,
-   "diferenca": 0.3,
-   "diferenca_relativa_pct": 4.17,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "BLUE TA DE CAO",
-   "grupo": "Drinques",
-   "custo_nosso": 7.218,
-   "total_impresso_pdf": 7.53,
-   "total_recalculado_pdf": 7.527,
-   "diferenca": -0.309,
-   "diferenca_relativa_pct": -4.11,
-   "itens": 4,
-   "itens_faltando": 0
+   "itens_faltando": 1
   },
   {
    "ficha": "LIMONCELLO SPRITZ",
@@ -2374,17 +3217,6 @@
    "diferenca": -0.507,
    "diferenca_relativa_pct": -3.83,
    "itens": 5,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "BRAHMA GF 600 ML APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 6.36,
-   "total_impresso_pdf": 6.59,
-   "total_recalculado_pdf": 6.59,
-   "diferenca": -0.23,
-   "diferenca_relativa_pct": -3.49,
-   "itens": 1,
    "itens_faltando": 0
   },
   {
@@ -2399,35 +3231,24 @@
    "itens_faltando": 0
   },
   {
-   "ficha": "CAIPIRINHA COM MEL",
+   "ficha": "BLUE TA DE CAO",
    "grupo": "Drinques",
-   "custo_nosso": 10.373,
-   "total_impresso_pdf": 6.89,
-   "total_recalculado_pdf": 10.732,
-   "diferenca": -0.359,
+   "custo_nosso": 7.275,
+   "total_impresso_pdf": 7.53,
+   "total_recalculado_pdf": 7.527,
+   "diferenca": -0.252,
    "diferenca_relativa_pct": -3.35,
-   "itens": 3,
+   "itens": 4,
    "itens_faltando": 0
   },
   {
-   "ficha": "GT TANQUERAY",
-   "grupo": "Drinques",
-   "custo_nosso": 10.8729,
-   "total_impresso_pdf": 10.52,
-   "total_recalculado_pdf": 10.5229,
-   "diferenca": 0.35,
-   "diferenca_relativa_pct": 3.33,
-   "itens": 3,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "BRASILEIRINHO",
-   "grupo": "Drinques",
-   "custo_nosso": 5.0419,
-   "total_impresso_pdf": 4.91,
-   "total_recalculado_pdf": 4.9114,
-   "diferenca": 0.1305,
-   "diferenca_relativa_pct": 2.66,
+   "ficha": "TO CALMA",
+   "grupo": "Drinques · Sem Álcool",
+   "custo_nosso": 5.431,
+   "total_impresso_pdf": 5.58,
+   "total_recalculado_pdf": 5.583,
+   "diferenca": -0.152,
+   "diferenca_relativa_pct": -2.72,
    "itens": 5,
    "itens_faltando": 0
   },
@@ -2440,6 +3261,17 @@
    "diferenca": 0.1471,
    "diferenca_relativa_pct": 2.66,
    "itens": 4,
+   "itens_faltando": 0
+  },
+  {
+   "ficha": "BRASILEIRINHO",
+   "grupo": "Drinques",
+   "custo_nosso": 5.0408,
+   "total_impresso_pdf": 4.91,
+   "total_recalculado_pdf": 4.9114,
+   "diferenca": 0.1294,
+   "diferenca_relativa_pct": 2.63,
+   "itens": 5,
    "itens_faltando": 0
   },
   {
@@ -2462,17 +3294,6 @@
    "diferenca": -0.2405,
    "diferenca_relativa_pct": -2.0,
    "itens": 5,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "BRISEEIIII",
-   "grupo": "Drinques",
-   "custo_nosso": 5.7646,
-   "total_impresso_pdf": 5.82,
-   "total_recalculado_pdf": 5.8731,
-   "diferenca": -0.1085,
-   "diferenca_relativa_pct": -1.85,
-   "itens": 3,
    "itens_faltando": 0
   },
   {
@@ -2509,6 +3330,17 @@
    "itens_faltando": 0
   },
   {
+   "ficha": "BRISEEIIII",
+   "grupo": "Drinques",
+   "custo_nosso": 5.8117,
+   "total_impresso_pdf": 5.82,
+   "total_recalculado_pdf": 5.8731,
+   "diferenca": -0.0614,
+   "diferenca_relativa_pct": -1.05,
+   "itens": 3,
+   "itens_faltando": 0
+  },
+  {
    "ficha": "SILENCIO",
    "grupo": "Drinques · Sem Álcool",
    "custo_nosso": 0.0297,
@@ -2516,28 +3348,6 @@
    "total_recalculado_pdf": 0.03,
    "diferenca": -0.0003,
    "diferenca_relativa_pct": -1.0,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "AGUA COM GAS APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 1.19,
-   "total_impresso_pdf": 1.2,
-   "total_recalculado_pdf": 1.2,
-   "diferenca": -0.01,
-   "diferenca_relativa_pct": -0.83,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "AGUA SEM GAS APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 1.19,
-   "total_impresso_pdf": 1.2,
-   "total_recalculado_pdf": 1.2,
-   "diferenca": -0.01,
-   "diferenca_relativa_pct": -0.83,
    "itens": 1,
    "itens_faltando": 0
   },
@@ -2553,58 +3363,14 @@
    "itens_faltando": 0
   },
   {
-   "ficha": "COCA COCA ZERO APOIO KS",
-   "grupo": "Cortesias",
-   "custo_nosso": 2.25,
-   "total_impresso_pdf": 2.26,
-   "total_recalculado_pdf": 2.26,
-   "diferenca": -0.01,
-   "diferenca_relativa_pct": -0.44,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "COCA COLA APOIO KS",
-   "grupo": "Cortesias",
-   "custo_nosso": 2.25,
-   "total_impresso_pdf": 2.26,
-   "total_recalculado_pdf": 2.26,
-   "diferenca": -0.01,
-   "diferenca_relativa_pct": -0.44,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "COCA COLA KS",
-   "grupo": "Refrigerantes e Águas",
-   "custo_nosso": 2.25,
-   "total_impresso_pdf": 2.26,
-   "total_recalculado_pdf": 2.26,
-   "diferenca": -0.01,
-   "diferenca_relativa_pct": -0.44,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "COCA COLA ZERO KS",
-   "grupo": "Refrigerantes e Águas",
-   "custo_nosso": 2.25,
-   "total_impresso_pdf": 2.26,
-   "total_recalculado_pdf": 2.26,
-   "diferenca": -0.01,
-   "diferenca_relativa_pct": -0.44,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "TONICA APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 3.58,
-   "total_impresso_pdf": 3.59,
-   "total_recalculado_pdf": 3.59,
-   "diferenca": -0.01,
-   "diferenca_relativa_pct": -0.28,
-   "itens": 1,
+   "ficha": "FOLIA DO DOM",
+   "grupo": "Drinques",
+   "custo_nosso": 17.4758,
+   "total_impresso_pdf": 17.4,
+   "total_recalculado_pdf": 17.3976,
+   "diferenca": 0.0782,
+   "diferenca_relativa_pct": 0.45,
+   "itens": 5,
    "itens_faltando": 0
   },
   {
@@ -2615,138 +3381,6 @@
    "total_recalculado_pdf": 0.0,
    "diferenca": 1.045,
    "diferenca_relativa_pct": null,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "Cerpa Long Neck",
-   "grupo": "Cervejas e Chopps",
-   "custo_nosso": 0,
-   "total_impresso_pdf": 0.0,
-   "total_recalculado_pdf": 0.0,
-   "diferenca": 0,
-   "diferenca_relativa_pct": null,
-   "itens": 0,
-   "itens_faltando": 1
-  },
-  {
-   "ficha": "GUARANA APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 2.83,
-   "total_impresso_pdf": 2.83,
-   "total_recalculado_pdf": 2.83,
-   "diferenca": 0.0,
-   "diferenca_relativa_pct": 0.0,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "GUARANA ZERO APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 2.83,
-   "total_impresso_pdf": 2.83,
-   "total_recalculado_pdf": 2.83,
-   "diferenca": 0.0,
-   "diferenca_relativa_pct": 0.0,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "HEINEKEN LONGNECK",
-   "grupo": "Cervejas e Chopps",
-   "custo_nosso": 6.2,
-   "total_impresso_pdf": 6.2,
-   "total_recalculado_pdf": 6.2,
-   "diferenca": 0.0,
-   "diferenca_relativa_pct": 0.0,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "MATE",
-   "grupo": "Drinques · Sem Álcool",
-   "custo_nosso": 0,
-   "total_impresso_pdf": 0.0,
-   "total_recalculado_pdf": 0.0,
-   "diferenca": 0,
-   "diferenca_relativa_pct": null,
-   "itens": 0,
-   "itens_faltando": 1
-  },
-  {
-   "ficha": "MATE DA CASA SABORES",
-   "grupo": "Drinques · Sem Álcool",
-   "custo_nosso": 0.582,
-   "total_impresso_pdf": 0.58,
-   "total_recalculado_pdf": 0.582,
-   "diferenca": 0.0,
-   "diferenca_relativa_pct": 0.0,
-   "itens": 1,
-   "itens_faltando": 1
-  },
-  {
-   "ficha": "RED BULL ACAI 250 ML APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 5.94,
-   "total_impresso_pdf": 0.0,
-   "total_recalculado_pdf": 0.0,
-   "diferenca": 5.94,
-   "diferenca_relativa_pct": null,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "RED BULL C APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 7.49,
-   "total_impresso_pdf": 7.49,
-   "total_recalculado_pdf": 7.49,
-   "diferenca": 0.0,
-   "diferenca_relativa_pct": 0.0,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "RED BULL MELANCIA 250 ML C APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 7.49,
-   "total_impresso_pdf": 0.0,
-   "total_recalculado_pdf": 0.0,
-   "diferenca": 7.49,
-   "diferenca_relativa_pct": null,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "RED BULL TROPICAL 250 ML C APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 7.49,
-   "total_impresso_pdf": 7.49,
-   "total_recalculado_pdf": 7.49,
-   "diferenca": 0.0,
-   "diferenca_relativa_pct": 0.0,
-   "itens": 1,
-   "itens_faltando": 0
-  },
-  {
-   "ficha": "SPATEN 600 ML APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 0,
-   "total_impresso_pdf": 0.0,
-   "total_recalculado_pdf": 0.0,
-   "diferenca": 0,
-   "diferenca_relativa_pct": null,
-   "itens": 0,
-   "itens_faltando": 1
-  },
-  {
-   "ficha": "TONICA ZERO APOIO",
-   "grupo": "Cortesias",
-   "custo_nosso": 3.58,
-   "total_impresso_pdf": 3.58,
-   "total_recalculado_pdf": 3.58,
-   "diferenca": 0.0,
-   "diferenca_relativa_pct": 0.0,
    "itens": 1,
    "itens_faltando": 0
   }
@@ -2780,6 +3414,7 @@
      ],
      "valor_unitario_pdf": 174.29,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 11.16
     },
@@ -2796,6 +3431,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.3555
     },
@@ -2812,6 +3448,7 @@
      ],
      "valor_unitario_pdf": 1.2,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.595
     }
@@ -2858,6 +3495,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.3555
     },
@@ -2874,6 +3512,7 @@
      ],
      "valor_unitario_pdf": 7.67,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 3.83
     },
@@ -2890,6 +3529,7 @@
      ],
      "valor_unitario_pdf": 28.5,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.4198
     },
@@ -2906,6 +3546,7 @@
      ],
      "valor_unitario_pdf": 68.43,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.4251
     }
@@ -2923,154 +3564,6 @@
      ]
     }
    ]
-  },
-  {
-   "nome": "AGUA COM GAS APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: agua com gas",
-   "codigo_pdv": "BDZ2",
-   "unidade_pdv": "UN",
-   "linha_pdf": 63,
-   "descricao": "Ficha do PDV BDZ2 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "ÁGUA COM GÁS (350ml)",
-     "produto_id": "a2b607aa-a696-57ae-9d57-d8ebfad7b405",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 1.19,
-     "componentes_pdv": [
-      "AGUA COM GAS"
-     ],
-     "valor_unitario_pdf": 1.2,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 1.19
-    }
-   ],
-   "custo_nosso": 1.19,
-   "total_impresso_pdf": 1.2,
-   "total_recalculado_pdf": 1.2,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "AGUA SEM GAS APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: agua sem gas",
-   "codigo_pdv": "BDZ6",
-   "unidade_pdv": "UN",
-   "linha_pdf": 69,
-   "descricao": "Ficha do PDV BDZ6 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "ÁGUA SEM GÁS (350ml)",
-     "produto_id": "2d9be38d-b257-55c1-b331-d703c08a51ff",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 1.19,
-     "componentes_pdv": [
-      "AGUA SEM GAS"
-     ],
-     "valor_unitario_pdf": 1.2,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 1.19
-    }
-   ],
-   "custo_nosso": 1.19,
-   "total_impresso_pdf": 1.2,
-   "total_recalculado_pdf": 1.2,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "AMSTEL CHOPP 300 ML HH",
-   "grupo": "Cervejas e Chopps · Happy Hour",
-   "motivo_da_classificacao": "chopp amstel de happy hour: 0,35 do barril, receita de verdade",
-   "codigo_pdv": "BDZ661",
-   "unidade_pdv": "UN",
-   "linha_pdf": 96,
-   "descricao": "Ficha do PDV BDZ661 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 30,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "CHOPP AMSTEL (30LT)",
-     "produto_id": "17f09dbe-399c-5c33-9d43-5555da2679a7",
-     "preparo": false,
-     "quantidade": 0.35,
-     "unidade": "UND",
-     "categoria": "BEBIDAS ALCOÓLICAS",
-     "custo_unitario_catalogo": 9.91,
-     "componentes_pdv": [
-      "CHOPP AMSTEL BARRIL 50L"
-     ],
-     "valor_unitario_pdf": 10.41,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 3.4685
-    }
-   ],
-   "custo_nosso": 3.4685,
-   "total_impresso_pdf": 3.64,
-   "total_recalculado_pdf": 3.6435,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "ANTARTICA ORIG600 ML APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: antarctica 600",
-   "codigo_pdv": "BDZ60",
-   "unidade_pdv": "UN",
-   "linha_pdf": 102,
-   "descricao": "Ficha do PDV BDZ60 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "CERVEJA ANTARCTICA ORIGINAL (600ml)",
-     "produto_id": "ea3d443f-becf-58b9-aefc-300d1857d4d4",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS ALCOÓLICAS",
-     "custo_unitario_catalogo": 6.68,
-     "componentes_pdv": [
-      "ANTARTICA ORIG600 ML"
-     ],
-     "valor_unitario_pdf": 7.05,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 6.68
-    }
-   ],
-   "custo_nosso": 6.68,
-   "total_impresso_pdf": 7.05,
-   "total_recalculado_pdf": 7.05,
-   "doses_achatadas": []
   },
   {
    "nome": "APEROL SPRITZ",
@@ -3100,6 +3593,7 @@
      ],
      "valor_unitario_pdf": 43.93,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 2.8994
     },
@@ -3116,6 +3610,7 @@
      ],
      "valor_unitario_pdf": 38.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 9.8801
     },
@@ -3132,6 +3627,7 @@
      ],
      "valor_unitario_pdf": 7.33,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.406
     },
@@ -3148,6 +3644,7 @@
      ],
      "valor_unitario_pdf": 1.2,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 0.2975
     }
@@ -3194,6 +3691,7 @@
      ],
      "valor_unitario_pdf": 43.93,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 3.2948
     },
@@ -3210,6 +3708,7 @@
      ],
      "valor_unitario_pdf": 38.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 7.4175
     },
@@ -3226,6 +3725,7 @@
      ],
      "valor_unitario_pdf": 7.33,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.0812
     },
@@ -3242,6 +3742,7 @@
      ],
      "valor_unitario_pdf": 1.2,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 0.0595
     }
@@ -3279,6 +3780,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 8.627
     },
@@ -3295,6 +3797,7 @@
      ],
      "valor_unitario_pdf": 38.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 1.4835
     },
@@ -3311,6 +3814,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.711
     },
@@ -3327,6 +3831,7 @@
      ],
      "valor_unitario_pdf": 6.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 0.3995
     }
@@ -3358,14 +3863,15 @@
      "quantidade": 0.02,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.91,
+     "custo_unitario_catalogo": 6.3812,
      "componentes_pdv": [
       "ESPUMA DE GENGIBRE"
      ],
      "valor_unitario_pdf": 5.09,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 0.1182
+     "custo": 0.1276
     },
     {
      "produto": "GIN ARPO 5 LT",
@@ -3380,6 +3886,7 @@
      ],
      "valor_unitario_pdf": 44.4,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 2.664
     },
@@ -3390,17 +3897,18 @@
      "quantidade": 0.08,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 14.64,
+     "custo_unitario_catalogo": 15.21,
      "componentes_pdv": [
       "XAROPE DE MARACUJA"
      ],
      "valor_unitario_pdf": 14.64,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
-     "custo": 1.1712
+     "custo": 1.2168
     }
    ],
-   "custo_nosso": 3.9534,
+   "custo_nosso": 4.0084,
    "total_impresso_pdf": 1.81,
    "total_recalculado_pdf": 1.8222,
    "doses_achatadas": [
@@ -3442,6 +3950,7 @@
      ],
      "valor_unitario_pdf": 25.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 1.65
     },
@@ -3458,6 +3967,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -3468,14 +3978,15 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 14.64,
+     "custo_unitario_catalogo": 15.21,
      "componentes_pdv": [
       "XAROPE DE MARACUJA"
      ],
      "valor_unitario_pdf": 14.64,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
-     "custo": 1.464
+     "custo": 1.521
     },
     {
      "produto": "XAROPE MONIN BAUNILHA",
@@ -3490,11 +4001,12 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 3.393
     }
    ],
-   "custo_nosso": 7.218,
+   "custo_nosso": 7.275,
    "total_impresso_pdf": 7.53,
    "total_recalculado_pdf": 7.527,
    "doses_achatadas": [
@@ -3536,6 +4048,7 @@
      ],
      "valor_unitario_pdf": 122.71,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 8.5721
     },
@@ -3552,6 +4065,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -3562,17 +4076,18 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 0.39,
+     "custo_unitario_catalogo": 0.335,
      "componentes_pdv": [
       "XAROPE DE ACUCAR"
      ],
      "valor_unitario_pdf": 0.39,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
-     "custo": 0.039
+     "custo": 0.0335
     }
    ],
-   "custo_nosso": 9.3221,
+   "custo_nosso": 9.3166,
    "total_impresso_pdf": 1.11,
    "total_recalculado_pdf": 8.717,
    "doses_achatadas": [
@@ -3585,80 +4100,6 @@
      ]
     }
    ]
-  },
-  {
-   "nome": "BRAHMA CHOPP 300ML",
-   "grupo": "Cervejas e Chopps",
-   "motivo_da_classificacao": "chopp brahma: 0,35 do barril de 50 L",
-   "codigo_pdv": "BDZ89",
-   "unidade_pdv": "UN",
-   "linha_pdf": 466,
-   "descricao": "Ficha do PDV BDZ89 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 30,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "CHOPP BRAHMA (50lts)",
-     "produto_id": "e2007236-4bc3-5813-b5fc-d450a1d14ab3",
-     "preparo": false,
-     "quantidade": 0.35,
-     "unidade": "LTS",
-     "categoria": "BEBIDAS ALCOÓLICAS",
-     "custo_unitario_catalogo": 12.89,
-     "componentes_pdv": [
-      "CHOPP BRAHMA CLARO BARRIL 50L"
-     ],
-     "valor_unitario_pdf": 14.17,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 4.5115
-    }
-   ],
-   "custo_nosso": 4.5115,
-   "total_impresso_pdf": 4.96,
-   "total_recalculado_pdf": 4.9595,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "BRAHMA GF 600 ML APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: brahma 600",
-   "codigo_pdv": "BDZ68",
-   "unidade_pdv": "UN",
-   "linha_pdf": 472,
-   "descricao": "Ficha do PDV BDZ68 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "CERVEJA BRAHMA (600ml)",
-     "produto_id": "3fcdd3ff-5266-505f-860f-0c03702494a6",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS ALCOÓLICAS",
-     "custo_unitario_catalogo": 6.36,
-     "componentes_pdv": [
-      "BRAHMA GF 600 ML"
-     ],
-     "valor_unitario_pdf": 6.59,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 6.36
-    }
-   ],
-   "custo_nosso": 6.36,
-   "total_impresso_pdf": 6.59,
-   "total_recalculado_pdf": 6.59,
-   "doses_achatadas": []
   },
   {
    "nome": "BRASILEIRINHO",
@@ -3688,6 +4129,7 @@
      ],
      "valor_unitario_pdf": 25.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 1.65
     },
@@ -3704,6 +4146,9 @@
      ],
      "valor_unitario_pdf": 2.05,
      "perda_percentual": 0,
+     "avisos": [
+      "cadastro em KG com preco de capsula; ao corrigir para UND, mudar a unidade deste item junto"
+     ],
      "ordem": 2,
      "custo": 2.35
     },
@@ -3720,6 +4165,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.3555
     },
@@ -3730,14 +4176,15 @@
      "quantidade": 0.02,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 0.39,
+     "custo_unitario_catalogo": 0.335,
      "componentes_pdv": [
       "XAROPE DE ACUCAR"
      ],
      "valor_unitario_pdf": 0.39,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
-     "custo": 0.0078
+     "custo": 0.0067
     },
     {
      "produto": "XAROPE MONIN BAUNILHA",
@@ -3752,11 +4199,12 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
      "custo": 0.6786
     }
    ],
-   "custo_nosso": 5.0419,
+   "custo_nosso": 5.0408,
    "total_impresso_pdf": 4.91,
    "total_recalculado_pdf": 4.9114,
    "doses_achatadas": [
@@ -3792,14 +4240,15 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.91,
+     "custo_unitario_catalogo": 6.3812,
      "componentes_pdv": [
       "ESPUMA DE GENGIBRE"
      ],
      "valor_unitario_pdf": 5.09,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 0.591
+     "custo": 0.6381
     },
     {
      "produto": "GIN ARPO 5 LT",
@@ -3814,6 +4263,7 @@
      ],
      "valor_unitario_pdf": 44.4,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 2.664
     },
@@ -3824,14 +4274,15 @@
      "quantidade": 0.05,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 14.64,
+     "custo_unitario_catalogo": 15.21,
      "componentes_pdv": [
       "XAROPE DE MARACUJA"
      ],
      "valor_unitario_pdf": 14.64,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
-     "custo": 0.732
+     "custo": 0.7605
     },
     {
      "produto": "ÁGUA COM GÁS (350ml)",
@@ -3846,11 +4297,12 @@
      ],
      "valor_unitario_pdf": 1.2,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.19
     }
    ],
-   "custo_nosso": 5.177,
+   "custo_nosso": 5.2526,
    "total_impresso_pdf": 2.97,
    "total_recalculado_pdf": 3.0558,
    "doses_achatadas": [
@@ -3886,14 +4338,15 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.91,
+     "custo_unitario_catalogo": 6.3812,
      "componentes_pdv": [
       "ESPUMA DE GENGIBRE"
      ],
      "valor_unitario_pdf": 5.09,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 0.591
+     "custo": 0.6381
     },
     {
      "produto": "LIMÃO TAHITI",
@@ -3908,6 +4361,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.3555
     },
@@ -3924,11 +4378,12 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 4.8181
     }
    ],
-   "custo_nosso": 5.7646,
+   "custo_nosso": 5.8117,
    "total_impresso_pdf": 5.82,
    "total_recalculado_pdf": 5.8731,
    "doses_achatadas": []
@@ -3961,6 +4416,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 1.045
     }
@@ -3998,6 +4454,7 @@
      ],
      "valor_unitario_pdf": 3.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.1675
     },
@@ -4014,6 +4471,7 @@
      ],
      "valor_unitario_pdf": 54.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 3.843
     },
@@ -4030,6 +4488,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.711
     }
@@ -4076,6 +4535,7 @@
      ],
      "valor_unitario_pdf": 54.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 3.843
     },
@@ -4092,6 +4552,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -4102,17 +4563,18 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 58.19,
+     "custo_unitario_catalogo": 29.545,
      "componentes_pdv": [
       "XAROPE DE CANELA E MEL"
      ],
      "valor_unitario_pdf": 58.19,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
-     "custo": 5.819
+     "custo": 2.9545
     }
    ],
-   "custo_nosso": 10.373,
+   "custo_nosso": 7.5085,
    "total_impresso_pdf": 6.89,
    "total_recalculado_pdf": 10.732,
    "doses_achatadas": [
@@ -4154,6 +4616,7 @@
      ],
      "valor_unitario_pdf": 3.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.1675
     },
@@ -4170,6 +4633,7 @@
      ],
      "valor_unitario_pdf": 25.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 1.65
     },
@@ -4186,6 +4650,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 3.656
     }
@@ -4232,6 +4697,7 @@
      ],
      "valor_unitario_pdf": 3.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.1675
     },
@@ -4248,6 +4714,7 @@
      ],
      "valor_unitario_pdf": 25.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 1.65
     },
@@ -4264,6 +4731,7 @@
      ],
      "valor_unitario_pdf": 12.3,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.396
     },
@@ -4280,6 +4748,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.0968
     }
@@ -4326,6 +4795,7 @@
      ],
      "valor_unitario_pdf": 3.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.1675
     },
@@ -4342,6 +4812,9 @@
      ],
      "valor_unitario_pdf": 37.43,
      "perda_percentual": 0,
+     "avisos": [
+      "PDV mede em KG e o nosso cadastro em UND — conferir o peso da UND"
+     ],
      "ordem": 2,
      "custo": 5.967
     },
@@ -4358,6 +4831,7 @@
      ],
      "valor_unitario_pdf": 52.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 3.8998
     }
@@ -4404,6 +4878,7 @@
      ],
      "valor_unitario_pdf": 3.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.1675
     },
@@ -4420,6 +4895,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -4436,6 +4912,7 @@
      ],
      "valor_unitario_pdf": 28.5,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.4198
     }
@@ -4482,6 +4959,7 @@
      ],
      "valor_unitario_pdf": 9.5,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 1.326
     },
@@ -4498,6 +4976,7 @@
      ],
      "valor_unitario_pdf": 28.5,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 1.4198
     }
@@ -4544,6 +5023,7 @@
      ],
      "valor_unitario_pdf": 122.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 7.3706
     },
@@ -4554,14 +5034,15 @@
      "quantidade": 0.02,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 14.64,
+     "custo_unitario_catalogo": 15.21,
      "componentes_pdv": [
       "XAROPE DE MARACUJA"
      ],
      "valor_unitario_pdf": 14.64,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
-     "custo": 0.2928
+     "custo": 0.3042
     },
     {
      "produto": "XAROPE MONIN SPICY MANGO (700ml)",
@@ -4576,11 +5057,12 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.3572
     }
    ],
-   "custo_nosso": 9.0206,
+   "custo_nosso": 9.032,
    "total_impresso_pdf": 7.86,
    "total_recalculado_pdf": 7.8568,
    "doses_achatadas": [
@@ -4622,6 +5104,9 @@
      ],
      "valor_unitario_pdf": 44.99,
      "perda_percentual": 0,
+     "avisos": [
+      "dose de 5,4 ml no PDV (0,006 x 900 ml); conferir se e 0,066"
+     ],
      "ordem": 1,
      "custo": 0.282
     },
@@ -4638,6 +5123,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.3555
     },
@@ -4654,6 +5140,7 @@
      ],
      "valor_unitario_pdf": 3.59,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.716
     }
@@ -4700,6 +5187,9 @@
      ],
      "valor_unitario_pdf": 2.05,
      "perda_percentual": 0,
+     "avisos": [
+      "cadastro em KG com preco de capsula; ao corrigir para UND, mudar a unidade deste item junto"
+     ],
      "ordem": 1,
      "custo": 2.35
     },
@@ -4716,6 +5206,7 @@
      ],
      "valor_unitario_pdf": 174.29,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 11.16
     }
@@ -4733,191 +5224,6 @@
      ]
     }
    ]
-  },
-  {
-   "nome": "CHOPP 220 ML - APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: 0,25 do barril",
-   "codigo_pdv": "BDZ900001",
-   "unidade_pdv": "UN",
-   "linha_pdf": 778,
-   "descricao": "Ficha do PDV BDZ900001 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "CHOPP BRAHMA (50lts)",
-     "produto_id": "e2007236-4bc3-5813-b5fc-d450a1d14ab3",
-     "preparo": false,
-     "quantidade": 0.25,
-     "unidade": "LTS",
-     "categoria": "BEBIDAS ALCOÓLICAS",
-     "custo_unitario_catalogo": 12.89,
-     "componentes_pdv": [
-      "CHOPP BRAHMA CLARO BARRIL 50L"
-     ],
-     "valor_unitario_pdf": 14.17,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 3.2225
-    }
-   ],
-   "custo_nosso": 3.2225,
-   "total_impresso_pdf": 3.54,
-   "total_recalculado_pdf": 3.5425,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "COCA COCA ZERO APOIO KS",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: coca zero KS",
-   "codigo_pdv": "BDZ7AP1",
-   "unidade_pdv": "UN",
-   "linha_pdf": 793,
-   "descricao": "Ficha do PDV BDZ7AP1 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "COCA COLA ZERO KS",
-     "produto_id": "c9ae0be8-b02c-5e60-8396-7ff744e2a9aa",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 2.25,
-     "componentes_pdv": [
-      "COCA-COLA ZERO KS"
-     ],
-     "valor_unitario_pdf": 2.26,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 2.25
-    }
-   ],
-   "custo_nosso": 2.25,
-   "total_impresso_pdf": 2.26,
-   "total_recalculado_pdf": 2.26,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "COCA COLA APOIO KS",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: coca-cola KS",
-   "codigo_pdv": "BDZ8AP1",
-   "unidade_pdv": "UN",
-   "linha_pdf": 799,
-   "descricao": "Ficha do PDV BDZ8AP1 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "COCA COLA KS",
-     "produto_id": "71761253-d7c5-5340-89f6-7020e3f62e8b",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 2.25,
-     "componentes_pdv": [
-      "COCA-COLA KS"
-     ],
-     "valor_unitario_pdf": 2.26,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 2.25
-    }
-   ],
-   "custo_nosso": 2.25,
-   "total_impresso_pdf": 2.26,
-   "total_recalculado_pdf": 2.26,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "COCA COLA KS",
-   "grupo": "Refrigerantes e Águas",
-   "motivo_da_classificacao": "coca-cola KS vendida",
-   "codigo_pdv": "BDZ811",
-   "unidade_pdv": "UN",
-   "linha_pdf": 805,
-   "descricao": "Ficha do PDV BDZ811 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 30,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "COCA COLA KS",
-     "produto_id": "71761253-d7c5-5340-89f6-7020e3f62e8b",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 2.25,
-     "componentes_pdv": [
-      "COCA-COLA KS"
-     ],
-     "valor_unitario_pdf": 2.26,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 2.25
-    }
-   ],
-   "custo_nosso": 2.25,
-   "total_impresso_pdf": 2.26,
-   "total_recalculado_pdf": 2.26,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "COCA COLA ZERO KS",
-   "grupo": "Refrigerantes e Águas",
-   "motivo_da_classificacao": "coca-cola zero KS vendida",
-   "codigo_pdv": "BDZ7112",
-   "unidade_pdv": "UN",
-   "linha_pdf": 811,
-   "descricao": "Ficha do PDV BDZ7112 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 30,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "COCA COLA ZERO KS",
-     "produto_id": "c9ae0be8-b02c-5e60-8396-7ff744e2a9aa",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 2.25,
-     "componentes_pdv": [
-      "COCA-COLA ZERO KS"
-     ],
-     "valor_unitario_pdf": 2.26,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 2.25
-    }
-   ],
-   "custo_nosso": 2.25,
-   "total_impresso_pdf": 2.26,
-   "total_recalculado_pdf": 2.26,
-   "doses_achatadas": []
   },
   {
    "nome": "COISA DE MALANDRO",
@@ -4947,6 +5253,7 @@
      ],
      "valor_unitario_pdf": 25.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 1.65
     },
@@ -4963,6 +5270,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -4979,6 +5287,7 @@
      ],
      "valor_unitario_pdf": 46.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 2.0358
     },
@@ -4995,6 +5304,7 @@
      ],
      "valor_unitario_pdf": 46.8,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.2813
     }
@@ -5041,6 +5351,7 @@
      ],
      "valor_unitario_pdf": 40.71,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 2.4738
     },
@@ -5057,6 +5368,7 @@
      ],
      "valor_unitario_pdf": 25.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.5
     },
@@ -5073,6 +5385,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.2844
     },
@@ -5089,6 +5402,7 @@
      ],
      "valor_unitario_pdf": 12.19,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.828
     },
@@ -5105,6 +5419,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
      "custo": 1.3572
     }
@@ -5151,6 +5466,7 @@
      ],
      "valor_unitario_pdf": 5.88,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.958
     },
@@ -5167,6 +5483,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.7645
     },
@@ -5183,6 +5500,7 @@
      ],
      "valor_unitario_pdf": 25.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.65
     },
@@ -5199,6 +5517,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 0.711
     },
@@ -5209,17 +5528,18 @@
      "quantidade": 0.01,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 0.39,
+     "custo_unitario_catalogo": 0.335,
      "componentes_pdv": [
       "XAROPE DE ACUCAR"
      ],
      "valor_unitario_pdf": 0.39,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
-     "custo": 0.0039
+     "custo": 0.0034
     }
    ],
-   "custo_nosso": 4.0874,
+   "custo_nosso": 4.0869,
    "total_impresso_pdf": 3.31,
    "total_recalculado_pdf": 3.3119,
    "doses_achatadas": [
@@ -5255,14 +5575,15 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.91,
+     "custo_unitario_catalogo": 6.3812,
      "componentes_pdv": [
       "ESPUMA DE GENGIBRE"
      ],
      "valor_unitario_pdf": 5.09,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 0.591
+     "custo": 0.6381
     },
     {
      "produto": "MIX DE PINA",
@@ -5271,14 +5592,15 @@
      "quantidade": 0.09,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 13.714,
+     "custo_unitario_catalogo": 13.483,
      "componentes_pdv": [
       "MIX DE PINA"
      ],
      "valor_unitario_pdf": 13.71,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
-     "custo": 1.2343
+     "custo": 1.2135
     },
     {
      "produto": "MORANGO",
@@ -5293,6 +5615,9 @@
      ],
      "valor_unitario_pdf": 37.43,
      "perda_percentual": 0,
+     "avisos": [
+      "PDV mede em KG e o nosso cadastro em UND — conferir o peso da UND"
+     ],
      "ordem": 3,
      "custo": 2.9835
     },
@@ -5309,6 +5634,7 @@
      ],
      "valor_unitario_pdf": 28.5,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.4198
     },
@@ -5325,6 +5651,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
      "custo": 3.393
     },
@@ -5341,11 +5668,12 @@
      ],
      "valor_unitario_pdf": 68.43,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 6,
      "custo": 3.393
     }
    ],
-   "custo_nosso": 13.0146,
+   "custo_nosso": 13.0409,
    "total_impresso_pdf": 12.15,
    "total_recalculado_pdf": 12.2283,
    "doses_achatadas": [
@@ -5387,6 +5715,7 @@
      ],
      "valor_unitario_pdf": 44.4,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 2.664
     },
@@ -5403,6 +5732,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -5419,6 +5749,7 @@
      ],
      "valor_unitario_pdf": 4.08,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 4.0
     },
@@ -5429,17 +5760,18 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 33.844,
+     "custo_unitario_catalogo": 51.086,
      "componentes_pdv": [
       "XAROPE DE MORANGO"
      ],
      "valor_unitario_pdf": 33.85,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
-     "custo": 3.3844
+     "custo": 5.1086
     }
    ],
-   "custo_nosso": 10.7594,
+   "custo_nosso": 12.4836,
    "total_impresso_pdf": 9.07,
    "total_recalculado_pdf": 9.0672,
    "doses_achatadas": [
@@ -5481,6 +5813,7 @@
      ],
      "valor_unitario_pdf": 131.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 8.2398
     },
@@ -5497,6 +5830,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.1422
     },
@@ -5513,6 +5847,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.358
     },
@@ -5529,6 +5864,7 @@
      ],
      "valor_unitario_pdf": 125.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 8.2398
     },
@@ -5539,17 +5875,18 @@
      "quantidade": 0.02,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 62.788,
+     "custo_unitario_catalogo": 24.8,
      "componentes_pdv": [
       "XAROPE DE MEL"
      ],
      "valor_unitario_pdf": 62.79,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
-     "custo": 1.2558
+     "custo": 0.496
     }
    ],
-   "custo_nosso": 18.2356,
+   "custo_nosso": 17.4758,
    "total_impresso_pdf": 17.4,
    "total_recalculado_pdf": 17.3976,
    "doses_achatadas": [
@@ -5599,6 +5936,7 @@
      ],
      "valor_unitario_pdf": 89.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 6.882
     },
@@ -5615,6 +5953,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -5631,6 +5970,7 @@
      ],
      "valor_unitario_pdf": 7.64,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.915
     },
@@ -5647,6 +5987,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 3.393
     }
@@ -5687,14 +6028,15 @@
      "quantidade": 0.05,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 19.6136,
+     "custo_unitario_catalogo": 21.3466,
      "componentes_pdv": [
       "ESPUMA DE HIBISCO"
      ],
      "valor_unitario_pdf": 19.22,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 0.9807
+     "custo": 1.0673
     },
     {
      "produto": "GIN VELVO BOTANIC PREMIUM (700ml)",
@@ -5709,11 +6051,12 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 3.66
     }
    ],
-   "custo_nosso": 4.6407,
+   "custo_nosso": 4.7273,
    "total_impresso_pdf": 0.96,
    "total_recalculado_pdf": 0.9807,
    "doses_achatadas": []
@@ -5740,14 +6083,15 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 19.6136,
+     "custo_unitario_catalogo": 21.3466,
      "componentes_pdv": [
       "ESPUMA DE HIBISCO"
      ],
      "valor_unitario_pdf": 19.22,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 1.9614
+     "custo": 2.1347
     },
     {
      "produto": "GIN BEEFEATER PINK (750ml)",
@@ -5762,6 +6106,7 @@
      ],
      "valor_unitario_pdf": 89.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 6.882
     },
@@ -5778,6 +6123,9 @@
      ],
      "valor_unitario_pdf": 37.43,
      "perda_percentual": 0,
+     "avisos": [
+      "PDV mede em KG e o nosso cadastro em UND — conferir o peso da UND"
+     ],
      "ordem": 3,
      "custo": 2.9835
     },
@@ -5794,11 +6142,12 @@
      ],
      "valor_unitario_pdf": 4.08,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 4.0
     }
    ],
-   "custo_nosso": 15.8269,
+   "custo_nosso": 16.0002,
    "total_impresso_pdf": 13.45,
    "total_recalculado_pdf": 13.4867,
    "doses_achatadas": [
@@ -5840,6 +6189,7 @@
      ],
      "valor_unitario_pdf": 98.64,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 6.862
     },
@@ -5856,6 +6206,7 @@
      ],
      "valor_unitario_pdf": 7.49,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 7.49
     }
@@ -5902,6 +6253,7 @@
      ],
      "valor_unitario_pdf": 44.4,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 2.664
     },
@@ -5918,6 +6270,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -5934,6 +6287,7 @@
      ],
      "valor_unitario_pdf": 3.59,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.79
     }
@@ -5980,6 +6334,7 @@
      ],
      "valor_unitario_pdf": 70.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 5.1513
     },
@@ -5996,6 +6351,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -6012,6 +6368,7 @@
      ],
      "valor_unitario_pdf": 3.59,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 3.58
     }
@@ -6058,6 +6415,7 @@
      ],
      "valor_unitario_pdf": 98.64,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 6.862
     },
@@ -6074,6 +6432,7 @@
      ],
      "valor_unitario_pdf": 3.59,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.6265
     },
@@ -6084,17 +6443,18 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 33.844,
+     "custo_unitario_catalogo": 51.086,
      "componentes_pdv": [
       "XAROPE DE MORANGO"
      ],
      "valor_unitario_pdf": 33.85,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
-     "custo": 3.3844
+     "custo": 5.1086
     }
    ],
-   "custo_nosso": 10.8729,
+   "custo_nosso": 12.5971,
    "total_impresso_pdf": 10.52,
    "total_recalculado_pdf": 10.5229,
    "doses_achatadas": [
@@ -6107,154 +6467,6 @@
      ]
     }
    ]
-  },
-  {
-   "nome": "GUARANA APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: guarana",
-   "codigo_pdv": "BDZ10",
-   "unidade_pdv": "UN",
-   "linha_pdf": 1970,
-   "descricao": "Ficha do PDV BDZ10 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "GUARANÁ ANTARCTICA (350ml)",
-     "produto_id": "8cc5fd8a-6f16-5ee9-8e79-b78a396164b0",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 2.83,
-     "componentes_pdv": [
-      "GUARANA"
-     ],
-     "valor_unitario_pdf": 2.83,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 2.83
-    }
-   ],
-   "custo_nosso": 2.83,
-   "total_impresso_pdf": 2.83,
-   "total_recalculado_pdf": 2.83,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "GUARANA ZERO APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: guarana zero",
-   "codigo_pdv": "BDZ12",
-   "unidade_pdv": "UN",
-   "linha_pdf": 1976,
-   "descricao": "Ficha do PDV BDZ12 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "GUARANÁ ANTARCTICA ZERO (350ml)",
-     "produto_id": "2ca5fa6d-643f-57e4-95e1-44c0dcd4d6de",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 2.83,
-     "componentes_pdv": [
-      "GUARANA ZERO"
-     ],
-     "valor_unitario_pdf": 2.83,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 2.83
-    }
-   ],
-   "custo_nosso": 2.83,
-   "total_impresso_pdf": 2.83,
-   "total_recalculado_pdf": 2.83,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "HEINEKEN LONGNECK",
-   "grupo": "Cervejas e Chopps",
-   "motivo_da_classificacao": "long neck de heineken servida",
-   "codigo_pdv": "BDZ3021",
-   "unidade_pdv": "UN",
-   "linha_pdf": 2005,
-   "descricao": "Ficha do PDV BDZ3021 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 30,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "CERVEJA HEINEKEN 330 ML",
-     "produto_id": "793bd6d9-d16b-5886-a1e8-4fd9977194c8",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS ALCOÓLICAS",
-     "custo_unitario_catalogo": 6.2,
-     "componentes_pdv": [
-      "CERVEJA HEINEKEN 330 ML"
-     ],
-     "valor_unitario_pdf": 6.2,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 6.2
-    }
-   ],
-   "custo_nosso": 6.2,
-   "total_impresso_pdf": 6.2,
-   "total_recalculado_pdf": 6.2,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "Heineken Ultimate LN 330ML",
-   "grupo": "Cervejas e Chopps",
-   "motivo_da_classificacao": "long neck heineken ultimate servida",
-   "codigo_pdv": "BDZ30215",
-   "unidade_pdv": "UN",
-   "linha_pdf": 2011,
-   "descricao": "Ficha do PDV BDZ30215 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 30,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "CERVEJA HEINEKEN 330 ML ULTIMATE",
-     "produto_id": "0ada73a6-ae98-5cd8-8c35-2c1be6eded8f",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS ALCOÓLICAS",
-     "custo_unitario_catalogo": 6.23,
-     "componentes_pdv": [
-      "CERVEJA HEINEKEN ULTIMATE"
-     ],
-     "valor_unitario_pdf": 6.55,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 6.23
-    }
-   ],
-   "custo_nosso": 6.23,
-   "total_impresso_pdf": 6.55,
-   "total_recalculado_pdf": 6.55,
-   "doses_achatadas": []
   },
   {
    "nome": "HOJE TA CALOR",
@@ -6284,6 +6496,7 @@
      ],
      "valor_unitario_pdf": 5.88,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.958
     },
@@ -6300,6 +6513,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -6316,6 +6530,7 @@
      ],
      "valor_unitario_pdf": 127.99,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 5.9514
     },
@@ -6332,6 +6547,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 2.443
     },
@@ -6348,6 +6564,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
      "custo": 1.6965
     }
@@ -6394,6 +6611,7 @@
      ],
      "valor_unitario_pdf": 89.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 6.882
     },
@@ -6410,6 +6628,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     },
@@ -6427,6 +6646,7 @@
      ],
      "valor_unitario_pdf": 7.66,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 8.426
     },
@@ -6443,6 +6663,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 6.786
     }
@@ -6489,6 +6710,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.3555
     },
@@ -6505,6 +6727,7 @@
      ],
      "valor_unitario_pdf": 7.67,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 3.83
     },
@@ -6521,6 +6744,7 @@
      ],
      "valor_unitario_pdf": 68.43,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.4251
     }
@@ -6558,6 +6782,7 @@
      ],
      "valor_unitario_pdf": 38.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 2.967
     },
@@ -6574,6 +6799,7 @@
      ],
      "valor_unitario_pdf": 131.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 8.2398
     },
@@ -6590,6 +6816,7 @@
      ],
      "valor_unitario_pdf": 7.33,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.4565
     },
@@ -6606,6 +6833,9 @@
      ],
      "valor_unitario_pdf": 27.8,
      "perda_percentual": 0,
+     "avisos": [
+      "PDV mede em KG e o nosso cadastro em UND — conferir o peso da UND"
+     ],
      "ordem": 4,
      "custo": 0.457
     },
@@ -6622,6 +6852,7 @@
      ],
      "valor_unitario_pdf": 1.2,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
      "custo": 0.595
     }
@@ -6662,17 +6893,18 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.82,
+     "custo_unitario_catalogo": 6.07,
      "componentes_pdv": [
       "XAROPE DE GENGIBRE"
      ],
      "valor_unitario_pdf": 5.82,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 0.582
+     "custo": 0.607
     }
    ],
-   "custo_nosso": 0.582,
+   "custo_nosso": 0.607,
    "total_impresso_pdf": 0.58,
    "total_recalculado_pdf": 0.582,
    "doses_achatadas": []
@@ -6705,6 +6937,9 @@
      ],
      "valor_unitario_pdf": 37.43,
      "perda_percentual": 0,
+     "avisos": [
+      "PDV mede em KG e o nosso cadastro em UND — conferir o peso da UND"
+     ],
      "ordem": 1,
      "custo": 2.9835
     },
@@ -6721,6 +6956,7 @@
      ],
      "valor_unitario_pdf": 4.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 4.0
     }
@@ -6752,14 +6988,15 @@
      "quantidade": 0.05,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 19.6136,
+     "custo_unitario_catalogo": 21.3466,
      "componentes_pdv": [
       "ESPUMA DE HIBISCO"
      ],
      "valor_unitario_pdf": 19.22,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 0.9807
+     "custo": 1.0673
     },
     {
      "produto": "XAROPE DE GENGIBRE",
@@ -6768,17 +7005,18 @@
      "quantidade": 0.05,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.82,
+     "custo_unitario_catalogo": 6.07,
      "componentes_pdv": [
       "XAROPE DE GENGIBRE"
      ],
      "valor_unitario_pdf": 5.82,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
-     "custo": 0.291
+     "custo": 0.3035
     }
    ],
-   "custo_nosso": 1.2717,
+   "custo_nosso": 1.3708,
    "total_impresso_pdf": 6.4,
    "total_recalculado_pdf": 6.4217,
    "doses_achatadas": []
@@ -6811,6 +7049,9 @@
      ],
      "valor_unitario_pdf": 44.99,
      "perda_percentual": 0,
+     "avisos": [
+      "dose de 5,4 ml no PDV (0,006 x 900 ml); conferir se e 0,066"
+     ],
      "ordem": 1,
      "custo": 0.141
     },
@@ -6827,6 +7068,7 @@
      ],
      "valor_unitario_pdf": 44.4,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 1.332
     },
@@ -6843,6 +7085,7 @@
      ],
      "valor_unitario_pdf": 31.55,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.8847
     }
@@ -6905,6 +7148,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.3555
     },
@@ -6915,14 +7159,15 @@
      "quantidade": 0.04,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 13.714,
+     "custo_unitario_catalogo": 13.483,
      "componentes_pdv": [
       "MIX DE PINA"
      ],
      "valor_unitario_pdf": 13.71,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
-     "custo": 0.5486
+     "custo": 0.5393
     },
     {
      "produto": "MORANGO",
@@ -6937,6 +7182,9 @@
      ],
      "valor_unitario_pdf": 37.43,
      "perda_percentual": 0,
+     "avisos": [
+      "PDV mede em KG e o nosso cadastro em UND — conferir o peso da UND"
+     ],
      "ordem": 3,
      "custo": 5.967
     },
@@ -6953,6 +7201,7 @@
      ],
      "valor_unitario_pdf": 46.8,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 0.4271
     },
@@ -6969,6 +7218,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
      "custo": 1.4251
     },
@@ -6985,11 +7235,12 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 6,
      "custo": 0.95
     }
    ],
-   "custo_nosso": 9.6733,
+   "custo_nosso": 9.664,
    "total_impresso_pdf": 7.68,
    "total_recalculado_pdf": 7.6347,
    "doses_achatadas": []
@@ -7022,6 +7273,7 @@
      ],
      "valor_unitario_pdf": 54.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 3.843
     },
@@ -7038,6 +7290,7 @@
      ],
      "valor_unitario_pdf": 13.35,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.6508
     },
@@ -7054,6 +7307,7 @@
      ],
      "valor_unitario_pdf": 14.44,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.2436
     },
@@ -7070,6 +7324,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.6965
     }
@@ -7124,6 +7379,7 @@
      ],
      "valor_unitario_pdf": 7.64,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 1.915
     },
@@ -7140,6 +7396,7 @@
      ],
      "valor_unitario_pdf": 99.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 6.138
     },
@@ -7156,6 +7413,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.6786
     }
@@ -7173,191 +7431,6 @@
      ]
     }
    ]
-  },
-  {
-   "nome": "RED BULL ACAI 250 ML APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: red bull acai",
-   "codigo_pdv": "BDZ17AP",
-   "unidade_pdv": "UN",
-   "linha_pdf": 2780,
-   "descricao": "Ficha do PDV BDZ17AP · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "RED BULL AÇAI",
-     "produto_id": "9dba175e-7996-51ef-b7b7-08049e721eef",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.94,
-     "componentes_pdv": [
-      "RED BULL ACAI 250 ML"
-     ],
-     "valor_unitario_pdf": 0.0,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 5.94
-    }
-   ],
-   "custo_nosso": 5.94,
-   "total_impresso_pdf": 0.0,
-   "total_recalculado_pdf": 0.0,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "RED BULL C APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: red bull",
-   "codigo_pdv": "BDZ18AP",
-   "unidade_pdv": "UN",
-   "linha_pdf": 2786,
-   "descricao": "Ficha do PDV BDZ18AP · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "RED BULL",
-     "produto_id": "d349e311-1c28-525b-a5d3-602d4ae802b3",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 7.49,
-     "componentes_pdv": [
-      "RED BULL C"
-     ],
-     "valor_unitario_pdf": 7.49,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 7.49
-    }
-   ],
-   "custo_nosso": 7.49,
-   "total_impresso_pdf": 7.49,
-   "total_recalculado_pdf": 7.49,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "RED BULL MELANCIA 250 ML C APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia: red bull melancia",
-   "codigo_pdv": "BDZ20AP",
-   "unidade_pdv": "UN",
-   "linha_pdf": 2792,
-   "descricao": "Ficha do PDV BDZ20AP · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "RED BULL MELANCIA (250ml)",
-     "produto_id": "4ffe41ca-0b27-5dae-aa87-7d9b846eca88",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 7.49,
-     "componentes_pdv": [
-      "RED BULL MELANCIA 250 ML C"
-     ],
-     "valor_unitario_pdf": 0.0,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 7.49
-    }
-   ],
-   "custo_nosso": 7.49,
-   "total_impresso_pdf": 0.0,
-   "total_recalculado_pdf": 0.0,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "RED BULL SUGAR FREE APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia: red bull sem acucar",
-   "codigo_pdv": "BDZ21AP",
-   "unidade_pdv": "UN",
-   "linha_pdf": 2798,
-   "descricao": "Ficha do PDV BDZ21AP · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "RED BULL ZERO",
-     "produto_id": "11fb856d-f850-55bb-adb6-1d66104535c1",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 7.49,
-     "componentes_pdv": [
-      "RED BULL SUGAR FREE"
-     ],
-     "valor_unitario_pdf": 7.19,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 7.49
-    }
-   ],
-   "custo_nosso": 7.49,
-   "total_impresso_pdf": 7.19,
-   "total_recalculado_pdf": 7.19,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "RED BULL TROPICAL 250 ML C APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia: red bull tropical",
-   "codigo_pdv": "BDZ23AP",
-   "unidade_pdv": "UN",
-   "linha_pdf": 2805,
-   "descricao": "Ficha do PDV BDZ23AP · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "RED BULL THE TROPICAL EDITION (250ml)",
-     "produto_id": "a30c7795-4879-531c-9b42-946c0ae542ab",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 7.49,
-     "componentes_pdv": [
-      "RED BULL TROPICAL 250 ML C"
-     ],
-     "valor_unitario_pdf": 7.49,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 7.49
-    }
-   ],
-   "custo_nosso": 7.49,
-   "total_impresso_pdf": 7.49,
-   "total_recalculado_pdf": 7.49,
-   "doses_achatadas": []
   },
   {
    "nome": "SAI AGORA",
@@ -7387,6 +7460,9 @@
      ],
      "valor_unitario_pdf": 2.05,
      "perda_percentual": 0,
+     "avisos": [
+      "cadastro em KG com preco de capsula; ao corrigir para UND, mudar a unidade deste item junto"
+     ],
      "ordem": 1,
      "custo": 2.35
     },
@@ -7403,6 +7479,7 @@
      ],
      "valor_unitario_pdf": 6.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.0799
     },
@@ -7419,6 +7496,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 2.3529
     },
@@ -7435,6 +7513,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.3572
     }
@@ -7481,6 +7560,7 @@
      ],
      "valor_unitario_pdf": 49.2,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 3.0504
     },
@@ -7497,6 +7577,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.3555
     },
@@ -7513,6 +7594,7 @@
      ],
      "valor_unitario_pdf": 12.3,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.32
     },
@@ -7529,6 +7611,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.6965
     },
@@ -7545,6 +7628,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
      "custo": 1.6965
     }
@@ -7585,14 +7669,15 @@
      "quantidade": 0.05,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 19.6136,
+     "custo_unitario_catalogo": 21.3466,
      "componentes_pdv": [
       "ESPUMA DE HIBISCO"
      ],
      "valor_unitario_pdf": 19.22,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
-     "custo": 0.9807
+     "custo": 1.0673
     },
     {
      "produto": "GIN ARPO 5 LT",
@@ -7607,6 +7692,7 @@
      ],
      "valor_unitario_pdf": 44.4,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 2.664
     },
@@ -7623,6 +7709,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.1066
     },
@@ -7639,6 +7726,7 @@
      ],
      "valor_unitario_pdf": 12.19,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 1.828
     },
@@ -7649,17 +7737,18 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 27.11,
+     "custo_unitario_catalogo": 75.465,
      "componentes_pdv": [
       "XAROPE DE UVA"
      ],
      "valor_unitario_pdf": 27.11,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
-     "custo": 2.711
+     "custo": 7.5465
     }
    ],
-   "custo_nosso": 8.2903,
+   "custo_nosso": 13.2124,
    "total_impresso_pdf": 4.97,
    "total_recalculado_pdf": 4.9945,
    "doses_achatadas": [
@@ -7701,6 +7790,7 @@
      ],
      "valor_unitario_pdf": 1.2,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.0297
     }
@@ -7738,6 +7828,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.711
     },
@@ -7754,6 +7845,7 @@
      ],
      "valor_unitario_pdf": 7.66,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 1.532
     },
@@ -7770,6 +7862,7 @@
      ],
      "valor_unitario_pdf": 99.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 6.138
     },
@@ -7786,6 +7879,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 6.786
     }
@@ -7803,43 +7897,6 @@
      ]
     }
    ]
-  },
-  {
-   "nome": "STELA LONG NECK APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: stella long neck",
-   "codigo_pdv": "BDZ86",
-   "unidade_pdv": "UN",
-   "linha_pdf": 2967,
-   "descricao": "Ficha do PDV BDZ86 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "CERVEJA STELLA LONG NECK (330ml)",
-     "produto_id": "2a7eea71-762b-523e-8c56-c787ae144577",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.88,
-     "componentes_pdv": [
-      "STELLA LONG NECK"
-     ],
-     "valor_unitario_pdf": 5.04,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 5.88
-    }
-   ],
-   "custo_nosso": 5.88,
-   "total_impresso_pdf": 5.04,
-   "total_recalculado_pdf": 5.04,
-   "doses_achatadas": []
   },
   {
    "nome": "TAMO JUNTO",
@@ -7869,6 +7926,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.711
     },
@@ -7885,6 +7943,7 @@
      ],
      "valor_unitario_pdf": 7.66,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 3.83
     },
@@ -7901,6 +7960,7 @@
      ],
      "valor_unitario_pdf": 28.5,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 1.4198
     }
@@ -7947,6 +8007,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.711
     },
@@ -7957,14 +8018,15 @@
      "quantidade": 1.0,
      "unidade": "UND",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 0.897,
+     "custo_unitario_catalogo": 0.837,
      "componentes_pdv": [
       "SUCO NATURAL"
      ],
      "valor_unitario_pdf": 0.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
-     "custo": 0.897
+     "custo": 0.837
     },
     {
      "produto": "XAROPE DE GENGIBRE",
@@ -7973,14 +8035,15 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 5.82,
+     "custo_unitario_catalogo": 6.07,
      "componentes_pdv": [
       "XAROPE DE GENGIBRE"
      ],
      "valor_unitario_pdf": 5.82,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
-     "custo": 0.582
+     "custo": 0.607
     },
     {
      "produto": "XAROPE DE HIBISCO",
@@ -7989,14 +8052,15 @@
      "quantidade": 0.1,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 24.34,
+     "custo_unitario_catalogo": 26.81,
      "componentes_pdv": [
       "XAROPE DE HIBISCO"
      ],
      "valor_unitario_pdf": 24.34,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
-     "custo": 2.434
+     "custo": 2.681
     },
     {
      "produto": "ÁGUA COM GÁS (350ml)",
@@ -8011,11 +8075,12 @@
      ],
      "valor_unitario_pdf": 1.2,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
      "custo": 0.595
     }
    ],
-   "custo_nosso": 5.219,
+   "custo_nosso": 5.431,
    "total_impresso_pdf": 5.58,
    "total_recalculado_pdf": 5.583,
    "doses_achatadas": []
@@ -8048,6 +8113,7 @@
      ],
      "valor_unitario_pdf": 54.9,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 3.843
     },
@@ -8064,6 +8130,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 0.711
     }
@@ -8081,80 +8148,6 @@
      ]
     }
    ]
-  },
-  {
-   "nome": "TONICA APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: tonica",
-   "codigo_pdv": "BDZ27",
-   "unidade_pdv": "UN",
-   "linha_pdf": 3032,
-   "descricao": "Ficha do PDV BDZ27 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "TÔNICA SCHWEPPES",
-     "produto_id": "d4b4a662-1cb8-59f2-8aa4-f95c7b8e6a24",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 3.58,
-     "componentes_pdv": [
-      "TONICA C"
-     ],
-     "valor_unitario_pdf": 3.59,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 3.58
-    }
-   ],
-   "custo_nosso": 3.58,
-   "total_impresso_pdf": 3.59,
-   "total_recalculado_pdf": 3.59,
-   "doses_achatadas": []
-  },
-  {
-   "nome": "TONICA ZERO APOIO",
-   "grupo": "Cortesias",
-   "motivo_da_classificacao": "cortesia de apoio: tonica zero",
-   "codigo_pdv": "BDZ30",
-   "unidade_pdv": "UN",
-   "linha_pdf": 3038,
-   "descricao": "Ficha do PDV BDZ30 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping",
-   "modo_preparo": null,
-   "rendimento": 1,
-   "unidade_rendimento": "PORCAO",
-   "preco_venda": 0,
-   "cmv_alvo": 100,
-   "ativo": true,
-   "itens": [
-    {
-     "produto": "TÔNICA SCHWEPPES ZERO",
-     "produto_id": "de6d2786-632b-5236-b721-079f3f483bd1",
-     "preparo": false,
-     "quantidade": 1.0,
-     "unidade": "UND",
-     "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 3.58,
-     "componentes_pdv": [
-      "TONICA ZERO C"
-     ],
-     "valor_unitario_pdf": 3.58,
-     "perda_percentual": 0,
-     "ordem": 1,
-     "custo": 3.58
-    }
-   ],
-   "custo_nosso": 3.58,
-   "total_impresso_pdf": 3.58,
-   "total_recalculado_pdf": 3.58,
-   "doses_achatadas": []
   },
   {
    "nome": "VAI VIVER",
@@ -8184,6 +8177,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.711
     },
@@ -8200,6 +8194,7 @@
      ],
      "valor_unitario_pdf": 0.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 2.3529
     },
@@ -8216,6 +8211,7 @@
      ],
      "valor_unitario_pdf": 66.86,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 4.8181
     }
@@ -8262,6 +8258,7 @@
      ],
      "valor_unitario_pdf": 780.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 1,
      "custo": 0.1529
     },
@@ -8278,6 +8275,7 @@
      ],
      "valor_unitario_pdf": 25.0,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 2,
      "custo": 1.65
     },
@@ -8294,6 +8292,7 @@
      ],
      "valor_unitario_pdf": 10.7,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 3,
      "custo": 0.711
     },
@@ -8310,6 +8309,7 @@
      ],
      "valor_unitario_pdf": 12.3,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 4,
      "custo": 0.66
     },
@@ -8320,17 +8320,18 @@
      "quantidade": 0.01,
      "unidade": "LT",
      "categoria": "BEBIDAS NÃO ALCOÓLICAS",
-     "custo_unitario_catalogo": 0.39,
+     "custo_unitario_catalogo": 0.335,
      "componentes_pdv": [
       "XAROPE DE ACUCAR"
      ],
      "valor_unitario_pdf": 0.39,
      "perda_percentual": 0,
+     "avisos": [],
      "ordem": 5,
-     "custo": 0.0039
+     "custo": 0.0034
     }
    ],
-   "custo_nosso": 3.1778,
+   "custo_nosso": 3.1773,
    "total_impresso_pdf": 4.12,
    "total_recalculado_pdf": 4.1189,
    "doses_achatadas": [

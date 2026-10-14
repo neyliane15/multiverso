@@ -465,7 +465,13 @@ def recalcular(fichas, codigo_unico, nome_unico):
                 unit = total(filho, caminho | {id(f)})
             if unit is None:
                 unit = c['valor_unitario']
-            elif abs(unit - c['valor_unitario']) > 0.01:
+            # ERRO_VALOR, e nao 0,01: o relatorio imprime dinheiro com DUAS
+            # casas, entao meia unidade da ultima casa (meio centavo) e o maximo
+            # que o arredondamento de impressao explica. A primeira versao usava
+            # um centavo — o DOBRO da precisao do PDF — e com isso escondia 20
+            # divergencias reais de cache: 44 em vez de 64. Tolerancia tem de
+            # sair da precisao do dado, nao de numero redondo.
+            elif abs(unit - c['valor_unitario']) > ERRO_VALOR:
                 cache_divergente.append({
                     'ficha': f['nome'], 'componente': c['nome'],
                     'codigo': c['codigo'], 'linha_pdf': c['linha_pdf'],

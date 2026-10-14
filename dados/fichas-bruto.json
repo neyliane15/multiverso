@@ -21,7 +21,7 @@
   "linhas_ignoradas": 0,
   "codigos_ambiguos": 5,
   "nomes_de_ficha_repetidos": 0,
-  "cache_de_custo_divergente": 44,
+  "cache_de_custo_divergente": 64,
   "cadeia_sem_folha": 3,
   "cadeia_funda": 0,
   "ciclos": 0,
@@ -174,6 +174,33 @@
  "nomes_de_ficha_repetidos": [],
  "cache_de_custo_divergente": [
   {
+   "ficha": "ARRIBA BRASIL",
+   "componente": "SOUR CREAM MP",
+   "codigo": "3897000040",
+   "linha_pdf": 143,
+   "v_unit_cacheado_no_pai": 24.22,
+   "custo_recalculado_da_sub_receita": 24.2272,
+   "diferenca": -0.0072
+  },
+  {
+   "ficha": "ARROZ BRANCO PORCAO",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 169,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
+  },
+  {
+   "ficha": "ARROZ DE BROCOLIS MP",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 181,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
+  },
+  {
    "ficha": "ARROZ BROCOLIS PORCAO",
    "componente": "ARROZ DE BROCOLIS MP",
    "codigo": "2800000029",
@@ -181,6 +208,51 @@
    "v_unit_cacheado_no_pai": 12.08,
    "custo_recalculado_da_sub_receita": 12.0942,
    "diferenca": -0.0142
+  },
+  {
+   "ficha": "ARROZ DE CAMARAO P/ 1",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 201,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
+  },
+  {
+   "ficha": "BASE BOBO MP",
+   "componente": "AIPIM COZIDO MP",
+   "codigo": "28000000311",
+   "linha_pdf": 288,
+   "v_unit_cacheado_no_pai": 17.65,
+   "custo_recalculado_da_sub_receita": 17.64,
+   "diferenca": 0.01
+  },
+  {
+   "ficha": "ARROZ DE CAMARAO P/ 1",
+   "componente": "BASE BOBO MP",
+   "codigo": "3299000042",
+   "linha_pdf": 202,
+   "v_unit_cacheado_no_pai": 16.41,
+   "custo_recalculado_da_sub_receita": 16.4022,
+   "diferenca": 0.0078
+  },
+  {
+   "ficha": "ARROZ DE CAMARAO P/2",
+   "componente": "BASE BOBO MP",
+   "codigo": "3299000042",
+   "linha_pdf": 212,
+   "v_unit_cacheado_no_pai": 16.41,
+   "custo_recalculado_da_sub_receita": 16.4022,
+   "diferenca": 0.0078
+  },
+  {
+   "ficha": "ARROZ DE CAMARAO P/2",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 213,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
   },
   {
    "ficha": "BI-SAMBAS",
@@ -193,12 +265,39 @@
   },
   {
    "ficha": "BOBO DE CAMARAO PARA 1 PESSOA",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 368,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
+  },
+  {
+   "ficha": "BOBO DE CAMARAO PARA 1 PESSOA",
+   "componente": "BASE BOBO MP",
+   "codigo": "3299000042",
+   "linha_pdf": 370,
+   "v_unit_cacheado_no_pai": 16.41,
+   "custo_recalculado_da_sub_receita": 16.4022,
+   "diferenca": 0.0078
+  },
+  {
+   "ficha": "BOBO DE CAMARAO PARA 1 PESSOA",
    "componente": "VINAGRETE MP",
    "codigo": "2800000048",
    "linha_pdf": 371,
    "v_unit_cacheado_no_pai": 14.49,
    "custo_recalculado_da_sub_receita": 14.4549,
    "diferenca": 0.0351
+  },
+  {
+   "ficha": "BOLINHO DE ARROZ MP",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 401,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
   },
   {
    "ficha": "BOLINHO DE ARROZ ENTRADA",
@@ -301,6 +400,15 @@
   },
   {
    "ficha": "COXINHA DE RABADA MP UND",
+   "componente": "MOLHO BARBECUE DE GOIABADA MP",
+   "codigo": "2800000059",
+   "linha_pdf": 897,
+   "v_unit_cacheado_no_pai": 11.1,
+   "custo_recalculado_da_sub_receita": 11.0932,
+   "diferenca": 0.0068
+  },
+  {
+   "ficha": "COXINHA DE RABADA MP UND",
    "componente": "ACEM DESFIADO MP",
    "codigo": "2800000057",
    "linha_pdf": 898,
@@ -334,6 +442,15 @@
    "v_unit_cacheado_no_pai": 11.8,
    "custo_recalculado_da_sub_receita": 11.8247,
    "diferenca": -0.0247
+  },
+  {
+   "ficha": "DADINHO DE TAPIOCA",
+   "componente": "DADINHO DE TAPIOCA MP",
+   "codigo": "BDZ61111",
+   "linha_pdf": 1216,
+   "v_unit_cacheado_no_pai": 27.03,
+   "custo_recalculado_da_sub_receita": 27.0383,
+   "diferenca": -0.0083
   },
   {
    "ficha": "DADINHO DE TAPIOCA ENTRADA",
@@ -381,6 +498,15 @@
    "diferenca": -0.018
   },
   {
+   "ficha": "EXPLOSAO DO ZECA",
+   "componente": "XAROPE DE MORANGO",
+   "codigo": "2800000013",
+   "linha_pdf": 1676,
+   "v_unit_cacheado_no_pai": 33.85,
+   "custo_recalculado_da_sub_receita": 33.844,
+   "diferenca": 0.006
+  },
+  {
    "ficha": "FEIJAO PRETO GUARNICAO",
    "componente": "FEIJAO PRETO MP",
    "codigo": "2800000048",
@@ -408,6 +534,15 @@
    "diferenca": -0.3936
   },
   {
+   "ficha": "GT TANQUERAY",
+   "componente": "XAROPE DE MORANGO",
+   "codigo": "2800000013",
+   "linha_pdf": 1965,
+   "v_unit_cacheado_no_pai": 33.85,
+   "custo_recalculado_da_sub_receita": 33.844,
+   "diferenca": 0.006
+  },
+  {
    "ficha": "ISCA DE FRANGO COM FRITAS INFANTIL",
    "componente": "FEIJAO PRETO MP",
    "codigo": "2800000048",
@@ -415,6 +550,15 @@
    "v_unit_cacheado_no_pai": 3.26,
    "custo_recalculado_da_sub_receita": 3.2419,
    "diferenca": 0.0181
+  },
+  {
+   "ficha": "ISCA DE FRANGO COM FRITAS INFANTIL",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 2057,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
   },
   {
    "ficha": "ISCA DE PEIXE COM FRITAS",
@@ -471,6 +615,15 @@
    "diferenca": 0.0101
   },
   {
+   "ficha": "O TIO SAM ESTA QUERENDO CONHECER NOSSA BATUCADA",
+   "componente": "MOLHO RANCH MP",
+   "codigo": "3897000042",
+   "linha_pdf": 2442,
+   "v_unit_cacheado_no_pai": 13.14,
+   "custo_recalculado_da_sub_receita": 13.1467,
+   "diferenca": -0.0067
+  },
+  {
    "ficha": "ORELHA DE ELEFANTE",
    "componente": "CPD ORELHA DE ELEFANTE 200G",
    "codigo": "CPD0064",
@@ -478,6 +631,24 @@
    "v_unit_cacheado_no_pai": 16.22,
    "custo_recalculado_da_sub_receita": 0.0,
    "diferenca": 16.22
+  },
+  {
+   "ficha": "ORELHA DE ELEFANTE",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 2452,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
+  },
+  {
+   "ficha": "ORELHA DE ELEFANTE PARMEGGIANA",
+   "componente": "ARROZ BRANCO MP",
+   "codigo": "2800000001",
+   "linha_pdf": 2472,
+   "v_unit_cacheado_no_pai": 2.07,
+   "custo_recalculado_da_sub_receita": 2.0751,
+   "diferenca": -0.0051
   },
   {
    "ficha": "ORELHA DE ELEFANTE PARMEGGIANA",
@@ -505,6 +676,15 @@
    "v_unit_cacheado_no_pai": 4.83,
    "custo_recalculado_da_sub_receita": 4.8173,
    "diferenca": 0.0127
+  },
+  {
+   "ficha": "PASTEL DE CAMARAO UND",
+   "componente": "BASE BOBO MP",
+   "codigo": "3299000042",
+   "linha_pdf": 2571,
+   "v_unit_cacheado_no_pai": 16.41,
+   "custo_recalculado_da_sub_receita": 16.4022,
+   "diferenca": 0.0078
   },
   {
    "ficha": "PEIXE PASCOA",

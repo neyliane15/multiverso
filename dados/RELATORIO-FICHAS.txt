@@ -18,19 +18,15 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
         envolvem bebida                             89
           excluidas por serem prato                  7   (secao 3)
           sem nenhum item apos o de-para             3   (secao 7)
-          FICHAS CRIADAS                            79
-            itens                                  219
-            produtos distintos usados               83
-            custo total somado (R$)           542.5965
+          FICHAS CRIADAS                            56
+            itens                                  196
+            produtos distintos usados               66
+            custo total somado (R$)           445.5417
 
   por grupo do cardapio (campo `grupo`, por onde a tela agrupa):
-    Cervejas e Chopps                         3 fichas   cmv_alvo 30
-    Cervejas e Chopps · Happy Hour            1 fichas   cmv_alvo 30
-    Cortesias                                17 fichas   cmv_alvo 100
     Drinques                                 49 fichas   cmv_alvo 20
     Drinques · Happy Hour                     3 fichas   cmv_alvo 20
     Drinques · Sem Álcool                     4 fichas   cmv_alvo 20
-    Refrigerantes e Águas                     2 fichas   cmv_alvo 30
 
   preco_venda nasce 0 em TODAS as fichas: o PDF e relatorio de CUSTO e
   nao traz preco de venda. Sem ele nao existe CMV. Essa e a principal
@@ -79,362 +75,506 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
 ------------------------------------------------------------------------------
 4 · DE-PARA: INGREDIENTE DO PDV -> PRODUTO DO NOSSO CATALOGO
 ------------------------------------------------------------------------------
-  95 linhas, escritas a mao, nome por nome.
+  96 linhas, escritas a mao, nome por nome.
 
-  ABACAXI
+  A PRECISAO DO PDF, que e o que da forca ao desempate por custo: o
+  relatorio imprime DINHEIRO com duas casas decimais e QUANTIDADE com
+  tres. (A primeira versao deste relatorio dizia tres casas para os
+  dois; o "0,530" tem tres digitos, mas a terceira e sempre zero —
+  conferido nas 936 linhas.) Entao um V. Unit impresso 43,93 quer dizer
+  um valor em [43,925; 43,935), e um custo de catalogo que caia dentro
+  desse intervalo nao e coincidencia: e o mesmo preco de compra.
+
+  CASOS DE CUSTO EXATO (o V. Unit do PDF cai dentro do intervalo de
+  impressao do custo do nosso catalogo): 16
+    CACHAÇA SAGATIBA                       PDF     25.0 = CACHAÇA SAGATIBA PURA (700ml)       
+    CERVEJA HEINEKEN 330 ML                PDF      6.2 = CERVEJA HEINEKEN 330 ML             
+    GF APEROL                              PDF    43.93 = APERITIVO APEROL (750ml)            
+    GF GABRIELA                            PDF     49.2 = CACHAÇA GABRIELA                    
+    GF MALIBU                              PDF    43.94 = LICOR MALIBU                        
+    GF PRATEADA                            PDF     54.9 = CACHAÇA JAMBUZADA PRATEADA          
+    GF TEQUILA JOSE CUERVO ORO             PDF     99.0 = TEQUILA JOSÉ CUERVO OURO (750ml)    
+    GUARANA                                PDF     2.83 = GUARANÁ ANTARCTICA (350ml)          
+    GUARANA ZERO                           PDF     2.83 = GUARANÁ ANTARCTICA ZERO (350ml)     
+    LEITE CONDENSADO                       PDF     5.69 = LEITE CONDENSADO (395ml)            
+    MONSTER ENERGETICO SEM ACUCAR          PDF     7.66 = MONSTER                             
+    MONSTER SABORES                        PDF     7.66 = MONSTER                             
+    RED BULL C                             PDF     7.49 = RED BULL                            
+    RED BULL TROPICAL 250 ML C             PDF     7.49 = RED BULL THE TROPICAL EDITION (250  
+    TONICA RED MINT                        PDF      4.0 = TÔNICA PINK LIMONADE RED MIN        
+    TONICA ZERO C                          PDF     3.58 = TÔNICA SCHWEPPES ZERO               
+
+  particao das 96 linhas, DEPOIS do recorte:
+    alimentam item de ficha                     62
+    alimentam so preparo                        10
+    morreram COM o recorte                      17
+    nunca alimentaram nada                       7
+    soma                                        96
+
+    As que morreram com o recorte sao o de-para das fichas de revenda
+    e cortesia da secao 12, e ficam na tabela de proposito: elas sao o
+    que torna aquela conferencia possivel, e apaga-las jogaria fora o
+    trabalho que ja foi conferido. Se a cliente pedir as 23 de volta,
+    e so trocar o PREFIXO_DO_RECORTE e elas voltam a servir.
+      AGUA SEM GAS                        |  ANTARTICA ORIG600 ML              
+      BRAHMA GF 600 ML                    |  CERVEJA HEINEKEN 330 ML           
+      CERVEJA HEINEKEN ULTIMATE           |  CHOPP AMSTEL BARRIL 50L           
+      CHOPP BRAHMA CLARO BARRIL 50L       |  COCA-COLA KS                      
+      COCA-COLA ZERO KS                   |  GUARANA                           
+      GUARANA ZERO                        |  RED BULL ACAI 250 ML              
+      RED BULL C                          |  RED BULL MELANCIA 250 ML C        
+      RED BULL SUGAR FREE                 |  STELLA LONG NECK                  
+      TONICA ZERO C                     
+
+    As que nunca alimentaram nada sao dose e garrafa que o PDV usa em
+    ficha de dose (DS/GF) mas que nenhum SERVICO consome, mais o xarope
+    de tangerina cuja linha foi descartada pela trava da garrafa. Ficam
+    como de-para conferido, para a proxima emissao do relatorio do PDV:
+      CEREJA EM CALDAS                    |  GF AMARETO DEL ORSO               
+      GF BACARDI BRANCO                   |  GF GIN BEEFETER 750 ML            
+      GF JACK DANIELS APPLE               |  GF MALIBU                         
+      XAROPE FRANCES TANGERINA MONIN 700ML
+
+  ABACAXI  [item de ficha]
     -> ABACAXI  [KG]  HORTIFRUTI  R$ 9.58
        nome exato
-  ACUCAR REFINADO
+  ACUCAR REFINADO  [item de ficha]
     -> AÇUCAR REFINADO (1kg)  [KG]  MERCEARIA  R$ 3.35
        nome (sem cedilha no PDV); custo PDF 3,90 x catalogo 3,35
-  AGUA 1 5 L
+  AGUA 1 5 L  [so preparo]
     -> ÁGUA SEM GÁS (1,5lts)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 3.0
        o nome do PDV diz 1,5 L. O custo NAO bate (PDF 20,98 x catalogo 3,00) e isso e achado: 20,98 numa garrafa de agua de 1,5 L e erro de cadastro do PDV
-  AGUA COM GAS
+  AGUA COM GAS  [item de ficha]
     -> ÁGUA COM GÁS (350ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 1.19
        custo decide: PDF 1,20 x catalogo 1,19 na garrafinha de 350 ml, contra 3,00 na de 1,5 L. O drinque que leva 0,5 leva meia garrafinha de 350 ml
-  AGUA SEM GAS
+  AGUA SEM GAS  [morreu com o recorte]
     -> ÁGUA SEM GÁS (350ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 1.19
        mesmo desempate pelo custo: 1,20 x 1,19
-  ANTARTICA ORIG600 ML
+  ANTARTICA ORIG600 ML  [morreu com o recorte]
     -> CERVEJA ANTARCTICA ORIGINAL (600ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 6.68
        nome + 600 ml; custo PDF 7,05 x catalogo 6,68
-  BITTER ANGOSTURA AROMATIC
+  BITTER ANGOSTURA AROMATIC  [item de ficha]
     -> BITTER ANGOSTURA  [UND]  BEBIDAS ALCOÓLICAS  R$ 152.9
        nome; 0,001 de garrafa = um dash
-  BITTER ANGOSTURA AROMATIC 100ML
+  BITTER ANGOSTURA AROMATIC 100ML  [item de ficha]
     -> BITTER ANGOSTURA  [UND]  BEBIDAS ALCOÓLICAS  R$ 152.9
        mesmo produto que a linha de cima — o PDV tem o Angostura cadastrado DUAS vezes, com codigos e custos diferentes (780,00 e 0,00)
-  BRAHMA GF 600 ML
+  BRAHMA GF 600 ML  [morreu com o recorte]
     -> CERVEJA BRAHMA (600ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 6.36
        nome + 600 ml; custo PDF 6,59 x catalogo 6,36
-  CACHAÇA SAGATIBA
+  CACHAÇA SAGATIBA  [item de ficha]
     -> CACHAÇA SAGATIBA PURA (700ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 25.0
        custo EXATO: PDF 25,00 = catalogo 25,00
-  CACHAÇA YPIOCA PRATA
+  CACHAÇA YPIOCA PRATA  [item de ficha]
     -> CACHAÇA YPIOCA PRATA (965ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 20.9
        nome identico
-  CAFÉ NESPRESSO BRAZIL ORGANIC
+  CAFÉ NESPRESSO BRAZIL ORGANIC  [item de ficha]
     -> CAFÉ CAPSULA  [KG]  MERCEARIA  R$ 2.35
        mesma capsula; o catalogo nao distingue sabor de capsula
-  CAFÉ NESPRESSO RISTRETTO
+  CAFÉ NESPRESSO RISTRETTO  [item de ficha]
     -> CAFÉ CAPSULA  [KG]  MERCEARIA  R$ 2.35
        a capsula de cafe do catalogo; custo PDF 2,05 x catalogo 2,35, que e preco de CAPSULA e nao de quilo — a unidade KG do cadastro esta errada e e achado
-  CEREJA EM CALDAS
+  CANELA PAU  [so preparo]
+    -> CANELA EM PAU  [KG]  TEMPEROS E AFINS  R$ 65.45
+       nome quase exato (o PDV inverte as duas ultimas palavras). O catalogo tem CANELA EM PAU (KG, R$ 65,45, TEMPEROS E AFINS) e CANELA EM PÓ (KG, R$ 48,00, MERCEARIA); o xarope usa a canela EM PAU, que e a que se infunde. Entrou na auditoria: era o unico ingrediente de preparo sem linha aqui, e sem ele o XAROPE DE CANELA E MEL nao tem preco proprio no nosso catalogo
+  CEREJA EM CALDAS  [nunca alimentou nada]
     -> CEREJA MARRASQUINO  [KG]  TEMPEROS E AFINS  R$ 89.99
        unica cereja em calda do catalogo
-  CERVEJA HEINEKEN 330 ML
+  CERVEJA HEINEKEN 330 ML  [morreu com o recorte]
     -> CERVEJA HEINEKEN 330 ML  [UND]  BEBIDAS ALCOÓLICAS  R$ 6.2
        nome E custo identicos (6,20): um dos poucos que casam por nome exato
-  CERVEJA HEINEKEN ULTIMATE
+  CERVEJA HEINEKEN ULTIMATE  [morreu com o recorte]
     -> CERVEJA HEINEKEN 330 ML ULTIMATE  [UND]  BEBIDAS ALCOÓLICAS  R$ 6.23
        nome; custo PDF 6,55 x catalogo 6,23
-  CHOPP AMSTEL BARRIL 50L
+  CHOPP AMSTEL BARRIL 50L  [morreu com o recorte]
     -> CHOPP AMSTEL (30LT)  [UND]  BEBIDAS ALCOÓLICAS  R$ 9.91
        unico chopp Amstel do catalogo. O PDV diz barril de 50 L e o cadastro diz 30 L — divergencia de tamanho que e achado; o custo cadastrado (9,91) e por litro, como o do PDF (10,41), e e isso que faz a conta fechar
-  CHOPP BRAHMA CLARO BARRIL 50L
+  CHOPP BRAHMA CLARO BARRIL 50L  [morreu com o recorte]
     -> CHOPP BRAHMA (50lts)  [LTS]  BEBIDAS ALCOÓLICAS  R$ 12.89
        nome + 50 L batem nos dois lados; custo por litro PDF 14,17 x catalogo 12,89
-  COCA-COLA KS
+  COCA-COLA KS  [morreu com o recorte]
     -> COCA COLA KS  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 2.25
        nome; custo PDF 2,26 x catalogo 2,25
-  COCA-COLA ZERO KS
+  COCA-COLA ZERO KS  [morreu com o recorte]
     -> COCA COLA ZERO KS  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 2.25
        nome; 2,26 x 2,25
-  CREME DE LEITE 17% - 1,030KG
+  CREME DE LEITE 17% - 1,030KG  [so preparo]
     -> CREME DE LEITE  [UND]  LATICÍNIOS  R$ 12.89
        unico creme de leite do catalogo; custo PDF 13,58 x catalogo 12,89
-  EMULSIFICANTE
+  EMULSIFICANTE  [so preparo]
     -> EMULSIFICANTE  [KG]  MERCEARIA  R$ 25.42
        nome exato
-  ESPUMANTE SALTON BRUT 750 ML
+  ESPUMANTE SALTON BRUT 750 ML  [item de ficha]
     -> ESPUMANTE SALTON  [UND]  BEBIDAS ALCOÓLICAS  R$ 29.67
        nome; 0,333 x 750 ml = 250 ml, uma taca. O catalogo tambem tem SALTON 0/0% (sem alcool), que nao serve para spritz
-  GENGIBRE
+  GENGIBRE  [so preparo]
     -> GENGIBRE  [KG]  HORTIFRUTI  R$ 8.12
        nome exato
-  GF ABSOLUT
+  GF ABSOLUT  [item de ficha]
     -> VODKA ABSOLUT (1000ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 62.9
        nome; 0,062 x 1000 ml = 62 ml, a dose da casa
-  GF AMARETO DEL ORSO
+  GF AMARETO DEL ORSO  [nunca alimentou nada]
     -> LICOR AMARETTO DELL ORSO  [UND]  BEBIDAS ALCOÓLICAS  R$ 54.19
        nome
-  GF APEROL
+  GF APEROL  [item de ficha]
     -> APERITIVO APEROL (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 43.93
        custo EXATO: PDF 43,93 = catalogo 43,93
-  GF ARPO BAG
+  GF ARPO BAG  [item de ficha]
     -> GIN ARPO 5 LT  [UND]  BEBIDAS ALCOÓLICAS  R$ 222.0
        nome (BAG = bag-in-box de 5 L) e aritmetica exata: o V. Unit do PDF, 44,40, x 5 = 222,00, que e o preco do bag no nosso catalogo — ou seja o PDV precifica o bag POR LITRO num campo que e por bag. 0,012 x 5 L = 60 ml, a dose da casa. O outro candidato (GIN ARPO 750 ML) daria 9 ml
-  GF BACARDI BRANCO
+  GF BACARDI BRANCO  [nunca alimentou nada]
     -> RUM BACARDÍ CARTA BRANCA (980ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 37.58
        nome
-  GF BACARDI ORO
+  GF BACARDI ORO  [item de ficha]
     -> RUM BACARDÍ CARTA ORO (980ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 37.95
        nome; 0,062 x 980 ml = 61 ml
-  GF BANANINHA
+  GF BANANINHA  [item de ficha]
     -> CACHAÇA BANANINHA  [UND]  BEBIDAS ALCOÓLICAS  R$ 39.9
        nome; custo PDF 40,71 x catalogo 39,90
-  GF CACHACA SALINAS
+  GF CACHACA SALINAS  [item de ficha]
     -> CACHAÇA SALINAS TRADICIONAL (600ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 34.99
        nome
-  GF CAMPARI
+  GF CAMPARI  [item de ficha]
     -> APERITIVO CAMPARI MILANO BITTER (900ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 47.0
        nome; custo PDF 44,99 x catalogo 47,00
-  GF CINZANO VERMOUTH ROSSO
+  GF CINZANO VERMOUTH ROSSO  [item de ficha]
     -> VERMOUTH CINZANO ROSSO (950ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 26.81
        nome. O catalogo tem este produto DUAS vezes (tambem como `CINZANO V. ROSSO`, mesmo custo 26,81); escolhido o nome completo e a duplicata virou achado
-  GF GABRIELA
+  GF GABRIELA  [item de ficha]
     -> CACHAÇA GABRIELA  [UND]  BEBIDAS ALCOÓLICAS  R$ 49.2
        custo EXATO: PDF 49,20 = catalogo 49,20
-  GF GIN BEEFETER 750 ML
+  GF GIN BEEFETER 750 ML  [nunca alimentou nada]
     -> GIN BEEFEATER LONDON DRY (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 105.2
        nome + tamanho; BEEFETER e erro de digitacao do PDV
-  GF GIN BEEFETER PINK 750 ML
+  GF GIN BEEFETER PINK 750 ML  [item de ficha]
     -> GIN BEEFEATER PINK (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 111.0
        nome + tamanho batem
-  GF GIN BOMBAY
+  GF GIN BOMBAY  [item de ficha]
     -> GIN BOMBAY SAPPHIRE (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 78.05
        Bombay sem adjetivo e o Sapphire; 750 ml e o tamanho padrao da casa. O catalogo tambem tem o de 1000 ml (77,99) e o BRAMBLE (72,90) — ver pendencias
-  GF GIN TANQUERAY BOSSA NOVA
+  GF GIN TANQUERAY BOSSA NOVA  [item de ficha]
     -> GIN TANQUERAY BOSSA NOVA (700ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 138.26
        nome identico
-  GF JACK DANIELS
+  GF JACK DANIELS  [item de ficha]
     -> WHISKY JACK DANIEL'S (1000ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 118.88
        nome sem adjetivo = o Jack comum. CUIDADO: o V. Unit do PDF (122,00) e igual ao custo do JACK DANIEL´S APPLE no catalogo, o que e armadilha — o PDV tem ficha separada `DS JACK DANIEL S APPLE` para o Apple
-  GF JACK DANIELS APPLE
+  GF JACK DANIELS APPLE  [nunca alimentou nada]
     -> WHISKY JACK DANIEL´S APPLE  [UND]  BEBIDAS ALCOÓLICAS  R$ 122.0
        nome; custo EXATO: PDF 122,00 = catalogo 122,00
-  GF JACK HONEY
+  GF JACK HONEY  [item de ficha]
     -> WHISKY JACK DANIEL'S HONEY (1000ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 132.9
        nome; custo PDF 125,00 x catalogo 132,90
-  GF LICOR 43
+  GF LICOR 43  [item de ficha]
     -> LICOR DIEGO ZAMORA 43  [UND]  BEBIDAS ALCOÓLICAS  R$ 180.0
        Licor 43 e da Diego Zamora; custo PDF 174,29 x catalogo 180,00
-  GF LIMONCELLO
+  GF LIMONCELLO  [item de ficha]
     -> LICOR LIMONCELLO CARAVELLAS (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 132.9
        nome. O catalogo tem DOIS limoncellos pelo mesmo custo (132,90): CARAVELLAS e VILLA MASSA. Escolhido o que comeca por LIMONCELLO, que e como o PDV escreve — e a escolha virou pendencia para a cliente
-  GF MALIBU
+  GF MALIBU  [nunca alimentou nada]
     -> LICOR MALIBU  [UND]  BEBIDAS ALCOÓLICAS  R$ 43.94
        nome
-  GF PRATEADA
+  GF PRATEADA  [item de ficha]
     -> CACHAÇA JAMBUZADA PRATEADA  [UND]  BEBIDAS ALCOÓLICAS  R$ 54.9
        custo EXATO: PDF 54,90 = catalogo 54,90
-  GF TANQUERAY
+  GF TANQUERAY  [item de ficha]
     -> GIN TANQUERAY LONDON DRY (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 103.97
        Tanqueray sem adjetivo e o London Dry; custo PDF 98,64 x catalogo 103,97
-  GF TEQUILA JOSE CUERVO
+  GF TEQUILA JOSE CUERVO  [item de ficha]
     -> TEQUILA JOSÉ CUERVO PRATA (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 95.99
        por exclusao: o PDV tem `GF TEQUILA JOSE CUERVO ORO` separado, que casa EXATO com o OURO (99,00), logo o sem adjetivo e o PRATA
-  GF TEQUILA JOSE CUERVO ORO
+  GF TEQUILA JOSE CUERVO ORO  [item de ficha]
     -> TEQUILA JOSÉ CUERVO OURO (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 99.0
        custo EXATO: PDF 99,00 = catalogo 99,00
-  GF VELVO BOTANIC GIN
+  GF VELVO BOTANIC GIN  [item de ficha]
     -> GIN VELVO BOTANIC PREMIUM (700ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 73.2
        nome
-  GF VODKA SKYY
+  GF VODKA SKYY  [item de ficha]
     -> VODKA SKY (980ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 22.9
        nome (SKYY x SKY, uma letra); 0,062 x 980 ml = 61 ml
-  GUARANA
+  GUARANA  [morreu com o recorte]
     -> GUARANÁ ANTARCTICA (350ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 2.83
        custo EXATO: PDF 2,83 = catalogo 2,83
-  GUARANA ZERO
+  GUARANA ZERO  [morreu com o recorte]
     -> GUARANÁ ANTARCTICA ZERO (350ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 2.83
        custo EXATO: PDF 2,83 = catalogo 2,83
-  HIBISCUS
+  HIBISCUS  [so preparo]
     -> HIBISCUS  [KG]  TEMPEROS E AFINS  R$ 62.0
        nome exato
-  LARANJA BAHIA
+  LARANJA BAHIA  [item de ficha]
     -> LARANJA BAHIA  [KG]  HORTIFRUTI  R$ 8.12
        nome exato
-  LARANJA PÊRA
+  LARANJA PÊRA  [so preparo]
     -> LARANJA PERA  [KG]  HORTIFRUTI  R$ 2.79
        nome exato (sem acento no cadastro)
-  LEITE CONDENSADO
+  LEITE CONDENSADO  [so preparo]
     -> LEITE CONDENSADO (395ml)  [UND]  LATICÍNIOS  R$ 5.69
        custo EXATO: PDF 5,69 = catalogo 5,69, que e a lata de 395 ml e nao a bisnaga de 2,6 kg
-  LEITE DE COCO
+  LEITE DE COCO  [so preparo]
     -> LEITE DE COCO  [UND]  LATICÍNIOS  R$ 19.63
        nome exato
-  LIMA DA PERSIA
+  LIMA DA PERSIA  [item de ficha]
     -> LIMA DA PÉRSIA  [KG]  HORTIFRUTI  R$ 13.26
        nome exato (sem acento no PDV)
-  LIMÃO
+  LIMÃO  [item de ficha]
     -> LIMÃO TAHITI  [KG]  HORTIFRUTI  R$ 7.11
        por EXCLUSAO: o catalogo tem dois limoes, Tahiti e Siciliano, e o PDF lista `LIMÃO SICILIANO` como componente separado. Logo o `LIMÃO` generico — o da caipirinha — e o Tahiti. Custo PDF 10,70 x catalogo 7,11
-  LIMÃO SICILIANO
+  LIMÃO SICILIANO  [item de ficha]
     -> LIMÃO SICILIANO  [KG]  HORTIFRUTI  R$ 9.13
        nome exato
-  MANJERICAO
+  MANJERICAO  [item de ficha]
     -> MANJERICÃO  [UND]  HORTIFRUTI  R$ 45.7
        nome (sem acento no PDV). Unidade divergente: PDV em KG, cadastro em UND
-  MARACUJÁ AZEDO
+  MARACUJÁ AZEDO  [item de ficha]
     -> MARACUJÁ  [KG]  HORTIFRUTI  R$ 13.2
        unico maracuja do catalogo; custo PDF 12,30 x catalogo 13,20
-  MARSHMALLOW
+  MARSHMALLOW  [item de ficha]
     -> MARSHMELLOWS  [KG]  TEMPEROS E AFINS  R$ 7.99
        nome (grafia); custo PDF 6,00 x catalogo 7,99. NAO e o XAROPE MONIN MARSHMELOW: o PDV mede em KG, e doce, nao xarope
-  MEL 500G
+  MEL 500G  [so preparo]
     -> MEL (500g)  [KG]  MERCEARIA  R$ 23.0
        nome + 500 g. Custo divergente e achado: PDF 50,20 x catalogo 23,00
-  MONSTER ENERGETICO SEM ACUCAR
+  MONSTER ENERGETICO SEM ACUCAR  [item de ficha]
     -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
        o catalogo tem um unico MONSTER; custo PDF 7,66 = catalogo 7,66
-  MONSTER PACIFIC PUNCH 473 ML
+  MONSTER PACIFIC PUNCH 473 ML  [item de ficha]
     -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
        idem; custo PDF 7,67 x catalogo 7,66
-  MONSTER SABORES
+  MONSTER SABORES  [item de ficha]
     -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
        custo EXATO: PDF 7,66 = catalogo 7,66
-  MONSTER ULTRA FIESTA MANGO 473 ML
+  MONSTER ULTRA FIESTA MANGO 473 ML  [item de ficha]
     -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
        idem; PDF 7,64 x catalogo 7,66
-  MONSTER ULTRA PEACHY KEEN 473 ML
+  MONSTER ULTRA PEACHY KEEN 473 ML  [item de ficha]
     -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
        idem; PDF 7,64 x catalogo 7,66
-  MORANGO
+  MORANGO  [item de ficha]
     -> MORANGO  [UND]  HORTIFRUTI  R$ 59.67
        nome exato. A unidade divergente e achado: o PDV mede em KG e o nosso cadastro em UND
-  RED BULL ACAI 250 ML
+  RED BULL ACAI 250 ML  [morreu com o recorte]
     -> RED BULL AÇAI  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 5.94
        nome
-  RED BULL C
+  RED BULL C  [morreu com o recorte]
     -> RED BULL  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.49
        custo EXATO: PDF 7,49 = catalogo 7,49
-  RED BULL MELANCIA 250 ML C
+  RED BULL MELANCIA 250 ML C  [morreu com o recorte]
     -> RED BULL MELANCIA (250ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.49
        nome + 250 ml
-  RED BULL SUGAR FREE
+  RED BULL SUGAR FREE  [morreu com o recorte]
     -> RED BULL ZERO  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.49
        sugar free = zero; custo PDF 7,19 x catalogo 7,49
-  RED BULL TROPICAL 250 ML C
+  RED BULL TROPICAL 250 ML C  [item de ficha]
     -> RED BULL THE TROPICAL EDITION (250ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.49
        nome + 250 ml; custo EXATO 7,49
-  STELLA LONG NECK
+  STELLA LONG NECK  [morreu com o recorte]
     -> CERVEJA STELLA LONG NECK (330ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 5.88
        nome; custo PDF 5,04 x catalogo 5,88. O catalogo tem tambem a PURE GOLD long neck, que e outro produto
-  TANGERINA IMPORTADA
+  TANGERINA IMPORTADA  [item de ficha]
     -> TANGERINA IMPORTADA  [KG]  HORTIFRUTI  R$ 12.18
        nome exato
-  TONICA C
+  TONICA C  [item de ficha]
     -> TÔNICA SCHWEPPES  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 3.58
        custo EXATO: PDF 3,59 x catalogo 3,58. O `C` do PDV e o sufixo de "com acucar", que o catalogo nao usa
-  TONICA PINK LIMONADE
+  TONICA PINK LIMONADE  [item de ficha]
     -> TÔNICA PINK LIMONADE  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 4.0
        nome exato; custo PDF 4,08 x catalogo 4,00
-  TONICA RED MINT
+  TONICA RED MINT  [item de ficha]
     -> TÔNICA PINK LIMONADE RED MIN  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 4.0
        nome (RED MINT x RED MIN); custo EXATO 4,00
-  TONICA SCHWEPPES
+  TONICA SCHWEPPES  [item de ficha]
     -> TÔNICA SCHWEPPES  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 3.58
        nome exato. MESMO produto que `TONICA C` — o PDV tem a tonica cadastrada duas vezes, uma delas com custo zero
-  TONICA ZERO C
+  TONICA ZERO C  [morreu com o recorte]
     -> TÔNICA SCHWEPPES ZERO  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 3.58
        custo EXATO: PDF 3,58 = catalogo 3,58
-  UVA ROXA
+  UVA ROXA  [item de ficha]
     -> UVA CRISON ROXA  [KG]  HORTIFRUTI  R$ 36.56
        unica uva roxa do catalogo
-  UVA THOMPSON
+  UVA THOMPSON  [item de ficha]
     -> UVA VERDE THOMPSON  [KG]  HORTIFRUTI  R$ 36.56
        nome (Thompson e a uva verde)
-  VINHO SALTON ATOS LICOROSO
+  VINHO SALTON ATOS LICOROSO  [item de ficha]
     -> ESPUMANTE ATOS LICOROSO  [UND]  BEBIDAS ALCOÓLICAS  R$ 86.27
        nome (o PDV chama de vinho o que o catalogo chama de espumante licoroso)
-  XAROPE FRANCES BAUNILHA
+  XAROPE FRANCES BAUNILHA  [item de ficha]
     -> XAROPE MONIN BAUNILHA  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
        o "xarope frances" do PDV e o Monin; custo PDF 66,86 x catalogo 67,86
-  XAROPE FRANCES GRENADINE MONIN
+  XAROPE FRANCES GRENADINE MONIN  [item de ficha]
     -> XAROPE MONIN GRENADINE (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
        nome; 66,86 x 67,86
-  XAROPE FRANCES TANGERINA MONIN 700ML
+  XAROPE FRANCES TANGERINA MONIN 700ML  [nunca alimentou nada]
     -> XAROPE MONIN TANGERINA  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
        nome; o PDF traz custo 0,00
-  XAROPE MONIN ACAI
+  XAROPE MONIN ACAI  [item de ficha]
     -> XAROPE MONIN AÇAI (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 42.71
        nome; custo PDF 46,80 x catalogo 42,71
-  XAROPE MONIN AMORA 700 ML
+  XAROPE MONIN AMORA 700 ML  [item de ficha]
     -> XAROPE MONIN AMORA (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
        nome + 700 ml; PDF 46,90 x catalogo 67,86
-  XAROPE MONIN CARAMELO 700 ML
+  XAROPE MONIN CARAMELO 700 ML  [item de ficha]
     -> XAROPE MONIN CARAMELO SALGADO (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
        unico caramelo Monin de 700 ml do catalogo; o PDF traz custo 0,00, entao nao ha desempate por preco
-  XAROPE MONIN DE MACA VERDE 700ML
+  XAROPE MONIN DE MACA VERDE 700ML  [item de ficha]
     -> XAROPE MONIN MAÇÃ VERDE (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
        nome + 700 ml; 68,43 x 67,86
-  XAROPE MONIN MANGA 700ML
+  XAROPE MONIN MANGA 700ML  [item de ficha]
     -> XAROPE MONIN SPICY MANGO (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
        unica manga Monin do catalogo. O PDV tem TAMBEM `XAROPE MONIN SPICE MANGO`, que cai no mesmo produto — ver pendencias
-  XAROPE MONIN SPICE MANGO
+  XAROPE MONIN SPICE MANGO  [item de ficha]
     -> XAROPE MONIN SPICY MANGO (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
        nome (SPICE x SPICY)
 
 ------------------------------------------------------------------------------
 5 · PREPAROS DA CASA: VIRAM PRODUTO DO CATALOGO
 ------------------------------------------------------------------------------
-  Saida escolhida: (a) do briefing — o preparo vira produto, com
-  custo_fixo = o que o PDF calcula para ele. Argumento no cabecalho do
-  normalizar-fichas.py. O preco: o custo fica CONGELADO e nao acompanha
-  o preco do acucar (secao 10).
+  Saida escolhida: (a) do briefing — o preparo vira produto, numa
+  categoria que ja existe, com `custo_fixo = true`. Argumento no
+  cabecalho do normalizar-fichas.py.
+
+  DE ONDE VEM O CUSTO, e por que a primeira versao estava errada: ela
+  gravava o custo que o PDF calcula para o preparo. Era contrabando — o
+  briefing diz que o custo vem do NOSSO catalogo, e um preparo custeado
+  pelo PDV e um preco do PDV entrando no banco pela porta de servico. E
+  nao era cosmetico: o XAROPE DE MEL valia R$ 62,788/L porque o PDV
+  cobra R$ 20,98 por uma garrafa de agua de 1,5 L e R$ 50,20 pelo mel —
+  os DOIS precos que este mesmo relatorio denuncia como erro do PDV.
+  Com os nossos: R$ 24,80/L.
+
+  Agora a receita de cada preparo e refeita com os precos do nosso
+  catalogo, RECURSIVAMENTE (a ESPUMA DE HIBISCO leva CONCENTRADO DE
+  GENGIBRE, que leva XAROPE DE GENGIBRE) e pelo mesmo de-para que os
+  drinques usam. A conta de cada um esta aberta abaixo. Foi assim que o
+  CANELA PAU apareceu: ele era o unico ingrediente de preparo sem linha
+  no de-para, e o recalculo nao fecha sem ele — com o V. Unit do PDF
+  ninguem notaria, porque o PDF tem preco para tudo.
+
+  O preco pago continua existindo e continua dito: `custo_fixo` congela
+  o numero no dia da carga. O que mudou e a FONTE dele (secao 10).
 
   ESPUMA DE GENGIBRE  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 5.91   (Total impresso no PDF: 5.91)
+      custo R$ 6.3812   (o PDF calculava 5.91)
       preparo de bar sem alcool, medido em litro
-      receita no PDF: XAROPE DE GENGIBRE 0.8 LT @ 5.82; EMULSIFICANTE 0.06 UN @ 20.9
+      a conta, pelo NOSSO catalogo:
+             0.8 LT   XAROPE DE GENGIBRE                   x R$      6.07 =     4.856
+            0.06 KG   EMULSIFICANTE                        x R$     25.42 =    1.5252
+                      TOTAL                                               =    6.3812
       usado por: BI-SAMBAS, BRISANDO, BRISEEIIII, DOM AMORES EM VERMELHO
+
   ESPUMA DE HIBISCO  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 19.6136   (Total impresso no PDF: 19.61)
+      custo R$ 21.3466   (o PDF calculava 19.61)
       preparo de bar sem alcool, medido em litro
-      receita no PDF: EMULSIFICANTE 0.06 UN @ 20.9; XAROPE DE HIBISCO 0.7 LT @ 24.34; CONCENTRADO DE GENGIBRE 0.2 LT @ 6.59
+      a conta, pelo NOSSO catalogo:
+            0.06 KG   EMULSIFICANTE                        x R$     25.42 =    1.5252
+             0.7 LT   XAROPE DE HIBISCO                    x R$     26.81 =    18.767
+             0.2 LT   CONCENTRADO DE GENGIBRE              x R$     5.272 =    1.0544
+                      TOTAL                                               =   21.3466
       usado por: GIN COM ESPUMA, GIN PINK, MOSCOW IN ZECA, SEGREDO DO ZECA
+
   MIX DE PINA  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 13.714   (Total impresso no PDF: 13.71)
+      custo R$ 13.483   (o PDF calculava 13.71)
       mix de leites para coquetel, medido em litro
-      receita no PDF: LEITE DE COCO 0.2 UN @ 19.75; CREME DE LEITE 17% - 1,030KG 0.3 LT @ 13.58; LEITE CONDENSADO 1.0 UN @ 5.69
+      a conta, pelo NOSSO catalogo:
+             0.2 UND  LEITE DE COCO                        x R$     19.63 =     3.926
+             0.3 UND  CREME DE LEITE                       x R$     12.89 =     3.867
+                 (PDV: CREME DE LEITE 17% - 1,030KG @ 13.58)
+             1.0 UND  LEITE CONDENSADO (395ml)             x R$      5.69 =      5.69
+                 (PDV: LEITE CONDENSADO @ 5.69)
+                      TOTAL                                               =    13.483
       usado por: DOM AMORES EM VERMELHO, NOAH PAGODINHO
+
   SUCO NATURAL  [UND]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 0.897   (Total impresso no PDF: 0.9)
+      custo R$ 0.837   (o PDF calculava 0.9)
       suco de laranja espremido na casa, servido em copo (UND)
-      receita no PDF: LARANJA PÊRA 0.3 KG @ 2.99
+      a conta, pelo NOSSO catalogo:
+             0.3 KG   LARANJA PERA                         x R$      2.79 =     0.837
+                 (PDV: LARANJA PÊRA @ 2.99)
+                      TOTAL                                               =     0.837
       usado por: TO CALMA
+
   XAROPE DE ACUCAR  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 0.39   (Total impresso no PDF: 0.39)
+      custo R$ 0.335   (o PDF calculava 0.39)
       xarope da casa, medido em litro
-      receita no PDF: ACUCAR REFINADO 0.1 KG @ 3.9
+      a conta, pelo NOSSO catalogo:
+             0.1 KG   AÇUCAR REFINADO (1kg)                x R$      3.35 =     0.335
+                 (PDV: ACUCAR REFINADO @ 3.9)
+                      TOTAL                                               =     0.335
       usado por: BOSSA SOUR, BRASILEIRINHO, DEIXA ARDER, XEREM
+
   XAROPE DE CANELA E MEL  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 58.19   (Total impresso no PDF: 58.19)
+      custo R$ 29.545   (o PDF calculava 58.19)
       xarope da casa, medido em litro
-      receita no PDF: CANELA PAU 0.1 KG @ 79.9; MEL 500G 1.0 KG @ 50.2
+      a conta, pelo NOSSO catalogo:
+             0.1 KG   CANELA EM PAU                        x R$     65.45 =     6.545
+                 (PDV: CANELA PAU @ 79.9)
+             1.0 KG   MEL (500g)                           x R$      23.0 =      23.0
+                 (PDV: MEL 500G @ 50.2)
+                      TOTAL                                               =    29.545
       usado por: CAIPIRINHA COM MEL
+
   XAROPE DE GENGIBRE  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 5.82   (Total impresso no PDF: 5.82)
+      custo R$ 6.07   (o PDF calculava 5.82)
       xarope da casa, medido em litro
-      receita no PDF: ACUCAR REFINADO 0.6 KG @ 3.9; GENGIBRE 0.5 KG @ 6.96
+      a conta, pelo NOSSO catalogo:
+             0.6 KG   AÇUCAR REFINADO (1kg)                x R$      3.35 =      2.01
+                 (PDV: ACUCAR REFINADO @ 3.9)
+             0.5 KG   GENGIBRE                             x R$      8.12 =      4.06
+                      TOTAL                                               =      6.07
       usado por: MATE DA CASA SABORES, MOSCOW IN ZECA, TO CALMA
+
   XAROPE DE HIBISCO  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 24.34   (Total impresso no PDF: 24.34)
+      custo R$ 26.81   (o PDF calculava 24.34)
       xarope da casa, medido em litro
-      receita no PDF: ACUCAR REFINADO 0.6 KG @ 3.9; HIBISCUS 0.4 KG @ 55.0
+      a conta, pelo NOSSO catalogo:
+             0.6 KG   AÇUCAR REFINADO (1kg)                x R$      3.35 =      2.01
+                 (PDV: ACUCAR REFINADO @ 3.9)
+             0.4 KG   HIBISCUS                             x R$      62.0 =      24.8
+                      TOTAL                                               =     26.81
       usado por: TO CALMA
+
   XAROPE DE MARACUJA  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 14.64   (Total impresso no PDF: 14.64)
+      custo R$ 15.21   (o PDF calculava 14.64)
       xarope da casa, medido em litro
-      receita no PDF: ACUCAR REFINADO 0.6 KG @ 3.9; MARACUJÁ AZEDO 1.0 KG @ 12.3
+      a conta, pelo NOSSO catalogo:
+             0.6 KG   AÇUCAR REFINADO (1kg)                x R$      3.35 =      2.01
+                 (PDV: ACUCAR REFINADO @ 3.9)
+             1.0 KG   MARACUJÁ                             x R$      13.2 =      13.2
+                 (PDV: MARACUJÁ AZEDO @ 12.3)
+                      TOTAL                                               =     15.21
       usado por: BI-SAMBAS, BLUE TA DE CAO, BRISANDO, CAMISA 10
+
   XAROPE DE MEL  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 62.788   (Total impresso no PDF: 62.79)
+      custo R$ 24.8   (o PDF calculava 62.79)
       xarope da casa, medido em litro
-      receita no PDF: MEL 500G 1.0 KG @ 50.2; AGUA 1 5 L 0.6 UN @ 20.98
+      a conta, pelo NOSSO catalogo:
+             1.0 KG   MEL (500g)                           x R$      23.0 =      23.0
+                 (PDV: MEL 500G @ 50.2)
+             0.6 UND  ÁGUA SEM GÁS (1,5lts)                x R$       3.0 =       1.8
+                 (PDV: AGUA 1 5 L @ 20.98)
+                      TOTAL                                               =      24.8
       usado por: FOLIA DO DOM
+
   XAROPE DE MORANGO  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 33.844   (Total impresso no PDF: 33.85)
+      custo R$ 51.086   (o PDF calculava 33.85)
       xarope da casa, medido em litro
-      receita no PDF: ACUCAR REFINADO 1.0 KG @ 3.9; MORANGO 0.8 KG @ 37.43
+      a conta, pelo NOSSO catalogo:
+             1.0 KG   AÇUCAR REFINADO (1kg)                x R$      3.35 =      3.35
+                 (PDV: ACUCAR REFINADO @ 3.9)
+             0.8 UND  MORANGO                              x R$     59.67 =    47.736
+                      TOTAL                                               =    51.086
       usado por: EXPLOSAO DO ZECA, GT TANQUERAY
+
   XAROPE DE UVA  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
-      custo R$ 27.11   (Total impresso no PDF: 27.11)
+      custo R$ 75.465   (o PDF calculava 27.11)
       xarope da casa, medido em litro
-      receita no PDF: ACUCAR REFINADO 0.7 KG @ 3.9; UVA ROXA 2.0 KG @ 12.19
+      a conta, pelo NOSSO catalogo:
+             0.7 KG   AÇUCAR REFINADO (1kg)                x R$      3.35 =     2.345
+                 (PDV: ACUCAR REFINADO @ 3.9)
+             2.0 KG   UVA CRISON ROXA                      x R$     36.56 =     73.12
+                 (PDV: UVA ROXA @ 12.19)
+                      TOTAL                                               =    75.465
       usado por: SEGREDO DO ZECA
+
+  soma dos 12 preparos, aos nossos precos: R$ 271.3688
 
 ------------------------------------------------------------------------------
 6 · INGREDIENTE QUE NAO EXISTE NO CATALOGO (nao se inventa produto)
@@ -461,8 +601,8 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
 ------------------------------------------------------------------------------
 7 · FICHA DE BEBIDA QUE NAO NASCEU
 ------------------------------------------------------------------------------
-  Cerpa Long Neck  (grupo que teria: Cervejas e Chopps)
   MATE  (grupo que teria: Drinques · Sem Álcool)
+  Cerpa Long Neck  (grupo que teria: Cervejas e Chopps)
   SPATEN 600 ML APOIO  (grupo que teria: Cortesias)
   Ficha sem nenhum item viraria ficha de custo zero, e custo zero
   inexplicado e proibido. Cada uma esta na secao 6 com o que falta
@@ -546,99 +686,99 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
   drinque em exatamente a cachaca (ver secao 11).
 
   ficha                                 nosso  PDF rec  PDF imp    dif %  itens
-  GIN COM ESPUMA                         4.64     0.98     0.96    373.2    2
+  GIN COM ESPUMA                         4.73     0.98     0.96    382.0    2
   ATOS OITAVO                           11.22     3.27     3.27    243.2    4
   SAI AGORA                              6.14     2.11     2.11    191.0    4
-  BI-SAMBAS                              3.95     1.82     1.81    117.0    3
+  SEGREDO DO ZECA                       13.21     4.99     4.97    164.5    5
+  BI-SAMBAS                              4.01     1.82     1.81    120.0    3
   CAIPIRINHA ESP SAGATIBA                5.47     2.92     2.92     87.8    3
-  MOSCOW IN ZECA                         1.27     6.42     6.40    -80.2    2  (-1 item)
+  MOSCOW IN ZECA                         1.37     6.42     6.40    -78.7    2  (-1 item)
   SO UM MINUTO                          15.17     8.74     8.74     73.5    4
-  BRISANDO                               5.18     3.06     2.97     69.4    4
-  SEGREDO DO ZECA                        8.29     4.99     4.97     66.0    5
+  BRISANDO                               5.25     3.06     2.97     71.9    4
   NEGRONI BDZ                            2.36     1.44     0.41     63.5    3
   GT ARPO GIN                            5.17     3.40     3.40     52.0    3
   TOMA LIZA                              4.55     8.16     4.32    -44.2    2  (-1 item)
   CAIPIVODKA ABSOLUT BDZ                10.03     7.16     7.16     40.1    3
+  EXPLOSAO DO ZECA                      12.48     9.07     9.07     37.7    4
   VAI VIVER                              7.88     5.82     5.85     35.5    3
   CAIPIRINHA HH                          3.31     2.54     2.54     30.6    4
-  NOAH PAGODINHO                         9.67     7.63     7.68     26.7    6
+  CAIPIRINHA COM MEL                     7.51    10.73     6.89    -30.0    3
+  NOAH PAGODINHO                         9.66     7.63     7.68     26.6    6
   CAIPIVODKA SKYY                        2.30     3.03     3.03    -24.2    3
   DEIXA ARDER                            4.09     3.31     3.31     23.4    5
   XEREM                                  3.18     4.12     4.12    -22.9    5
+  GT TANQUERAY                          12.60    10.52    10.52     19.7    3
   CORACAO DE SAMBISTA                    6.44     5.40     5.40     19.4    5
   MONICA COQUETEL                        6.98     5.87     5.87     18.9    2
-  EXPLOSAO DO ZECA                      10.76     9.07     9.07     18.7    4
-  GIN PINK                              15.83    13.49    13.45     17.4    4
+  GIN PINK                              16.00    13.49    13.45     18.6    4
   APEROL SPRITZ                         13.48    16.22    16.23    -16.9    4
-  STELA LONG NECK APOIO                  5.88     5.04     5.04     16.7    1
   APEROL SPRITZ HH                      10.85    12.93    12.93    -16.1    4
-  CAMISA 10                              9.02     7.86     7.86     14.8    3
+  CAMISA 10                              9.03     7.86     7.86     15.0    3
   CAMPARI TONICA                         1.35     1.52     1.53    -11.1    3
   TAMO JUNTO                             5.96     6.67     6.67    -10.6    3
-  BRAHMA CHOPP 300ML                     4.51     4.96     4.96     -9.0    1
-  CHOPP 220 ML - APOIO                   3.22     3.54     3.54     -9.0    1
   QUE CALOR E ESSE                       8.73     8.05     8.05      8.5    3
   FULERAGEM                             12.90    11.90    11.90      8.4    4
   CAIPIRINHA BDZ                         4.72     5.11     1.26     -7.6    3
   AGORA POR FAVOR                        7.03     7.57     7.61     -7.2    4
   BOSSA SOUR                             9.32     8.72     1.11      6.9    3
-  TO CALMA                               5.22     5.58     5.58     -6.5    5
-  DOM AMORES EM VERMELHO                13.01    12.23    12.15      6.4    6
+  DOM AMORES EM VERMELHO                13.04    12.23    12.15      6.7    6
   PAREI NO ZECA                          6.43     6.05     2.21      6.3    4
-  ANTARTICA ORIG600 ML APOIO             6.68     7.05     7.05     -5.2    1
   CARAJILLO BDZ                         13.51    12.86    12.86      5.1    2
-  Heineken Ultimate LN 330ML             6.23     6.55     6.55     -4.9    1
-  FOLIA DO DOM                          18.24    17.40    17.40      4.8    5
   JA FOI                                22.80    21.76    21.76      4.8    4
-  AMSTEL CHOPP 300 ML HH                 3.47     3.64     3.64     -4.8    1
-  RED BULL SUGAR FREE APOIO              7.49     7.19     7.19      4.2    1
-  BLUE TA DE CAO                         7.22     7.53     7.53     -4.1    4
+  MATE DA CASA SABORES                   0.61     0.58     0.58      4.3    1  (-1 item)
   LIMONCELLO SPRITZ                     12.72    13.22    13.22     -3.8    5
-  BRAHMA GF 600 ML APOIO                 6.36     6.59     6.59     -3.5    1
   JA SAIU                                5.61     5.81     5.84     -3.4    3
-  CAIPIRINHA COM MEL                    10.37    10.73     6.89     -3.4    3
-  GT TANQUERAY                          10.87    10.52    10.52      3.3    3
-  BRASILEIRINHO                          5.04     4.91     4.91      2.7    5
+  BLUE TA DE CAO                         7.28     7.53     7.53     -3.4    4
+  TO CALMA                               5.43     5.58     5.58     -2.7    5
   COISA DE MALANDRO                      5.68     5.53     5.53      2.7    4
+  BRASILEIRINHO                          5.04     4.91     4.91      2.6    5
   GIN TROPICAL                          14.35    14.00    14.00      2.5    2
   HOJE TA CALOR                         11.76    12.00    11.98     -2.0    5
-  BRISEEIIII                             5.76     5.87     5.82     -1.9    3
   43 SPRITZ                             12.11    11.94    11.94      1.4    3
   GT BOMBAY                              9.44     9.34     9.34      1.1    3
   CAIPIVODKA SKYY HH                     2.75     2.72     2.72      1.1    2
+  BRISEEIIII                             5.81     5.87     5.82     -1.1    3
   SILENCIO                               0.03     0.03     0.03     -1.0    1
-  AGUA COM GAS APOIO                     1.19     1.20     1.20     -0.8    1
-  AGUA SEM GAS APOIO                     1.19     1.20     1.20     -0.8    1
   SALVE JORGE                            8.12     8.16     8.16     -0.5    5
-  COCA COCA ZERO APOIO KS                2.25     2.26     2.26     -0.4    1
-  COCA COLA APOIO KS                     2.25     2.26     2.26     -0.4    1
-  COCA COLA KS                           2.25     2.26     2.26     -0.4    1
-  COCA COLA ZERO KS                      2.25     2.26     2.26     -0.4    1
-  TONICA APOIO                           3.58     3.59     3.59     -0.3    1
+  FOLIA DO DOM                          17.48    17.40    17.40      0.5    5
   CACHACA DO ZECA                        1.04     0.00     0.00        -    1
-  Cerpa Long Neck                        0.00     0.00     0.00        -    0  (-1 item)
-  GUARANA APOIO                          2.83     2.83     2.83      0.0    1
-  GUARANA ZERO APOIO                     2.83     2.83     2.83      0.0    1
-  HEINEKEN LONGNECK                      6.20     6.20     6.20      0.0    1
-  MATE                                   0.00     0.00     0.00        -    0  (-1 item)
-  MATE DA CASA SABORES                   0.58     0.58     0.58      0.0    1  (-1 item)
-  RED BULL ACAI 250 ML APOIO             5.94     0.00     0.00        -    1
-  RED BULL C APOIO                       7.49     7.49     7.49      0.0    1
-  RED BULL MELANCIA 250 ML C APOIO       7.49     0.00     0.00        -    1
-  RED BULL TROPICAL 250 ML C APOIO       7.49     7.49     7.49      0.0    1
-  SPATEN 600 ML APOIO                    0.00     0.00     0.00        -    0  (-1 item)
-  TONICA ZERO APOIO                      3.58     3.58     3.58      0.0    1
+
+  A DISTRIBUICAO, contada e nao resumida:
+    fichas com divergencia calculavel     55 de 56
+      (sem: o Total do PDF e zero — CACHACA DO ZECA)
+    dentro de +/-  1%                         3
+    dentro de +/-  5%                        17
+    dentro de +/- 10%                        25
+    dentro de +/- 20%                        34
+    dentro de +/- 50%                        44
+    ACIMA de +/- 20%                        21
+    mediana do |desvio|                   15.0%
+    pior                                 382.0%
+
+  Uma frase que a primeira versao deste relatorio trazia e que nao
+  resiste a esta contagem: "tres causas respondem por tudo acima de
+  20%". Sao 21 fichas acima de 20%, nao tres causas, e as causas
+  medidas sao SETE, cada uma com o delta em reais na tabela abaixo:
+    1. insumo com custo ZERO no PDV (GF BACARDI ORO, GF VELVO BOTANIC
+       GIN, VINHO SALTON ATOS LICOROSO, XAROPE MONIN CARAMELO/MANGA/
+       SPICE MANGO, BITTER ANGOSTURA): o Total do PDF nao os conta;
+    2. o bag de ARPO precificado por litro no PDV: 5x (ver secao 4);
+    3. UVA THOMPSON 3,42x e UVA ROXA 3,00x — preco velho no PDV;
+    4. MORANGO 1,59x — e o morango dobrou entre agosto e outubro;
+    5. ABACAXI 1,63x;
+    6. LIMAO 0,66x (o nosso e MAIS BARATO que o do PDV);
+    7. item que NAO nasceu por falta de dado na origem (secao 6).
 
   AS PIORES DIVERGENCIAS, UMA A UMA
   Para cada ficha, a linha que responde pela maior parte da diferenca, e
   a causa — classificada pela propria conta, nao por impressao.
 
-  GIN COM ESPUMA   nosso R$ 4.6407  x  PDF R$ 0.9807   (373.2%)
+  GIN COM ESPUMA   nosso R$ 4.7273  x  PDF R$ 0.9807   (382.03%)
       GIN VELVO BOTANIC PREMIUM (700ml)          x 0.05      nosso     3.66  PDF     0.00  dif     3.66
           o PDV cadastrou este insumo com custo ZERO, logo o Total do
           PDF nao o conta. O nosso catalogo tem o preco, e e o nosso que
           esta certo
-      ESPUMA DE HIBISCO                          x 0.05      nosso     0.98  PDF     0.96  dif     0.02
+      ESPUMA DE HIBISCO                          x 0.05      nosso     1.07  PDF     0.96  dif     0.11
           preparo da casa: o PDV guarda custo cacheado e velho do
           preparo; aqui vale o recalculado pelos dois niveis
 
@@ -667,13 +807,29 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
           preco de compra diferente: PDF R$ 2.05 x catalogo R$ 2.35
           (1.15x)
 
-  BI-SAMBAS   nosso R$ 3.9534  x  PDF R$ 1.8222   (116.96%)
+  SEGREDO DO ZECA   nosso R$ 13.2124  x  PDF R$ 4.9945   (164.54%)
+      XAROPE DE UVA                              x 0.1       nosso     7.55  PDF     2.71  dif     4.84
+          preparo da casa: o PDV guarda custo cacheado e velho do
+          preparo; aqui vale o recalculado pelos dois niveis
       GIN ARPO 5 LT                              x 0.012     nosso     2.66  PDF     0.53  dif     2.13
           o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
           por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
           catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
           nosso banco esta certo e o PDF errado
-      ESPUMA DE GENGIBRE                         x 0.02      nosso     0.12  PDF     0.10  dif     0.02
+      UVA CRISON ROXA                            x 0.05      nosso     1.83  PDF     0.61  dif     1.22
+          preco de compra diferente: PDF R$ 12.19 x catalogo R$ 36.56
+          (3.00x)
+
+  BI-SAMBAS   nosso R$ 4.0084  x  PDF R$ 1.8222   (119.98%)
+      GIN ARPO 5 LT                              x 0.012     nosso     2.66  PDF     0.53  dif     2.13
+          o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
+          por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
+          catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
+          nosso banco esta certo e o PDF errado
+      XAROPE DE MARACUJA                         x 0.08      nosso     1.22  PDF     1.17  dif     0.05
+          preparo da casa: o PDV guarda custo cacheado e velho do
+          preparo; aqui vale o recalculado pelos dois niveis
+      ESPUMA DE GENGIBRE                         x 0.02      nosso     0.13  PDF     0.10  dif     0.03
           preparo da casa: o PDV guarda custo cacheado e velho do
           preparo; aqui vale o recalculado pelos dois niveis
 
@@ -685,8 +841,11 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
           preco de compra diferente: PDF R$ 3.9 x catalogo R$ 3.35
           (0.86x)
 
-  MOSCOW IN ZECA   nosso R$ 1.2717  x  PDF R$ 6.4217   (-80.2%)
-      ESPUMA DE HIBISCO                          x 0.05      nosso     0.98  PDF     0.96  dif     0.02
+  MOSCOW IN ZECA   nosso R$ 1.3708  x  PDF R$ 6.4217   (-78.65%)
+      ESPUMA DE HIBISCO                          x 0.05      nosso     1.07  PDF     0.96  dif     0.11
+          preparo da casa: o PDV guarda custo cacheado e velho do
+          preparo; aqui vale o recalculado pelos dois niveis
+      XAROPE DE GENGIBRE                         x 0.05      nosso     0.30  PDF     0.29  dif     0.01
           preparo da casa: o PDV guarda custo cacheado e velho do
           preparo; aqui vale o recalculado pelos dois niveis
       (-) DS KETEL ONE                             x 1.0   item NAO criado: ver secao 6
@@ -700,31 +859,18 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
           preco de compra diferente: PDF R$ 10.7 x catalogo R$ 7.11
           (0.66x)
 
-  BRISANDO   nosso R$ 5.177  x  PDF R$ 3.0558   (69.42%)
+  BRISANDO   nosso R$ 5.2526  x  PDF R$ 3.0558   (71.89%)
       GIN ARPO 5 LT                              x 0.012     nosso     2.66  PDF     0.53  dif     2.13
           o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
           por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
           catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
           nosso banco esta certo e o PDF errado
-      ESPUMA DE GENGIBRE                         x 0.1       nosso     0.59  PDF     0.51  dif     0.08
+      ESPUMA DE GENGIBRE                         x 0.1       nosso     0.64  PDF     0.51  dif     0.13
           preparo da casa: o PDV guarda custo cacheado e velho do
           preparo; aqui vale o recalculado pelos dois niveis
-      ÁGUA COM GÁS (350ml)                       x 1.0       nosso     1.19  PDF     1.20  dif    -0.01
-          preco de compra diferente: PDF R$ 1.2 x catalogo R$ 1.19
-          (0.99x)
-
-  SEGREDO DO ZECA   nosso R$ 8.2903  x  PDF R$ 4.9945   (65.99%)
-      GIN ARPO 5 LT                              x 0.012     nosso     2.66  PDF     0.53  dif     2.13
-          o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
-          por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
-          catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
-          nosso banco esta certo e o PDF errado
-      UVA CRISON ROXA                            x 0.05      nosso     1.83  PDF     0.61  dif     1.22
-          preco de compra diferente: PDF R$ 12.19 x catalogo R$ 36.56
-          (3.00x)
-      LIMÃO TAHITI                               x 0.015     nosso     0.11  PDF     0.16  dif    -0.05
-          preco de compra diferente: PDF R$ 10.7 x catalogo R$ 7.11
-          (0.66x)
+      XAROPE DE MARACUJA                         x 0.05      nosso     0.76  PDF     0.73  dif     0.03
+          preparo da casa: o PDV guarda custo cacheado e velho do
+          preparo; aqui vale o recalculado pelos dois niveis
 
   NEGRONI BDZ   nosso R$ 2.3577  x  PDF R$ 1.4425   (63.45%)
       GIN ARPO 5 LT                              x 0.006     nosso     1.33  PDF     0.27  dif     1.07
@@ -756,10 +902,12 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
 10 · DECISOES QUE PRECISAM DA CLIENTE
 ------------------------------------------------------------------------------
   1. PRECO DE VENDA — a pendencia principal
-     As 79 fichas nascem com preco_venda = 0, porque o PDF e relatorio de
-     CUSTO e nao traz preco. Sem preco nao existe CMV, nao existe margem e
-     nao existe markup: a vista `vw_fichas_completas` devolve nulo nos tres.
-     Nada aqui foi inventado. Preenchido o preco, o CMV aparece sozinho.
+     As 56 fichas nascem com preco_venda = 0, porque o PDF e relatorio de
+     CUSTO e nao traz preco. Sem preco nao existe CMV e nao existe margem: a
+     vista `vw_fichas_completas` devolve NULO nos dois. O `markup` nao: ele
+     sai 0,00, porque a conta e `preco_venda / custo_porcao` e zero dividido
+     por custo e zero — um zero que parece resposta e nao e. Nada aqui foi
+     inventado. Preenchido o preco, os tres aparecem sozinhos.
 
   2. O CMV ALVO QUE EU ESCOLHI
      Drinque 20% (o briefing manda, e o comentario da migracao 0017 diz que
@@ -769,45 +917,92 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
      nao dado do PDF.
 
   3. CORTESIA TEM PRECO DE VENDA?
-     17 fichas de apoio entraram como `Cortesias`. Se a casa nunca cobra por
+     0 fichas de apoio entraram como `Cortesias`. Se a casa nunca cobra por
      elas, o preco fica 0 para sempre e o numero que importa e o CUSTO TOTAL
      do que se da de graca por mes — conta que o modulo nao faz hoje.
 
   4. PREPARO VIRANDO PRODUTO: O CUSTO CONGELA
-     Os 12 preparos entraram como produto com custo_fixo tirado do PDF.
-     Vantagem: a ficha do drinque continua dizendo "xarope de maracuja".
-     Preco: o custo nao acompanha o acucar. Recalcular e trabalho manual
-     enquanto o modulo nao tiver sub-receita.
+     Os 12 preparos entraram como produto, com o custo refeito pelos NOSSOS
+     precos (secao 5) e `custo_fixo = true`. Vantagem: a ficha do drinque
+     continua dizendo "xarope de maracuja". Preco: o numero congela no dia da
+     carga e nao acompanha o acucar. Quatro deles mudam muito de valor quando
+     o preco mexe — XAROPE DE UVA (R$ 75,47), XAROPE DE MORANGO (R$ 51,09),
+     XAROPE DE CANELA E MEL (R$ 29,55) e XAROPE DE MEL (R$ 24,80) — e sao os
+     que vale a pena refazer primeiro. Enquanto o modulo nao tiver
+     sub-receita, recalcular e trabalho manual.
 
-  5. A DOSE NAO E VOLUME CONSTANTE
+  5. O RECORTE: 23 FICHAS QUE A SENHORA PEDIU FICARAM DE FORA
+     A senhora disse "nao sao apenas doses e garrafas, tudo relacionado a
+     drinks, que envolvam bebidas", e as cortesias, cervejas e refrigerantes
+     entraram. Depois disso o escopo foi recortado para o que a casa PREPARA
+     (56 fichas), e as 23 de revenda sairam. O motivo esta medido na secao 12
+     (1 item cada, as 5 garrafas fechadas vendidas inteiras estao todas la, e
+     o custo delas fecha quase exato contra o PDF) — mas e uma decisao que
+     desfaz em parte o que a senhora pediu, e por isso ela esta aqui e nao
+     escondida. Para traze-las de volta e uma linha de codigo; a conferencia
+     delas continua na secao 12, pronta.
+
+  6. O CAMPARI: 0,006 OU 0,066?
+     A dose de Campari do PDV e 0,006 de garrafa, que em 900 ml da 5,4 ml — a
+     menor dose legitima do relatorio e 60 ml. Com 0,066 daria 59,4 ml, que e
+     dose de verdade. Ficou 0,006 porque e o que o PDV diz, e a duvida esta
+     escrita na observacao dos 2 itens. Uma palavra sua resolve: CAMPARI
+     TONICA e NEGRONI BDZ sobem de custo 11x no Campari.
+
+  7. O BITTER ANGOSTURA: AS DUAS QUANTIDADES ESTAO ERRADAS
+     O PDV tem o Angostura cadastrado duas vezes, em escalas diferentes, e a
+     ordem esta invertida (secao 11b, B): no PDF o XEREM leva o dobro do
+     DEIXA ARDER; no nosso banco leva um quinto. E o preco do nosso BITTER
+     ANGOSTURA (R$ 152,90) e igual ao de outro produto e nunca foi contado,
+     entao nem o tamanho da garrafa se deduz. Precisamos do tamanho da
+     garrafa e de quantos dashes vao em cada drinque.
+
+  8. O MORANGO: A UND E UM QUILO?
+     O PDV mede morango em KG e o nosso cadastro em UND. A unidade gravada e
+     UND, porque gravar KG poe os 5 itens em "unidade incompativel" e o custo
+     deles vem NULO — medido. A evidencia diz que a UND e um quilo mal
+     rotulado (contado a R$ 22,02/UND em agosto e R$ 59,67/UND em outubro,
+     contra R$ 37,43/KG no PDV). Confirme o peso da UND. De passagem: o
+     morango DOBROU de preco entre as duas contagens, e as 5 fichas de
+     morango vao oscilar 40% de custo com a estacao.
+
+  9. O MATE -BASE PODE JA EXISTIR NO CATALOGO
+     Ha um TOP MATE 5L (R$ 41,29) cadastrado em MATERIAL DE LIMPEZA, setor
+     Limpeza, numa categoria que no resto e rodo e agua sanitaria. Pode ser o
+     concentrado de mate no lugar errado — ou pode ser quimico de limpeza,
+     porque o preco cabe nos dois e o estoque e zero nas duas contagens. Nao
+     foi mapeado (secao 11b, D). Se for o mate, ainda falta a quantidade: o
+     PDV diz 0,025 LT e nao da preco.
+
+  10. A DOSE NAO E VOLUME CONSTANTE
      A casa usa fracao fixa de 0,062 em 41 das 54 doses, independente do
      tamanho da garrafa (secao 2). Quem compra 700 ml serve 46 ml e quem
      compra 1 L serve 62 ml. Isso e decisao de margem, e esta no PDV, nao em
      lugar nenhum visivel.
 
-  6. TRES PRODUTOS A CADASTRAR, E DUAS DOSES A CRIAR NO PDV
+  11. TRES PRODUTOS A CADASTRAR, E DUAS DOSES A CRIAR NO PDV
      CERVEJA CERPA, SPATEN 600ML e MATE -BASE nao existem no catalogo; DS
      COINTREAU e DS KETEL ONE sao dose sem ficha no PDV. Enquanto isso, as
      fichas da secao 6 e 7 ficam incompletas. Nada foi chutado.
 
-  7. UM CAMPO QUE DESTRAVA AS DOSES EM LITRO
+  12. UM CAMPO QUE DESTRAVA AS DOSES EM LITRO
      `produtos.conteudo_quantidade` esta vazio em todas as garrafas. Com ele
      preenchido (965 para a Ypioca, 700 para a Sagatiba), o modulo passa a
      aceitar receita em ML direto, e `mv_fator_para_produto` faz a conversao.
      Hoje a ficha depende de a fracao vir do PDV.
 
-  8. DOIS LIMONCELLOS E UM BOMBAY: ESCOLHI, CONFIRME
+  13. DOIS LIMONCELLOS E UM BOMBAY: ESCOLHI, CONFIRME
      O catalogo tem LICOR LIMONCELLO CARAVELLAS e LICOR VILLA MASSA
      LIMONCELLO pelo mesmo custo 132,90; escolhi o CARAVELLAS. Tem BOMBAY
      SAPPHIRE 750 ml, 1000 ml e BRAMBLE; escolhi o 750 ml. Nenhum dos dois
      tem desempate por preco no PDF.
 
-  9. O CATALOGO TEM DUPLICATA
+  14. O CATALOGO TEM DUPLICATA
      `VERMOUTH CINZANO ROSSO (950ml)` e `CINZANO V. ROSSO` sao o mesmo
      produto, com o mesmo custo 26,81, cadastrados duas vezes. Usei o
      primeiro. Vale desativar o outro.
 
-  10. UM MONSTER PARA QUATRO SABORES
+  15. UM MONSTER PARA QUATRO SABORES
      O PDV distingue MONSTER SABORES, SEM ACUCAR, PACIFIC PUNCH, ULTRA FIESTA
      MANGO e ULTRA PEACHY KEEN; o catalogo tem um unico MONSTER. Casei todos
      nele (o custo 7,66 e o mesmo), o que mantem o custo certo e perde o
@@ -854,4 +1049,136 @@ Restaurante: b0a12eca-0000-4000-8000-000000000001
     nenhum nas fichas de bebida. Os 3 do PDF estao todos em preparo
     de cozinha (ACEM DESFIADO MP · TOMILHO, RECHEIO CARNE MOIDA MP ·
     LOURO, RISOLE DE CAMARAO · PIMENTA DO REINO GRAO PRETA).
+
+------------------------------------------------------------------------------
+11b · ACHADOS QUE A AUDITORIA ACRESCENTOU
+------------------------------------------------------------------------------
+  Cinco defeitos da origem que a primeira versao deste relatorio nao
+  trazia. Nenhum deles muda uma quantidade carregada; todos mudam o que
+  a cliente precisa levar ao suporte do PDV.
+
+  A · DS CAMPARI: a dose e de 5,4 ml, e nenhuma outra e tao pequena
+      O PDV usa 0,006 de garrafa. Em 900 ml (o Campari do nosso
+      catalogo) isso da 0,006 x 900 = 5,4 ml. A menor dose LEGITIMA do
+      relatorio e 0,012, que em 5 L da 60 ml; as outras 48 doses ficam
+      entre 46 e 62 ml. Com 0,066 — a fracao que o PDV usa em sete
+      outras doses — daria 59,4 ml, que e dose de verdade. Digito
+      faltando e a leitura mais provavel, mas provavel nao entra no
+      banco: ficou 0,006, e a duvida esta na observacao dos 2 itens
+      (CAMPARI TONICA e NEGRONI BDZ). Se for 0,066, os dois sobem.
+
+  B · BITTER ANGOSTURA: duas escalas no PDV, e a ordem esta INVERTIDA
+      XEREM       · BITTER ANGOSTURA AROMATIC       x 0,001 @ 780,00
+      XEREM       · BITTER ANGOSTURA AROMATIC 100ML x 1,000 @   0,00
+      DEIXA ARDER · BITTER ANGOSTURA AROMATIC 100ML x 0,005 @   0,00
+      Os dois cadastros caem no mesmo produto nosso. Se 780,00 e preco
+      do LITRO, as duas linhas em mililitro sao XEREM = 1 ml e DEIXA
+      ARDER = 0,5 ml — ou seja, no PDF o XEREM leva o DOBRO. No nosso
+      banco (fracao de garrafa) o XEREM leva 0,001 e o DEIXA ARDER
+      0,005: um QUINTO. Nao e so escala incoerente, e inversao, e as
+      DUAS quantidades estao erradas — nao uma.
+      Pior: o preco do nosso BITTER ANGOSTURA (R$ 152,90) e EXATAMENTE
+      o do ANGOSTURA CARIBBEAN RUM, que e outro produto, e nenhum dos
+      dois foi contado em agosto nem em outubro. Preco igual ao de
+      outro produto e sem contagem atras e preco copiado, nao medido —
+      entao nem o tamanho da garrafa se deduz do custo.
+
+  C · SILENCIO vale R$ 0,03, e isso nao e preco de drinque
+      Depois de descartar a garrafa de xarope (secao 11), sobra agua com
+      gas 0,025 x R$ 1,19 = R$ 0,0298. A ficha bate EXATO com o PDF, e
+      e justamente por isso que ela esta errada: os dois concordam
+      porque os dois ignoram o xarope. Um coquetel de R$ 0,03 nao
+      existe. O que falta e a quantidade de xarope de tangerina, que no
+      PDV esta como 1,000 (garrafa inteira) e no resto das fichas de
+      xarope fica entre 0,01 e 0,071. E a ficha que a cliente mais
+      precisa reconferir, embora seja a que menos custa.
+
+  D · MATE -BASE pode ser o TOP MATE 5L que o catalogo ja tem
+      O catalogo tem TOP MATE 5L (UND, R$ 41,29) — mas em MATERIAL DE
+      LIMPEZA, setor Limpeza, numa categoria que no resto e rodo, pano
+      de chao e agua sanitaria. E o unico nome "bebivel" de la.
+      NAO foi mapeado, por dois motivos medidos: (1) R$ 41,29 por 5 L
+      cabe tanto num concentrado de mate quanto num quimico de limpeza
+      (o DETERGENTE TRUMP S de 5 L mora na mesma faixa), e o estoque
+      zero nas duas contagens nao desempata; (2) mesmo se fosse o mate,
+      a quantidade seria chute — o PDV diz 0,025 LT e nao da preco,
+      entao nao ha desempate por custo, que e o mesmo motivo pelo qual
+      DS COINTREAU ficou de fora. Corrigir categoria e setor e dado da
+      carga 0001, nao desta. Fica como pendencia da cliente, agora com
+      o nome do candidato.
+
+  E · CAFÉ CAPSULA: o rotulo esta errado, o dinheiro esta certo
+      O nosso cadastro diz KG e o custo R$ 2,35 e preco de CAPSULA. O
+      item grava 1,000 KG de cafe, o que lido ao pe da letra e um quilo
+      de cafe num drinque. O custo sai certo (R$ 2,35 contra R$ 2,05 do
+      PDV) exatamente porque o preco tambem esta por capsula: os dois
+      erros se cancelam. No dia em que alguem arrumar o produto para
+      UND, a unidade dos 3 itens tem de ir junto — e e isso que esta
+      escrito na observacao deles.
+
+------------------------------------------------------------------------------
+12 · CALIBRACAO DO DE-PARA: as fichas que o recorte tirou
+------------------------------------------------------------------------------
+  O recorte (`grupo` tem de comecar com 'Drinques') tirou 23 fichas e 23 itens,
+  R$ 102.6525 de custo. Por grupo:
+    Cervejas e Chopps                         3
+    Cervejas e Chopps · Happy Hour            1
+    Cortesias                                17
+    Refrigerantes e Águas                     2
+
+  POR QUE O RECORTE: ficha tecnica e para o que a casa PREPARA. O que
+  ela apenas revende fechado nao tem receita — tem preco de compra, que
+  o catalogo ja sabe. Tres medicoes independentes dizem que estas sao de
+  revenda:
+    1. as 23 tem EXATAMENTE 1 item cada, sem excecao (as 56 que ficam
+       tem media 3.5 itens, e so 3 tem um item);
+    2. dos itens de garrafa FECHADA vendida inteira (>= 1,000 de bebida
+       alcoolica), os 5 estao TODOS aqui. Depois do recorte nao resta
+       nenhum — e o script levanta excecao se restar:
+         ANTARTICA ORIG600 ML APOIO           CERVEJA ANTARCTICA ORIGINAL (600ml   x 1.0
+         BRAHMA GF 600 ML APOIO               CERVEJA BRAHMA (600ml)               x 1.0
+         HEINEKEN LONGNECK                    CERVEJA HEINEKEN 330 ML              x 1.0
+         Heineken Ultimate LN 330ML           CERVEJA HEINEKEN 330 ML ULTIMATE     x 1.0
+         STELA LONG NECK APOIO                CERVEJA STELLA LONG NECK (330ml)     x 1.0
+    3. o custo delas contra o PDF fecha quase exato, abaixo.
+
+  E E POR ISSO QUE A TABELA FICA AQUI. Depois do recorte, toda ficha
+  remanescente tem dose, fracao, preparo ou unidade convertida no meio,
+  e nenhuma divergencia de custo pode mais ser atribuida a uma causa so
+  por inspecao. Estas 23 nao: produto simples, uma linha, sem conversao.
+  Elas sao a UNICA prova de ponta a ponta que estes dados permitem de
+  que o de-para esta certo — e por isso a conferencia delas continua no
+  relatorio mesmo depois de elas sairem da carga.
+
+  ficha                                 nosso  PDF rec    dif %  produto
+  AGUA COM GAS APOIO                     1.19     1.20     -0.8  ÁGUA COM GÁS (350ml)
+  AGUA SEM GAS APOIO                     1.19     1.20     -0.8  ÁGUA SEM GÁS (350ml)
+  AMSTEL CHOPP 300 ML HH                 3.47     3.64     -4.8  CHOPP AMSTEL (30LT)
+  ANTARTICA ORIG600 ML APOIO             6.68     7.05     -5.2  CERVEJA ANTARCTICA ORIGINAL (6
+  BRAHMA CHOPP 300ML                     4.51     4.96     -9.0  CHOPP BRAHMA (50lts)
+  BRAHMA GF 600 ML APOIO                 6.36     6.59     -3.5  CERVEJA BRAHMA (600ml)
+  CHOPP 220 ML - APOIO                   3.22     3.54     -9.0  CHOPP BRAHMA (50lts)
+  COCA COCA ZERO APOIO KS                2.25     2.26     -0.4  COCA COLA ZERO KS
+  COCA COLA APOIO KS                     2.25     2.26     -0.4  COCA COLA KS
+  COCA COLA KS                           2.25     2.26     -0.4  COCA COLA KS
+  COCA COLA ZERO KS                      2.25     2.26     -0.4  COCA COLA ZERO KS
+  GUARANA APOIO                          2.83     2.83      0.0  GUARANÁ ANTARCTICA (350ml)
+  GUARANA ZERO APOIO                     2.83     2.83      0.0  GUARANÁ ANTARCTICA ZERO (350ml
+  HEINEKEN LONGNECK                      6.20     6.20      0.0  CERVEJA HEINEKEN 330 ML
+  Heineken Ultimate LN 330ML             6.23     6.55     -4.9  CERVEJA HEINEKEN 330 ML ULTIMA
+  RED BULL ACAI 250 ML APOIO             5.94     0.00        -  RED BULL AÇAI
+  RED BULL C APOIO                       7.49     7.49      0.0  RED BULL
+  RED BULL MELANCIA 250 ML C APOIO       7.49     0.00        -  RED BULL MELANCIA (250ml)
+  RED BULL SUGAR FREE APOIO              7.49     7.19      4.2  RED BULL ZERO
+  RED BULL TROPICAL 250 ML C APOIO       7.49     7.49      0.0  RED BULL THE TROPICAL EDITION 
+  STELA LONG NECK APOIO                  5.88     5.04     16.7  CERVEJA STELLA LONG NECK (330m
+  TONICA APOIO                           3.58     3.59     -0.3  TÔNICA SCHWEPPES
+  TONICA ZERO APOIO                      3.58     3.58      0.0  TÔNICA SCHWEPPES ZERO
+
+  21 das 23 tem divergencia calculavel (duas tem Total zero no PDF).
+  Dentro de +/-1%: 13.  Pior: 16.7%.  TODAS dentro de +/-20%.
+  Em contraste, as 21 divergencias acima de 20% ficam todas dentro
+  das fichas que sobraram. O recorte tira 23 fichas e ZERO
+  problemas — e a proporcao de problemas piora de 25% para 35%,
+  o que e esperado: o que sai e o que nao tinha receita para errar.
 

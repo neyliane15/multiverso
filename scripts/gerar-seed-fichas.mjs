@@ -206,6 +206,13 @@ export function montarModelo(dados) {
     vistos.add(k)
   }
 
+  // A ANCORA QUE NAO DEPENDE DO CATALOGO. O custo somado nao serve de
+  // verificacao dura: ele muda toda vez que uma nota fiscal muda um preco, que
+  // e precisamente o que este modulo existe para permitir. A soma das
+  // QUANTIDADES, nao: ela e o que o arquivo manda, e so muda quando o arquivo
+  // muda. Entao o dinheiro avisa e a quantidade cobra.
+  const somaQuantidades = Number(itens.reduce((s, i) => s + i.quantidade, 0).toFixed(4))
+
   const custoTotal = Number(fichas.reduce((s, f) => s + f.custoEsperado, 0).toFixed(4))
   const esperado = dados.resumo.custo_total_das_fichas
   if (Math.abs(custoTotal - esperado) > 0.01) {
@@ -218,6 +225,7 @@ export function montarModelo(dados) {
     itens,
     grupos: [...porGrupo.keys()].sort(),
     custoTotal,
+    somaQuantidades,
     produtosDepois: PRODUTOS_ANTES + preparos.length,
     origem: dados.origem,
     catalogo: dados.catalogo,
@@ -268,8 +276,39 @@ ${m.grupos.map((g) => `--   ${g.padEnd(32)} ${String(m.fichas.filter((f) => f.gr
 begin;
 
 set local client_min_messages = warning;
+
+-- ---------------------------------------------------------------------------
+-- 0 · AS FICHAS QUE ESTE ARQUIVO CARREGA, numa tabela temporaria
+--
+-- Tudo daqui para baixo — o delete de ficha e TODAS as perguntas do bloco de
+-- verificacao — se escopa por esta tabela, e nao pelo tenant.
+--
+-- A primeira versao desta carga contava o tenant (\`select count(*) from fichas
+-- where restaurante_id = …\`) e isso a tornava inaplicavel por dois motivos que
+-- nada tem de hipotetico:
+--
+--  · no dia em que a cliente criasse UMA ficha pela tela, a carga passaria a
+--    recusar-se a aplicar — \`80 fichas, esperado 79\` — e ficaria assim ate
+--    alguem apagar a ficha dela. A ironia e que o comentario da secao 4
+--    prometia o contrario: o delete nunca a tocou; era a VERIFICACAO que a
+--    contava;
+--  · e o mesmo valia para o escopo encolher: trocar 79 fichas por 56 exigia um
+--    \`delete\` manual ao lado da carga, que e justamente o que a 0003 deixou de
+--    precisar.
+--
+-- Com a tabela temporaria, a carga responde sobre o que ELA carrega e e
+-- indiferente ao que mais existe no tenant. \`on commit drop\`: ela nasce e
+-- morre dentro da transacao.
+-- ---------------------------------------------------------------------------
+
+create temporary table arquivo_fichas (id uuid primary key) on commit drop;
 `
   p.push(cabecalho)
+  p.push(bloco(
+    'arquivo_fichas', 'arquivo_fichas', ['id'],
+    m.fichas.map((f) => txt(f.id)),
+    'on conflict (id) do nothing'))
+  p.push('')
 
   // --------------------------------------------------- produtos dos preparos -
   p.push(`-- ---------------------------------------------------------------------------
@@ -369,12 +408,17 @@ set local client_min_messages = warning;
      rendimento = excluded.rendimento,
      unidade_rendimento = excluded.unidade_rendimento,
      cmv_alvo = excluded.cmv_alvo,
-     ativo = true,
      ordem = excluded.ordem`))
   p.push('')
-  p.push(`-- preco_venda de proposito FORA do \`do update\`: se a cliente
+  p.push(`-- preco_venda E \`ativo\` de proposito FORA do \`do update\`: se a cliente
 -- preencher o preco pela tela, reaplicar esta carga nao pode zerar o trabalho
 -- dela. O arquivo manda no que veio do PDF; o preco e dela.
+--
+-- \`ativo\` entrou nessa lista por medicao, nao por simetria: com \`ativo = true\`
+-- no \`do update\`, uma ficha que a cliente DESATIVOU pela tela voltava ativa na
+-- proxima reaplicacao. Desativar e a forma que o modulo tem de dizer "este
+-- drinque saiu do cardapio", e a carga nao tem autoridade para discordar. A
+-- ficha nasce \`true\` no insert; depois disso, quem manda e ela.
 `)
 
   // ------------------------------------------------------------------ itens -
@@ -437,6 +481,56 @@ ${listaDeIds(m.fichas.map((f) => f.id))}
    and (i.ficha_id, i.produto_id) not in (
 ${emLotes(m.itens, 2).map((lote) => '    ' + lote.map((i) => `(${txt(i.fichaId)}, ${txt(i.produtoId)})`).join(', ')).join(',\n')}
    );
+
+-- ---------------------------------------------------------------------------
+-- 4b · A FICHA que saiu do arquivo sai do banco. E so ela.
+--
+-- O delete de item resolve "a ficha encolheu". Nao resolve "a ficha deixou de
+-- existir": trocar o escopo de 79 fichas por 56 deixava 23 fichas orfas no
+-- banco, com os itens apagados pelo passo 4 e o cabecalho intacto — 23 fichas
+-- de custo zero na tela da cliente.
+--
+-- O problema de apagar ficha e saber QUAIS sao nossas. Apagar por tenant
+-- apagaria a ficha que a cliente criou na tela; apagar por \`grupo\` tambem,
+-- porque o grupo e texto livre e ela pode digitar "Cortesias".
+--
+-- A POSSE E DEMONSTRAVEL PELO DADO, e e isso que resolve. Toda ficha desta
+-- carga nasce com \`id = UUIDv5(restaurante_id, 'ficha:' || nome)\` — e o que
+-- \`idDe('ficha', nome)\` calcula no gerador. Ficha criada pela tela nasce de
+-- \`gen_random_uuid()\` e nao satisfaz essa igualdade nem por acidente (seria
+-- preciso acertar 122 bits). Entao o delete abaixo recalcula o UUIDv5 em SQL, a
+-- partir do \`nome\` que esta na propria linha, e so apaga a ficha em que o
+-- recalculo CASA com o id gravado.
+--
+-- Em outras palavras: ele alcanca exatamente as fichas que uma versao ANTERIOR
+-- desta mesma carga criou e que a versao de hoje nao tem mais. Nunca a ficha
+-- da cliente, sem coluna nova, sem migracao e sem lista de nomes.
+--
+-- A aritmetica do UUIDv5 (RFC 4122) em SQL, com o \`pgcrypto\` que o banco ja
+-- tem: sha1(namespace_em_bytes || nome), 16 primeiros bytes, versao 5 no byte 6
+-- e variante RFC no byte 8. E a mesma conta do \`uuid5()\` do gerar-seed.mjs.
+-- ---------------------------------------------------------------------------
+
+with posse as (
+  select f.id, f.nome,
+         substring(digest(decode(replace(f.restaurante_id::text, '-', ''), 'hex')
+                          || convert_to('ficha:' || f.nome, 'UTF8'), 'sha1')
+                   from 1 for 16) as h
+    from fichas f
+   where f.restaurante_id = ${txt(RESTAURANTE_ID)}
+     and f.id not in (select id from arquivo_fichas)
+), v5 as (
+  select id,
+         encode(set_byte(set_byte(h, 6, (get_byte(h, 6) & 15) | 80),
+                         8, (get_byte(h, 8) & 63) | 128), 'hex') as hex
+    from posse
+)
+delete from fichas f
+ using v5
+ where f.id = v5.id
+   and f.id::text = substring(v5.hex, 1, 8) || '-' || substring(v5.hex, 9, 4) || '-'
+                 || substring(v5.hex, 13, 4) || '-' || substring(v5.hex, 17, 4) || '-'
+                 || substring(v5.hex, 21, 12);
 `)
 
   // ------------------------------------------------------------ verificacao -
@@ -444,29 +538,55 @@ ${emLotes(m.itens, 2).map((lote) => '    ' + lote.map((i) => `(${txt(i.fichaId)}
 -- 5 · Verificacao. Se a conta nao fechar, a transacao cai aqui e nao na
 --     producao de alguem.
 --
--- Nove perguntas, e nenhuma delas e "parece correto":
+-- DUAS REGRAS DE DESENHO, as duas aprendidas errando:
 --
---   1. as ${m.fichas.length} fichas existem?
---   2. os ${m.itens.length} itens existem — nem um a mais (duplicacao) nem a menos?
---   3. a soma de custo que a VISTA calcula bate com a que o normalizador
---      calculou do retrato do catalogo? E a prova de que o de-para fala do
---      mesmo catalogo que esta no banco;
---   4. alguma ficha com custo zero? Ficha de bebida com custo zero e erro de
---      mapeamento, e o briefing proibe custo zero inexplicado;
---   5. algum item apontando para produto INATIVO? O custo dele viria zero e
---      ninguem olharia duas vezes;
---   6. algum item com unidade incompativel? A vista marca
+--  1. TODA pergunta se escopa em \`arquivo_fichas\`, nunca no tenant. A carga
+--     responde pelo que ELA carrega. Contar o tenant fazia a carga recusar-se a
+--     aplicar quando a cliente criava uma ficha pela tela.
+--
+--  2. O DINHEIRO AVISA; A QUANTIDADE COBRA. A primeira versao tinha
+--     \`if abs(v_custo - <numero>) > 0.01 then raise exception\`, e isso prendia
+--     a carga a um catalogo congelado: bastou o limao ir de R$ 7,11 para R$ 8,00
+--     para a carga parar de aplicar. Era a negacao da regra central do modulo —
+--     o custo DEVE acompanhar o catalogo, e era a unica coisa que a verificacao
+--     proibia. Nao precisa de ninguem errar: basta a proxima nota fiscal.
+--
+--     Entao o custo somado virou \`raise warning\` (que e informacao de verdade:
+--     se o catalogo NAO mudou e o numero mudou, e erro de mapeamento), e no
+--     lugar dele entrou uma ancora que nao depende de preco nenhum: a soma das
+--     QUANTIDADES dos itens, ${m.somaQuantidades}. Ela e o que o arquivo manda, e so muda
+--     quando o arquivo muda.
+--
+-- \`raise warning\` e nao \`notice\`: o \`set local client_min_messages = warning\`
+-- do topo esconde \`notice\`, e um diagnostico que ninguem ve nao e diagnostico.
+--
+-- As perguntas, e nenhuma delas e "parece correto":
+--
+--   1. as ${m.fichas.length} fichas DO ARQUIVO existem?
+--   2. os ${m.itens.length} itens delas existem — nem um a mais (duplicacao) nem a menos?
+--   3. a soma das quantidades e ${m.somaQuantidades}?
+--   4. os ${m.preparos.length} produtos de preparo existem e estao ativos?
+--   5. alguma das fichas do arquivo com custo zero? Ficha de bebida com custo
+--      zero e erro de mapeamento;
+--   6. algum item delas apontando para produto INATIVO? O custo viria zero;
+--   7. algum item com unidade incompativel? A vista marca
 --      \`unidade_incompativel\` quando nao sabe converter, e nesse caso o custo
 --      do item vem NULO — a ficha mentiria para baixo;
---   7. o catalogo tem ${m.produtosDepois} produtos (= ${PRODUTOS_ANTES} + os ${m.preparos.length} preparos)?
 --   8. a contagem de agosto continua valendo R$ ${TOTAL_AGOSTO}?
 --   9. e a de outubro, R$ ${TOTAL_OUTUBRO}?
+--
+-- E tres avisos, que informam sem derrubar: o custo somado, o total de produtos
+-- do tenant e o total de categorias e setores. Os tres contam o TENANT, e e por
+-- isso que avisam em vez de cobrar — a cliente pode cadastrar produto e
+-- categoria pela tela, e isso nao e defeito desta carga.
 -- ---------------------------------------------------------------------------
 
 do $$
 declare
   v_fichas       integer;
   v_itens        integer;
+  v_quantidades  numeric;
+  v_preparos     integer;
   v_custo        numeric;
   v_zeradas      integer;
   v_inativos     integer;
@@ -479,35 +599,38 @@ declare
   v_nomes        text;
 begin
   select count(*) into v_fichas
-    from fichas where restaurante_id = ${txt(RESTAURANTE_ID)};
+    from fichas f join arquivo_fichas a on a.id = f.id;
 
-  select count(*) into v_itens
-    from ficha_itens i
-    join fichas f on f.id = i.ficha_id
-   where f.restaurante_id = ${txt(RESTAURANTE_ID)};
-
-  select coalesce(sum(custo_total), 0) into v_custo
-    from vw_fichas_completas where restaurante_id = ${txt(RESTAURANTE_ID)};
+  select count(*), coalesce(sum(i.quantidade), 0)
+    into v_itens, v_quantidades
+    from ficha_itens i join arquivo_fichas a on a.id = i.ficha_id;
 
   if v_fichas <> ${m.fichas.length} then
-    raise exception '0004: % fichas, esperado ${m.fichas.length}', v_fichas;
+    raise exception '0004: % fichas do arquivo no banco, esperado ${m.fichas.length}', v_fichas;
   end if;
 
   if v_itens <> ${m.itens.length} then
-    raise exception '0004: % itens de ficha, esperado ${m.itens.length}', v_itens;
+    raise exception '0004: % itens das fichas do arquivo, esperado ${m.itens.length}', v_itens;
   end if;
 
-  -- Tolerancia de um centavo: o normalizador arredonda cada item em 4 casas e a
-  -- vista tambem. Diferenca maior que isso e de DADO, nao de arredondamento.
-  if abs(v_custo - ${m.custoTotal}) > 0.01 then
-    raise exception '0004: custo somado das fichas e %, esperado ${m.custoTotal} (diferenca de %)',
-      v_custo, abs(v_custo - ${m.custoTotal});
+  -- A ancora que nao depende de preco: 4 casas, como a coluna.
+  if abs(v_quantidades - ${m.somaQuantidades}) > 0.0001 then
+    raise exception '0004: soma das quantidades dos itens e %, esperado ${m.somaQuantidades} (diferenca de %)',
+      v_quantidades, abs(v_quantidades - ${m.somaQuantidades});
   end if;
 
-  select count(*), string_agg(nome, ', ' order by nome)
+  select count(*) into v_preparos
+    from produtos
+   where restaurante_id = ${txt(RESTAURANTE_ID)} and ativo
+     and id in (${m.preparos.map((x) => txt(x.id)).join(', ')});
+  if v_preparos <> ${m.preparos.length} then
+    raise exception '0004: % dos ${m.preparos.length} produtos de preparo existem e estao ativos', v_preparos;
+  end if;
+
+  select count(*), string_agg(v.nome, ', ' order by v.nome)
     into v_zeradas, v_nomes
-    from vw_fichas_completas
-   where restaurante_id = ${txt(RESTAURANTE_ID)} and custo_total = 0;
+    from vw_fichas_completas v join arquivo_fichas a on a.id = v.id
+   where v.custo_total = 0;
   if v_zeradas > 0 then
     raise exception '0004: % ficha(s) com custo ZERO: %. Custo zero em ficha de bebida e erro de mapeamento.',
       v_zeradas, v_nomes;
@@ -515,38 +638,18 @@ begin
 
   select count(*) into v_inativos
     from ficha_itens i
-    join fichas f   on f.id = i.ficha_id
+    join arquivo_fichas a on a.id = i.ficha_id
     join produtos p on p.id = i.produto_id
-   where f.restaurante_id = ${txt(RESTAURANTE_ID)} and not p.ativo;
+   where not p.ativo;
   if v_inativos > 0 then
     raise exception '0004: % item(ns) apontando para produto INATIVO', v_inativos;
   end if;
 
   select count(*) into v_incompat
-    from vw_ficha_itens
-   where restaurante_id = ${txt(RESTAURANTE_ID)} and unidade_incompativel;
+    from vw_ficha_itens vi join arquivo_fichas a on a.id = vi.ficha_id
+   where vi.unidade_incompativel;
   if v_incompat > 0 then
     raise exception '0004: % item(ns) com unidade incompativel — o custo deles vem NULO', v_incompat;
-  end if;
-
-  select count(*) into v_produtos
-    from produtos where restaurante_id = ${txt(RESTAURANTE_ID)};
-  if v_produtos <> ${m.produtosDepois} then
-    raise exception '0004: % produtos cadastrados, esperado ${m.produtosDepois} (= ${PRODUTOS_ANTES} + ${m.preparos.length} preparos)', v_produtos;
-  end if;
-
-  -- Esta carga nao cria categoria nem setor: os 21 e os 4 sao os que o banco ja
-  -- tinha, e os preparos entraram em categoria existente.
-  select count(*) into v_categorias
-    from categorias where restaurante_id = ${txt(RESTAURANTE_ID)};
-  if v_categorias <> 21 then
-    raise exception '0004: % categorias, esperado 21 (nenhuma categoria nova)', v_categorias;
-  end if;
-
-  select count(*) into v_setores
-    from setores where restaurante_id = ${txt(RESTAURANTE_ID)} and ativo;
-  if v_setores <> 4 then
-    raise exception '0004: % setores ativos, esperado 4 (nenhum setor novo)', v_setores;
   end if;
 
   select coalesce(sum(i.total), 0) into v_agosto
@@ -565,8 +668,32 @@ begin
     raise exception '0004: a contagem de outubro vale agora %, e tem de valer ${TOTAL_OUTUBRO}', v_outubro;
   end if;
 
-  raise notice '0004 ok: % fichas, % itens, custo somado R$ %, catalogo com % produtos',
-    v_fichas, v_itens, round(v_custo, 4), v_produtos;
+  -- ------------------------------------------------------------- os avisos --
+  select coalesce(sum(v.custo_total), 0) into v_custo
+    from vw_fichas_completas v join arquivo_fichas a on a.id = v.id;
+  if abs(v_custo - ${m.custoTotal}) > 0.01 then
+    raise warning '0004: custo somado das fichas e % e o arquivo previu ${m.custoTotal} — diferenca de %. Se o catalogo mudou de preco, isto e o ESPERADO (a ficha acompanha o preco real); se nao mudou, e erro de mapeamento.',
+      v_custo, abs(v_custo - ${m.custoTotal});
+  end if;
+
+  select count(*) into v_produtos
+    from produtos where restaurante_id = ${txt(RESTAURANTE_ID)};
+  if v_produtos <> ${m.produtosDepois} then
+    raise warning '0004: o tenant tem % produtos; esta carga previa ${m.produtosDepois} (= ${PRODUTOS_ANTES} + ${m.preparos.length} preparos). Se a cliente cadastrou produto pela tela, isto e o esperado.',
+      v_produtos;
+  end if;
+
+  select count(*) into v_categorias
+    from categorias where restaurante_id = ${txt(RESTAURANTE_ID)};
+  select count(*) into v_setores
+    from setores where restaurante_id = ${txt(RESTAURANTE_ID)} and ativo;
+  if v_categorias <> 21 or v_setores <> 4 then
+    raise warning '0004: o tenant tem % categorias e % setores ativos; esta carga previa 21 e 4, e nao cria nem uma nem outro.',
+      v_categorias, v_setores;
+  end if;
+
+  raise warning '0004 ok: % fichas, % itens, soma das quantidades %, custo somado R$ %',
+    v_fichas, v_itens, v_quantidades, round(v_custo, 4);
 end $$;
 
 commit;
@@ -591,6 +718,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
   linha('itens', modelo.itens.length)
   linha('produtos novos (preparos)', modelo.preparos.length)
   linha('produtos no catalogo depois', modelo.produtosDepois)
+  linha('soma das quantidades (ancora)', modelo.somaQuantidades)
   linha('custo total somado (R$)', modelo.custoTotal)
   for (const g of modelo.grupos) {
     linha(`  ${g}`, modelo.fichas.filter((f) => f.grupo === g).length)

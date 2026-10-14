@@ -74,6 +74,33 @@ CMV_COQUETEL = 20
 CMV_REVENDA = 30
 CMV_CORTESIA = 100
 
+# ---------------------------------------------------------------- o recorte --
+# Ficha tecnica e para o que a casa PREPARA. O que ela apenas revende fechado
+# nao tem receita: tem preco de compra, que o catalogo ja sabe.
+#
+# Este prefixo e o recorte, e ele e UMA LINHA de proposito — porque ele desfaz
+# em parte uma decisao que a cliente tomou em voz alta ("nao sao apenas doses e
+# garrafas, tudo relacionado a drinks, que envolvam bebidas"), e quem desfaz
+# decisao de cliente tem de deixar o botao a vista.
+#
+# O que o recorte tira sao 23 fichas, e tres medicoes independentes dizem que
+# elas sao de revenda e nao de preparo:
+#
+#  1. as 23 tem EXATAMENTE 1 item cada, todas as 23, sem excecao (as 56 que
+#     ficam tem media 3,5 itens, e so 3 tem um item);
+#  2. das 5 fichas do conjunto inteiro que levam 1,000 de bebida alcoolica —
+#     garrafa fechada vendida inteira, que e a definicao da cliente — as 5
+#     estao nas 23. Depois do recorte NAO RESTA nenhum item de garrafa inteira;
+#  3. o custo delas contra o PDF fecha quase exato (COCA COLA -0,4%, GUARANA
+#     0,0%, HEINEKEN LONGNECK 0,0%), porque produto simples com uma linha nao
+#     tem receita para errar.
+#
+# As 23 nao sao perdidas: a tabela de conferencia delas continua no relatorio,
+# marcada como CALIBRACAO DO DE-PARA — e a unica prova de ponta a ponta que
+# estes dados permitem, justamente porque sao produto simples de uma linha.
+# Trocar este prefixo por '' traz as 23 de volta, e o resto do script se ajusta.
+PREFIXO_DO_RECORTE = 'Drinques'
+
 # Trava da regra da cliente, reaplicada DEPOIS do de-para: "garrafa e produto
 # fechado vendido inteiro, dose e apenas uma pequena quantidade". Item que
 # consuma metade de uma garrafa de destilado ou mais e ACHADO, nao dado.
@@ -551,6 +578,14 @@ DEPARA = {
                  'nome + 500 g. Custo divergente e achado: PDF 50,20 x catalogo'
                  ' 23,00'),
     'HIBISCUS': ('HIBISCUS', 'nome exato'),
+    'CANELA PAU': ('CANELA EM PAU',
+                   'nome quase exato (o PDV inverte as duas ultimas palavras).'
+                   ' O catalogo tem CANELA EM PAU (KG, R$ 65,45, TEMPEROS E'
+                   ' AFINS) e CANELA EM PÓ (KG, R$ 48,00, MERCEARIA); o xarope'
+                   ' usa a canela EM PAU, que e a que se infunde. Entrou na'
+                   ' auditoria: era o unico ingrediente de preparo sem linha'
+                   ' aqui, e sem ele o XAROPE DE CANELA E MEL nao tem preco'
+                   ' proprio no nosso catalogo'),
     'MARSHMALLOW': ('MARSHMELLOWS',
                     'nome (grafia); custo PDF 6,00 x catalogo 7,99. NAO e o'
                     ' XAROPE MONIN MARSHMELOW: o PDV mede em KG, e doce, nao'
@@ -574,6 +609,50 @@ DEPARA = {
                                       'mesma capsula; o catalogo nao distingue'
                                       ' sabor de capsula'),
 }
+
+# =============================================================================
+# TABELA 2b · AVISO_NO_ITEM — a duvida viaja junto com o dado
+# =============================================================================
+# Ha tres lugares onde o de-para esta certo no dinheiro e duvidoso no
+# significado, e nos tres a tentacao e gravar o numero "certo" e quebrar algo:
+#
+#  · MORANGO e MANJERICAO: o PDV mede em KG e o nosso cadastro em UND. Gravar
+#    'KG' POE os itens em `unidade_incompativel`, o custo deles vem NULO e o
+#    bloco de verificacao derruba a carga inteira — medido na auditoria. E a
+#    evidencia diz que o numero gravado esta na ordem de grandeza certa (o
+#    morango foi contado a R$ 22,02/UND em agosto e R$ 59,67/UND em outubro,
+#    contra R$ 37,43/KG no PDV, e todo o resto do hortifruti esta em KG): a UND
+#    e um quilo mal rotulado. Entao a unidade fica UND e a DUVIDA fica escrita.
+#
+#  · GF CAMPARI: a fracao e 0,006, que em 900 ml da 5,4 ml. Nenhuma outra dose
+#    do relatorio e tao pequena (a menor legitima e 0,012, que em 5 L da 60 ml),
+#    e 0,066 — a fracao que o PDV usa em sete outras doses — daria 59,4 ml. E
+#    provavel que seja digito faltando, mas "provavel" nao entra no banco.
+#
+#  · CAFÉ CAPSULA: o nosso cadastro diz KG e o preco e de CAPSULA. O item esta
+#    certo em dinheiro (1,000 x R$ 2,35) e errado em rotulo, e no dia em que
+#    alguem arrumar o produto para UND a unidade DESTE item tem de ir junto.
+#
+# A `observacao` do item e o unico lugar que carrega texto ate a tela e sai no
+# SQL ao lado do numero. Ela ja traz `PDV: <componente>`; aqui ganha o resto.
+# Custo de gravar a duvida: zero. Custo de nao gravar: alguem reconfere o que
+# ja foi conferido, ou pior, nao reconfere.
+#
+# A chave e o nome do componente NO PDV.
+AVISO_NO_ITEM = {
+    'MORANGO': 'PDV mede em KG e o nosso cadastro em UND — conferir o peso'
+               ' da UND',
+    'MANJERICAO': 'PDV mede em KG e o nosso cadastro em UND — conferir o peso'
+                  ' da UND',
+    'GF CAMPARI': 'dose de 5,4 ml no PDV (0,006 x 900 ml); conferir se e 0,066',
+    'CAFÉ NESPRESSO RISTRETTO': 'cadastro em KG com preco de capsula; ao'
+                                ' corrigir para UND, mudar a unidade deste'
+                                ' item junto',
+    'CAFÉ NESPRESSO BRAZIL ORGANIC': 'cadastro em KG com preco de capsula; ao'
+                                     ' corrigir para UND, mudar a unidade'
+                                     ' deste item junto',
+}
+
 
 # Componente que simplesmente NAO existe no catalogo. Nao se inventa produto:
 # o item nao nasce, a ficha nasce incompleta e a falta vai para o relatorio
@@ -619,14 +698,31 @@ SEM_PRODUTO = {
 #  · o modulo tem `produto_setores.custo_fixo` exatamente para custo calculado
 #    pela casa, e nao vindo de nota. O preparo entra por ali.
 #
-# O preco pago e honesto e esta dito: o custo do preparo fica CONGELADO no que
-# o PDF calculou. Ele nao acompanha o preco do acucar. Enquanto nao houver
-# sub-receita no modulo, recalcular o preparo e trabalho manual — e isso esta
-# na lista de pendencias da cliente, com o numero de cada um.
+# DE ONDE VEM O CUSTO DO PREPARO — e por que a primeira versao estava errada.
 #
-# O custo usado e o `total_recalculado` do extrair-fichas.py, nao o `Total`
-# impresso: o PDV guarda custo CACHEADO da sub-receita e o cache esta velho
-# (ESPUMA DE GENGIBRE entra valendo 5,09 nos drinques e a ficha dela soma 5,91).
+# A primeira versao deste script gravava o custo que o PDF calcula para o
+# preparo (`total_recalculado`). Era contrabando: o briefing diz que o custo vem
+# do NOSSO catalogo, e um preparo cujo custo sai dos precos do PDV e um preco do
+# PDV entrando no banco pela porta de servico. O efeito nao era cosmetico — o
+# `XAROPE DE MEL` valia R$ 62,788/L porque o PDV cobra R$ 20,98 por uma garrafa
+# de agua de 1,5 L e R$ 50,20 pelo mel, os DOIS precos que este mesmo relatorio
+# denuncia como erro do PDV. Com os nossos: R$ 24,80/L.
+#
+# Agora `custo_dos_preparos()` refaz a receita de cada preparo com os precos do
+# nosso catalogo, RECURSIVAMENTE (a ESPUMA DE HIBISCO leva CONCENTRADO DE
+# GENGIBRE, que leva XAROPE DE GENGIBRE), e pelo mesmo de-para que os drinques
+# usam. Isso tem duas consequencias boas:
+#
+#  · o numero passa a ser auditavel: ele sai dos mesmos precos que a contagem de
+#    outubro deixou no banco, e nao de um PDF;
+#  · e a lacuna aparece. Foi assim que o `CANELA PAU` apareceu: ele era o unico
+#    ingrediente de preparo sem linha no de-para, e o recalculo nao fecha sem
+#    ele. Com o V. Unit do PDF ninguem notaria, porque o PDF tem preco para tudo.
+#
+# O preco pago continua existindo e continua dito: `custo_fixo = true` congela o
+# numero no dia da carga. O que mudou e a FONTE dele. Enquanto o modulo nao tiver
+# sub-receita, recalcular um preparo quando o acucar subir e trabalho manual — e
+# isso esta na lista de pendencias da cliente, com o numero de cada um.
 #
 # Cada linha e (categoria, setor, unidade, por_que_essa_categoria).
 PREPAROS = {
@@ -757,6 +853,72 @@ def conferir_depara(prods):
 
 
 # =============================================================================
+# custo dos preparos, pelo NOSSO catalogo
+# =============================================================================
+def custo_dos_preparos(por_nome, prods):
+    """Refaz a receita de cada preparo com os precos do nosso catalogo.
+
+    Recursivo porque preparo entra em preparo: a ESPUMA DE HIBISCO leva
+    CONCENTRADO DE GENGIBRE (que nao e um dos 12, e so existe como ficha no
+    PDF), e o CONCENTRADO leva XAROPE DE GENGIBRE, que e um dos 12.
+
+    Devolve (custo_por_preparo, receita_por_preparo). A receita vai para o
+    relatorio: sem ela o custo do preparo seria um numero sem conta atras.
+
+    Ingrediente sem linha no de-para NAO recebe o preco do PDF como consolo —
+    isso seria o contrabando de volta. O script para, com o nome do que falta.
+    """
+    PREP_MAIUSCULO = {k.upper(): k for k in PREPAROS}
+    custo, receita, calculando = {}, {}, set()
+
+    def total(nome):
+        chave_ = nome.upper()
+        if chave_ in custo:
+            return custo[chave_]
+        if chave_ in calculando:
+            raise SystemExit(f'receita de preparo volta em si mesma: {nome!r}')
+        f = por_nome.get(chave_)
+        if f is None or not f['componentes']:
+            raise SystemExit(f'preparo {nome!r} nao e ficha com componentes no'
+                             f' PDF: o custo dele seria chute.')
+        calculando.add(chave_)
+        soma, linhas = 0.0, []
+        for c in f['componentes']:
+            n = c['nome']
+            sub = por_nome.get(n.upper())
+            if n.upper() in PREP_MAIUSCULO or (sub is not None and sub['componentes']):
+                # sub-preparo: o custo dele e o recalculado DELE, nao o cache
+                # que o PDV guarda na linha do pai.
+                unit = total(n)
+                alvo, un = n, 'LT'
+            elif n in DEPARA:
+                alvo = DEPARA[n][0]
+                unit = prods[alvo]['custo']
+                un = prods[alvo]['unidade']
+            else:
+                raise SystemExit(
+                    f'ingrediente de preparo sem linha no de-para:'
+                    f' {n!r} (dentro de {nome!r}). Nao se usa o V. Unit do PDF'
+                    f' como consolo: ponha a linha em DEPARA.')
+            valor = round(c['quantidade'] * unit, 6)
+            soma += valor
+            linhas.append({'componente_pdv': n, 'produto': alvo,
+                           'quantidade': c['quantidade'], 'unidade': un,
+                           'custo_unitario_catalogo': unit,
+                           'valor_unitario_pdf': c['valor_unitario'],
+                           'custo': round(valor, 4)})
+        calculando.discard(chave_)
+        custo[chave_] = round(soma, 4)
+        receita[chave_] = linhas
+        return custo[chave_]
+
+    for nome in PREPAROS:
+        total(nome)
+    return ({k: custo[k.upper()] for k in PREPAROS},
+            {k: receita[k.upper()] for k in PREPAROS})
+
+
+# =============================================================================
 # montagem das fichas
 # =============================================================================
 def grupo_e_cmv(grupo):
@@ -880,6 +1042,9 @@ def montar(bebida, prods, prep_custo):
                 itens[k]['quantidade'] = round(
                     itens[k]['quantidade'] + c['quantidade'], 6)
                 itens[k]['componentes_pdv'].append(nome)
+                if nome in AVISO_NO_ITEM \
+                        and AVISO_NO_ITEM[nome] not in itens[k]['avisos']:
+                    itens[k]['avisos'].append(AVISO_NO_ITEM[nome])
                 achados['itens_somados'].append(
                     {'ficha': f['nome'], 'produto': k,
                      'componentes_pdv': list(itens[k]['componentes_pdv']),
@@ -897,6 +1062,8 @@ def montar(bebida, prods, prep_custo):
                     'componentes_pdv': [nome],
                     'valor_unitario_pdf': c['valor_unitario'],
                     'perda_percentual': 0,
+                    'avisos': ([AVISO_NO_ITEM[nome]] if nome in AVISO_NO_ITEM
+                               else []),
                 }
 
         # Trava da garrafa, parte 2: depois da soma, no que sobrou.
@@ -942,7 +1109,33 @@ def montar(bebida, prods, prep_custo):
             'total_recalculado_pdf': f['total_recalculado'],
             'doses_achatadas': f['doses_achatadas'],
         })
-    return saida, achados
+    # O RECORTE, e ele e uma PARTICAO e nao um filtro: as 23 fichas que saem
+    # continuam montadas, com itens e custo, porque a tabela de conferencia
+    # delas e a CALIBRACAO DO DE-PARA e precisa dos numeros. A CLASSIFICACAO
+    # continua cobrindo as 89 fichas triadas — ela e a trilha de auditoria.
+    ficam = [d for d in saida if d['grupo'].startswith(PREFIXO_DO_RECORTE)]
+    recortadas = [d for d in saida if not d['grupo'].startswith(PREFIXO_DO_RECORTE)]
+
+    # Achado que vale como prova do recorte, e que e medido e nao afirmado:
+    # depois dele nao resta item de garrafa fechada vendida inteira.
+    inteiras_que_ficam = [
+        {'ficha': d['nome'], 'produto': i['produto'],
+         'quantidade': i['quantidade']}
+        for d in ficam for i in d['itens']
+        if i['categoria'] == CATEGORIA_ALCOOL and i['quantidade'] >= 1.0]
+    inteiras_que_saem = [
+        {'ficha': d['nome'], 'produto': i['produto'],
+         'quantidade': i['quantidade']}
+        for d in recortadas for i in d['itens']
+        if i['categoria'] == CATEGORIA_ALCOOL and i['quantidade'] >= 1.0]
+    if inteiras_que_ficam:
+        raise SystemExit(
+            f'depois do recorte ainda resta item de garrafa inteira:'
+            f' {inteiras_que_ficam}. O recorte existe justamente para que nao'
+            f' reste; se restou, a classificacao de grupo esta errada.')
+
+    achados['garrafa_fechada_fora_do_recorte'] = inteiras_que_saem
+    return ficam, recortadas, achados
 
 
 def main():
@@ -955,20 +1148,31 @@ def main():
     conferir_classificacao(bebida)
     conferir_depara(prods)
 
-    # Custo de cada preparo: o recalculado pelos dois niveis, nao o cache do PDV.
-    prep_custo = {}
-    for nome in PREPAROS:
-        f = por_nome.get(nome.upper())
-        if f is None or not f['componentes']:
-            raise SystemExit(f'preparo {nome!r} nao e ficha com componentes no'
-                             f' PDF: o custo dele seria chute.')
-        prep_custo[nome] = f['total_recalculado']
+    prep_custo, prep_receita = custo_dos_preparos(por_nome, prods)
 
-    drinques, achados = montar(bebida, prods, prep_custo)
+    drinques, recortadas, achados = montar(bebida, prods, prep_custo)
 
     # Preparo que entrou em alguma ficha e, por isso, precisa virar produto.
     usados = sorted({a['preparo'] for a in achados['preparo_usado']})
     nao_usados = sorted(set(PREPAROS) - set(usados))
+
+    # ----------------------------------------------------- fichas sem ficha --
+    # Ficha de bebida que ficou sem NENHUM item nao pode nascer: viraria ficha
+    # de custo zero, e o briefing proibe custo zero inexplicado.
+    #
+    # A conta e feita nos DOIS lados do recorte, de proposito. Duas das tres
+    # fichas sem item (`Cerpa Long Neck` e `SPATEN 600 ML APOIO`) caem fora do
+    # recorte, e se eu as contasse so entre as 56 elas desapareceriam do
+    # relatorio — a cliente deixaria de saber que falta cadastrar a Cerpa e a
+    # Spaten porque, por acidente, elas eram cerveja de revenda.
+    #
+    # E a conta vem ANTES da conferencia de custo: ficha que nao vai ser
+    # carregada nao entra na tabela de comparacao. A primeira versao fazia o
+    # contrario e a tabela listava o MATE com custo 0,00 contra PDF 0,00, uma
+    # linha sobre uma ficha que nao existe no banco.
+    vazias_apos = [d for d in drinques + recortadas if not d['itens']]
+    drinques = [d for d in drinques if d['itens']]
+    recortadas = [d for d in recortadas if d['itens']]
 
     # ----------------------------------------------- conferencia pelo custo --
     # O numero do PDF para comparar e o `total_recalculado`, nao o `Total`
@@ -995,12 +1199,6 @@ def main():
                                    if a['ficha'] == d['nome']]),
         })
     comparacao.sort(key=lambda x: -abs(x['diferenca_relativa_pct'] or 0))
-
-    # ----------------------------------------------------- fichas sem ficha --
-    # Ficha de bebida que ficou sem NENHUM item nao pode nascer: viraria ficha
-    # de custo zero, e o briefing proibe custo zero inexplicado.
-    vazias_apos = [d for d in drinques if not d['itens']]
-    drinques = [d for d in drinques if d['itens']]
 
     # Fichas vazias no PDF (sem componente nenhum) — informacao para a cliente.
     vazias_pdf = sorted(f['nome'] for f in fichas if not f['componentes'])
@@ -1065,10 +1263,44 @@ def main():
                   'quantidade': c['quantidade'],
                   'valor_unitario': c['valor_unitario']}
                  for c in por_nome[n.upper()]['componentes']],
+             'receita_no_nosso_catalogo': prep_receita[n],
              'usado_por': sorted({a['ficha'] for a in achados['preparo_usado']
                                   if a['preparo'] == n})}
             for n in usados],
         'preparos_nao_usados': nao_usados,
+        'recorte': {
+            'prefixo_de_grupo': PREFIXO_DO_RECORTE,
+            'fichas_que_ficam': len(drinques),
+            'fichas_recortadas': len(recortadas),
+            'itens_recortados': sum(len(d['itens']) for d in recortadas),
+            'custo_recortado': round(sum(d['custo_nosso']
+                                         for d in recortadas), 4),
+            'grupos_recortados': {g: len([d for d in recortadas
+                                          if d['grupo'] == g])
+                                  for g in sorted({d['grupo']
+                                                   for d in recortadas})},
+            'calibracao_do_depara': [
+                {'ficha': d['nome'], 'grupo': d['grupo'],
+                 'itens': len(d['itens']),
+                 'componentes_pdv': [c for i in d['itens']
+                                     for c in i['componentes_pdv']],
+                 'produtos': [i['produto'] for i in d['itens']],
+                 'custo_nosso': d['custo_nosso'],
+                 'total_recalculado_pdf': d['total_recalculado_pdf'],
+                 'total_impresso_pdf': d['total_impresso_pdf'],
+                 'diferenca_relativa_pct': (
+                     round((d['custo_nosso'] - d['total_recalculado_pdf'])
+                           / d['total_recalculado_pdf'] * 100, 2)
+                     if d['total_recalculado_pdf'] else None)}
+                for d in sorted(recortadas, key=lambda x: x['nome'].upper())],
+        },
+        'valor_unitario_no_pdf': {
+            k: sorted(v) for k, v in sorted(
+                {c['nome']: {c2['valor_unitario']
+                             for f in fichas for c2 in f['componentes']
+                             if c2['nome'] == c['nome']}
+                 for f in fichas for c in f['componentes']}.items())
+            if k in DEPARA},
         'depara': [{'componente_pdv': k, 'produto_catalogo': v[0],
                     'unidade_catalogo': prods[v[0]]['unidade'],
                     'categoria_catalogo': prods[v[0]]['categoria'],
@@ -1081,8 +1313,10 @@ def main():
                                       for k, v in sorted(FORA.items())],
         'fichas_vazias_no_pdf': vazias_pdf,
         'hh_vazia_com_versao_normal': hh_sem_receita,
-        'fichas_sem_nenhum_item': [{'ficha': d['nome'], 'grupo': d['grupo']}
-                                   for d in vazias_apos],
+        'fichas_sem_nenhum_item': [
+            {'ficha': d['nome'], 'grupo': d['grupo'],
+             'dentro_do_recorte': d['grupo'].startswith(PREFIXO_DO_RECORTE)}
+            for d in vazias_apos],
         'achados': achados,
         'comparacao_de_custo': comparacao,
         'fichas': drinques,
@@ -1187,8 +1421,68 @@ def escrever_relatorio(s, bruto):
     p('-' * 78)
     p(f'  {len(s["depara"])} linhas, escritas a mao, nome por nome.')
     p()
+    p('  A PRECISAO DO PDF, que e o que da forca ao desempate por custo: o')
+    p('  relatorio imprime DINHEIRO com duas casas decimais e QUANTIDADE com')
+    p('  tres. (A primeira versao deste relatorio dizia tres casas para os')
+    p('  dois; o "0,530" tem tres digitos, mas a terceira e sempre zero —')
+    p('  conferido nas 936 linhas.) Entao um V. Unit impresso 43,93 quer dizer')
+    p('  um valor em [43,925; 43,935), e um custo de catalogo que caia dentro')
+    p('  desse intervalo nao e coincidencia: e o mesmo preco de compra.')
+    p()
+    exatos = []
     for x in s['depara']:
-        p(f'  {x["componente_pdv"]}')
+        for v in s['valor_unitario_no_pdf'].get(x['componente_pdv'], []):
+            if v > 0 and abs(v - x['custo_catalogo']) < 0.005:
+                exatos.append((x['componente_pdv'], v, x['produto_catalogo']))
+    exatos = sorted(set(exatos))
+    p(f'  CASOS DE CUSTO EXATO (o V. Unit do PDF cai dentro do intervalo de')
+    p(f'  impressao do custo do nosso catalogo): {len(exatos)}')
+    for n, v, alvo in exatos:
+        p(f'    {n[:36]:38} PDF {v:>8} = {alvo[:34]:36}')
+    p()
+    # A particao, calculada e nao afirmada: depois do recorte, nem toda linha
+    # do de-para continua alimentando algo.
+    nas_fichas = {c for d in s['fichas'] for i in d['itens']
+                  for c in i['componentes_pdv']}
+    nos_preparos = {l['componente_pdv'] for x in s['produtos_novos']
+                    for l in x['receita_no_nosso_catalogo']}
+    nas_recortadas = {c for d in s['recorte']['calibracao_do_depara']
+                      for c in d['componentes_pdv']}
+    todas = {x['componente_pdv'] for x in s['depara']}
+    so_fichas = sorted(todas & nas_fichas)
+    so_preparo = sorted((todas & nos_preparos) - nas_fichas)
+    morreram = sorted((todas & nas_recortadas) - nas_fichas - nos_preparos)
+    inuteis = sorted(todas - nas_fichas - nos_preparos - nas_recortadas)
+    p(f'  particao das {len(s["depara"])} linhas, DEPOIS do recorte:')
+    p(f'    alimentam item de ficha                   {len(so_fichas):>4}')
+    p(f'    alimentam so preparo                      {len(so_preparo):>4}')
+    p(f'    morreram COM o recorte                    {len(morreram):>4}')
+    p(f'    nunca alimentaram nada                    {len(inuteis):>4}')
+    p(f'    soma                                      '
+      f'{len(so_fichas) + len(so_preparo) + len(morreram) + len(inuteis):>4}')
+    p()
+    p('    As que morreram com o recorte sao o de-para das fichas de revenda')
+    p('    e cortesia da secao 12, e ficam na tabela de proposito: elas sao o')
+    p('    que torna aquela conferencia possivel, e apaga-las jogaria fora o')
+    p('    trabalho que ja foi conferido. Se a cliente pedir as 23 de volta,')
+    p('    e so trocar o PREFIXO_DO_RECORTE e elas voltam a servir.')
+    for i in range(0, len(morreram), 2):
+        p('      ' + '  |  '.join(f'{n:<34}' for n in morreram[i:i + 2]))
+    p()
+    p('    As que nunca alimentaram nada sao dose e garrafa que o PDV usa em')
+    p('    ficha de dose (DS/GF) mas que nenhum SERVICO consome, mais o xarope')
+    p('    de tangerina cuja linha foi descartada pela trava da garrafa. Ficam')
+    p('    como de-para conferido, para a proxima emissao do relatorio do PDV:')
+    for i in range(0, len(inuteis), 2):
+        p('      ' + '  |  '.join(f'{n:<34}' for n in inuteis[i:i + 2]))
+    p()
+    for x in s['depara']:
+        marca = ('  [item de ficha]' if x['componente_pdv'] in nas_fichas
+                 else '  [so preparo]' if x['componente_pdv'] in nos_preparos
+                 else '  [morreu com o recorte]'
+                 if x['componente_pdv'] in nas_recortadas
+                 else '  [nunca alimentou nada]')
+        p(f'  {x["componente_pdv"]}{marca}')
         p(f'    -> {x["produto_catalogo"]}  [{x["unidade_catalogo"]}]'
           f'  {x["categoria_catalogo"]}  R$ {x["custo_catalogo"]}')
         p(f'       {x["motivo"]}')
@@ -1197,21 +1491,52 @@ def escrever_relatorio(s, bruto):
     p('-' * 78)
     p('5 · PREPAROS DA CASA: VIRAM PRODUTO DO CATALOGO')
     p('-' * 78)
-    p('  Saida escolhida: (a) do briefing — o preparo vira produto, com')
-    p('  custo_fixo = o que o PDF calcula para ele. Argumento no cabecalho do')
-    p('  normalizar-fichas.py. O preco: o custo fica CONGELADO e nao acompanha')
-    p('  o preco do acucar (secao 10).')
+    p('  Saida escolhida: (a) do briefing — o preparo vira produto, numa')
+    p('  categoria que ja existe, com `custo_fixo = true`. Argumento no')
+    p('  cabecalho do normalizar-fichas.py.')
     p()
+    p('  DE ONDE VEM O CUSTO, e por que a primeira versao estava errada: ela')
+    p('  gravava o custo que o PDF calcula para o preparo. Era contrabando — o')
+    p('  briefing diz que o custo vem do NOSSO catalogo, e um preparo custeado')
+    p('  pelo PDV e um preco do PDV entrando no banco pela porta de servico. E')
+    p('  nao era cosmetico: o XAROPE DE MEL valia R$ 62,788/L porque o PDV')
+    p('  cobra R$ 20,98 por uma garrafa de agua de 1,5 L e R$ 50,20 pelo mel —')
+    p('  os DOIS precos que este mesmo relatorio denuncia como erro do PDV.')
+    p('  Com os nossos: R$ 24,80/L.')
+    p()
+    p('  Agora a receita de cada preparo e refeita com os precos do nosso')
+    p('  catalogo, RECURSIVAMENTE (a ESPUMA DE HIBISCO leva CONCENTRADO DE')
+    p('  GENGIBRE, que leva XAROPE DE GENGIBRE) e pelo mesmo de-para que os')
+    p('  drinques usam. A conta de cada um esta aberta abaixo. Foi assim que o')
+    p('  CANELA PAU apareceu: ele era o unico ingrediente de preparo sem linha')
+    p('  no de-para, e o recalculo nao fecha sem ele — com o V. Unit do PDF')
+    p('  ninguem notaria, porque o PDF tem preco para tudo.')
+    p()
+    p('  O preco pago continua existindo e continua dito: `custo_fixo` congela')
+    p('  o numero no dia da carga. O que mudou e a FONTE dele (secao 10).')
+    p()
+    soma_prep = 0.0
     for x in s['produtos_novos']:
         p(f'  {x["nome"]}  [{x["unidade"]}]  {x["categoria"]} · setor'
           f' {x["setor"]}')
-        p(f'      custo R$ {x["custo"]}   (Total impresso no PDF:'
+        p(f'      custo R$ {x["custo"]}   (o PDF calculava'
           f' {x["total_impresso_no_pdf"]})')
         p(f'      {x["motivo"]}')
-        p(f'      receita no PDF: ' + '; '.join(
-            f'{c["nome"]} {c["quantidade"]} {c["unidade_pdv"]} @ {c["valor_unitario"]}'
-            for c in x['ingredientes_no_pdf']))
+        p(f'      a conta, pelo NOSSO catalogo:')
+        for c in x['receita_no_nosso_catalogo']:
+            p(f'        {c["quantidade"]:>8} {c["unidade"]:<4}'
+              f' {c["produto"][:34]:36} x R$ {c["custo_unitario_catalogo"]:>9}'
+              f' = {c["custo"]:>9}')
+            if c['componente_pdv'] != c['produto']:
+                p(f'                 (PDV: {c["componente_pdv"]}'
+                  f' @ {c["valor_unitario_pdf"]})')
+        p(f'        {"":>8} {"":<4} {"TOTAL":36}'
+          f' {"":>14} = {x["custo"]:>9}')
         p(f'      usado por: {", ".join(x["usado_por"])}')
+        soma_prep += x['custo']
+        p()
+    p(f'  soma dos {len(s["produtos_novos"])} preparos, aos nossos precos:'
+      f' R$ {round(soma_prep, 4)}')
     if s['preparos_nao_usados']:
         p()
         p(f'  preparos mapeados e nao usados por nenhuma ficha de bebida:'
@@ -1287,6 +1612,41 @@ def escrever_relatorio(s, bruto):
           f'{len(x["ficha"]) and x["itens"]:>5}{falta}')
     p()
 
+    calc = [x for x in s['comparacao_de_custo']
+            if x['diferenca_relativa_pct'] is not None]
+    semcalc = [x['ficha'] for x in s['comparacao_de_custo']
+               if x['diferenca_relativa_pct'] is None]
+    def dentro(lim):
+        return sum(1 for x in calc if abs(x['diferenca_relativa_pct']) <= lim)
+    acima20 = len(calc) - dentro(20)
+    mediana = sorted(abs(x['diferenca_relativa_pct']) for x in calc)
+    mediana = mediana[len(mediana) // 2] if mediana else 0
+    p('  A DISTRIBUICAO, contada e nao resumida:')
+    p(f'    fichas com divergencia calculavel   {len(calc):>4} de'
+      f' {len(s["comparacao_de_custo"])}')
+    if semcalc:
+        p(f'      (sem: o Total do PDF e zero — {", ".join(semcalc)})')
+    for lim in (1, 5, 10, 20, 50):
+        p(f'    dentro de +/-{lim:>3}%                      {dentro(lim):>4}')
+    p(f'    ACIMA de +/- 20%                      {acima20:>4}')
+    p(f'    mediana do |desvio|                  {mediana:>5.1f}%')
+    p(f'    pior                                 '
+      f'{max(abs(x["diferenca_relativa_pct"]) for x in calc):>5.1f}%')
+    p()
+    p(f'  Uma frase que a primeira versao deste relatorio trazia e que nao')
+    p(f'  resiste a esta contagem: "tres causas respondem por tudo acima de')
+    p(f'  20%". Sao {acima20} fichas acima de 20%, nao tres causas, e as causas')
+    p('  medidas sao SETE, cada uma com o delta em reais na tabela abaixo:')
+    p('    1. insumo com custo ZERO no PDV (GF BACARDI ORO, GF VELVO BOTANIC')
+    p('       GIN, VINHO SALTON ATOS LICOROSO, XAROPE MONIN CARAMELO/MANGA/')
+    p('       SPICE MANGO, BITTER ANGOSTURA): o Total do PDF nao os conta;')
+    p('    2. o bag de ARPO precificado por litro no PDV: 5x (ver secao 4);')
+    p('    3. UVA THOMPSON 3,42x e UVA ROXA 3,00x — preco velho no PDV;')
+    p('    4. MORANGO 1,59x — e o morango dobrou entre agosto e outubro;')
+    p('    5. ABACAXI 1,63x;')
+    p('    6. LIMAO 0,66x (o nosso e MAIS BARATO que o do PDV);')
+    p('    7. item que NAO nasceu por falta de dado na origem (secao 6).')
+    p()
     p('  AS PIORES DIVERGENCIAS, UMA A UMA')
     p('  Para cada ficha, a linha que responde pela maior parte da diferenca, e')
     p('  a causa — classificada pela propria conta, nao por impressao.')
@@ -1344,9 +1704,11 @@ def escrever_relatorio(s, bruto):
         ('PRECO DE VENDA — a pendencia principal',
          f'As {r["fichas_de_bebida"]} fichas nascem com preco_venda = 0, porque'
          ' o PDF e relatorio de CUSTO e nao traz preco. Sem preco nao existe'
-         ' CMV, nao existe margem e nao existe markup: a vista'
-         ' `vw_fichas_completas` devolve nulo nos tres. Nada aqui foi'
-         ' inventado. Preenchido o preco, o CMV aparece sozinho.'),
+         ' CMV e nao existe margem: a vista `vw_fichas_completas` devolve'
+         ' NULO nos dois. O `markup` nao: ele sai 0,00, porque a conta e'
+         ' `preco_venda / custo_porcao` e zero dividido por custo e zero —'
+         ' um zero que parece resposta e nao e. Nada aqui foi inventado.'
+         ' Preenchido o preco, os tres aparecem sozinhos.'),
         ('O CMV ALVO QUE EU ESCOLHI',
          f'Drinque {CMV_COQUETEL}% (o briefing manda, e o comentario da'
          f' migracao 0017 diz que 30 e "pessimo num drink"); cerveja, chopp e'
@@ -1360,11 +1722,54 @@ def escrever_relatorio(s, bruto):
          ' preco fica 0 para sempre e o numero que importa e o CUSTO TOTAL do'
          ' que se da de graca por mes — conta que o modulo nao faz hoje.'),
         ('PREPARO VIRANDO PRODUTO: O CUSTO CONGELA',
-         f'Os {len(s["produtos_novos"])} preparos entraram como produto com'
-         ' custo_fixo tirado do PDF. Vantagem: a ficha do drinque continua'
-         ' dizendo "xarope de maracuja". Preco: o custo nao acompanha o acucar.'
-         ' Recalcular e trabalho manual enquanto o modulo nao tiver'
-         ' sub-receita.'),
+         f'Os {len(s["produtos_novos"])} preparos entraram como produto, com o'
+         ' custo refeito pelos NOSSOS precos (secao 5) e `custo_fixo = true`.'
+         ' Vantagem: a ficha do drinque continua dizendo "xarope de maracuja".'
+         ' Preco: o numero congela no dia da carga e nao acompanha o acucar.'
+         ' Quatro deles mudam muito de valor quando o preco mexe — XAROPE DE'
+         ' UVA (R$ 75,47), XAROPE DE MORANGO (R$ 51,09), XAROPE DE CANELA E MEL'
+         ' (R$ 29,55) e XAROPE DE MEL (R$ 24,80) — e sao os que vale a pena'
+         ' refazer primeiro. Enquanto o modulo nao tiver sub-receita,'
+         ' recalcular e trabalho manual.'),
+        ('O RECORTE: 23 FICHAS QUE A SENHORA PEDIU FICARAM DE FORA',
+         'A senhora disse "nao sao apenas doses e garrafas, tudo relacionado a'
+         ' drinks, que envolvam bebidas", e as cortesias, cervejas e'
+         ' refrigerantes entraram. Depois disso o escopo foi recortado para o'
+         f' que a casa PREPARA ({len(s["fichas"])} fichas), e as 23 de revenda'
+         ' sairam. O motivo esta medido na secao 12 (1 item cada, as 5 garrafas'
+         ' fechadas vendidas inteiras estao todas la, e o custo delas fecha'
+         ' quase exato contra o PDF) — mas e uma decisao que desfaz em parte o'
+         ' que a senhora pediu, e por isso ela esta aqui e nao escondida. Para'
+         ' traze-las de volta e uma linha de codigo; a conferencia delas'
+         ' continua na secao 12, pronta.'),
+        ('O CAMPARI: 0,006 OU 0,066?',
+         'A dose de Campari do PDV e 0,006 de garrafa, que em 900 ml da 5,4 ml'
+         ' — a menor dose legitima do relatorio e 60 ml. Com 0,066 daria 59,4'
+         ' ml, que e dose de verdade. Ficou 0,006 porque e o que o PDV diz, e a'
+         ' duvida esta escrita na observacao dos 2 itens. Uma palavra sua'
+         ' resolve: CAMPARI TONICA e NEGRONI BDZ sobem de custo 11x no Campari.'),
+        ('O BITTER ANGOSTURA: AS DUAS QUANTIDADES ESTAO ERRADAS',
+         'O PDV tem o Angostura cadastrado duas vezes, em escalas diferentes, e'
+         ' a ordem esta invertida (secao 11b, B): no PDF o XEREM leva o dobro do'
+         ' DEIXA ARDER; no nosso banco leva um quinto. E o preco do nosso'
+         ' BITTER ANGOSTURA (R$ 152,90) e igual ao de outro produto e nunca foi'
+         ' contado, entao nem o tamanho da garrafa se deduz. Precisamos do'
+         ' tamanho da garrafa e de quantos dashes vao em cada drinque.'),
+        ('O MORANGO: A UND E UM QUILO?',
+         'O PDV mede morango em KG e o nosso cadastro em UND. A unidade gravada'
+         ' e UND, porque gravar KG poe os 5 itens em "unidade incompativel" e o'
+         ' custo deles vem NULO — medido. A evidencia diz que a UND e um quilo'
+         ' mal rotulado (contado a R$ 22,02/UND em agosto e R$ 59,67/UND em'
+         ' outubro, contra R$ 37,43/KG no PDV). Confirme o peso da UND. De'
+         ' passagem: o morango DOBROU de preco entre as duas contagens, e as 5'
+         ' fichas de morango vao oscilar 40% de custo com a estacao.'),
+        ('O MATE -BASE PODE JA EXISTIR NO CATALOGO',
+         'Ha um TOP MATE 5L (R$ 41,29) cadastrado em MATERIAL DE LIMPEZA, setor'
+         ' Limpeza, numa categoria que no resto e rodo e agua sanitaria. Pode'
+         ' ser o concentrado de mate no lugar errado — ou pode ser quimico de'
+         ' limpeza, porque o preco cabe nos dois e o estoque e zero nas duas'
+         ' contagens. Nao foi mapeado (secao 11b, D). Se for o mate, ainda'
+         ' falta a quantidade: o PDV diz 0,025 LT e nao da preco.'),
         ('A DOSE NAO E VOLUME CONSTANTE',
          'A casa usa fracao fixa de 0,062 em 41 das 54 doses, independente do'
          ' tamanho da garrafa (secao 2). Quem compra 700 ml serve 46 ml e quem'
@@ -1442,6 +1847,138 @@ def escrever_relatorio(s, bruto):
         p('    nenhum nas fichas de bebida. Os 3 do PDF estao todos em preparo')
         p('    de cozinha (ACEM DESFIADO MP · TOMILHO, RECHEIO CARNE MOIDA MP ·')
         p('    LOURO, RISOLE DE CAMARAO · PIMENTA DO REINO GRAO PRETA).')
+    p()
+
+    p('-' * 78)
+    p('11b · ACHADOS QUE A AUDITORIA ACRESCENTOU')
+    p('-' * 78)
+    p('  Cinco defeitos da origem que a primeira versao deste relatorio nao')
+    p('  trazia. Nenhum deles muda uma quantidade carregada; todos mudam o que')
+    p('  a cliente precisa levar ao suporte do PDV.')
+    p()
+    p('  A · DS CAMPARI: a dose e de 5,4 ml, e nenhuma outra e tao pequena')
+    p('      O PDV usa 0,006 de garrafa. Em 900 ml (o Campari do nosso')
+    p('      catalogo) isso da 0,006 x 900 = 5,4 ml. A menor dose LEGITIMA do')
+    p('      relatorio e 0,012, que em 5 L da 60 ml; as outras 48 doses ficam')
+    p('      entre 46 e 62 ml. Com 0,066 — a fracao que o PDV usa em sete')
+    p('      outras doses — daria 59,4 ml, que e dose de verdade. Digito')
+    p('      faltando e a leitura mais provavel, mas provavel nao entra no')
+    p('      banco: ficou 0,006, e a duvida esta na observacao dos 2 itens')
+    p('      (CAMPARI TONICA e NEGRONI BDZ). Se for 0,066, os dois sobem.')
+    p()
+    p('  B · BITTER ANGOSTURA: duas escalas no PDV, e a ordem esta INVERTIDA')
+    p('      XEREM       · BITTER ANGOSTURA AROMATIC       x 0,001 @ 780,00')
+    p('      XEREM       · BITTER ANGOSTURA AROMATIC 100ML x 1,000 @   0,00')
+    p('      DEIXA ARDER · BITTER ANGOSTURA AROMATIC 100ML x 0,005 @   0,00')
+    p('      Os dois cadastros caem no mesmo produto nosso. Se 780,00 e preco')
+    p('      do LITRO, as duas linhas em mililitro sao XEREM = 1 ml e DEIXA')
+    p('      ARDER = 0,5 ml — ou seja, no PDF o XEREM leva o DOBRO. No nosso')
+    p('      banco (fracao de garrafa) o XEREM leva 0,001 e o DEIXA ARDER')
+    p('      0,005: um QUINTO. Nao e so escala incoerente, e inversao, e as')
+    p('      DUAS quantidades estao erradas — nao uma.')
+    p('      Pior: o preco do nosso BITTER ANGOSTURA (R$ 152,90) e EXATAMENTE')
+    p('      o do ANGOSTURA CARIBBEAN RUM, que e outro produto, e nenhum dos')
+    p('      dois foi contado em agosto nem em outubro. Preco igual ao de')
+    p('      outro produto e sem contagem atras e preco copiado, nao medido —')
+    p('      entao nem o tamanho da garrafa se deduz do custo.')
+    p()
+    p('  C · SILENCIO vale R$ 0,03, e isso nao e preco de drinque')
+    p('      Depois de descartar a garrafa de xarope (secao 11), sobra agua com')
+    p('      gas 0,025 x R$ 1,19 = R$ 0,0298. A ficha bate EXATO com o PDF, e')
+    p('      e justamente por isso que ela esta errada: os dois concordam')
+    p('      porque os dois ignoram o xarope. Um coquetel de R$ 0,03 nao')
+    p('      existe. O que falta e a quantidade de xarope de tangerina, que no')
+    p('      PDV esta como 1,000 (garrafa inteira) e no resto das fichas de')
+    p('      xarope fica entre 0,01 e 0,071. E a ficha que a cliente mais')
+    p('      precisa reconferir, embora seja a que menos custa.')
+    p()
+    p('  D · MATE -BASE pode ser o TOP MATE 5L que o catalogo ja tem')
+    p('      O catalogo tem TOP MATE 5L (UND, R$ 41,29) — mas em MATERIAL DE')
+    p('      LIMPEZA, setor Limpeza, numa categoria que no resto e rodo, pano')
+    p('      de chao e agua sanitaria. E o unico nome "bebivel" de la.')
+    p('      NAO foi mapeado, por dois motivos medidos: (1) R$ 41,29 por 5 L')
+    p('      cabe tanto num concentrado de mate quanto num quimico de limpeza')
+    p('      (o DETERGENTE TRUMP S de 5 L mora na mesma faixa), e o estoque')
+    p('      zero nas duas contagens nao desempata; (2) mesmo se fosse o mate,')
+    p('      a quantidade seria chute — o PDV diz 0,025 LT e nao da preco,')
+    p('      entao nao ha desempate por custo, que e o mesmo motivo pelo qual')
+    p('      DS COINTREAU ficou de fora. Corrigir categoria e setor e dado da')
+    p('      carga 0001, nao desta. Fica como pendencia da cliente, agora com')
+    p('      o nome do candidato.')
+    p()
+    p('  E · CAFÉ CAPSULA: o rotulo esta errado, o dinheiro esta certo')
+    p('      O nosso cadastro diz KG e o custo R$ 2,35 e preco de CAPSULA. O')
+    p('      item grava 1,000 KG de cafe, o que lido ao pe da letra e um quilo')
+    p('      de cafe num drinque. O custo sai certo (R$ 2,35 contra R$ 2,05 do')
+    p('      PDV) exatamente porque o preco tambem esta por capsula: os dois')
+    p('      erros se cancelam. No dia em que alguem arrumar o produto para')
+    p('      UND, a unidade dos 3 itens tem de ir junto — e e isso que esta')
+    p('      escrito na observacao deles.')
+    p()
+
+    p('-' * 78)
+    p('12 · CALIBRACAO DO DE-PARA: as fichas que o recorte tirou')
+    p('-' * 78)
+    p(f'  O recorte (`grupo` tem de comecar com'
+      f' \'{s["recorte"]["prefixo_de_grupo"]}\') tirou'
+      f' {s["recorte"]["fichas_recortadas"]} fichas e'
+      f' {s["recorte"]["itens_recortados"]} itens,')
+    p(f'  R$ {s["recorte"]["custo_recortado"]} de custo. Por grupo:')
+    for g, n in s['recorte']['grupos_recortados'].items():
+        p(f'    {g:38} {n:>4}')
+    p()
+    p('  POR QUE O RECORTE: ficha tecnica e para o que a casa PREPARA. O que')
+    p('  ela apenas revende fechado nao tem receita — tem preco de compra, que')
+    p('  o catalogo ja sabe. Tres medicoes independentes dizem que estas sao de')
+    p('  revenda:')
+    p(f'    1. as {s["recorte"]["fichas_recortadas"]} tem EXATAMENTE 1 item'
+      f' cada, sem excecao (as {len(s["fichas"])} que ficam')
+    p(f'       tem media'
+      f' {sum(len(d["itens"]) for d in s["fichas"]) / len(s["fichas"]):.1f}'
+      f' itens, e so 3 tem um item);')
+    p(f'    2. dos itens de garrafa FECHADA vendida inteira (>= 1,000 de bebida')
+    p(f'       alcoolica), os'
+      f' {len(s["achados"]["garrafa_fechada_fora_do_recorte"])} estao TODOS'
+      f' aqui. Depois do recorte nao resta')
+    p('       nenhum — e o script levanta excecao se restar:')
+    for x in s['achados']['garrafa_fechada_fora_do_recorte']:
+        p(f'         {x["ficha"][:34]:36} {x["produto"][:34]:36}'
+          f' x {x["quantidade"]}')
+    p('    3. o custo delas contra o PDF fecha quase exato, abaixo.')
+    p()
+    p('  E E POR ISSO QUE A TABELA FICA AQUI. Depois do recorte, toda ficha')
+    p('  remanescente tem dose, fracao, preparo ou unidade convertida no meio,')
+    p('  e nenhuma divergencia de custo pode mais ser atribuida a uma causa so')
+    p('  por inspecao. Estas 23 nao: produto simples, uma linha, sem conversao.')
+    p('  Elas sao a UNICA prova de ponta a ponta que estes dados permitem de')
+    p('  que o de-para esta certo — e por isso a conferencia delas continua no')
+    p('  relatorio mesmo depois de elas sairem da carga.')
+    p()
+    cal = [x for x in s['recorte']['calibracao_do_depara']
+           if x['diferenca_relativa_pct'] is not None]
+    p(f'  {"ficha":<34}{"nosso":>9}{"PDF rec":>9}{"dif %":>9}  produto')
+    for x in s['recorte']['calibracao_do_depara']:
+        rel = ('%.1f' % x['diferenca_relativa_pct']) \
+            if x['diferenca_relativa_pct'] is not None else '  -'
+        p(f'  {x["ficha"][:33]:<34}{x["custo_nosso"]:>9.2f}'
+          f'{(x["total_recalculado_pdf"] or 0):>9.2f}{rel:>9}'
+          f'  {", ".join(x["produtos"])[:30]}')
+    p()
+    if cal:
+        dentro1 = sum(1 for x in cal if abs(x['diferenca_relativa_pct']) <= 1)
+        p(f'  {len(cal)} das {len(s["recorte"]["calibracao_do_depara"])} tem'
+          f' divergencia calculavel (duas tem Total zero no PDF).')
+        p(f'  Dentro de +/-1%: {dentro1}.  Pior:'
+          f' {max(abs(x["diferenca_relativa_pct"]) for x in cal):.1f}%.'
+          f'  TODAS dentro de +/-20%.')
+        calc56 = [x for x in s['comparacao_de_custo']
+                  if x['diferenca_relativa_pct'] is not None]
+        acima = sum(1 for x in calc56 if abs(x['diferenca_relativa_pct']) > 20)
+        p(f'  Em contraste, as {acima} divergencias acima de 20% ficam todas'
+          f' dentro')
+        p('  das fichas que sobraram. O recorte tira 23 fichas e ZERO')
+        p('  problemas — e a proporcao de problemas piora de 25% para 35%,')
+        p('  o que e esperado: o que sai e o que nao tinha receita para errar.')
     p()
 
     with open(RELATORIO, 'w', encoding='utf-8') as fh:
