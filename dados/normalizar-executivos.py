@@ -618,9 +618,24 @@ def montar_catalogo() -> tuple:
         sys.exit('catalogo efetivo com %d produtos, esperados %d. Um retrato ou uma '
                  'carga mudou; reveja o de-para antes de seguir.'
                  % (len(prods), PRODUTOS_ESPERADOS))
+    # OS IDS DE CATEGORIA E DE SETOR SAEM DO RETRATO, e nao de `idDe(tipo, nome)`.
+    #
+    # Isto nao e preciosismo: `idDe('setor', 'Cozinha')` da
+    # ba5c78f6-1d8a-5c1a-a8dc-b6fe15ae5a5c e o setor Cozinha deste banco e
+    # 19a7379f-949c-565a-b11d-16eaf91dab37, porque a carga 0002 RENOMEOU
+    # "Estoque Geral" para "Cozinha" e manteve o id — de proposito, para nao
+    # deixar orfaos os 317 itens que agosto ja havia contado
+    # (scripts/gerar-reestrutura.mjs, ID_DO_SETOR). Ou seja: o id do setor NAO e
+    # funcao do nome atual dele.
+    #
+    # A 0004 nunca tropecou nisso porque os preparos de bar vao para o setor
+    # `Bar`, que nunca foi renomeado e cujo id coincide com o UUIDv5 do nome.
+    # Esta carga poe 15 produtos na COZINHA, e com o id derivado do nome o
+    # `mv_valida_produto_setor` recusa a linha inteira — medido.
+    cats = {c['nome']: c['id'] for c in cat['categorias']}
+    sets = {s['nome']: s['id'] for s in cat['setores'] if s['ativo']}
     return prods, atualizados, len(cat['produtos']), len(out['produtos_novos']), \
-        len(dri['produtos_novos']), {c['nome'] for c in cat['categorias']}, \
-        {s['nome'] for s in cat['setores'] if s['ativo']}
+        len(dri['produtos_novos']), cats, sets
 
 
 def main() -> int:
@@ -629,7 +644,9 @@ def main() -> int:
     achados: list = []
 
     (por_nome, custos_de_outubro, n_retrato, n_0003, n_0004,
-     categorias_do_catalogo, setores_ativos) = montar_catalogo()
+     id_da_categoria, id_do_setor) = montar_catalogo()
+    categorias_do_catalogo = set(id_da_categoria)
+    setores_ativos = set(id_do_setor)
     catalogo = list(por_nome.values())
     cont['produtos_no_catalogo'] = len(catalogo)
     cont['produtos_do_retrato_pre_0003'] = n_retrato
@@ -679,7 +696,9 @@ def main() -> int:
             sys.exit('produto novo %s JA EXISTE no catalogo — mapeie, nao crie' % spec['nome'])
         produtos_novos.setdefault(spec['nome'], {
             'nome': spec['nome'], 'unidade': spec['unidade'], 'categoria': spec['categoria'],
-            'setor': SETOR_DOS_NOVOS, 'custo_fixo': True, 'origem': 'ingrediente_sem_catalogo',
+            'categoria_id': id_da_categoria[spec['categoria']],
+            'setor': SETOR_DOS_NOVOS, 'setor_id': id_do_setor[SETOR_DOS_NOVOS],
+            'custo_fixo': True, 'origem': 'ingrediente_sem_catalogo',
             'custo_da_planilha': True, 'motivo': spec['motivo'], 'grafias': [], 'custo': None,
         })
         produtos_novos[spec['nome']]['grafias'].append(grafia)
@@ -690,7 +709,9 @@ def main() -> int:
             sys.exit('sub-receita %s JA EXISTE no catalogo' % spec['nome'])
         produtos_novos[spec['nome']] = {
             'nome': spec['nome'], 'unidade': spec['unidade'], 'categoria': spec['categoria'],
-            'setor': SETOR_DOS_NOVOS, 'custo_fixo': True, 'origem': 'sub_receita_da_planilha',
+            'categoria_id': id_da_categoria[spec['categoria']],
+            'setor': SETOR_DOS_NOVOS, 'setor_id': id_do_setor[SETOR_DOS_NOVOS],
+            'custo_fixo': True, 'origem': 'sub_receita_da_planilha',
             'custo_da_planilha': False, 'motivo': spec['motivo'],
             'bloco': bloco_nome, 'custo': None,
         }
@@ -875,9 +896,35 @@ def main() -> int:
         else:
             b = bloco_da_sub[novo['bloco']]
             soma = 0.0
+            receita = []
             for ordem, item in enumerate(b['itens'], start=1):
                 r = resolver(b, item, ordem)
-                soma += arred(r['quantidade_bruta'] * custo_do_produto(r['produto']), 4)
+                cu = custo_do_produto(r['produto'])
+                parcela = arred(r['quantidade_bruta'] * cu, 4)
+                soma += parcela
+                # A receita fica NO ARQUIVO, e nao so na cabeca da recursao: e
+                # ela que torna o custo do preparo auditavel sem reexecutar o
+                # script, e e por ela que o gerador sabe que MASSA EMPADAO nao e
+                # produto orfao — ele e consumido por outro preparo, nao por uma
+                # ficha. Sem isso a trava de orfao reprovaria um produto legitimo.
+                receita.append({
+                    'grafia_na_planilha': item['ingrediente'],
+                    'produto': r['produto'],
+                    'quantidade': r['quantidade'],
+                    'unidade': r['unidade'],
+                    'perda_percentual': r['perda_percentual'],
+                    'quantidade_bruta': r['quantidade_bruta'],
+                    'custo_unitario_catalogo': cu,
+                    'custo': parcela,
+                    'custo_compra_na_planilha': item['custo_compra'],
+                    'peso_bruto_na_planilha': item['peso_bruto'],
+                })
+            novo['receita_no_nosso_catalogo'] = receita
+            novo['peso_porcao'] = b['peso_porcao']
+            novo['custo_total_do_lote'] = arred(soma, 4)
+            novo['custo_porcao_col9_da_planilha'] = b['cabecalho']['custo_porcao'][0]
+            novo['custo_porcao_col10_da_planilha'] = b['cabecalho']['custo_porcao'][1]
+            novo['aba'] = b['aba']
             # `Custo porcao` = `Custo total` / `Peso Porcao` — a relacao que a
             # planilha cumpre em 48 de 48, e nao a divisao por Rendimento.
             valor = arred(soma / q(b['peso_porcao']), 6)
@@ -1416,6 +1463,61 @@ def escrever_relatorio(saida: dict, bruto: dict, por_nome: dict) -> None:
                                                  p['categoria']))
         w('      %s' % d['motivo'])
         w('')
+
+    w('A RAZAO: o custo do nosso catalogo dividido pelo `Custo compra` da planilha,')
+    w('por insumo. E a melhor evidencia que existe de que o de-para NAO tem erro')
+    w('sistematico de produto: se um nome estivesse casando com o produto errado, ou')
+    w('com a embalagem errada, a mediana nao ficaria em 1.')
+    w('')
+    w('Para os dois produtos vendidos por embalagem a razao e calculada POR UNIDADE')
+    w('DA RECEITA (o preco da lata dividido pelos litros dela), porque comparar o')
+    w('preco de uma lata de 5 L com o preco de um litro daria 4,1x e nao diria nada.')
+    w('')
+    razoes = []
+    novos = {x['nome']: x['custo'] for x in saida['produtos_novos']}
+    vistos_r = {}
+    for f in saida['fichas']:
+        for i in f['itens']:
+            if i['produto'] in novos:
+                continue
+            vistos_r.setdefault((i['depara']['grafia'].strip(), i['produto']),
+                                (q(i['planilha']['custo_compra']), q(i['custo_unitario'])))
+    for pr in saida['produtos_novos']:
+        for l in pr.get('receita_no_nosso_catalogo', []):
+            if l['produto'] in novos:
+                continue
+            vistos_r.setdefault((l['grafia_na_planilha'].strip(), l['produto']),
+                                (q(l['custo_compra_na_planilha']),
+                                 q(l['custo_unitario_catalogo'])))
+    for (g, prod), (cp, cu) in vistos_r.items():
+        efetivo = cu / EMBALAGEM[prod][0] if prod in EMBALAGEM else cu
+        razoes.append(((efetivo / cp) if cp else 0.0, g, prod, cp, efetivo,
+                       prod in EMBALAGEM))
+    razoes.sort(reverse=True)
+    w('%-28s %-30s %9s %9s %7s' % ('planilha', 'nosso catalogo', 'planilha', 'nosso', 'razao'))
+    w('-' * 78)
+    for rz, g, prod, cp, cu, emb in razoes:
+        w('%-28s %-30s %9s %9s %7.3f%s'
+          % (g[:28], prod[:30], numero(cp, 2), numero(cu, 2), rz,
+             '  (por unidade da receita)' if emb else ''))
+    valores = sorted(x[0] for x in razoes)
+    w('')
+    w('  insumos distintos ................... %d' % len(valores))
+    w('  MEDIANA da razao ................... %.3f' % valores[len(valores) // 2])
+    w('  custo EXATO (dentro de 0,5%%) ........ %d'
+      % sum(1 for x in valores if abs(x - 1) <= 0.005))
+    w('  dentro de 0,8x a 1,25x ............. %d' % sum(1 for x in valores
+                                                        if 0.8 <= x <= 1.25))
+    w('  FORA de 0,5x a 2x .................. %d' % sum(1 for x in valores
+                                                        if x < 0.5 or x > 2))
+    w('')
+    w('  Os que ficam fora de 0,5x a 2x, um a um — e nenhum deles e erro de')
+    w('  mapeamento; sao preco de compra de datas e fontes diferentes:')
+    for rz, g, prod, cp, cu, emb in razoes:
+        if 0.5 <= rz <= 2:
+            continue
+        w('    %-26s -> %-30s R$ %s -> R$ %s = %.3f'
+          % (g[:26], prod[:30], numero(cp, 2), numero(cu, 2), rz))
 
     titulo(8, 'OS PRODUTOS NOVOS: 9 sub-receitas + 6 sem catalogo')
     w('A sub-receita vira PRODUTO e nao ficha (o modulo nao tem ficha dentro de')
