@@ -1,0 +1,857 @@
+==============================================================================
+FICHAS TECNICAS DE BEBIDA · BAR DO ZECA NORTE SHOPPING
+==============================================================================
+
+Origem    : FICHAS_TECNICAS_BDZ_NORTE_SHOPPING.pdf  (md5 bfbe0f165e3a119c35a43ac2297b3418, 70 paginas)
+Catalogo  : 868 produtos do retrato pre-0003 + 11 criados pela carga 0003 = 879
+            (27 custos vieram da contagem de outubro)
+Restaurante: b0a12eca-0000-4000-8000-000000000001
+
+------------------------------------------------------------------------------
+1 · DO PDF ATE AS FICHAS DE BEBIDA
+------------------------------------------------------------------------------
+  fichas no PDF                                    379
+    vazias, sem componente nenhum                   98   (secao 8)
+    com componente                                 281
+      insumo e preparo (DS/GF/MP/KG/LT)            133   (secao 2)
+      servicos                                     148
+        envolvem bebida                             89
+          excluidas por serem prato                  7   (secao 3)
+          sem nenhum item apos o de-para             3   (secao 7)
+          FICHAS CRIADAS                            79
+            itens                                  219
+            produtos distintos usados               83
+            custo total somado (R$)           542.5965
+
+  por grupo do cardapio (campo `grupo`, por onde a tela agrupa):
+    Cervejas e Chopps                         3 fichas   cmv_alvo 30
+    Cervejas e Chopps · Happy Hour            1 fichas   cmv_alvo 30
+    Cortesias                                17 fichas   cmv_alvo 100
+    Drinques                                 49 fichas   cmv_alvo 20
+    Drinques · Happy Hour                     3 fichas   cmv_alvo 20
+    Drinques · Sem Álcool                     4 fichas   cmv_alvo 20
+    Refrigerantes e Águas                     2 fichas   cmv_alvo 30
+
+  preco_venda nasce 0 em TODAS as fichas: o PDF e relatorio de CUSTO e
+  nao traz preco de venda. Sem ele nao existe CMV. Essa e a principal
+  pendencia devolvida a cliente (secao 10).
+
+------------------------------------------------------------------------------
+2 · O QUE FICOU FORA, E POR QUE
+------------------------------------------------------------------------------
+  DS (dose) e GF (garrafa) nao viram ficha propria: elas ja entram
+  ACHATADAS dentro de quem as usa. Se virassem ficha, o mesmo custo
+  apareceria duas vezes no modulo.
+    fichas DS no PDF: 54   ·   fichas GF: 3
+  MP e fichas em KG: preparo de cozinha.
+  Fichas em LT: preparo de bar a granel (xarope, espuma). Todas as 14 do
+  relatorio sao preparo, nenhuma e servico — conferido uma a uma.
+
+  A FRACAO DA DOSE, e o que ela diz: a casa usa 0,062 em 41 das 54 doses,
+  INDEPENDENTE do tamanho da garrafa. Logo a dose NAO e volume constante:
+    0,062 x  965 ml (Ypioca)   =  60 ml
+    0,062 x 1000 ml (Absolut)  =  62 ml
+    0,066 x  900 ml (Campari)  =  59 ml
+    0,066 x  700 ml (Sagatiba) =  46 ml
+    0,012 x 5000 ml (Arpo bag) =  60 ml
+  Quem compra garrafa de 700 ml serve 46 ml e quem compra de 1 L serve
+  62 ml pelo mesmo preco de carta. Isso e decisao de margem, nao de
+  receita, e esta na lista da cliente.
+
+------------------------------------------------------------------------------
+3 · PRATO QUE LEVA BEBIDA NAO E BEBIDA
+------------------------------------------------------------------------------
+  ARROZ DE CAMARAO P/ 1
+      prato: arroz de camarao. Entrou na triagem pelo MIX DE QUEIJOS MP
+  ARROZ DE CAMARAO P/2
+      prato: arroz de camarao para dois. Idem
+  ATOLEI NO ZECA
+      prato: pure de aipim com acem e queijo. Entrou pelo MIX DE QUEIJOS MP
+  BATATA DE MARECHAL
+      prato: batata com calabresa e queijo. Idem
+  CPD GNOCCHI 180g
+      prato: nhoque com ragu de cordeiro. Leva VINHO TINTO SUAVE e VINHO BRANCO SECO como ingrediente de cozinha
+  MENU PORTO
+      combo de sobremesas de evento. Leva um espumante (PUTRUELE NOCHETERNA BRUT) entre sete itens, mas o que se serve e a sobremesa
+  PASTEL QUEIJO UND
+      prato: pastel de queijo. Entrou pelo MIX DE QUEIJOS MP
+
+------------------------------------------------------------------------------
+4 · DE-PARA: INGREDIENTE DO PDV -> PRODUTO DO NOSSO CATALOGO
+------------------------------------------------------------------------------
+  95 linhas, escritas a mao, nome por nome.
+
+  ABACAXI
+    -> ABACAXI  [KG]  HORTIFRUTI  R$ 9.58
+       nome exato
+  ACUCAR REFINADO
+    -> AÇUCAR REFINADO (1kg)  [KG]  MERCEARIA  R$ 3.35
+       nome (sem cedilha no PDV); custo PDF 3,90 x catalogo 3,35
+  AGUA 1 5 L
+    -> ÁGUA SEM GÁS (1,5lts)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 3.0
+       o nome do PDV diz 1,5 L. O custo NAO bate (PDF 20,98 x catalogo 3,00) e isso e achado: 20,98 numa garrafa de agua de 1,5 L e erro de cadastro do PDV
+  AGUA COM GAS
+    -> ÁGUA COM GÁS (350ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 1.19
+       custo decide: PDF 1,20 x catalogo 1,19 na garrafinha de 350 ml, contra 3,00 na de 1,5 L. O drinque que leva 0,5 leva meia garrafinha de 350 ml
+  AGUA SEM GAS
+    -> ÁGUA SEM GÁS (350ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 1.19
+       mesmo desempate pelo custo: 1,20 x 1,19
+  ANTARTICA ORIG600 ML
+    -> CERVEJA ANTARCTICA ORIGINAL (600ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 6.68
+       nome + 600 ml; custo PDF 7,05 x catalogo 6,68
+  BITTER ANGOSTURA AROMATIC
+    -> BITTER ANGOSTURA  [UND]  BEBIDAS ALCOÓLICAS  R$ 152.9
+       nome; 0,001 de garrafa = um dash
+  BITTER ANGOSTURA AROMATIC 100ML
+    -> BITTER ANGOSTURA  [UND]  BEBIDAS ALCOÓLICAS  R$ 152.9
+       mesmo produto que a linha de cima — o PDV tem o Angostura cadastrado DUAS vezes, com codigos e custos diferentes (780,00 e 0,00)
+  BRAHMA GF 600 ML
+    -> CERVEJA BRAHMA (600ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 6.36
+       nome + 600 ml; custo PDF 6,59 x catalogo 6,36
+  CACHAÇA SAGATIBA
+    -> CACHAÇA SAGATIBA PURA (700ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 25.0
+       custo EXATO: PDF 25,00 = catalogo 25,00
+  CACHAÇA YPIOCA PRATA
+    -> CACHAÇA YPIOCA PRATA (965ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 20.9
+       nome identico
+  CAFÉ NESPRESSO BRAZIL ORGANIC
+    -> CAFÉ CAPSULA  [KG]  MERCEARIA  R$ 2.35
+       mesma capsula; o catalogo nao distingue sabor de capsula
+  CAFÉ NESPRESSO RISTRETTO
+    -> CAFÉ CAPSULA  [KG]  MERCEARIA  R$ 2.35
+       a capsula de cafe do catalogo; custo PDF 2,05 x catalogo 2,35, que e preco de CAPSULA e nao de quilo — a unidade KG do cadastro esta errada e e achado
+  CEREJA EM CALDAS
+    -> CEREJA MARRASQUINO  [KG]  TEMPEROS E AFINS  R$ 89.99
+       unica cereja em calda do catalogo
+  CERVEJA HEINEKEN 330 ML
+    -> CERVEJA HEINEKEN 330 ML  [UND]  BEBIDAS ALCOÓLICAS  R$ 6.2
+       nome E custo identicos (6,20): um dos poucos que casam por nome exato
+  CERVEJA HEINEKEN ULTIMATE
+    -> CERVEJA HEINEKEN 330 ML ULTIMATE  [UND]  BEBIDAS ALCOÓLICAS  R$ 6.23
+       nome; custo PDF 6,55 x catalogo 6,23
+  CHOPP AMSTEL BARRIL 50L
+    -> CHOPP AMSTEL (30LT)  [UND]  BEBIDAS ALCOÓLICAS  R$ 9.91
+       unico chopp Amstel do catalogo. O PDV diz barril de 50 L e o cadastro diz 30 L — divergencia de tamanho que e achado; o custo cadastrado (9,91) e por litro, como o do PDF (10,41), e e isso que faz a conta fechar
+  CHOPP BRAHMA CLARO BARRIL 50L
+    -> CHOPP BRAHMA (50lts)  [LTS]  BEBIDAS ALCOÓLICAS  R$ 12.89
+       nome + 50 L batem nos dois lados; custo por litro PDF 14,17 x catalogo 12,89
+  COCA-COLA KS
+    -> COCA COLA KS  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 2.25
+       nome; custo PDF 2,26 x catalogo 2,25
+  COCA-COLA ZERO KS
+    -> COCA COLA ZERO KS  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 2.25
+       nome; 2,26 x 2,25
+  CREME DE LEITE 17% - 1,030KG
+    -> CREME DE LEITE  [UND]  LATICÍNIOS  R$ 12.89
+       unico creme de leite do catalogo; custo PDF 13,58 x catalogo 12,89
+  EMULSIFICANTE
+    -> EMULSIFICANTE  [KG]  MERCEARIA  R$ 25.42
+       nome exato
+  ESPUMANTE SALTON BRUT 750 ML
+    -> ESPUMANTE SALTON  [UND]  BEBIDAS ALCOÓLICAS  R$ 29.67
+       nome; 0,333 x 750 ml = 250 ml, uma taca. O catalogo tambem tem SALTON 0/0% (sem alcool), que nao serve para spritz
+  GENGIBRE
+    -> GENGIBRE  [KG]  HORTIFRUTI  R$ 8.12
+       nome exato
+  GF ABSOLUT
+    -> VODKA ABSOLUT (1000ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 62.9
+       nome; 0,062 x 1000 ml = 62 ml, a dose da casa
+  GF AMARETO DEL ORSO
+    -> LICOR AMARETTO DELL ORSO  [UND]  BEBIDAS ALCOÓLICAS  R$ 54.19
+       nome
+  GF APEROL
+    -> APERITIVO APEROL (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 43.93
+       custo EXATO: PDF 43,93 = catalogo 43,93
+  GF ARPO BAG
+    -> GIN ARPO 5 LT  [UND]  BEBIDAS ALCOÓLICAS  R$ 222.0
+       nome (BAG = bag-in-box de 5 L) e aritmetica exata: o V. Unit do PDF, 44,40, x 5 = 222,00, que e o preco do bag no nosso catalogo — ou seja o PDV precifica o bag POR LITRO num campo que e por bag. 0,012 x 5 L = 60 ml, a dose da casa. O outro candidato (GIN ARPO 750 ML) daria 9 ml
+  GF BACARDI BRANCO
+    -> RUM BACARDÍ CARTA BRANCA (980ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 37.58
+       nome
+  GF BACARDI ORO
+    -> RUM BACARDÍ CARTA ORO (980ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 37.95
+       nome; 0,062 x 980 ml = 61 ml
+  GF BANANINHA
+    -> CACHAÇA BANANINHA  [UND]  BEBIDAS ALCOÓLICAS  R$ 39.9
+       nome; custo PDF 40,71 x catalogo 39,90
+  GF CACHACA SALINAS
+    -> CACHAÇA SALINAS TRADICIONAL (600ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 34.99
+       nome
+  GF CAMPARI
+    -> APERITIVO CAMPARI MILANO BITTER (900ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 47.0
+       nome; custo PDF 44,99 x catalogo 47,00
+  GF CINZANO VERMOUTH ROSSO
+    -> VERMOUTH CINZANO ROSSO (950ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 26.81
+       nome. O catalogo tem este produto DUAS vezes (tambem como `CINZANO V. ROSSO`, mesmo custo 26,81); escolhido o nome completo e a duplicata virou achado
+  GF GABRIELA
+    -> CACHAÇA GABRIELA  [UND]  BEBIDAS ALCOÓLICAS  R$ 49.2
+       custo EXATO: PDF 49,20 = catalogo 49,20
+  GF GIN BEEFETER 750 ML
+    -> GIN BEEFEATER LONDON DRY (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 105.2
+       nome + tamanho; BEEFETER e erro de digitacao do PDV
+  GF GIN BEEFETER PINK 750 ML
+    -> GIN BEEFEATER PINK (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 111.0
+       nome + tamanho batem
+  GF GIN BOMBAY
+    -> GIN BOMBAY SAPPHIRE (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 78.05
+       Bombay sem adjetivo e o Sapphire; 750 ml e o tamanho padrao da casa. O catalogo tambem tem o de 1000 ml (77,99) e o BRAMBLE (72,90) — ver pendencias
+  GF GIN TANQUERAY BOSSA NOVA
+    -> GIN TANQUERAY BOSSA NOVA (700ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 138.26
+       nome identico
+  GF JACK DANIELS
+    -> WHISKY JACK DANIEL'S (1000ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 118.88
+       nome sem adjetivo = o Jack comum. CUIDADO: o V. Unit do PDF (122,00) e igual ao custo do JACK DANIEL´S APPLE no catalogo, o que e armadilha — o PDV tem ficha separada `DS JACK DANIEL S APPLE` para o Apple
+  GF JACK DANIELS APPLE
+    -> WHISKY JACK DANIEL´S APPLE  [UND]  BEBIDAS ALCOÓLICAS  R$ 122.0
+       nome; custo EXATO: PDF 122,00 = catalogo 122,00
+  GF JACK HONEY
+    -> WHISKY JACK DANIEL'S HONEY (1000ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 132.9
+       nome; custo PDF 125,00 x catalogo 132,90
+  GF LICOR 43
+    -> LICOR DIEGO ZAMORA 43  [UND]  BEBIDAS ALCOÓLICAS  R$ 180.0
+       Licor 43 e da Diego Zamora; custo PDF 174,29 x catalogo 180,00
+  GF LIMONCELLO
+    -> LICOR LIMONCELLO CARAVELLAS (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 132.9
+       nome. O catalogo tem DOIS limoncellos pelo mesmo custo (132,90): CARAVELLAS e VILLA MASSA. Escolhido o que comeca por LIMONCELLO, que e como o PDV escreve — e a escolha virou pendencia para a cliente
+  GF MALIBU
+    -> LICOR MALIBU  [UND]  BEBIDAS ALCOÓLICAS  R$ 43.94
+       nome
+  GF PRATEADA
+    -> CACHAÇA JAMBUZADA PRATEADA  [UND]  BEBIDAS ALCOÓLICAS  R$ 54.9
+       custo EXATO: PDF 54,90 = catalogo 54,90
+  GF TANQUERAY
+    -> GIN TANQUERAY LONDON DRY (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 103.97
+       Tanqueray sem adjetivo e o London Dry; custo PDF 98,64 x catalogo 103,97
+  GF TEQUILA JOSE CUERVO
+    -> TEQUILA JOSÉ CUERVO PRATA (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 95.99
+       por exclusao: o PDV tem `GF TEQUILA JOSE CUERVO ORO` separado, que casa EXATO com o OURO (99,00), logo o sem adjetivo e o PRATA
+  GF TEQUILA JOSE CUERVO ORO
+    -> TEQUILA JOSÉ CUERVO OURO (750ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 99.0
+       custo EXATO: PDF 99,00 = catalogo 99,00
+  GF VELVO BOTANIC GIN
+    -> GIN VELVO BOTANIC PREMIUM (700ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 73.2
+       nome
+  GF VODKA SKYY
+    -> VODKA SKY (980ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 22.9
+       nome (SKYY x SKY, uma letra); 0,062 x 980 ml = 61 ml
+  GUARANA
+    -> GUARANÁ ANTARCTICA (350ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 2.83
+       custo EXATO: PDF 2,83 = catalogo 2,83
+  GUARANA ZERO
+    -> GUARANÁ ANTARCTICA ZERO (350ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 2.83
+       custo EXATO: PDF 2,83 = catalogo 2,83
+  HIBISCUS
+    -> HIBISCUS  [KG]  TEMPEROS E AFINS  R$ 62.0
+       nome exato
+  LARANJA BAHIA
+    -> LARANJA BAHIA  [KG]  HORTIFRUTI  R$ 8.12
+       nome exato
+  LARANJA PÊRA
+    -> LARANJA PERA  [KG]  HORTIFRUTI  R$ 2.79
+       nome exato (sem acento no cadastro)
+  LEITE CONDENSADO
+    -> LEITE CONDENSADO (395ml)  [UND]  LATICÍNIOS  R$ 5.69
+       custo EXATO: PDF 5,69 = catalogo 5,69, que e a lata de 395 ml e nao a bisnaga de 2,6 kg
+  LEITE DE COCO
+    -> LEITE DE COCO  [UND]  LATICÍNIOS  R$ 19.63
+       nome exato
+  LIMA DA PERSIA
+    -> LIMA DA PÉRSIA  [KG]  HORTIFRUTI  R$ 13.26
+       nome exato (sem acento no PDV)
+  LIMÃO
+    -> LIMÃO TAHITI  [KG]  HORTIFRUTI  R$ 7.11
+       por EXCLUSAO: o catalogo tem dois limoes, Tahiti e Siciliano, e o PDF lista `LIMÃO SICILIANO` como componente separado. Logo o `LIMÃO` generico — o da caipirinha — e o Tahiti. Custo PDF 10,70 x catalogo 7,11
+  LIMÃO SICILIANO
+    -> LIMÃO SICILIANO  [KG]  HORTIFRUTI  R$ 9.13
+       nome exato
+  MANJERICAO
+    -> MANJERICÃO  [UND]  HORTIFRUTI  R$ 45.7
+       nome (sem acento no PDV). Unidade divergente: PDV em KG, cadastro em UND
+  MARACUJÁ AZEDO
+    -> MARACUJÁ  [KG]  HORTIFRUTI  R$ 13.2
+       unico maracuja do catalogo; custo PDF 12,30 x catalogo 13,20
+  MARSHMALLOW
+    -> MARSHMELLOWS  [KG]  TEMPEROS E AFINS  R$ 7.99
+       nome (grafia); custo PDF 6,00 x catalogo 7,99. NAO e o XAROPE MONIN MARSHMELOW: o PDV mede em KG, e doce, nao xarope
+  MEL 500G
+    -> MEL (500g)  [KG]  MERCEARIA  R$ 23.0
+       nome + 500 g. Custo divergente e achado: PDF 50,20 x catalogo 23,00
+  MONSTER ENERGETICO SEM ACUCAR
+    -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
+       o catalogo tem um unico MONSTER; custo PDF 7,66 = catalogo 7,66
+  MONSTER PACIFIC PUNCH 473 ML
+    -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
+       idem; custo PDF 7,67 x catalogo 7,66
+  MONSTER SABORES
+    -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
+       custo EXATO: PDF 7,66 = catalogo 7,66
+  MONSTER ULTRA FIESTA MANGO 473 ML
+    -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
+       idem; PDF 7,64 x catalogo 7,66
+  MONSTER ULTRA PEACHY KEEN 473 ML
+    -> MONSTER  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.66
+       idem; PDF 7,64 x catalogo 7,66
+  MORANGO
+    -> MORANGO  [UND]  HORTIFRUTI  R$ 59.67
+       nome exato. A unidade divergente e achado: o PDV mede em KG e o nosso cadastro em UND
+  RED BULL ACAI 250 ML
+    -> RED BULL AÇAI  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 5.94
+       nome
+  RED BULL C
+    -> RED BULL  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.49
+       custo EXATO: PDF 7,49 = catalogo 7,49
+  RED BULL MELANCIA 250 ML C
+    -> RED BULL MELANCIA (250ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.49
+       nome + 250 ml
+  RED BULL SUGAR FREE
+    -> RED BULL ZERO  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.49
+       sugar free = zero; custo PDF 7,19 x catalogo 7,49
+  RED BULL TROPICAL 250 ML C
+    -> RED BULL THE TROPICAL EDITION (250ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 7.49
+       nome + 250 ml; custo EXATO 7,49
+  STELLA LONG NECK
+    -> CERVEJA STELLA LONG NECK (330ml)  [UND]  BEBIDAS ALCOÓLICAS  R$ 5.88
+       nome; custo PDF 5,04 x catalogo 5,88. O catalogo tem tambem a PURE GOLD long neck, que e outro produto
+  TANGERINA IMPORTADA
+    -> TANGERINA IMPORTADA  [KG]  HORTIFRUTI  R$ 12.18
+       nome exato
+  TONICA C
+    -> TÔNICA SCHWEPPES  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 3.58
+       custo EXATO: PDF 3,59 x catalogo 3,58. O `C` do PDV e o sufixo de "com acucar", que o catalogo nao usa
+  TONICA PINK LIMONADE
+    -> TÔNICA PINK LIMONADE  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 4.0
+       nome exato; custo PDF 4,08 x catalogo 4,00
+  TONICA RED MINT
+    -> TÔNICA PINK LIMONADE RED MIN  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 4.0
+       nome (RED MINT x RED MIN); custo EXATO 4,00
+  TONICA SCHWEPPES
+    -> TÔNICA SCHWEPPES  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 3.58
+       nome exato. MESMO produto que `TONICA C` — o PDV tem a tonica cadastrada duas vezes, uma delas com custo zero
+  TONICA ZERO C
+    -> TÔNICA SCHWEPPES ZERO  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 3.58
+       custo EXATO: PDF 3,58 = catalogo 3,58
+  UVA ROXA
+    -> UVA CRISON ROXA  [KG]  HORTIFRUTI  R$ 36.56
+       unica uva roxa do catalogo
+  UVA THOMPSON
+    -> UVA VERDE THOMPSON  [KG]  HORTIFRUTI  R$ 36.56
+       nome (Thompson e a uva verde)
+  VINHO SALTON ATOS LICOROSO
+    -> ESPUMANTE ATOS LICOROSO  [UND]  BEBIDAS ALCOÓLICAS  R$ 86.27
+       nome (o PDV chama de vinho o que o catalogo chama de espumante licoroso)
+  XAROPE FRANCES BAUNILHA
+    -> XAROPE MONIN BAUNILHA  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
+       o "xarope frances" do PDV e o Monin; custo PDF 66,86 x catalogo 67,86
+  XAROPE FRANCES GRENADINE MONIN
+    -> XAROPE MONIN GRENADINE (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
+       nome; 66,86 x 67,86
+  XAROPE FRANCES TANGERINA MONIN 700ML
+    -> XAROPE MONIN TANGERINA  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
+       nome; o PDF traz custo 0,00
+  XAROPE MONIN ACAI
+    -> XAROPE MONIN AÇAI (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 42.71
+       nome; custo PDF 46,80 x catalogo 42,71
+  XAROPE MONIN AMORA 700 ML
+    -> XAROPE MONIN AMORA (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
+       nome + 700 ml; PDF 46,90 x catalogo 67,86
+  XAROPE MONIN CARAMELO 700 ML
+    -> XAROPE MONIN CARAMELO SALGADO (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
+       unico caramelo Monin de 700 ml do catalogo; o PDF traz custo 0,00, entao nao ha desempate por preco
+  XAROPE MONIN DE MACA VERDE 700ML
+    -> XAROPE MONIN MAÇÃ VERDE (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
+       nome + 700 ml; 68,43 x 67,86
+  XAROPE MONIN MANGA 700ML
+    -> XAROPE MONIN SPICY MANGO (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
+       unica manga Monin do catalogo. O PDV tem TAMBEM `XAROPE MONIN SPICE MANGO`, que cai no mesmo produto — ver pendencias
+  XAROPE MONIN SPICE MANGO
+    -> XAROPE MONIN SPICY MANGO (700ml)  [UND]  BEBIDAS NÃO ALCOÓLICAS  R$ 67.86
+       nome (SPICE x SPICY)
+
+------------------------------------------------------------------------------
+5 · PREPAROS DA CASA: VIRAM PRODUTO DO CATALOGO
+------------------------------------------------------------------------------
+  Saida escolhida: (a) do briefing — o preparo vira produto, com
+  custo_fixo = o que o PDF calcula para ele. Argumento no cabecalho do
+  normalizar-fichas.py. O preco: o custo fica CONGELADO e nao acompanha
+  o preco do acucar (secao 10).
+
+  ESPUMA DE GENGIBRE  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 5.91   (Total impresso no PDF: 5.91)
+      preparo de bar sem alcool, medido em litro
+      receita no PDF: XAROPE DE GENGIBRE 0.8 LT @ 5.82; EMULSIFICANTE 0.06 UN @ 20.9
+      usado por: BI-SAMBAS, BRISANDO, BRISEEIIII, DOM AMORES EM VERMELHO
+  ESPUMA DE HIBISCO  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 19.6136   (Total impresso no PDF: 19.61)
+      preparo de bar sem alcool, medido em litro
+      receita no PDF: EMULSIFICANTE 0.06 UN @ 20.9; XAROPE DE HIBISCO 0.7 LT @ 24.34; CONCENTRADO DE GENGIBRE 0.2 LT @ 6.59
+      usado por: GIN COM ESPUMA, GIN PINK, MOSCOW IN ZECA, SEGREDO DO ZECA
+  MIX DE PINA  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 13.714   (Total impresso no PDF: 13.71)
+      mix de leites para coquetel, medido em litro
+      receita no PDF: LEITE DE COCO 0.2 UN @ 19.75; CREME DE LEITE 17% - 1,030KG 0.3 LT @ 13.58; LEITE CONDENSADO 1.0 UN @ 5.69
+      usado por: DOM AMORES EM VERMELHO, NOAH PAGODINHO
+  SUCO NATURAL  [UND]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 0.897   (Total impresso no PDF: 0.9)
+      suco de laranja espremido na casa, servido em copo (UND)
+      receita no PDF: LARANJA PÊRA 0.3 KG @ 2.99
+      usado por: TO CALMA
+  XAROPE DE ACUCAR  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 0.39   (Total impresso no PDF: 0.39)
+      xarope da casa, medido em litro
+      receita no PDF: ACUCAR REFINADO 0.1 KG @ 3.9
+      usado por: BOSSA SOUR, BRASILEIRINHO, DEIXA ARDER, XEREM
+  XAROPE DE CANELA E MEL  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 58.19   (Total impresso no PDF: 58.19)
+      xarope da casa, medido em litro
+      receita no PDF: CANELA PAU 0.1 KG @ 79.9; MEL 500G 1.0 KG @ 50.2
+      usado por: CAIPIRINHA COM MEL
+  XAROPE DE GENGIBRE  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 5.82   (Total impresso no PDF: 5.82)
+      xarope da casa, medido em litro
+      receita no PDF: ACUCAR REFINADO 0.6 KG @ 3.9; GENGIBRE 0.5 KG @ 6.96
+      usado por: MATE DA CASA SABORES, MOSCOW IN ZECA, TO CALMA
+  XAROPE DE HIBISCO  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 24.34   (Total impresso no PDF: 24.34)
+      xarope da casa, medido em litro
+      receita no PDF: ACUCAR REFINADO 0.6 KG @ 3.9; HIBISCUS 0.4 KG @ 55.0
+      usado por: TO CALMA
+  XAROPE DE MARACUJA  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 14.64   (Total impresso no PDF: 14.64)
+      xarope da casa, medido em litro
+      receita no PDF: ACUCAR REFINADO 0.6 KG @ 3.9; MARACUJÁ AZEDO 1.0 KG @ 12.3
+      usado por: BI-SAMBAS, BLUE TA DE CAO, BRISANDO, CAMISA 10
+  XAROPE DE MEL  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 62.788   (Total impresso no PDF: 62.79)
+      xarope da casa, medido em litro
+      receita no PDF: MEL 500G 1.0 KG @ 50.2; AGUA 1 5 L 0.6 UN @ 20.98
+      usado por: FOLIA DO DOM
+  XAROPE DE MORANGO  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 33.844   (Total impresso no PDF: 33.85)
+      xarope da casa, medido em litro
+      receita no PDF: ACUCAR REFINADO 1.0 KG @ 3.9; MORANGO 0.8 KG @ 37.43
+      usado por: EXPLOSAO DO ZECA, GT TANQUERAY
+  XAROPE DE UVA  [LT]  BEBIDAS NÃO ALCOÓLICAS · setor Bar
+      custo R$ 27.11   (Total impresso no PDF: 27.11)
+      xarope da casa, medido em litro
+      receita no PDF: ACUCAR REFINADO 0.7 KG @ 3.9; UVA ROXA 2.0 KG @ 12.19
+      usado por: SEGREDO DO ZECA
+
+------------------------------------------------------------------------------
+6 · INGREDIENTE QUE NAO EXISTE NO CATALOGO (nao se inventa produto)
+------------------------------------------------------------------------------
+  CERVEJA CERPA
+      nao existe nenhuma Cerpa no catalogo (as cervejas cadastradas sao Heineken, Brahma, Amstel, Stella, Antarctica, Caracu). O PDF ainda traz custo 0,00 e quantidade 2,857 — ver achados
+  DS COINTREAU
+      dose SEM ficha propria no PDF (`cadeia_sem_folha`). O produto existe (LICOR COINTREAU (700ml), 99,22), mas a FRACAO da garrafa nao esta em lugar nenhum e inventar 0,062 por analogia seria chute. Falta a ficha `DS COINTREAU` no PDV
+  DS KETEL ONE
+      idem: dose sem ficha propria. O produto existe (VODKA KETEL ONE (1000ml), 83,05); falta a fracao
+  MATE -BASE
+      o mate-base e preparo da casa, NAO tem ficha no PDF e nao existe no catalogo. O catalogo tem `MATTE` (UND, 9,99), que e produto comprado e nao a base pronta: casar os dois seria chute. Para a casa, cadastrar a base ou dar ficha a ela resolve as duas fichas de mate
+  SPATEN 600ML
+      nao existe Spaten no catalogo. O PDF traz custo 0,00
+
+  Efeito ficha a ficha (item que NAO nasceu):
+    Cerpa Long Neck                    CERVEJA CERPA                x 2.857  (V.Unit PDF 0.0, linha 737)
+    MATE                               MATE -BASE                   x 0.025  (V.Unit PDF 0.0, linha 2196)
+    MATE DA CASA SABORES               MATE -BASE                   x 0.025  (V.Unit PDF 0.0, linha 2202)
+    MOSCOW IN ZECA                     DS KETEL ONE                 x 1.0  (V.Unit PDF 5.15, linha 2398)
+    SPATEN 600 ML APOIO                SPATEN 600ML                 x 1.0  (V.Unit PDF 0.0, linha 2962)
+    TOMA LIZA                          DS COINTREAU                 x 0.5  (V.Unit PDF 6.5, linha 3023)
+
+------------------------------------------------------------------------------
+7 · FICHA DE BEBIDA QUE NAO NASCEU
+------------------------------------------------------------------------------
+  Cerpa Long Neck  (grupo que teria: Cervejas e Chopps)
+  MATE  (grupo que teria: Drinques · Sem Álcool)
+  SPATEN 600 ML APOIO  (grupo que teria: Cortesias)
+  Ficha sem nenhum item viraria ficha de custo zero, e custo zero
+  inexplicado e proibido. Cada uma esta na secao 6 com o que falta
+  cadastrar para destrava-la.
+
+------------------------------------------------------------------------------
+8 · FICHAS VAZIAS NO PDF (receita que ninguem cadastrou)
+------------------------------------------------------------------------------
+  98 fichas do PDV nao tem componente nenhum. Nao viram ficha.
+
+  Dessas, 4 sao a versao HAPPY HOUR de um drinque que EXISTE com receita —
+  ou seja, a casa criou o item de happy hour no PDV e nunca lancou a
+  receita dele. Sao as mais faceis de resolver e as que mais custam:
+    Agora Por Favor HH                 <- copiar/ajustar de Agora Por Favor
+    Fuleragem HH                       <- copiar/ajustar de Fuleragem
+    GT ARPO GIN HH                     <- copiar/ajustar de GT ARPO GIN
+    SALVE JORGE HH                     <- copiar/ajustar de SALVE JORGE
+
+  lista completa das vazias:
+    2 ESTRELAS                            |  AIPIM EXTRA                         
+    AMSTEL CHOPP 300 ML                   |  AS2/ FRUTOS DO MAR A PROVENÇAL      
+    Agora Por Favor HH                    |  BAGUETE (CENTRAL) 200g              
+    BAGUETE FRANCESA                      |  BLUEBERRY - FLAVOR HOUSE            
+    BOLO DE CENOURA (CENTRAL)             |  BOLO DE FUBA(CENTRAL)               
+    BOLO DE LARANJA (CENTRAL)             |  CACHORRO QUENTE EVENTO              
+    CALDA DE CHOCOLATE (CENTRAL)          |  CALDO DE ACÉM                       
+    CALDO DE COSTELA                      |  CALDO DE MOELA                      
+    CERVEJA AMISTEL                       |  COE                                 
+    CONTRA FILÉ 150G (CENTRAL)            |  CORDIAL DE LIMAO SICILIANO          
+    COSTELINHA ASSADA MP                  |  CPD ACEM 150G                       
+    CPD ACEM 50G                          |  CPD ALCATRA EXECUTIVO               
+    CPD APERITIVO DE ALCATRA 350g         |  CPD BRIGADEIRO DE COLHER            
+    CPD CALDO DE COSTELA                  |  CPD CALDO DE MOELA                  
+    CPD CALDO DE PERNIL                   |  CPD CAMARÃO CINZA 120GR (CENTRAL)   
+    CPD CAMARÃO CINZA 80GR (CENTRAL)      |  CPD CARNE ASSADA 120G               
+    CPD CARNE ASSADA 200G                 |  CPD COPA LOMBO ASSADO 150G          
+    CPD COPA LOMBO ASSADO 250G            |  CPD COXINHA DE RABADA C/6           
+    CPD FILE DE FRANGO 100G               |  CPD GNOCCHI DE BANANA 150G          
+    CPD ISCA DE FRANGO INFANTIL 50G       |  CPD LINGUICA FINA APERITIVO 200G    
+    CPD LINGUICA FINA SANDUICHE 120G      |  CPD MAC N CHEESE                    
+    CPD MINI COOKIES (CENTRAL)            |  CPD MOELA DE FRANGO 300g            
+    CPD PICADINHO DE ALCATRA              |  CPD RONDELLI QUEIJO E PRESUNTO      
+    CPD TRIO MINI HAMBURGUER              |  CREME DE ABOBORA COM GORGONZOLA     
+    CREME DE MILHO COM COSTELA            |  CREME NAMELAKA (D HEAVEN)           
+    CROQUETE PERNIL C/6 (CENTRAL)         |  Caramelle Al Cocco                  
+    DS UNDERBERG                          |  ESCALOPE DE ALCATRA                 
+    ESPETINHO DE ALCATRA                  |  ESPETINHO DE CARNE CHURRASCO        
+    ESPETINHO DE FRANGO CHURRASCO         |  ESPETINHO QUEIJO COALHO CHURRASCO   
+    ESPETINHO SALSICHAO CHURRASCO         |  EXPERIENCIA NORTE SHOPPING          
+    FEIJOADA SAO JORGE EXPERIENCIA NORTE SHOPPING LOTE 3 350  |  FILE FRANCESINHA (CENTRAL)          
+    FRUTA DO DIA                          |  Fuleragem HH                        
+    GF PRATEADA                           |  GF ROYAL SALUT                      
+    GF SALETE COMBO                       |  GIFT CARD                           
+    GLACÊ VERMELHO (D HEAVEN)             |  GNOCCHI / BRIE VEGETARIANO          
+    GT ARPO GIN HH                        |  HAMBURGUER DE LINGUICA              
+    HAMBURGUER EVENTO                     |  HAMBURGUER ZECA                     
+    ICE TEA PESSEGO                       |  JAMBUZADA TANGERINA                 
+    MINI BAGUETE (CENTRAL) 100g           |  MOLHO DE TOMATE APIMENTADO MP       
+    MOQUECA DE PEIXE BDZ                  |  MOUSSE DE PACOCA                    
+    PAILLARD DE FRANGO 100G (CENTRAL)     |  PAO DE QUEIJO COM LINGUICA          
+    PARMEGGIANA DE FRANGO EXECUTIVO       |  PARMEGIANA DE ALCATRA               
+    PARMEGIANA DE PORCO FT                |  PEIXE DO DIA EXECUTVO               
+    PICADINHO DE CARNE EXECUTVO MENU      |  PRATOS                              
+    PUDIM                                 |  Profitroles al Caramelo             
+    SALADA DE GRAO DE BICO C/ BACALHAU BDZ  |  SALVE JORGE HH                      
+    Salada do Dia                         |  TAXA ROLHA                          
+    TAÇA HENRI LEBLANC                    |  TESTE BALANÇA                       
+    VERMELHO INTENSO                      |  b. ESPAGUETE CARBONARA              
+
+------------------------------------------------------------------------------
+9 · CONFERENCIA DE CUSTO CONTRA O PDF
+------------------------------------------------------------------------------
+  O custo da ficha NAO vem do PDF: vem de `produto_setores.custo` /
+  `produtos.custo_medio` do nosso catalogo (precos de outubro), por
+  `mv_custo_do_produto` e `vw_fichas_completas`. E isso que faz a ficha
+  acompanhar o preco real. O PDF e a CONFERENCIA.
+
+  A coluna do PDF usada e o `total_recalculado`, nao o `Total` impresso:
+  o PDV guarda custo CACHEADO da sub-receita e o cache esta velho — em
+  cinco doses esta ZERO, e nesses casos o Total impresso subestima o
+  drinque em exatamente a cachaca (ver secao 11).
+
+  ficha                                 nosso  PDF rec  PDF imp    dif %  itens
+  GIN COM ESPUMA                         4.64     0.98     0.96    373.2    2
+  ATOS OITAVO                           11.22     3.27     3.27    243.2    4
+  SAI AGORA                              6.14     2.11     2.11    191.0    4
+  BI-SAMBAS                              3.95     1.82     1.81    117.0    3
+  CAIPIRINHA ESP SAGATIBA                5.47     2.92     2.92     87.8    3
+  MOSCOW IN ZECA                         1.27     6.42     6.40    -80.2    2  (-1 item)
+  SO UM MINUTO                          15.17     8.74     8.74     73.5    4
+  BRISANDO                               5.18     3.06     2.97     69.4    4
+  SEGREDO DO ZECA                        8.29     4.99     4.97     66.0    5
+  NEGRONI BDZ                            2.36     1.44     0.41     63.5    3
+  GT ARPO GIN                            5.17     3.40     3.40     52.0    3
+  TOMA LIZA                              4.55     8.16     4.32    -44.2    2  (-1 item)
+  CAIPIVODKA ABSOLUT BDZ                10.03     7.16     7.16     40.1    3
+  VAI VIVER                              7.88     5.82     5.85     35.5    3
+  CAIPIRINHA HH                          3.31     2.54     2.54     30.6    4
+  NOAH PAGODINHO                         9.67     7.63     7.68     26.7    6
+  CAIPIVODKA SKYY                        2.30     3.03     3.03    -24.2    3
+  DEIXA ARDER                            4.09     3.31     3.31     23.4    5
+  XEREM                                  3.18     4.12     4.12    -22.9    5
+  CORACAO DE SAMBISTA                    6.44     5.40     5.40     19.4    5
+  MONICA COQUETEL                        6.98     5.87     5.87     18.9    2
+  EXPLOSAO DO ZECA                      10.76     9.07     9.07     18.7    4
+  GIN PINK                              15.83    13.49    13.45     17.4    4
+  APEROL SPRITZ                         13.48    16.22    16.23    -16.9    4
+  STELA LONG NECK APOIO                  5.88     5.04     5.04     16.7    1
+  APEROL SPRITZ HH                      10.85    12.93    12.93    -16.1    4
+  CAMISA 10                              9.02     7.86     7.86     14.8    3
+  CAMPARI TONICA                         1.35     1.52     1.53    -11.1    3
+  TAMO JUNTO                             5.96     6.67     6.67    -10.6    3
+  BRAHMA CHOPP 300ML                     4.51     4.96     4.96     -9.0    1
+  CHOPP 220 ML - APOIO                   3.22     3.54     3.54     -9.0    1
+  QUE CALOR E ESSE                       8.73     8.05     8.05      8.5    3
+  FULERAGEM                             12.90    11.90    11.90      8.4    4
+  CAIPIRINHA BDZ                         4.72     5.11     1.26     -7.6    3
+  AGORA POR FAVOR                        7.03     7.57     7.61     -7.2    4
+  BOSSA SOUR                             9.32     8.72     1.11      6.9    3
+  TO CALMA                               5.22     5.58     5.58     -6.5    5
+  DOM AMORES EM VERMELHO                13.01    12.23    12.15      6.4    6
+  PAREI NO ZECA                          6.43     6.05     2.21      6.3    4
+  ANTARTICA ORIG600 ML APOIO             6.68     7.05     7.05     -5.2    1
+  CARAJILLO BDZ                         13.51    12.86    12.86      5.1    2
+  Heineken Ultimate LN 330ML             6.23     6.55     6.55     -4.9    1
+  FOLIA DO DOM                          18.24    17.40    17.40      4.8    5
+  JA FOI                                22.80    21.76    21.76      4.8    4
+  AMSTEL CHOPP 300 ML HH                 3.47     3.64     3.64     -4.8    1
+  RED BULL SUGAR FREE APOIO              7.49     7.19     7.19      4.2    1
+  BLUE TA DE CAO                         7.22     7.53     7.53     -4.1    4
+  LIMONCELLO SPRITZ                     12.72    13.22    13.22     -3.8    5
+  BRAHMA GF 600 ML APOIO                 6.36     6.59     6.59     -3.5    1
+  JA SAIU                                5.61     5.81     5.84     -3.4    3
+  CAIPIRINHA COM MEL                    10.37    10.73     6.89     -3.4    3
+  GT TANQUERAY                          10.87    10.52    10.52      3.3    3
+  BRASILEIRINHO                          5.04     4.91     4.91      2.7    5
+  COISA DE MALANDRO                      5.68     5.53     5.53      2.7    4
+  GIN TROPICAL                          14.35    14.00    14.00      2.5    2
+  HOJE TA CALOR                         11.76    12.00    11.98     -2.0    5
+  BRISEEIIII                             5.76     5.87     5.82     -1.9    3
+  43 SPRITZ                             12.11    11.94    11.94      1.4    3
+  GT BOMBAY                              9.44     9.34     9.34      1.1    3
+  CAIPIVODKA SKYY HH                     2.75     2.72     2.72      1.1    2
+  SILENCIO                               0.03     0.03     0.03     -1.0    1
+  AGUA COM GAS APOIO                     1.19     1.20     1.20     -0.8    1
+  AGUA SEM GAS APOIO                     1.19     1.20     1.20     -0.8    1
+  SALVE JORGE                            8.12     8.16     8.16     -0.5    5
+  COCA COCA ZERO APOIO KS                2.25     2.26     2.26     -0.4    1
+  COCA COLA APOIO KS                     2.25     2.26     2.26     -0.4    1
+  COCA COLA KS                           2.25     2.26     2.26     -0.4    1
+  COCA COLA ZERO KS                      2.25     2.26     2.26     -0.4    1
+  TONICA APOIO                           3.58     3.59     3.59     -0.3    1
+  CACHACA DO ZECA                        1.04     0.00     0.00        -    1
+  Cerpa Long Neck                        0.00     0.00     0.00        -    0  (-1 item)
+  GUARANA APOIO                          2.83     2.83     2.83      0.0    1
+  GUARANA ZERO APOIO                     2.83     2.83     2.83      0.0    1
+  HEINEKEN LONGNECK                      6.20     6.20     6.20      0.0    1
+  MATE                                   0.00     0.00     0.00        -    0  (-1 item)
+  MATE DA CASA SABORES                   0.58     0.58     0.58      0.0    1  (-1 item)
+  RED BULL ACAI 250 ML APOIO             5.94     0.00     0.00        -    1
+  RED BULL C APOIO                       7.49     7.49     7.49      0.0    1
+  RED BULL MELANCIA 250 ML C APOIO       7.49     0.00     0.00        -    1
+  RED BULL TROPICAL 250 ML C APOIO       7.49     7.49     7.49      0.0    1
+  SPATEN 600 ML APOIO                    0.00     0.00     0.00        -    0  (-1 item)
+  TONICA ZERO APOIO                      3.58     3.58     3.58      0.0    1
+
+  AS PIORES DIVERGENCIAS, UMA A UMA
+  Para cada ficha, a linha que responde pela maior parte da diferenca, e
+  a causa — classificada pela propria conta, nao por impressao.
+
+  GIN COM ESPUMA   nosso R$ 4.6407  x  PDF R$ 0.9807   (373.2%)
+      GIN VELVO BOTANIC PREMIUM (700ml)          x 0.05      nosso     3.66  PDF     0.00  dif     3.66
+          o PDV cadastrou este insumo com custo ZERO, logo o Total do
+          PDF nao o conta. O nosso catalogo tem o preco, e e o nosso que
+          esta certo
+      ESPUMA DE HIBISCO                          x 0.05      nosso     0.98  PDF     0.96  dif     0.02
+          preparo da casa: o PDV guarda custo cacheado e velho do
+          preparo; aqui vale o recalculado pelos dois niveis
+
+  ATOS OITAVO   nosso R$ 11.221  x  PDF R$ 3.27   (243.15%)
+      ESPUMANTE ATOS LICOROSO                    x 0.1       nosso     8.63  PDF     0.00  dif     8.63
+          o PDV cadastrou este insumo com custo ZERO, logo o Total do
+          PDF nao o conta. O nosso catalogo tem o preco, e e o nosso que
+          esta certo
+      ESPUMANTE SALTON                           x 0.05      nosso     1.48  PDF     1.90  dif    -0.42
+          preco de compra diferente: PDF R$ 38.0 x catalogo R$ 29.67
+          (0.78x)
+      LIMÃO TAHITI                               x 0.1       nosso     0.71  PDF     1.07  dif    -0.36
+          preco de compra diferente: PDF R$ 10.7 x catalogo R$ 7.11
+          (0.66x)
+
+  SAI AGORA   nosso R$ 6.14  x  PDF R$ 2.11   (191.0%)
+      RUM BACARDÍ CARTA ORO (980ml)              x 0.062     nosso     2.35  PDF     0.00  dif     2.35
+          o PDV cadastrou este insumo com custo ZERO, logo o Total do
+          PDF nao o conta. O nosso catalogo tem o preco, e e o nosso que
+          esta certo
+      XAROPE MONIN CARAMELO SALGADO (700ml)      x 0.02      nosso     1.36  PDF     0.00  dif     1.36
+          o PDV cadastrou este insumo com custo ZERO, logo o Total do
+          PDF nao o conta. O nosso catalogo tem o preco, e e o nosso que
+          esta certo
+      CAFÉ CAPSULA                               x 1.0       nosso     2.35  PDF     2.05  dif     0.30
+          preco de compra diferente: PDF R$ 2.05 x catalogo R$ 2.35
+          (1.15x)
+
+  BI-SAMBAS   nosso R$ 3.9534  x  PDF R$ 1.8222   (116.96%)
+      GIN ARPO 5 LT                              x 0.012     nosso     2.66  PDF     0.53  dif     2.13
+          o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
+          por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
+          catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
+          nosso banco esta certo e o PDF errado
+      ESPUMA DE GENGIBRE                         x 0.02      nosso     0.12  PDF     0.10  dif     0.02
+          preparo da casa: o PDV guarda custo cacheado e velho do
+          preparo; aqui vale o recalculado pelos dois niveis
+
+  CAIPIRINHA ESP SAGATIBA   nosso R$ 5.4735  x  PDF R$ 2.915   (87.77%)
+      UVA VERDE THOMPSON                         x 0.1       nosso     3.66  PDF     1.07  dif     2.59
+          preco de compra diferente: PDF R$ 10.7 x catalogo R$ 36.56
+          (3.42x)
+      AÇUCAR REFINADO (1kg)                      x 0.05      nosso     0.17  PDF     0.20  dif    -0.03
+          preco de compra diferente: PDF R$ 3.9 x catalogo R$ 3.35
+          (0.86x)
+
+  MOSCOW IN ZECA   nosso R$ 1.2717  x  PDF R$ 6.4217   (-80.2%)
+      ESPUMA DE HIBISCO                          x 0.05      nosso     0.98  PDF     0.96  dif     0.02
+          preparo da casa: o PDV guarda custo cacheado e velho do
+          preparo; aqui vale o recalculado pelos dois niveis
+      (-) DS KETEL ONE                             x 1.0   item NAO criado: ver secao 6
+
+  SO UM MINUTO   nosso R$ 15.167  x  PDF R$ 8.74   (73.54%)
+      XAROPE MONIN SPICY MANGO (700ml)           x 0.1       nosso     6.79  PDF     0.00  dif     6.79
+          o PDV cadastrou este insumo com custo ZERO, logo o Total do
+          PDF nao o conta. O nosso catalogo tem o preco, e e o nosso que
+          esta certo
+      LIMÃO TAHITI                               x 0.1       nosso     0.71  PDF     1.07  dif    -0.36
+          preco de compra diferente: PDF R$ 10.7 x catalogo R$ 7.11
+          (0.66x)
+
+  BRISANDO   nosso R$ 5.177  x  PDF R$ 3.0558   (69.42%)
+      GIN ARPO 5 LT                              x 0.012     nosso     2.66  PDF     0.53  dif     2.13
+          o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
+          por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
+          catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
+          nosso banco esta certo e o PDF errado
+      ESPUMA DE GENGIBRE                         x 0.1       nosso     0.59  PDF     0.51  dif     0.08
+          preparo da casa: o PDV guarda custo cacheado e velho do
+          preparo; aqui vale o recalculado pelos dois niveis
+      ÁGUA COM GÁS (350ml)                       x 1.0       nosso     1.19  PDF     1.20  dif    -0.01
+          preco de compra diferente: PDF R$ 1.2 x catalogo R$ 1.19
+          (0.99x)
+
+  SEGREDO DO ZECA   nosso R$ 8.2903  x  PDF R$ 4.9945   (65.99%)
+      GIN ARPO 5 LT                              x 0.012     nosso     2.66  PDF     0.53  dif     2.13
+          o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
+          por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
+          catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
+          nosso banco esta certo e o PDF errado
+      UVA CRISON ROXA                            x 0.05      nosso     1.83  PDF     0.61  dif     1.22
+          preco de compra diferente: PDF R$ 12.19 x catalogo R$ 36.56
+          (3.00x)
+      LIMÃO TAHITI                               x 0.015     nosso     0.11  PDF     0.16  dif    -0.05
+          preco de compra diferente: PDF R$ 10.7 x catalogo R$ 7.11
+          (0.66x)
+
+  NEGRONI BDZ   nosso R$ 2.3577  x  PDF R$ 1.4425   (63.45%)
+      GIN ARPO 5 LT                              x 0.006     nosso     1.33  PDF     0.27  dif     1.07
+          o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
+          por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
+          catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
+          nosso banco esta certo e o PDF errado
+      VERMOUTH CINZANO ROSSO (950ml)             x 0.033     nosso     0.88  PDF     1.04  dif    -0.16
+          preco de compra diferente: PDF R$ 31.55 x catalogo R$ 26.81
+          (0.85x)
+
+  GT ARPO GIN   nosso R$ 5.165  x  PDF R$ 3.3978   (52.01%)
+      GIN ARPO 5 LT                              x 0.012     nosso     2.66  PDF     0.53  dif     2.13
+          o PDV precifica o bag de 5 L POR LITRO (44,40) num campo que e
+          por bag; 44,40 x 5 = 222,00, que e o preco do bag no nosso
+          catalogo. O PDF subestima o gin do Arpo em 5 vezes — aqui o
+          nosso banco esta certo e o PDF errado
+      LIMÃO TAHITI                               x 0.1       nosso     0.71  PDF     1.07  dif    -0.36
+          preco de compra diferente: PDF R$ 10.7 x catalogo R$ 7.11
+          (0.66x)
+
+  TOMA LIZA   nosso R$ 4.554  x  PDF R$ 8.163   (-44.21%)
+      LIMÃO TAHITI                               x 0.1       nosso     0.71  PDF     1.07  dif    -0.36
+          preco de compra diferente: PDF R$ 10.7 x catalogo R$ 7.11
+          (0.66x)
+      (-) DS COINTREAU                             x 0.5   item NAO criado: ver secao 6
+
+------------------------------------------------------------------------------
+10 · DECISOES QUE PRECISAM DA CLIENTE
+------------------------------------------------------------------------------
+  1. PRECO DE VENDA — a pendencia principal
+     As 79 fichas nascem com preco_venda = 0, porque o PDF e relatorio de
+     CUSTO e nao traz preco. Sem preco nao existe CMV, nao existe margem e
+     nao existe markup: a vista `vw_fichas_completas` devolve nulo nos tres.
+     Nada aqui foi inventado. Preenchido o preco, o CMV aparece sozinho.
+
+  2. O CMV ALVO QUE EU ESCOLHI
+     Drinque 20% (o briefing manda, e o comentario da migracao 0017 diz que
+     30 e "pessimo num drink"); cerveja, chopp e refrigerante 30% (economia
+     de revenda, nao de coquetel); cortesia 100% (cortesia nao tem preco de
+     venda, entao "meta de CMV" nao quer dizer nada para ela). Decisao minha,
+     nao dado do PDF.
+
+  3. CORTESIA TEM PRECO DE VENDA?
+     17 fichas de apoio entraram como `Cortesias`. Se a casa nunca cobra por
+     elas, o preco fica 0 para sempre e o numero que importa e o CUSTO TOTAL
+     do que se da de graca por mes — conta que o modulo nao faz hoje.
+
+  4. PREPARO VIRANDO PRODUTO: O CUSTO CONGELA
+     Os 12 preparos entraram como produto com custo_fixo tirado do PDF.
+     Vantagem: a ficha do drinque continua dizendo "xarope de maracuja".
+     Preco: o custo nao acompanha o acucar. Recalcular e trabalho manual
+     enquanto o modulo nao tiver sub-receita.
+
+  5. A DOSE NAO E VOLUME CONSTANTE
+     A casa usa fracao fixa de 0,062 em 41 das 54 doses, independente do
+     tamanho da garrafa (secao 2). Quem compra 700 ml serve 46 ml e quem
+     compra 1 L serve 62 ml. Isso e decisao de margem, e esta no PDV, nao em
+     lugar nenhum visivel.
+
+  6. TRES PRODUTOS A CADASTRAR, E DUAS DOSES A CRIAR NO PDV
+     CERVEJA CERPA, SPATEN 600ML e MATE -BASE nao existem no catalogo; DS
+     COINTREAU e DS KETEL ONE sao dose sem ficha no PDV. Enquanto isso, as
+     fichas da secao 6 e 7 ficam incompletas. Nada foi chutado.
+
+  7. UM CAMPO QUE DESTRAVA AS DOSES EM LITRO
+     `produtos.conteudo_quantidade` esta vazio em todas as garrafas. Com ele
+     preenchido (965 para a Ypioca, 700 para a Sagatiba), o modulo passa a
+     aceitar receita em ML direto, e `mv_fator_para_produto` faz a conversao.
+     Hoje a ficha depende de a fracao vir do PDV.
+
+  8. DOIS LIMONCELLOS E UM BOMBAY: ESCOLHI, CONFIRME
+     O catalogo tem LICOR LIMONCELLO CARAVELLAS e LICOR VILLA MASSA
+     LIMONCELLO pelo mesmo custo 132,90; escolhi o CARAVELLAS. Tem BOMBAY
+     SAPPHIRE 750 ml, 1000 ml e BRAMBLE; escolhi o 750 ml. Nenhum dos dois
+     tem desempate por preco no PDF.
+
+  9. O CATALOGO TEM DUPLICATA
+     `VERMOUTH CINZANO ROSSO (950ml)` e `CINZANO V. ROSSO` sao o mesmo
+     produto, com o mesmo custo 26,81, cadastrados duas vezes. Usei o
+     primeiro. Vale desativar o outro.
+
+  10. UM MONSTER PARA QUATRO SABORES
+     O PDV distingue MONSTER SABORES, SEM ACUCAR, PACIFIC PUNCH, ULTRA FIESTA
+     MANGO e ULTRA PEACHY KEEN; o catalogo tem um unico MONSTER. Casei todos
+     nele (o custo 7,66 e o mesmo), o que mantem o custo certo e perde o
+     sabor. Se a casa quer controlar sabor, falta cadastro.
+
+------------------------------------------------------------------------------
+11 · ACHADOS (defeito da origem, nomeado e nao escondido)
+------------------------------------------------------------------------------
+  itens somados por unique (ficha_id, produto_id): 1
+    JA FOI · MONSTER = 1.1
+        vem de: MONSTER ENERGETICO SEM ACUCAR + MONSTER SABORES
+
+  trava da garrafa (>= 0.5 de garrafa de destilado): 2
+    SILENCIO · XAROPE MONIN TANGERINA x 1.0   [DESCARTADA]
+        consome 1.0 de embalagem fechada num coquetel, e dose e fracao pequena (limite 0.5). A linha do PDF tem custo ZERO, logo o proprio Total impresso a ignora: DESCARTADA.
+    XEREM · BITTER ANGOSTURA x 1.0   [DESCARTADA]
+        consome 1.0 de embalagem fechada num coquetel, e dose e fracao pequena (limite 0.5). A linha do PDF tem custo ZERO, logo o proprio Total impresso a ignora: DESCARTADA.
+
+  unidade do PDV diferente da do nosso cadastro: 39
+    XAROPE MONIN DE MACA VERDE 700ML       PDV LT   x cadastro UND   (XAROPE MONIN MAÇÃ VERDE (700ml))
+    CHOPP AMSTEL BARRIL 50L                PDV LT   x cadastro UND   (CHOPP AMSTEL (30LT))
+    GF APEROL                              PDV LT   x cadastro UND   (APERITIVO APEROL (750ml))
+    ESPUMANTE SALTON BRUT 750 ML           PDV LT   x cadastro UND   (ESPUMANTE SALTON)
+    VINHO SALTON ATOS LICOROSO             PDV LT   x cadastro UND   (ESPUMANTE ATOS LICOROSO)
+    GF ARPO BAG                            PDV LT   x cadastro UND   (GIN ARPO 5 LT)
+    GF GIN TANQUERAY BOSSA NOVA            PDV LT   x cadastro UND   (GIN TANQUERAY BOSSA NOVA (700ml))
+    CHOPP BRAHMA CLARO BARRIL 50L          PDV LT   x cadastro LTS   (CHOPP BRAHMA (50lts))
+    CAFÉ NESPRESSO RISTRETTO               PDV UN   x cadastro KG    (CAFÉ CAPSULA)
+    CACHAÇA YPIOCA PRATA                   PDV LT   x cadastro UND   (CACHAÇA YPIOCA PRATA (965ml))
+    MORANGO                                PDV KG   x cadastro UND   (MORANGO)
+    GF ABSOLUT                             PDV LT   x cadastro UND   (VODKA ABSOLUT (1000ml))
+    GF CAMPARI                             PDV LT   x cadastro UND   (APERITIVO CAMPARI MILANO BITTER (900ml))
+    XAROPE FRANCES GRENADINE MONIN         PDV LT   x cadastro UND   (XAROPE MONIN GRENADINE (700ml))
+    XAROPE MONIN SPICE MANGO               PDV LT   x cadastro UND   (XAROPE MONIN SPICY MANGO (700ml))
+    MANJERICAO                             PDV KG   x cadastro UND   (MANJERICÃO)
+    CAFÉ NESPRESSO BRAZIL ORGANIC          PDV UN   x cadastro KG    (CAFÉ CAPSULA)
+    A unidade gravada no item e a do NOSSO cadastro, nunca a do PDV:
+    `mv_fator_unidade` devolve 1 para unidade igual nos dois lados, e e
+    isso que mantem a quantidade intacta. A coluna de unidade do PDV nao
+    e confiavel nas garrafas — ela diz LT em `GF APEROL` e o V. Unit
+    impresso e o preco da garrafa de 750 ml, nao o do litro.
+
+  componente com quantidade zero (nao vira item, `quantidade > 0`): 0
+    nenhum nas fichas de bebida. Os 3 do PDF estao todos em preparo
+    de cozinha (ACEM DESFIADO MP · TOMILHO, RECHEIO CARNE MOIDA MP ·
+    LOURO, RISOLE DE CAMARAO · PIMENTA DO REINO GRAO PRETA).
+
