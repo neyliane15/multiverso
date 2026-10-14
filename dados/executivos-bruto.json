@@ -1,0 +1,6966 @@
+{
+ "origem": {
+  "arquivo": "dados/EXECUTIVOS_BDZ_NORTE_SHOPPING.xlsx",
+  "abas": [
+   "EMPADÃO DE FRANGO COM SALADA ",
+   "MINI ORELHA EXECUTIVO",
+   "CARNE GUISADA  COM BATATA CORAD",
+   "CARNE SECA COM TUTU À MINEIRA",
+   "ISCA DE FÍGADO COM PURÊ",
+   "FILÉ FRANGO EMPANADO COM FRITAS",
+   "FILÉ FRANGO FRITAS",
+   "FILÉ DE FRANGO COM LEGUMES",
+   "FILÉ DE PEIXE COM LEGUMES",
+   "FILÉ DE PEIXE COM PURÊ",
+   "PERNIL COM MAIONESE",
+   "SCHNITZEL COM MAIONESE",
+   "GNOCCHI COM CARNE ASSADA",
+   "Resumo"
+  ],
+  "abas_de_prato": [
+   "EMPADÃO DE FRANGO COM SALADA ",
+   "MINI ORELHA EXECUTIVO",
+   "CARNE GUISADA  COM BATATA CORAD",
+   "CARNE SECA COM TUTU À MINEIRA",
+   "ISCA DE FÍGADO COM PURÊ",
+   "FILÉ FRANGO EMPANADO COM FRITAS",
+   "FILÉ FRANGO FRITAS",
+   "FILÉ DE FRANGO COM LEGUMES",
+   "FILÉ DE PEIXE COM LEGUMES",
+   "FILÉ DE PEIXE COM PURÊ",
+   "PERNIL COM MAIONESE",
+   "SCHNITZEL COM MAIONESE",
+   "GNOCCHI COM CARNE ASSADA"
+  ]
+ },
+ "contadores": {
+  "abas": 14,
+  "abas_de_prato": 13,
+  "blocos": 24,
+  "blocos_orfaos": 0,
+  "blocos_sem_tabela": 0,
+  "blocos_sem_total": 0,
+  "blocos_sub_receita": 11,
+  "cabecalho_divergente_col10": 0,
+  "cabecalho_divergente_col9": 0,
+  "cabecalho_fecha_com_total_col10": 24,
+  "cabecalho_fecha_com_total_col9": 24,
+  "cmv_divergente": 0,
+  "cmv_e_um_sobre_indice": 48,
+  "col10_divergente": 8,
+  "col10_igual_bruto_x_custo": 157,
+  "col9_divergente": 0,
+  "col9_igual_liquido_x_custo": 165,
+  "colunas_fora_de_ordem": 0,
+  "custo_porcao_e_custo_total_sobre_peso_porcao": 48,
+  "custo_porcao_e_custo_total_sobre_rendimento": 0,
+  "custo_porcao_nao_fecha_por_peso_porcao": 0,
+  "etiquetas_fora_de_ordem": 0,
+  "fator_divergente": 0,
+  "fator_igual_bruto_sobre_liquido": 163,
+  "fator_vazio": 2,
+  "indices_da_resumo": 5,
+  "ingrediente_com_custo_compra_divergente": 0,
+  "ingrediente_com_mais_de_uma_grafia": 9,
+  "ingrediente_com_unidade_divergente": 2,
+  "ingredientes_distintos_literais": 76,
+  "ingredientes_distintos_normalizados": 67,
+  "itens_com_unidade_vazia": 1,
+  "linhas_com_fator_igual_a_um": 124,
+  "linhas_com_fator_maior_que_um": 36,
+  "linhas_da_resumo": 13,
+  "linhas_de_ingrediente": 165,
+  "linhas_que_sao_sub_receita": 11,
+  "liquido_maior_que_bruto": 5,
+  "nome_da_aba_diferente_do_nome_vendido": 1,
+  "nome_do_bloco_diferente_do_nome_vendido": 5,
+  "perda_divergente": 31,
+  "perda_igual_bruto_menos_liquido": 122,
+  "perda_vazia": 12,
+  "pratos_vendidos": 13,
+  "preco_da_resumo_divergente": 0,
+  "preco_da_resumo_e_custo_x_indice": 65,
+  "preco_divergente": 0,
+  "preco_e_custo_porcao_x_indice": 48,
+  "rendimento_igual_a_um": 11,
+  "rendimento_igual_ao_peso_liquido_total": 13,
+  "resumo_caminhos_discordam": 1,
+  "resumo_tres_caminhos_ok": 12,
+  "sub_receita_do_depara_sem_bloco": 0,
+  "sub_receita_provada_por_col10": 1,
+  "sub_receita_provada_por_col9": 9,
+  "sub_receita_provada_por_col9_arredondado": 1,
+  "sub_receita_repetida_com_copias_divergentes": 0,
+  "sub_receita_repetida_com_copias_identicas": 2,
+  "sub_receita_repetida_em_abas": 2,
+  "sub_receitas_distintas": 9,
+  "sub_receitas_sem_prova": 0,
+  "total_de_dinheiro_com_intervalo_curto": 2,
+  "total_divergente_col10": 1,
+  "total_divergente_col9": 1,
+  "total_divergente_peso_bruto": 2,
+  "total_divergente_peso_liquido": 2,
+  "total_fecha_col10": 23,
+  "total_fecha_col9": 23,
+  "total_fecha_peso_bruto": 22,
+  "total_fecha_peso_liquido": 22,
+  "volta_do_perda_percentual_falhou": 0,
+  "volta_do_perda_percentual_ok": 160,
+  "volta_impossivel_perda_100": 0
+ },
+ "achados": [
+  {
+   "tipo": "unidade_vazia",
+   "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "bloco": "FILÉ DE FRANGO COM FRITAS",
+   "linha": 14,
+   "ingrediente": "Leitosa de empanamento",
+   "valor_col9": 0.145
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "EMPADÃO DE FRANGO COM SALADA",
+   "linha": 8,
+   "ingrediente": "empadão de frango",
+   "tipo": "col10_nao_e_bruto_x_custo",
+   "esperado": 2.089822330521712,
+   "impresso": 2.2752,
+   "e_sub_receita": true
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "EMPADÃO DE FRANGO COM SALADA",
+   "linha": 9,
+   "ingrediente": "salada da casa( individual)",
+   "tipo": "col10_nao_e_bruto_x_custo",
+   "esperado": 2.5613000000000006,
+   "impresso": 3.9692,
+   "e_sub_receita": true
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "MASSA EMPADÃO",
+   "linha": 27,
+   "ingrediente": "sal",
+   "tipo": "fator_de_correcao_vazio",
+   "peso_bruto": 0.02,
+   "peso_liquido": 0.02
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "MASSA EMPADÃO",
+   "tipo": "linha_total_nao_e_a_soma_das_linhas",
+   "coluna": "peso_bruto",
+   "soma_das_linhas": 4.52,
+   "total_impresso": 1.65,
+   "diferenca": 2.8699999999999997
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "MASSA EMPADÃO",
+   "tipo": "linha_total_nao_e_a_soma_das_linhas",
+   "coluna": "peso_liquido",
+   "soma_das_linhas": 4.52,
+   "total_impresso": 1.65,
+   "diferenca": 2.8699999999999997
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "EMPADÃO DE FRANGO",
+   "linha": 58,
+   "ingrediente": "massa empadão",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 1.6,
+   "peso_liquido": 1.6,
+   "bruto_menos_liquido": 0.0,
+   "perda_impressa": 0.1
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "EMPADÃO DE FRANGO",
+   "linha": 59,
+   "ingrediente": "recheio empadão",
+   "tipo": "col10_nao_e_bruto_x_custo",
+   "esperado": 32.98490721649484,
+   "impresso": 36.70649999999999,
+   "e_sub_receita": true
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "EMPADÃO DE FRANGO",
+   "linha": 59,
+   "ingrediente": "recheio empadão",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 2.4,
+   "peso_liquido": 2.4,
+   "bruto_menos_liquido": 0.0,
+   "perda_impressa": 0.05
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "EMPADÃO DE FRANGO",
+   "linha": 60,
+   "ingrediente": "ovo",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 2.0,
+   "peso_liquido": 2.0,
+   "bruto_menos_liquido": 0.0,
+   "perda_impressa": 0.1
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "EMPADÃO DE FRANGO",
+   "tipo": "linha_total_nao_e_a_soma_das_linhas",
+   "coluna": "peso_bruto",
+   "soma_das_linhas": 6.0,
+   "total_impresso": 4.0,
+   "diferenca": 2.0
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "EMPADÃO DE FRANGO",
+   "tipo": "linha_total_nao_e_a_soma_das_linhas",
+   "coluna": "peso_liquido",
+   "soma_das_linhas": 6.0,
+   "total_impresso": 3.6,
+   "diferenca": 2.4
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "bloco": "SALADA DA CASA ( individual)",
+   "linha": 73,
+   "ingrediente": "Rúcula ",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.03,
+   "peso_liquido": 0.025,
+   "bruto_menos_liquido": 0.0049999999999999975,
+   "perda_impressa": 0.05
+  },
+  {
+   "aba": "MINI ORELHA EXECUTIVO",
+   "bloco": "MINI ORELHA DE ELEFANTE",
+   "linha": 8,
+   "ingrediente": "bombom de alcatra",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.1,
+   "peso_liquido": 0.09,
+   "bruto_menos_liquido": 0.010000000000000009,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "MINI ORELHA EXECUTIVO",
+   "bloco": "MINI ORELHA DE ELEFANTE",
+   "linha": 10,
+   "ingrediente": "guarnição à francesa",
+   "tipo": "col10_nao_e_bruto_x_custo",
+   "esperado": 1.163,
+   "impresso": 1.213,
+   "e_sub_receita": true
+  },
+  {
+   "aba": "MINI ORELHA EXECUTIVO",
+   "bloco": "GUARNIÇÃO A FRANCESA",
+   "linha": 30,
+   "ingrediente": "Cebola branca",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.04,
+   "peso_liquido": 0.03,
+   "bruto_menos_liquido": 0.010000000000000002,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "CARNE GUISADA  COM BATATA CORAD",
+   "bloco": "CARNE GUISADA COM BATATA CORADA",
+   "linha": 10,
+   "ingrediente": "batata asterix",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.2,
+   "peso_liquido": 0.1,
+   "bruto_menos_liquido": 0.1,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "CARNE SECA COM TUTU À MINEIRA",
+   "bloco": "CARNE SECA COM TUTU A MINEIRA",
+   "linha": 14,
+   "ingrediente": "couve refogada mp",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.1,
+   "peso_liquido": 0.05,
+   "bruto_menos_liquido": 0.05,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "CARNE SECA COM TUTU À MINEIRA",
+   "bloco": "TUTU DE FEIJÃO PRETO",
+   "linha": 34,
+   "ingrediente": "bacon picado",
+   "tipo": "fator_de_correcao_vazio",
+   "peso_bruto": 0.1,
+   "peso_liquido": 0.1
+  },
+  {
+   "aba": "ISCA DE FÍGADO COM PURÊ",
+   "bloco": "isca de fígado com purê",
+   "linha": 8,
+   "ingrediente": "isca de fígado de boi",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.15,
+   "peso_liquido": 0.12,
+   "bruto_menos_liquido": 0.03,
+   "perda_impressa": 0.02
+  },
+  {
+   "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "bloco": "FILÉ DE FRANGO COM FRITAS",
+   "linha": 8,
+   "ingrediente": "filé de frango",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.1,
+   "bruto_menos_liquido": 0.01999999999999999,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "bloco": "FILÉ DE FRANGO COM FRITAS",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "bruto_menos_liquido": -0.03,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "bloco": "FILÉ DE FRANGO COM FRITAS",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "liquido_maior_que_bruto",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "fator_correcao": 0.8,
+   "perda_percentual_seria": -25.0
+  },
+  {
+   "aba": "FILÉ FRANGO FRITAS",
+   "bloco": "FILÉ DE FRANGO COM FRITAS",
+   "linha": 8,
+   "ingrediente": "filé de frango",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.17,
+   "peso_liquido": 0.15,
+   "bruto_menos_liquido": 0.020000000000000018,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ FRANGO FRITAS",
+   "bloco": "FILÉ DE FRANGO COM FRITAS",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "bruto_menos_liquido": -0.03,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ FRANGO FRITAS",
+   "bloco": "FILÉ DE FRANGO COM FRITAS",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "liquido_maior_que_bruto",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "fator_correcao": 0.8,
+   "perda_percentual_seria": -25.0
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "bloco": "FILÉ DE FRANGO COM LEGUMES",
+   "linha": 10,
+   "ingrediente": "salada de legumes",
+   "tipo": "col10_nao_e_bruto_x_custo",
+   "esperado": 2.5047826086956526,
+   "impresso": 3.582,
+   "e_sub_receita": true
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "bloco": "FILÉ DE FRANGO COM LEGUMES",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "bruto_menos_liquido": -0.03,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "bloco": "FILÉ DE FRANGO COM LEGUMES",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "liquido_maior_que_bruto",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "fator_correcao": 0.8,
+   "perda_percentual_seria": -25.0
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "bloco": "SALADA DE LEGUMES MP",
+   "linha": 27,
+   "ingrediente": "batata asterix",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.5,
+   "peso_liquido": 0.43,
+   "bruto_menos_liquido": 0.07,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "bloco": "SALADA DE LEGUMES MP",
+   "linha": 28,
+   "ingrediente": "cenoura",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.3,
+   "peso_liquido": 0.25,
+   "bruto_menos_liquido": 0.04999999999999999,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "bloco": "SALADA DE LEGUMES MP",
+   "linha": 29,
+   "ingrediente": "brócolis americano",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.3,
+   "peso_liquido": 0.2,
+   "bruto_menos_liquido": 0.09999999999999998,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "bloco": "SALADA DE LEGUMES MP",
+   "linha": 30,
+   "ingrediente": "vagem",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.2,
+   "peso_liquido": 0.1,
+   "bruto_menos_liquido": 0.1,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "linha": 8,
+   "ingrediente": "filé de tilápia",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.15,
+   "peso_liquido": 0.12,
+   "bruto_menos_liquido": 0.03,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "linha": 10,
+   "ingrediente": "salada de legumes",
+   "tipo": "col10_nao_e_bruto_x_custo",
+   "esperado": 2.5047826086956526,
+   "impresso": 3.582,
+   "e_sub_receita": true
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "bruto_menos_liquido": -0.03,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "liquido_maior_que_bruto",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "fator_correcao": 0.8,
+   "perda_percentual_seria": -25.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "bloco": "SALADA DE LEGUMES MP",
+   "linha": 27,
+   "ingrediente": "batata asterix",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.5,
+   "peso_liquido": 0.43,
+   "bruto_menos_liquido": 0.07,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "bloco": "SALADA DE LEGUMES MP",
+   "linha": 28,
+   "ingrediente": "cenoura",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.3,
+   "peso_liquido": 0.25,
+   "bruto_menos_liquido": 0.04999999999999999,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "bloco": "SALADA DE LEGUMES MP",
+   "linha": 29,
+   "ingrediente": "brócolis americano",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.3,
+   "peso_liquido": 0.2,
+   "bruto_menos_liquido": 0.09999999999999998,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "bloco": "SALADA DE LEGUMES MP",
+   "linha": 30,
+   "ingrediente": "vagem",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.2,
+   "peso_liquido": 0.1,
+   "bruto_menos_liquido": 0.1,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM PURÊ",
+   "bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "linha": 8,
+   "ingrediente": "filé de tilápia",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.15,
+   "peso_liquido": 0.12,
+   "bruto_menos_liquido": 0.03,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM PURÊ",
+   "bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "bruto_menos_liquido": -0.03,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM PURÊ",
+   "bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "linha": 11,
+   "ingrediente": "feijão pronto",
+   "tipo": "liquido_maior_que_bruto",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.15,
+   "fator_correcao": 0.8,
+   "perda_percentual_seria": -25.0
+  },
+  {
+   "aba": "PERNIL COM MAIONESE",
+   "bloco": "PERNIL COM MAIONESE",
+   "linha": 10,
+   "ingrediente": "Salada de Maionese MP",
+   "tipo": "col10_nao_e_bruto_x_custo",
+   "esperado": 0.9698732394366198,
+   "impresso": 1.077,
+   "e_sub_receita": true
+  },
+  {
+   "aba": "PERNIL COM MAIONESE",
+   "bloco": "SALADA DE MAIONESE",
+   "linha": 26,
+   "ingrediente": "Batata asterix",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.75,
+   "peso_liquido": 0.63,
+   "bruto_menos_liquido": 0.12,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "PERNIL COM MAIONESE",
+   "bloco": "SALADA DE MAIONESE",
+   "linha": 27,
+   "ingrediente": "cenoura",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.2,
+   "peso_liquido": 0.16,
+   "bruto_menos_liquido": 0.04000000000000001,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "SCHNITZEL COM MAIONESE",
+   "bloco": "SCHNITIZEL COM MAIONESE",
+   "linha": 8,
+   "ingrediente": "copalombo",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.12,
+   "peso_liquido": 0.1,
+   "bruto_menos_liquido": 0.01999999999999999,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "SCHNITZEL COM MAIONESE",
+   "bloco": "SCHNITIZEL COM MAIONESE",
+   "linha": 10,
+   "ingrediente": "Salada de maionese MP",
+   "tipo": "col10_nao_e_bruto_x_custo",
+   "esperado": 0.9698732394366198,
+   "impresso": 1.077,
+   "e_sub_receita": true
+  },
+  {
+   "aba": "SCHNITZEL COM MAIONESE",
+   "bloco": "SCHNITIZEL COM MAIONESE",
+   "tipo": "linha_total_nao_e_a_soma_das_linhas",
+   "coluna": "col9",
+   "soma_das_linhas": 4.820673239436619,
+   "total_impresso": 4.218473239436619,
+   "diferenca": 0.6021999999999998,
+   "soma_so_as_primeiras": 8,
+   "de_fora": [
+    {
+     "linha": 16,
+     "ingrediente": "alho batido",
+     "valor": 0.41000000000000003
+    },
+    {
+     "linha": 17,
+     "ingrediente": "limão sciciliano",
+     "valor": 0.19219999999999998
+    }
+   ]
+  },
+  {
+   "aba": "SCHNITZEL COM MAIONESE",
+   "bloco": "SCHNITIZEL COM MAIONESE",
+   "tipo": "linha_total_nao_e_a_soma_das_linhas",
+   "coluna": "col10",
+   "soma_das_linhas": 5.2672,
+   "total_impresso": 4.665,
+   "diferenca": 0.6021999999999998,
+   "soma_so_as_primeiras": 8,
+   "de_fora": [
+    {
+     "linha": 16,
+     "ingrediente": "alho batido",
+     "valor": 0.41000000000000003
+    },
+    {
+     "linha": 17,
+     "ingrediente": "limão sciciliano",
+     "valor": 0.19219999999999998
+    }
+   ]
+  },
+  {
+   "aba": "SCHNITZEL COM MAIONESE",
+   "bloco": "SALADA DE MAIONESE",
+   "linha": 30,
+   "ingrediente": "Batata asterix",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.75,
+   "peso_liquido": 0.63,
+   "bruto_menos_liquido": 0.12,
+   "perda_impressa": 0.0
+  },
+  {
+   "aba": "SCHNITZEL COM MAIONESE",
+   "bloco": "SALADA DE MAIONESE",
+   "linha": 31,
+   "ingrediente": "cenoura",
+   "tipo": "perda_manipulacao_divergente",
+   "peso_bruto": 0.2,
+   "peso_liquido": 0.16,
+   "bruto_menos_liquido": 0.04000000000000001,
+   "perda_impressa": 0.0
+  },
+  {
+   "tipo": "nome_do_bloco_diferente_do_nome_vendido",
+   "aba": "MINI ORELHA EXECUTIVO",
+   "nome_do_bloco": "MINI ORELHA DE ELEFANTE",
+   "nome_na_resumo": "MINI ORELHA EXECUTIVO"
+  },
+  {
+   "tipo": "resumo_os_tres_caminhos_discordam",
+   "prato": "CARNE GUISADA  COM BATATA CORADA",
+   "aba_por_posicao": "CARNE GUISADA  COM BATATA CORAD",
+   "aba_por_nome": null,
+   "abas_por_custo_col10": [
+    "CARNE GUISADA  COM BATATA CORAD"
+   ]
+  },
+  {
+   "tipo": "nome_da_aba_diferente_do_nome_vendido",
+   "aba": "CARNE GUISADA  COM BATATA CORAD",
+   "tamanho_do_nome_da_aba": 31,
+   "nome_na_resumo": "CARNE GUISADA  COM BATATA CORADA"
+  },
+  {
+   "tipo": "nome_do_bloco_diferente_do_nome_vendido",
+   "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "nome_do_bloco": "FILÉ DE FRANGO COM FRITAS",
+   "nome_na_resumo": "FILÉ FRANGO EMPANADO COM FRITAS"
+  },
+  {
+   "tipo": "nome_do_bloco_diferente_do_nome_vendido",
+   "aba": "FILÉ FRANGO FRITAS",
+   "nome_do_bloco": "FILÉ DE FRANGO COM FRITAS",
+   "nome_na_resumo": "FILÉ FRANGO FRITAS"
+  },
+  {
+   "tipo": "nome_do_bloco_diferente_do_nome_vendido",
+   "aba": "FILÉ DE PEIXE COM PURÊ",
+   "nome_do_bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "nome_na_resumo": "FILÉ DE PEIXE COM PURÊ"
+  },
+  {
+   "tipo": "nome_do_bloco_diferente_do_nome_vendido",
+   "aba": "SCHNITZEL COM MAIONESE",
+   "nome_do_bloco": "SCHNITIZEL COM MAIONESE",
+   "nome_na_resumo": "SCHNITZEL COM MAIONESE"
+  },
+  {
+   "tipo": "ingrediente_com_unidade_divergente",
+   "ingrediente": "FARINHA DE TRIGO",
+   "unidades": [
+    "KG",
+    "L"
+   ]
+  },
+  {
+   "tipo": "ingrediente_com_unidade_divergente",
+   "ingrediente": "LEITOSA DE EMPANAMENTO",
+   "unidades": [
+    "",
+    "KG"
+   ]
+  }
+ ],
+ "resumo": [
+  {
+   "linha": 3,
+   "nome": "EMPADÃO DE FRANGO COM SALADA",
+   "custo_bruto": 7.0184,
+   "precos": {
+    "3": 21.0552,
+    "3.5": 24.5644,
+    "4": 28.0736,
+    "4.5": 31.5828,
+    "5": 35.092
+   },
+   "aba_por_posicao": "EMPADÃO DE FRANGO COM SALADA ",
+   "aba_por_nome": "EMPADÃO DE FRANGO COM SALADA ",
+   "abas_por_custo_col10": [
+    "EMPADÃO DE FRANGO COM SALADA "
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "EMPADÃO DE FRANGO COM SALADA "
+  },
+  {
+   "linha": 4,
+   "nome": "MINI ORELHA EXECUTIVO",
+   "custo_bruto": 9.913599999999999,
+   "precos": {
+    "3": 29.740799999999997,
+    "3.5": 34.697599999999994,
+    "4": 39.654399999999995,
+    "4.5": 44.6112,
+    "5": 49.568
+   },
+   "aba_por_posicao": "MINI ORELHA EXECUTIVO",
+   "aba_por_nome": "MINI ORELHA EXECUTIVO",
+   "abas_por_custo_col10": [
+    "MINI ORELHA EXECUTIVO"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "MINI ORELHA EXECUTIVO"
+  },
+  {
+   "linha": 5,
+   "nome": "CARNE GUISADA  COM BATATA CORADA",
+   "custo_bruto": 8.921100000000001,
+   "precos": {
+    "3": 26.7633,
+    "3.5": 31.223850000000002,
+    "4": 35.684400000000004,
+    "4.5": 40.14495,
+    "5": 44.605500000000006
+   },
+   "aba_por_posicao": "CARNE GUISADA  COM BATATA CORAD",
+   "aba_por_nome": null,
+   "abas_por_custo_col10": [
+    "CARNE GUISADA  COM BATATA CORAD"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "CARNE GUISADA  COM BATATA CORAD"
+  },
+  {
+   "linha": 6,
+   "nome": "CARNE SECA COM TUTU À MINEIRA",
+   "custo_bruto": 17.133727443609025,
+   "precos": {
+    "3": 51.401182330827076,
+    "3.5": 59.96804605263159,
+    "4": 68.5349097744361,
+    "4.5": 77.10177349624061,
+    "5": 85.66863721804512
+   },
+   "aba_por_posicao": "CARNE SECA COM TUTU À MINEIRA",
+   "aba_por_nome": "CARNE SECA COM TUTU À MINEIRA",
+   "abas_por_custo_col10": [
+    "CARNE SECA COM TUTU À MINEIRA"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "CARNE SECA COM TUTU À MINEIRA"
+  },
+  {
+   "linha": 7,
+   "nome": "ISCA DE FÍGADO COM PURÊ",
+   "custo_bruto": 5.486149999999999,
+   "precos": {
+    "3": 16.45845,
+    "3.5": 19.201524999999997,
+    "4": 21.944599999999998,
+    "4.5": 24.687675,
+    "5": 27.430749999999996
+   },
+   "aba_por_posicao": "ISCA DE FÍGADO COM PURÊ",
+   "aba_por_nome": "ISCA DE FÍGADO COM PURÊ",
+   "abas_por_custo_col10": [
+    "ISCA DE FÍGADO COM PURÊ"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "ISCA DE FÍGADO COM PURÊ"
+  },
+  {
+   "linha": 8,
+   "nome": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "custo_bruto": 5.6787,
+   "precos": {
+    "3": 17.0361,
+    "3.5": 19.87545,
+    "4": 22.7148,
+    "4.5": 25.55415,
+    "5": 28.3935
+   },
+   "aba_por_posicao": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "aba_por_nome": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "abas_por_custo_col10": [
+    "FILÉ FRANGO EMPANADO COM FRITAS"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "FILÉ FRANGO EMPANADO COM FRITAS"
+  },
+  {
+   "linha": 9,
+   "nome": "FILÉ FRANGO FRITAS",
+   "custo_bruto": 5.8727,
+   "precos": {
+    "3": 17.6181,
+    "3.5": 20.55445,
+    "4": 23.4908,
+    "4.5": 26.42715,
+    "5": 29.363500000000002
+   },
+   "aba_por_posicao": "FILÉ FRANGO FRITAS",
+   "aba_por_nome": "FILÉ FRANGO FRITAS",
+   "abas_por_custo_col10": [
+    "FILÉ FRANGO FRITAS"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "FILÉ FRANGO FRITAS"
+  },
+  {
+   "linha": 10,
+   "nome": "FILÉ DE FRANGO COM LEGUMES",
+   "custo_bruto": 7.103400000000001,
+   "precos": {
+    "3": 21.310200000000002,
+    "3.5": 24.861900000000002,
+    "4": 28.413600000000002,
+    "4.5": 31.965300000000003,
+    "5": 35.517
+   },
+   "aba_por_posicao": "FILÉ DE FRANGO COM LEGUMES",
+   "aba_por_nome": "FILÉ DE FRANGO COM LEGUMES",
+   "abas_por_custo_col10": [
+    "FILÉ DE FRANGO COM LEGUMES"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "FILÉ DE FRANGO COM LEGUMES"
+  },
+  {
+   "linha": 11,
+   "nome": "FILÉ DE PEIXE COM LEGUMES",
+   "custo_bruto": 11.3724,
+   "precos": {
+    "3": 34.117200000000004,
+    "3.5": 39.8034,
+    "4": 45.4896,
+    "4.5": 51.1758,
+    "5": 56.862
+   },
+   "aba_por_posicao": "FILÉ DE PEIXE COM LEGUMES",
+   "aba_por_nome": "FILÉ DE PEIXE COM LEGUMES",
+   "abas_por_custo_col10": [
+    "FILÉ DE PEIXE COM LEGUMES"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "FILÉ DE PEIXE COM LEGUMES"
+  },
+  {
+   "linha": 12,
+   "nome": "FILÉ DE PEIXE COM PURÊ",
+   "custo_bruto": 10.481900000000001,
+   "precos": {
+    "3": 31.445700000000002,
+    "3.5": 36.68665000000001,
+    "4": 41.927600000000005,
+    "4.5": 47.16855,
+    "5": 52.40950000000001
+   },
+   "aba_por_posicao": "FILÉ DE PEIXE COM PURÊ",
+   "aba_por_nome": "FILÉ DE PEIXE COM PURÊ",
+   "abas_por_custo_col10": [
+    "FILÉ DE PEIXE COM PURÊ"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "FILÉ DE PEIXE COM PURÊ"
+  },
+  {
+   "linha": 13,
+   "nome": "PERNIL COM MAIONESE",
+   "custo_bruto": 6.7469,
+   "precos": {
+    "3": 20.2407,
+    "3.5": 23.614150000000002,
+    "4": 26.9876,
+    "4.5": 30.36105,
+    "5": 33.7345
+   },
+   "aba_por_posicao": "PERNIL COM MAIONESE",
+   "aba_por_nome": "PERNIL COM MAIONESE",
+   "abas_por_custo_col10": [
+    "PERNIL COM MAIONESE"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "PERNIL COM MAIONESE"
+  },
+  {
+   "linha": 14,
+   "nome": "SCHNITZEL COM MAIONESE",
+   "custo_bruto": 4.665,
+   "precos": {
+    "3": 13.995000000000001,
+    "3.5": 16.3275,
+    "4": 18.66,
+    "4.5": 20.9925,
+    "5": 23.325
+   },
+   "aba_por_posicao": "SCHNITZEL COM MAIONESE",
+   "aba_por_nome": "SCHNITZEL COM MAIONESE",
+   "abas_por_custo_col10": [
+    "SCHNITZEL COM MAIONESE"
+   ],
+   "abas_por_custo_col9": [],
+   "aba": "SCHNITZEL COM MAIONESE"
+  },
+  {
+   "linha": 15,
+   "nome": "GNOCCHI COM CARNE ASSADA",
+   "custo_bruto": 12.92242894736842,
+   "precos": {
+    "3": 38.767286842105264,
+    "3.5": 45.22850131578947,
+    "4": 51.68971578947368,
+    "4.5": 58.15093026315789,
+    "5": 64.6121447368421
+   },
+   "aba_por_posicao": "GNOCCHI COM CARNE ASSADA",
+   "aba_por_nome": "GNOCCHI COM CARNE ASSADA",
+   "abas_por_custo_col10": [
+    "GNOCCHI COM CARNE ASSADA"
+   ],
+   "abas_por_custo_col9": [
+    "GNOCCHI COM CARNE ASSADA"
+   ],
+   "aba": "GNOCCHI COM CARNE ASSADA"
+  }
+ ],
+ "blocos": [
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "EMPADÃO DE FRANGO COM SALADA",
+   "rendimento_planilha": 0.64,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     5.425122330521712,
+     7.0184
+    ],
+    "custo_porcao": [
+     5.425122330521712,
+     7.0184
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     27.125611652608562,
+     35.092
+    ],
+    "cmv": [
+     0.19999999999999998,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "empadão de frango",
+     "sku": null,
+     "peso_bruto": 0.18,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.18,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 11.610124058453955,
+     "valor": [
+      2.089822330521712,
+      2.2752
+     ],
+     "col10_recalculado": 2.089822330521712,
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.18,
+     "sub_receita": "EMPADÃO DE FRANGO",
+     "sub_receita_aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 9,
+     "ingrediente": "salada da casa( individual)",
+     "sku": null,
+     "peso_bruto": 0.14,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.14,
+     "unidade": "porção",
+     "fator_correcao": 1.0,
+     "custo_compra": 18.295,
+     "valor": [
+      2.5613000000000006,
+      3.9692
+     ],
+     "col10_recalculado": 2.5613000000000006,
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.14,
+     "sub_receita": "SALADA DA CASA ( individual)",
+     "sub_receita_aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 10,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijãp preto pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 3.15,
+     "valor": [
+      0.378,
+      0.378
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.12
+    }
+   ],
+   "total": {
+    "linha": 12,
+    "peso_bruto": 0.64,
+    "peso_liquido": 0.64,
+    "unidade": "KG",
+    "valor": [
+     5.425122330521712,
+     7.0184
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.64,
+    "peso_liquido": 0.64,
+    "col9": 5.425122330521712,
+    "col10": 7.0184
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "EMPADÃO DE FRANGO COM SALADA",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 21.0552,
+    "3.5": 24.5644,
+    "4": 28.0736,
+    "4.5": 31.5828,
+    "5": 35.092
+   },
+   "custo_bruto_da_resumo": 7.0184,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "linha_cabecalho": 17,
+   "categoria": "Executivo",
+   "nome_do_bloco": "MASSA EMPADÃO",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 1.65,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     8.0144,
+     8.0144
+    ],
+    "custo_porcao": [
+     4.857212121212122,
+     4.857212121212122
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     24.28606060606061,
+     24.28606060606061
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 24,
+     "ingrediente": "farinha de trigo",
+     "sku": null,
+     "peso_bruto": 1.0,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 1.0,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 5.9,
+     "valor": [
+      5.9,
+      5.9
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 1.0
+    },
+    {
+     "linha": 25,
+     "ingrediente": "banha",
+     "sku": null,
+     "peso_bruto": 0.5,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.5,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.0,
+     "valor": [
+      0.5,
+      0.5
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.5
+    },
+    {
+     "linha": 26,
+     "ingrediente": "ovo",
+     "sku": null,
+     "peso_bruto": 3.0,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 3.0,
+     "unidade": "und",
+     "fator_correcao": 1.0,
+     "custo_compra": 0.52,
+     "valor": [
+      1.56,
+      1.56
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 3.0
+    },
+    {
+     "linha": 27,
+     "ingrediente": "sal",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": null,
+     "custo_compra": 2.72,
+     "valor": [
+      0.054400000000000004,
+      0.054400000000000004
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 28,
+    "peso_bruto": 1.65,
+    "peso_liquido": 1.65,
+    "unidade": "KG",
+    "valor": [
+     8.0144,
+     8.0144
+    ]
+   },
+   "linha_tabela": 23,
+   "soma_das_linhas": {
+    "peso_bruto": 4.52,
+    "peso_liquido": 4.52,
+    "col9": 8.0144,
+    "col10": 8.0144
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "MASSA EMPADÃO"
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "linha_cabecalho": 31,
+   "categoria": "Executivo",
+   "nome_do_bloco": "RECHEIO EMPADÃO",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 2.425,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     33.32849999999999,
+     36.70649999999999
+    ],
+    "custo_porcao": [
+     13.743711340206183,
+     15.136701030927833
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     68.7185567010309,
+     75.68350515463916
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 38,
+     "ingrediente": "filé de frango",
+     "sku": null,
+     "peso_bruto": 1.5,
+     "perda_manipulacao": 0.1,
+     "peso_liquido": 1.4,
+     "unidade": "KG",
+     "fator_correcao": 1.0714285714285714,
+     "custo_compra": 14.44,
+     "valor": [
+      20.215999999999998,
+      21.66
+     ],
+     "perda_percentual": 6.667,
+     "peso_bruto_reconstruido": 1.5
+    },
+    {
+     "linha": 39,
+     "ingrediente": "cebola branca",
+     "sku": null,
+     "peso_bruto": 0.3,
+     "perda_manipulacao": 0.05,
+     "peso_liquido": 0.25,
+     "unidade": "KG",
+     "fator_correcao": 1.2,
+     "custo_compra": 8.7,
+     "valor": [
+      2.175,
+      2.61
+     ],
+     "perda_percentual": 16.667,
+     "peso_bruto_reconstruido": 0.3
+    },
+    {
+     "linha": 40,
+     "ingrediente": "tomate",
+     "sku": null,
+     "peso_bruto": 0.4,
+     "perda_manipulacao": 0.1,
+     "peso_liquido": 0.3,
+     "unidade": "KG",
+     "fator_correcao": 1.3333333333333335,
+     "custo_compra": 14.99,
+     "valor": [
+      4.497,
+      5.996
+     ],
+     "perda_percentual": 25.0,
+     "peso_bruto_reconstruido": 0.4
+    },
+    {
+     "linha": 41,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      1.0250000000000001,
+      1.0250000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 42,
+     "ingrediente": "ervilha congelada",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 12.88,
+     "valor": [
+      2.5760000000000005,
+      2.5760000000000005
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 43,
+     "ingrediente": "extrato de tomate",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 14.38,
+     "valor": [
+      1.4380000000000002,
+      1.4380000000000002
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.1
+    },
+    {
+     "linha": 44,
+     "ingrediente": "salsa picada",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      1.2835,
+      1.2835
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 45,
+     "ingrediente": "banha",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.0,
+     "valor": [
+      0.05,
+      0.05
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 46,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.025,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.025,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.068,
+      0.068
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.025
+    }
+   ],
+   "total": {
+    "linha": 47,
+    "peso_bruto": 2.675,
+    "peso_liquido": 2.425,
+    "unidade": "KG",
+    "valor": [
+     33.32849999999999,
+     36.70649999999999
+    ]
+   },
+   "linha_tabela": 37,
+   "soma_das_linhas": {
+    "peso_bruto": 2.675,
+    "peso_liquido": 2.425,
+    "col9": 33.32849999999999,
+    "col10": 36.70649999999999
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "RECHEIO EMPADÃO"
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "linha_cabecalho": 51,
+   "categoria": "Executivo",
+   "nome_do_bloco": "EMPADÃO DE FRANGO",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 3.6,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     41.79644661043424,
+     45.51803939393938
+    ],
+    "custo_porcao": [
+     11.610124058453955,
+     12.643899831649827
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     58.05062029226978,
+     63.219499158249135
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 58,
+     "ingrediente": "massa empadão",
+     "sku": null,
+     "peso_bruto": 1.6,
+     "perda_manipulacao": 0.1,
+     "peso_liquido": 1.6,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 4.857212121212122,
+     "valor": [
+      7.7715393939393955,
+      7.7715393939393955
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 1.6,
+     "sub_receita": "MASSA EMPADÃO",
+     "sub_receita_aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 59,
+     "ingrediente": "recheio empadão",
+     "sku": null,
+     "peso_bruto": 2.4,
+     "perda_manipulacao": 0.05,
+     "peso_liquido": 2.4,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 13.743711340206183,
+     "valor": [
+      32.98490721649484,
+      36.70649999999999
+     ],
+     "col10_recalculado": 32.98490721649484,
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 2.4,
+     "sub_receita": "RECHEIO EMPADÃO",
+     "sub_receita_aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 60,
+     "ingrediente": "ovo",
+     "sku": null,
+     "peso_bruto": 2.0,
+     "perda_manipulacao": 0.1,
+     "peso_liquido": 2.0,
+     "unidade": "UND",
+     "fator_correcao": 1.0,
+     "custo_compra": 0.52,
+     "valor": [
+      1.04,
+      1.04
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 2.0
+    }
+   ],
+   "total": {
+    "linha": 61,
+    "peso_bruto": 4.0,
+    "peso_liquido": 3.6,
+    "unidade": "KG",
+    "valor": [
+     41.79644661043424,
+     45.51803939393938
+    ]
+   },
+   "linha_tabela": 57,
+   "soma_das_linhas": {
+    "peso_bruto": 6.0,
+    "peso_liquido": 6.0,
+    "col9": 41.79644661043424,
+    "col10": 45.51803939393938
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "EMPADÃO DE FRANGO"
+  },
+  {
+   "aba": "EMPADÃO DE FRANGO COM SALADA ",
+   "linha_cabecalho": 66,
+   "categoria": "Executivo",
+   "nome_do_bloco": "SALADA DA CASA ( individual)",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 0.14,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     2.5613000000000006,
+     3.9692
+    ],
+    "custo_porcao": [
+     18.295,
+     28.351428571428567
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     91.47500000000001,
+     141.75714285714284
+    ],
+    "cmv": [
+     0.2,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 73,
+     "ingrediente": "Rúcula ",
+     "sku": null,
+     "peso_bruto": 0.03,
+     "perda_manipulacao": 0.05,
+     "peso_liquido": 0.025,
+     "unidade": "KG",
+     "fator_correcao": 1.2,
+     "custo_compra": 23.5,
+     "valor": [
+      0.5875,
+      0.705
+     ],
+     "perda_percentual": 16.667,
+     "peso_bruto_reconstruido": 0.03
+    },
+    {
+     "linha": 74,
+     "ingrediente": "alface americana",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": 0.015,
+     "peso_liquido": 0.035,
+     "unidade": "KG",
+     "fator_correcao": 1.4285714285714286,
+     "custo_compra": 28.5,
+     "valor": [
+      0.9975,
+      1.425
+     ],
+     "perda_percentual": 30.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 75,
+     "ingrediente": "tomate italiano",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.05,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 2.0,
+     "custo_compra": 14.99,
+     "valor": [
+      0.7495,
+      1.499
+     ],
+     "perda_percentual": 50.0,
+     "peso_bruto_reconstruido": 0.1
+    },
+    {
+     "linha": 76,
+     "ingrediente": "cebola branca",
+     "sku": null,
+     "peso_bruto": 0.015,
+     "perda_manipulacao": 0.005,
+     "peso_liquido": 0.01,
+     "unidade": "KG",
+     "fator_correcao": 1.5,
+     "custo_compra": 8.7,
+     "valor": [
+      0.087,
+      0.13049999999999998
+     ],
+     "perda_percentual": 33.333,
+     "peso_bruto_reconstruido": 0.015
+    },
+    {
+     "linha": 77,
+     "ingrediente": "cenoura ralada",
+     "sku": null,
+     "peso_bruto": 0.03,
+     "perda_manipulacao": 0.01,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.5,
+     "custo_compra": 6.99,
+     "valor": [
+      0.1398,
+      0.2097
+     ],
+     "perda_percentual": 33.333,
+     "peso_bruto_reconstruido": 0.03
+    }
+   ],
+   "total": {
+    "linha": 78,
+    "peso_bruto": 0.225,
+    "peso_liquido": 0.14,
+    "unidade": "KG",
+    "valor": [
+     2.5613000000000006,
+     3.9692
+    ]
+   },
+   "linha_tabela": 72,
+   "soma_das_linhas": {
+    "peso_bruto": 0.225,
+    "peso_liquido": 0.14,
+    "col9": 2.5613000000000006,
+    "col10": 3.9692
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "SALADA DA CASA ( individual)"
+  },
+  {
+   "aba": "MINI ORELHA EXECUTIVO",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "MINI ORELHA DE ELEFANTE",
+   "rendimento_planilha": 0.5850000000000001,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     9.166099999999998,
+     9.913599999999999
+    ],
+    "custo_porcao": [
+     9.166099999999998,
+     9.913599999999999
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     45.830499999999994,
+     49.568
+    ],
+    "cmv": [
+     0.19999999999999998,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "bombom de alcatra",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.09,
+     "unidade": "KG",
+     "fator_correcao": 1.1111111111111112,
+     "custo_compra": 69.75,
+     "valor": [
+      6.2775,
+      6.9750000000000005
+     ],
+     "perda_percentual": 10.0,
+     "peso_bruto_reconstruido": 0.1
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "guarnição à francesa",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 11.63,
+     "valor": [
+      1.163,
+      1.213
+     ],
+     "col10_recalculado": 1.163,
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.1,
+     "sub_receita": "GUARNIÇÃO A FRANCESA",
+     "sub_receita_aba": "MINI ORELHA EXECUTIVO",
+     "prova_da_sub_receita": "custo_porcao_col9_arredondado"
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 3.15,
+     "valor": [
+      0.378,
+      0.378
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.12
+    },
+    {
+     "linha": 12,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 13,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 14,
+     "ingrediente": "leitiosa de empanamento",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "kg",
+     "fator_correcao": 1.0,
+     "custo_compra": 7.25,
+     "valor": [
+      0.145,
+      0.145
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 15,
+     "ingrediente": "farinha pankp",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "kg",
+     "fator_correcao": 1.0,
+     "custo_compra": 16.2,
+     "valor": [
+      0.324,
+      0.324
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 16,
+     "ingrediente": "farinha de trigo",
+     "sku": null,
+     "peso_bruto": 0.01,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.01,
+     "unidade": "L",
+     "fator_correcao": 1.0,
+     "custo_compra": 5.9,
+     "valor": [
+      0.059000000000000004,
+      0.059000000000000004
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.01
+    }
+   ],
+   "total": {
+    "linha": 17,
+    "peso_bruto": 0.5950000000000001,
+    "peso_liquido": 0.5850000000000001,
+    "unidade": "KG",
+    "valor": [
+     9.166099999999998,
+     9.913599999999999
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.5950000000000001,
+    "peso_liquido": 0.5850000000000001,
+    "col9": 9.166099999999998,
+    "col10": 9.913599999999999
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "MINI ORELHA EXECUTIVO",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 29.740799999999997,
+    "3.5": 34.697599999999994,
+    "4": 39.654399999999995,
+    "4.5": 44.6112,
+    "5": 49.568
+   },
+   "custo_bruto_da_resumo": 9.913599999999999,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "MINI ORELHA EXECUTIVO",
+   "linha_cabecalho": 21,
+   "categoria": "Executivo",
+   "nome_do_bloco": "GUARNIÇÃO A FRANCESA",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 0.17500000000000002,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     2.0359499999999997,
+     2.12295
+    ],
+    "custo_porcao": [
+     11.633999999999997,
+     12.131142857142855
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     58.16999999999999,
+     60.655714285714275
+    ],
+    "cmv": [
+     0.19999999999999998,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 28,
+     "ingrediente": "Batata palha MP",
+     "sku": null,
+     "peso_bruto": 0.08,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.08,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 8.62,
+     "valor": [
+      0.6896,
+      0.6896
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.08
+    },
+    {
+     "linha": 29,
+     "ingrediente": "Presunto",
+     "sku": null,
+     "peso_bruto": 0.03,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.03,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 22.98,
+     "valor": [
+      0.6894,
+      0.6894
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.03
+    },
+    {
+     "linha": 30,
+     "ingrediente": "Cebola branca",
+     "sku": null,
+     "peso_bruto": 0.04,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.03,
+     "unidade": "KG",
+     "fator_correcao": 1.3333333333333335,
+     "custo_compra": 8.7,
+     "valor": [
+      0.26099999999999995,
+      0.348
+     ],
+     "perda_percentual": 25.0,
+     "peso_bruto_reconstruido": 0.04
+    },
+    {
+     "linha": 31,
+     "ingrediente": "Ervilha congelada",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 12.88,
+     "valor": [
+      0.2576,
+      0.2576
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 32,
+     "ingrediente": "Salsa picada",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      0.12835000000000002,
+      0.12835000000000002
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 33,
+     "ingrediente": "Banha",
+     "sku": null,
+     "peso_bruto": 0.01,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.01,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.0,
+     "valor": [
+      0.01,
+      0.01
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.01
+    }
+   ],
+   "total": {
+    "linha": 34,
+    "peso_bruto": 0.185,
+    "peso_liquido": 0.17500000000000002,
+    "unidade": "KG",
+    "valor": [
+     2.0359499999999997,
+     2.12295
+    ]
+   },
+   "linha_tabela": 27,
+   "soma_das_linhas": {
+    "peso_bruto": 0.185,
+    "peso_liquido": 0.17500000000000002,
+    "col9": 2.0359499999999997,
+    "col10": 2.12295
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "GUARNIÇÃO A FRANCESA"
+  },
+  {
+   "aba": "CARNE GUISADA  COM BATATA CORAD",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "CARNE GUISADA COM BATATA CORADA",
+   "rendimento_planilha": 0.5750000000000001,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     8.206100000000001,
+     8.921100000000001
+    ],
+    "custo_porcao": [
+     8.206100000000001,
+     8.921100000000001
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     41.0305,
+     44.605500000000006
+    ],
+    "cmv": [
+     0.2,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "acém mp",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 62.6,
+     "valor": [
+      6.260000000000001,
+      6.260000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.1
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "batata asterix",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 2.0,
+     "custo_compra": 7.15,
+     "valor": [
+      0.7150000000000001,
+      1.4300000000000002
+     ],
+     "perda_percentual": 50.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 3.15,
+     "valor": [
+      0.378,
+      0.378
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.12
+    },
+    {
+     "linha": 12,
+     "ingrediente": "farofa de bacon",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 8.87,
+     "valor": [
+      0.4435,
+      0.4435
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 13,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    }
+   ],
+   "total": {
+    "linha": 14,
+    "peso_bruto": 0.675,
+    "peso_liquido": 0.5750000000000001,
+    "unidade": "KG",
+    "valor": [
+     8.206100000000001,
+     8.921100000000001
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.675,
+    "peso_liquido": 0.5750000000000001,
+    "col9": 8.206100000000001,
+    "col10": 8.921100000000001
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "CARNE GUISADA  COM BATATA CORADA",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 26.7633,
+    "3.5": 31.223850000000002,
+    "4": 35.684400000000004,
+    "4.5": 40.14495,
+    "5": 44.605500000000006
+   },
+   "custo_bruto_da_resumo": 8.921100000000001,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "CARNE SECA COM TUTU À MINEIRA",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "CARNE SECA COM TUTU A MINEIRA",
+   "rendimento_planilha": 0.68,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     9.097627443609024,
+     17.133727443609025
+    ],
+    "custo_porcao": [
+     9.097627443609024,
+     17.133727443609025
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     45.488137218045125,
+     85.66863721804512
+    ],
+    "cmv": [
+     0.19999999999999998,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "carne seca desfiada",
+     "sku": null,
+     "peso_bruto": 0.16,
+     "perda_manipulacao": 0.08,
+     "peso_liquido": 0.08,
+     "unidade": "KG",
+     "fator_correcao": 2.0,
+     "custo_compra": 49.22,
+     "valor": [
+      3.9376,
+      7.8752
+     ],
+     "perda_percentual": 50.0,
+     "peso_bruto_reconstruido": 0.16
+    },
+    {
+     "linha": 9,
+     "ingrediente": "cebola branca",
+     "sku": null,
+     "peso_bruto": 0.07,
+     "perda_manipulacao": 0.02,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.4000000000000001,
+     "custo_compra": 8.7,
+     "valor": [
+      0.435,
+      0.609
+     ],
+     "perda_percentual": 28.571,
+     "peso_bruto_reconstruido": 0.07
+    },
+    {
+     "linha": 10,
+     "ingrediente": "tomate picado ",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.15,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 4.0,
+     "custo_compra": 14.99,
+     "valor": [
+      0.7495,
+      2.998
+     ],
+     "perda_percentual": 75.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 11,
+     "ingrediente": "salsa picada",
+     "sku": null,
+     "peso_bruto": 0.015,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.015,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      0.38505,
+      0.38505
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.015
+    },
+    {
+     "linha": 12,
+     "ingrediente": "banha",
+     "sku": null,
+     "peso_bruto": 0.04,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.04,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.0,
+     "valor": [
+      0.04,
+      0.04
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.04
+    },
+    {
+     "linha": 13,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 14,
+     "ingrediente": "couve refogada mp",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 2.0,
+     "custo_compra": 33.52,
+     "valor": [
+      1.6760000000000002,
+      3.3520000000000003
+     ],
+     "perda_percentual": 50.0,
+     "peso_bruto_reconstruido": 0.1
+    },
+    {
+     "linha": 15,
+     "ingrediente": "tutu de feijão mp",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 5.094812030075188,
+     "valor": [
+      0.6113774436090225,
+      0.6113774436090225
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.12,
+     "sub_receita": "TUTU DE FEIJÃO PRETO",
+     "sub_receita_aba": "CARNE SECA COM TUTU À MINEIRA",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 16,
+     "ingrediente": "farofa de bacon",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 8.87,
+     "valor": [
+      0.4435,
+      0.4435
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 17,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 18,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 19,
+    "peso_bruto": 0.9800000000000001,
+    "peso_liquido": 0.68,
+    "unidade": "KG",
+    "valor": [
+     9.097627443609024,
+     17.133727443609025
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.9800000000000001,
+    "peso_liquido": 0.68,
+    "col9": 9.097627443609024,
+    "col10": 17.133727443609025
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "CARNE SECA COM TUTU À MINEIRA",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 51.401182330827076,
+    "3.5": 59.96804605263159,
+    "4": 68.5349097744361,
+    "4.5": 77.10177349624061,
+    "5": 85.66863721804512
+   },
+   "custo_bruto_da_resumo": 17.133727443609025,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "CARNE SECA COM TUTU À MINEIRA",
+   "linha_cabecalho": 24,
+   "categoria": "Executivo",
+   "nome_do_bloco": "TUTU DE FEIJÃO PRETO",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 1.33,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     6.7761,
+     6.7761
+    ],
+    "custo_porcao": [
+     5.094812030075188,
+     5.094812030075188
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     25.47406015037594,
+     25.47406015037594
+    ],
+    "cmv": [
+     0.19999999999999998,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 31,
+     "ingrediente": "Feijão preto pronto",
+     "sku": null,
+     "peso_bruto": 1.0,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 1.0,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 3.15,
+     "valor": [
+      3.15,
+      3.15
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 1.0
+    },
+    {
+     "linha": 32,
+     "ingrediente": "farinha de mandioca",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 5.37,
+     "valor": [
+      0.8055,
+      0.8055
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 33,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.03,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.03,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.615,
+      0.615
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.03
+    },
+    {
+     "linha": 34,
+     "ingrediente": "bacon picado",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": null,
+     "custo_compra": 16.45,
+     "valor": [
+      1.645,
+      1.645
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.1
+    },
+    {
+     "linha": 35,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.01,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.01,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.027200000000000002,
+      0.027200000000000002
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.01
+    },
+    {
+     "linha": 36,
+     "ingrediente": "banha",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.0,
+     "valor": [
+      0.02,
+      0.02
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 37,
+     "ingrediente": "salsa picada",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      0.5134000000000001,
+      0.5134000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 38,
+    "peso_bruto": 1.33,
+    "peso_liquido": 1.33,
+    "unidade": "KG",
+    "valor": [
+     6.7761,
+     6.7761
+    ]
+   },
+   "linha_tabela": 30,
+   "soma_das_linhas": {
+    "peso_bruto": 1.33,
+    "peso_liquido": 1.33,
+    "col9": 6.7761,
+    "col10": 6.7761
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "TUTU DE FEIJÃO PRETO"
+  },
+  {
+   "aba": "ISCA DE FÍGADO COM PURÊ",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "isca de fígado com purê",
+   "rendimento_planilha": 0.7000000000000001,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     4.921550000000001,
+     5.486149999999999
+    ],
+    "custo_porcao": [
+     4.921550000000001,
+     5.486149999999999
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     24.607750000000003,
+     27.430749999999996
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "isca de fígado de boi",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.02,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.25,
+     "custo_compra": 13.02,
+     "valor": [
+      1.5623999999999998,
+      1.9529999999999998
+     ],
+     "perda_percentual": 20.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 9,
+     "ingrediente": "purê de batata mp",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 8.81,
+     "valor": [
+      1.3215000000000001,
+      1.3215000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 10,
+     "ingrediente": "cebola branca",
+     "sku": null,
+     "peso_bruto": 0.07,
+     "perda_manipulacao": 0.02,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.4000000000000001,
+     "custo_compra": 8.7,
+     "valor": [
+      0.435,
+      0.609
+     ],
+     "perda_percentual": 28.571,
+     "peso_bruto_reconstruido": 0.07
+    },
+    {
+     "linha": 11,
+     "ingrediente": "salsa picada",
+     "sku": null,
+     "peso_bruto": 0.015,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.015,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      0.38505,
+      0.38505
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.015
+    },
+    {
+     "linha": 12,
+     "ingrediente": "banha",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.0,
+     "valor": [
+      0.02,
+      0.02
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 13,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 14,
+     "ingrediente": "feijão preto mp",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 3.15,
+     "valor": [
+      0.378,
+      0.378
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.12
+    },
+    {
+     "linha": 15,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 16,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 17,
+    "peso_bruto": 0.75,
+    "peso_liquido": 0.7000000000000001,
+    "unidade": "KG",
+    "valor": [
+     4.921550000000001,
+     5.486149999999999
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.75,
+    "peso_liquido": 0.7000000000000001,
+    "col9": 4.921550000000001,
+    "col10": 5.486149999999999
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "ISCA DE FÍGADO COM PURÊ",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 16.45845,
+    "3.5": 19.201524999999997,
+    "4": 21.944599999999998,
+    "4.5": 24.687675,
+    "5": 27.430749999999996
+   },
+   "custo_bruto_da_resumo": 5.486149999999999,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "FILÉ DE FRANGO COM FRITAS",
+   "rendimento_planilha": 0.6950000000000002,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     5.4844,
+     5.6787
+    ],
+    "custo_porcao": [
+     5.4844,
+     5.6787
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     27.422,
+     28.3935
+    ],
+    "cmv": [
+     0.19999999999999998,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "filé de frango",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.2,
+     "custo_compra": 14.44,
+     "valor": [
+      1.444,
+      1.7328
+     ],
+     "perda_percentual": 16.667,
+     "peso_bruto_reconstruido": 0.12
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "batata frita",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 13.75,
+     "valor": [
+      2.0625,
+      2.0625
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 0.8,
+     "custo_compra": 3.15,
+     "valor": [
+      0.4725,
+      0.378
+     ],
+     "liquido_maior_que_bruto": true
+    },
+    {
+     "linha": 12,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 13,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 14,
+     "ingrediente": "Leitosa de empanamento",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": null,
+     "fator_correcao": 1.0,
+     "custo_compra": 7.25,
+     "valor": [
+      0.145,
+      0.145
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 15,
+     "ingrediente": "Farinha de trigo",
+     "sku": null,
+     "peso_bruto": 0.01,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.01,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 5.9,
+     "valor": [
+      0.059000000000000004,
+      0.059000000000000004
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.01
+    },
+    {
+     "linha": 16,
+     "ingrediente": "Farinha panko",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 16.2,
+     "valor": [
+      0.324,
+      0.324
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 17,
+     "ingrediente": "óleo de soja",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "L",
+     "fator_correcao": 1.0,
+     "custo_compra": 7.89,
+     "valor": [
+      0.1578,
+      0.1578
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 18,
+    "peso_bruto": 0.685,
+    "peso_liquido": 0.6950000000000002,
+    "unidade": "KG",
+    "valor": [
+     5.4844,
+     5.6787
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.685,
+    "peso_liquido": 0.6950000000000002,
+    "col9": 5.4844,
+    "col10": 5.6787
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 17.0361,
+    "3.5": 19.87545,
+    "4": 22.7148,
+    "4.5": 25.55415,
+    "5": 28.3935
+   },
+   "custo_bruto_da_resumo": 5.6787,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "FILÉ FRANGO FRITAS",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "FILÉ DE FRANGO COM FRITAS",
+   "rendimento_planilha": 0.6950000000000001,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     5.6784,
+     5.8727
+    ],
+    "custo_porcao": [
+     5.6784,
+     5.8727
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     28.392,
+     29.363500000000002
+    ],
+    "cmv": [
+     0.2,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "filé de frango",
+     "sku": null,
+     "peso_bruto": 0.17,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.1333333333333335,
+     "custo_compra": 14.44,
+     "valor": [
+      2.166,
+      2.4548
+     ],
+     "perda_percentual": 11.765,
+     "peso_bruto_reconstruido": 0.17
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "batata frita",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 13.75,
+     "valor": [
+      2.0625,
+      2.0625
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 0.8,
+     "custo_compra": 3.15,
+     "valor": [
+      0.4725,
+      0.378
+     ],
+     "liquido_maior_que_bruto": true
+    },
+    {
+     "linha": 12,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 13,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 14,
+     "ingrediente": "óleo de soja",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "L",
+     "fator_correcao": 1.0,
+     "custo_compra": 7.89,
+     "valor": [
+      0.1578,
+      0.1578
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 15,
+    "peso_bruto": 0.685,
+    "peso_liquido": 0.6950000000000001,
+    "unidade": "KG",
+    "valor": [
+     5.6784,
+     5.8727
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.685,
+    "peso_liquido": 0.6950000000000001,
+    "col9": 5.6784,
+    "col10": 5.8727
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "FILÉ FRANGO FRITAS",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 17.6181,
+    "3.5": 20.55445,
+    "4": 23.4908,
+    "4.5": 26.42715,
+    "5": 29.363500000000002
+   },
+   "custo_bruto_da_resumo": 5.8727,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "FILÉ DE FRANGO COM LEGUMES",
+   "rendimento_planilha": 0.6950000000000001,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     6.1206826086956525,
+     7.103400000000001
+    ],
+    "custo_porcao": [
+     6.1206826086956525,
+     7.103400000000001
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     30.603413043478263,
+     35.517
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "filé de frango",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 14.44,
+     "valor": [
+      2.166,
+      2.166
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "salada de legumes",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 16.698550724637684,
+     "valor": [
+      2.5047826086956526,
+      3.582
+     ],
+     "col10_recalculado": 2.5047826086956526,
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15,
+     "sub_receita": "SALADA DE LEGUMES MP",
+     "sub_receita_aba": "FILÉ DE FRANGO COM LEGUMES",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 0.8,
+     "custo_compra": 3.15,
+     "valor": [
+      0.4725,
+      0.378
+     ],
+     "liquido_maior_que_bruto": true
+    },
+    {
+     "linha": 12,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 13,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 14,
+     "ingrediente": "óleo de soja",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "L",
+     "fator_correcao": 1.0,
+     "custo_compra": 7.89,
+     "valor": [
+      0.1578,
+      0.1578
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 15,
+    "peso_bruto": 0.665,
+    "peso_liquido": 0.6950000000000001,
+    "unidade": "KG",
+    "valor": [
+     6.1206826086956525,
+     7.103400000000001
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.665,
+    "peso_liquido": 0.6950000000000001,
+    "col9": 6.1206826086956525,
+    "col10": 7.103400000000001
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "FILÉ DE FRANGO COM LEGUMES",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 21.310200000000002,
+    "3.5": 24.861900000000002,
+    "4": 28.413600000000002,
+    "4.5": 31.965300000000003,
+    "5": 35.517
+   },
+   "custo_bruto_da_resumo": 7.103400000000001,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "FILÉ DE FRANGO COM LEGUMES",
+   "linha_cabecalho": 20,
+   "categoria": "Executivo",
+   "nome_do_bloco": "SALADA DE LEGUMES MP",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 1.035,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     17.283,
+     23.883000000000003
+    ],
+    "custo_porcao": [
+     16.698550724637684,
+     23.075362318840583
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     83.49275362318842,
+     115.3768115942029
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 27,
+     "ingrediente": "batata asterix",
+     "sku": null,
+     "peso_bruto": 0.5,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.43,
+     "unidade": "KG",
+     "fator_correcao": 1.1627906976744187,
+     "custo_compra": 7.15,
+     "valor": [
+      3.0745,
+      3.575
+     ],
+     "perda_percentual": 14.0,
+     "peso_bruto_reconstruido": 0.5
+    },
+    {
+     "linha": 28,
+     "ingrediente": "cenoura",
+     "sku": null,
+     "peso_bruto": 0.3,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.25,
+     "unidade": "KG",
+     "fator_correcao": 1.2,
+     "custo_compra": 6.99,
+     "valor": [
+      1.7475,
+      2.097
+     ],
+     "perda_percentual": 16.667,
+     "peso_bruto_reconstruido": 0.3
+    },
+    {
+     "linha": 29,
+     "ingrediente": "brócolis americano",
+     "sku": null,
+     "peso_bruto": 0.3,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.4999999999999998,
+     "custo_compra": 47.5,
+     "valor": [
+      9.5,
+      14.25
+     ],
+     "perda_percentual": 33.333,
+     "peso_bruto_reconstruido": 0.3
+    },
+    {
+     "linha": 30,
+     "ingrediente": "vagem",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 2.0,
+     "custo_compra": 10.0,
+     "valor": [
+      1.0,
+      2.0
+     ],
+     "perda_percentual": 50.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 31,
+     "ingrediente": "salsa picada",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      0.5134000000000001,
+      0.5134000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 32,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 33,
+     "ingrediente": "azeite",
+     "sku": null,
+     "peso_bruto": 0.03,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.03,
+     "unidade": "L",
+     "fator_correcao": 1.0,
+     "custo_compra": 47.8,
+     "valor": [
+      1.434,
+      1.434
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.03
+    }
+   ],
+   "total": {
+    "linha": 34,
+    "peso_bruto": 1.355,
+    "peso_liquido": 1.035,
+    "unidade": "KG",
+    "valor": [
+     17.283,
+     23.883000000000003
+    ]
+   },
+   "linha_tabela": 26,
+   "soma_das_linhas": {
+    "peso_bruto": 1.355,
+    "peso_liquido": 1.035,
+    "col9": 17.283,
+    "col10": 23.883000000000003
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "SALADA DE LEGUMES MP"
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "rendimento_planilha": 0.665,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     9.102682608695654,
+     11.3724
+    ],
+    "custo_porcao": [
+     9.102682608695654,
+     11.3724
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     45.513413043478266,
+     56.862
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "filé de tilápia",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.25,
+     "custo_compra": 42.9,
+     "valor": [
+      5.148,
+      6.435
+     ],
+     "perda_percentual": 20.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "salada de legumes",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 16.698550724637684,
+     "valor": [
+      2.5047826086956526,
+      3.582
+     ],
+     "col10_recalculado": 2.5047826086956526,
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15,
+     "sub_receita": "SALADA DE LEGUMES MP",
+     "sub_receita_aba": "FILÉ DE FRANGO COM LEGUMES",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 0.8,
+     "custo_compra": 3.15,
+     "valor": [
+      0.4725,
+      0.378
+     ],
+     "liquido_maior_que_bruto": true
+    },
+    {
+     "linha": 12,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 13,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 14,
+     "ingrediente": "óleo de soja",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "L",
+     "fator_correcao": 1.0,
+     "custo_compra": 7.89,
+     "valor": [
+      0.1578,
+      0.1578
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 15,
+    "peso_bruto": 0.665,
+    "peso_liquido": 0.665,
+    "unidade": "KG",
+    "valor": [
+     9.102682608695654,
+     11.3724
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.665,
+    "peso_liquido": 0.665,
+    "col9": 9.102682608695654,
+    "col10": 11.3724
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "FILÉ DE PEIXE COM LEGUMES",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 34.117200000000004,
+    "3.5": 39.8034,
+    "4": 45.4896,
+    "4.5": 51.1758,
+    "5": 56.862
+   },
+   "custo_bruto_da_resumo": 11.3724,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM LEGUMES",
+   "linha_cabecalho": 20,
+   "categoria": "Executivo",
+   "nome_do_bloco": "SALADA DE LEGUMES MP",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 1.035,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     17.283,
+     23.883000000000003
+    ],
+    "custo_porcao": [
+     16.698550724637684,
+     23.075362318840583
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     83.49275362318842,
+     115.3768115942029
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 27,
+     "ingrediente": "batata asterix",
+     "sku": null,
+     "peso_bruto": 0.5,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.43,
+     "unidade": "KG",
+     "fator_correcao": 1.1627906976744187,
+     "custo_compra": 7.15,
+     "valor": [
+      3.0745,
+      3.575
+     ],
+     "perda_percentual": 14.0,
+     "peso_bruto_reconstruido": 0.5
+    },
+    {
+     "linha": 28,
+     "ingrediente": "cenoura",
+     "sku": null,
+     "peso_bruto": 0.3,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.25,
+     "unidade": "KG",
+     "fator_correcao": 1.2,
+     "custo_compra": 6.99,
+     "valor": [
+      1.7475,
+      2.097
+     ],
+     "perda_percentual": 16.667,
+     "peso_bruto_reconstruido": 0.3
+    },
+    {
+     "linha": 29,
+     "ingrediente": "brócolis americano",
+     "sku": null,
+     "peso_bruto": 0.3,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.4999999999999998,
+     "custo_compra": 47.5,
+     "valor": [
+      9.5,
+      14.25
+     ],
+     "perda_percentual": 33.333,
+     "peso_bruto_reconstruido": 0.3
+    },
+    {
+     "linha": 30,
+     "ingrediente": "vagem",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 2.0,
+     "custo_compra": 10.0,
+     "valor": [
+      1.0,
+      2.0
+     ],
+     "perda_percentual": 50.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 31,
+     "ingrediente": "salsa picada",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      0.5134000000000001,
+      0.5134000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 32,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 33,
+     "ingrediente": "azeite",
+     "sku": null,
+     "peso_bruto": 0.03,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.03,
+     "unidade": "L",
+     "fator_correcao": 1.0,
+     "custo_compra": 47.8,
+     "valor": [
+      1.434,
+      1.434
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.03
+    }
+   ],
+   "total": {
+    "linha": 34,
+    "peso_bruto": 1.355,
+    "peso_liquido": 1.035,
+    "unidade": "KG",
+    "valor": [
+     17.283,
+     23.883000000000003
+    ]
+   },
+   "linha_tabela": 26,
+   "soma_das_linhas": {
+    "peso_bruto": 1.355,
+    "peso_liquido": 1.035,
+    "col9": 17.283,
+    "col10": 23.883000000000003
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "SALADA DE LEGUMES MP"
+  },
+  {
+   "aba": "FILÉ DE PEIXE COM PURÊ",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "FILÉ DE PEIXE COM LEGUMES",
+   "rendimento_planilha": 0.665,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     9.2894,
+     10.481900000000001
+    ],
+    "custo_porcao": [
+     9.2894,
+     10.481900000000001
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     46.447,
+     52.40950000000001
+    ],
+    "cmv": [
+     0.2,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "filé de tilápia",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.25,
+     "custo_compra": 42.9,
+     "valor": [
+      5.148,
+      6.435
+     ],
+     "perda_percentual": 20.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco de brocolis mp",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 8.83,
+     "valor": [
+      1.766,
+      1.766
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "purê de batata mp",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 8.81,
+     "valor": [
+      1.3215000000000001,
+      1.3215000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 0.8,
+     "custo_compra": 3.15,
+     "valor": [
+      0.4725,
+      0.378
+     ],
+     "liquido_maior_que_bruto": true
+    },
+    {
+     "linha": 12,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 13,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 14,
+     "ingrediente": "óleo de soja",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "L",
+     "fator_correcao": 1.0,
+     "custo_compra": 7.89,
+     "valor": [
+      0.1578,
+      0.1578
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 15,
+    "peso_bruto": 0.665,
+    "peso_liquido": 0.665,
+    "unidade": "KG",
+    "valor": [
+     9.2894,
+     10.481900000000001
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.665,
+    "peso_liquido": 0.665,
+    "col9": 9.2894,
+    "col10": 10.481900000000001
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "FILÉ DE PEIXE COM PURÊ",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 31.445700000000002,
+    "3.5": 36.68665000000001,
+    "4": 41.927600000000005,
+    "4.5": 47.16855,
+    "5": 52.40950000000001
+   },
+   "custo_bruto_da_resumo": 10.481900000000001,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "PERNIL COM MAIONESE",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "PERNIL COM MAIONESE",
+   "rendimento_planilha": 0.5950000000000001,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     6.63977323943662,
+     6.7469
+    ],
+    "custo_porcao": [
+     6.63977323943662,
+     6.7469
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     33.1988661971831,
+     33.7345
+    ],
+    "cmv": [
+     0.19999999999999998,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "Pernil MP",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 36.99,
+     "valor": [
+      4.4388,
+      4.4388
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.12
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "Salada de Maionese MP",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 9.698732394366198,
+     "valor": [
+      0.9698732394366198,
+      1.077
+     ],
+     "col10_recalculado": 0.9698732394366198,
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.1,
+     "sub_receita": "SALADA DE MAIONESE",
+     "sub_receita_aba": "PERNIL COM MAIONESE",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 3.15,
+     "valor": [
+      0.378,
+      0.378
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.12
+    },
+    {
+     "linha": 12,
+     "ingrediente": "farofa de bacon",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 8.87,
+     "valor": [
+      0.4435,
+      0.4435
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 13,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    }
+   ],
+   "total": {
+    "linha": 14,
+    "peso_bruto": 0.5950000000000001,
+    "peso_liquido": 0.5950000000000001,
+    "unidade": "KG",
+    "valor": [
+     6.63977323943662,
+     6.7469
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.5950000000000001,
+    "peso_liquido": 0.5950000000000001,
+    "col9": 6.63977323943662,
+    "col10": 6.7469
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "PERNIL COM MAIONESE",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 20.2407,
+    "3.5": 23.614150000000002,
+    "4": 26.9876,
+    "4.5": 30.36105,
+    "5": 33.7345
+   },
+   "custo_bruto_da_resumo": 6.7469,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "PERNIL COM MAIONESE",
+   "linha_cabecalho": 19,
+   "categoria": "Executivo",
+   "nome_do_bloco": "SALADA DE MAIONESE",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 1.065,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     10.32915,
+     11.466750000000001
+    ],
+    "custo_porcao": [
+     9.698732394366198,
+     10.766901408450705
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     48.49366197183099,
+     53.83450704225353
+    ],
+    "cmv": [
+     0.2,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 26,
+     "ingrediente": "Batata asterix",
+     "sku": null,
+     "peso_bruto": 0.75,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.63,
+     "unidade": "KG",
+     "fator_correcao": 1.1904761904761905,
+     "custo_compra": 7.15,
+     "valor": [
+      4.5045,
+      5.362500000000001
+     ],
+     "perda_percentual": 16.0,
+     "peso_bruto_reconstruido": 0.75
+    },
+    {
+     "linha": 27,
+     "ingrediente": "cenoura",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.16,
+     "unidade": "KG",
+     "fator_correcao": 1.25,
+     "custo_compra": 6.99,
+     "valor": [
+      1.1184,
+      1.3980000000000001
+     ],
+     "perda_percentual": 20.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 28,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      2.0500000000000003,
+      2.0500000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.1
+    },
+    {
+     "linha": 29,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.01,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.01,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.027200000000000002,
+      0.027200000000000002
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.01
+    },
+    {
+     "linha": 30,
+     "ingrediente": "maionese ",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 14.96,
+     "valor": [
+      2.244,
+      2.244
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 31,
+     "ingrediente": "salsa picada",
+     "sku": null,
+     "peso_bruto": 0.015,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.015,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      0.38505,
+      0.38505
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.015
+    }
+   ],
+   "total": {
+    "linha": 32,
+    "peso_bruto": 1.2249999999999999,
+    "peso_liquido": 1.065,
+    "unidade": "KG",
+    "valor": [
+     10.32915,
+     11.466750000000001
+    ]
+   },
+   "linha_tabela": 25,
+   "soma_das_linhas": {
+    "peso_bruto": 1.2249999999999999,
+    "peso_liquido": 1.065,
+    "col9": 10.32915,
+    "col10": 11.466750000000001
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "SALADA DE MAIONESE"
+  },
+  {
+   "aba": "SCHNITZEL COM MAIONESE",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "SCHNITIZEL COM MAIONESE",
+   "rendimento_planilha": 0.6550000000000001,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     4.218473239436619,
+     4.665
+    ],
+    "custo_porcao": [
+     4.218473239436619,
+     4.665
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     21.092366197183097,
+     23.325
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "copalombo",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.2,
+     "custo_compra": 16.97,
+     "valor": [
+      1.697,
+      2.0364
+     ],
+     "perda_percentual": 16.667,
+     "peso_bruto_reconstruido": 0.12
+    },
+    {
+     "linha": 9,
+     "ingrediente": "arroz  branco pronto",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.2,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 1.98,
+     "valor": [
+      0.396,
+      0.396
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 10,
+     "ingrediente": "Salada de maionese MP",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 9.698732394366198,
+     "valor": [
+      0.9698732394366198,
+      1.077
+     ],
+     "col10_recalculado": 0.9698732394366198,
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.1,
+     "sub_receita": "SALADA DE MAIONESE",
+     "sub_receita_aba": "PERNIL COM MAIONESE",
+     "prova_da_sub_receita": "custo_porcao_col9"
+    },
+    {
+     "linha": 11,
+     "ingrediente": "feijão pronto",
+     "sku": null,
+     "peso_bruto": 0.12,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.12,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 3.15,
+     "valor": [
+      0.378,
+      0.378
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.12
+    },
+    {
+     "linha": 12,
+     "ingrediente": "farinha de trigo",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 5.9,
+     "valor": [
+      0.29500000000000004,
+      0.29500000000000004
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 13,
+     "ingrediente": "farinha panko",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 16.2,
+     "valor": [
+      0.324,
+      0.324
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 14,
+     "ingrediente": "leitosa de empanamento",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 7.25,
+     "valor": [
+      0.145,
+      0.145
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 15,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.013600000000000001,
+      0.013600000000000001
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    },
+    {
+     "linha": 16,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      0.41000000000000003,
+      0.41000000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 17,
+     "ingrediente": "limão sciciliano",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.02,
+     "unidade": "kg",
+     "fator_correcao": 1.0,
+     "custo_compra": 9.61,
+     "valor": [
+      0.19219999999999998,
+      0.19219999999999998
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    }
+   ],
+   "total": {
+    "linha": 18,
+    "peso_bruto": 0.6750000000000002,
+    "peso_liquido": 0.6550000000000001,
+    "unidade": "KG",
+    "valor": [
+     4.218473239436619,
+     4.665
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 0.6750000000000002,
+    "peso_liquido": 0.6550000000000001,
+    "col9": 4.820673239436619,
+    "col10": 5.2672
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "SCHNITZEL COM MAIONESE",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 13.995000000000001,
+    "3.5": 16.3275,
+    "4": 18.66,
+    "4.5": 20.9925,
+    "5": 23.325
+   },
+   "custo_bruto_da_resumo": 4.665,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "SCHNITZEL COM MAIONESE",
+   "linha_cabecalho": 23,
+   "categoria": "Executivo",
+   "nome_do_bloco": "SALADA DE MAIONESE",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 1.065,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     10.32915,
+     11.466750000000001
+    ],
+    "custo_porcao": [
+     9.698732394366198,
+     10.766901408450705
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     48.49366197183099,
+     53.83450704225353
+    ],
+    "cmv": [
+     0.2,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 30,
+     "ingrediente": "Batata asterix",
+     "sku": null,
+     "peso_bruto": 0.75,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.63,
+     "unidade": "KG",
+     "fator_correcao": 1.1904761904761905,
+     "custo_compra": 7.15,
+     "valor": [
+      4.5045,
+      5.362500000000001
+     ],
+     "perda_percentual": 16.0,
+     "peso_bruto_reconstruido": 0.75
+    },
+    {
+     "linha": 31,
+     "ingrediente": "cenoura",
+     "sku": null,
+     "peso_bruto": 0.2,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.16,
+     "unidade": "KG",
+     "fator_correcao": 1.25,
+     "custo_compra": 6.99,
+     "valor": [
+      1.1184,
+      1.3980000000000001
+     ],
+     "perda_percentual": 20.0,
+     "peso_bruto_reconstruido": 0.2
+    },
+    {
+     "linha": 32,
+     "ingrediente": "alho batido",
+     "sku": null,
+     "peso_bruto": 0.1,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.1,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 20.5,
+     "valor": [
+      2.0500000000000003,
+      2.0500000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.1
+    },
+    {
+     "linha": 33,
+     "ingrediente": "sal com pimenta",
+     "sku": null,
+     "peso_bruto": 0.01,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.01,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.027200000000000002,
+      0.027200000000000002
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.01
+    },
+    {
+     "linha": 34,
+     "ingrediente": "maionese ",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 14.96,
+     "valor": [
+      2.244,
+      2.244
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 35,
+     "ingrediente": "salsa picada",
+     "sku": null,
+     "peso_bruto": 0.015,
+     "perda_manipulacao": 0.0,
+     "peso_liquido": 0.015,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 25.67,
+     "valor": [
+      0.38505,
+      0.38505
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.015
+    }
+   ],
+   "total": {
+    "linha": 36,
+    "peso_bruto": 1.2249999999999999,
+    "peso_liquido": 1.065,
+    "unidade": "KG",
+    "valor": [
+     10.32915,
+     11.466750000000001
+    ]
+   },
+   "linha_tabela": 29,
+   "soma_das_linhas": {
+    "peso_bruto": 1.2249999999999999,
+    "peso_liquido": 1.065,
+    "col9": 10.32915,
+    "col10": 11.466750000000001
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "SALADA DE MAIONESE"
+  },
+  {
+   "aba": "GNOCCHI COM CARNE ASSADA",
+   "linha_cabecalho": 1,
+   "categoria": "Executivo",
+   "nome_do_bloco": "GNOCCHI COM CARNE ASSADA",
+   "rendimento_planilha": 1.375,
+   "peso_porcao": 1.0,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     12.92242894736842,
+     12.92242894736842
+    ],
+    "custo_porcao": [
+     12.92242894736842,
+     12.92242894736842
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     64.6121447368421,
+     64.6121447368421
+    ],
+    "cmv": [
+     0.2,
+     0.2
+    ]
+   },
+   "itens": [
+    {
+     "linha": 8,
+     "ingrediente": "Carne assada 120gr",
+     "sku": null,
+     "peso_bruto": 1.0,
+     "perda_manipulacao": null,
+     "peso_liquido": 1.0,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 7.97,
+     "valor": [
+      7.97,
+      7.97
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 1.0
+    },
+    {
+     "linha": 9,
+     "ingrediente": "Base de gnocchi",
+     "sku": null,
+     "peso_bruto": 0.25,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.25,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 12.702315789473685,
+     "valor": [
+      3.1755789473684213,
+      3.1755789473684213
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.25,
+     "sub_receita": "BASE DE GNOCCHI",
+     "sub_receita_aba": "GNOCCHI COM CARNE ASSADA",
+     "prova_da_sub_receita": "custo_porcao_col10"
+    },
+    {
+     "linha": 10,
+     "ingrediente": "Molho ao sugo",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 10.83,
+     "valor": [
+      0.5415,
+      0.5415
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 11,
+     "ingrediente": "Parmesão",
+     "sku": null,
+     "peso_bruto": 0.02,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.02,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 48.5,
+     "valor": [
+      0.97,
+      0.97
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.02
+    },
+    {
+     "linha": 12,
+     "ingrediente": "Caldo de carne",
+     "sku": null,
+     "peso_bruto": 0.05,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.05,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 3.04,
+     "valor": [
+      0.15200000000000002,
+      0.15200000000000002
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.05
+    },
+    {
+     "linha": 13,
+     "ingrediente": "Manjericão",
+     "sku": null,
+     "peso_bruto": 0.005,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.005,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 22.67,
+     "valor": [
+      0.11335,
+      0.11335
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.005
+    }
+   ],
+   "total": {
+    "linha": 14,
+    "peso_bruto": 1.375,
+    "peso_liquido": 1.375,
+    "unidade": "KG",
+    "valor": [
+     12.92242894736842,
+     12.92242894736842
+    ]
+   },
+   "linha_tabela": 7,
+   "soma_das_linhas": {
+    "peso_bruto": 1.375,
+    "peso_liquido": 1.375,
+    "col9": 12.92242894736842,
+    "col10": 12.92242894736842
+   },
+   "rendimento_e_o_peso_liquido": true,
+   "nome_na_resumo": "GNOCCHI COM CARNE ASSADA",
+   "e_prato_vendido": true,
+   "precos_da_resumo": {
+    "3": 38.767286842105264,
+    "3.5": 45.22850131578947,
+    "4": 51.68971578947368,
+    "4.5": 58.15093026315789,
+    "5": 64.6121447368421
+   },
+   "custo_bruto_da_resumo": 12.92242894736842,
+   "e_sub_receita": false
+  },
+  {
+   "aba": "GNOCCHI COM CARNE ASSADA",
+   "linha_cabecalho": 19,
+   "categoria": "Executivo",
+   "nome_do_bloco": "BASE DE GNOCCHI",
+   "rendimento_planilha": 1.0,
+   "peso_porcao": 1.4249999999999998,
+   "obs": null,
+   "cabecalho": {
+    "custo_total": [
+     13.318099999999998,
+     18.1008
+    ],
+    "custo_porcao": [
+     9.346035087719297,
+     12.702315789473685
+    ],
+    "indice": [
+     5.0,
+     5.0
+    ],
+    "preco_venda": [
+     46.73017543859649,
+     63.51157894736843
+    ],
+    "cmv": [
+     0.19999999999999998,
+     0.19999999999999998
+    ]
+   },
+   "itens": [
+    {
+     "linha": 26,
+     "ingrediente": "Batata asterix",
+     "sku": null,
+     "peso_bruto": 1.0,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.83,
+     "unidade": "KG",
+     "fator_correcao": 1.2048192771084338,
+     "custo_compra": 7.15,
+     "valor": [
+      5.9345,
+      7.15
+     ],
+     "perda_percentual": 17.0,
+     "peso_bruto_reconstruido": 1.0
+    },
+    {
+     "linha": 27,
+     "ingrediente": "Ovo branco",
+     "sku": null,
+     "peso_bruto": 7.0,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.14,
+     "unidade": "KG",
+     "fator_correcao": 49.99999999999999,
+     "custo_compra": 0.52,
+     "valor": [
+      0.0728,
+      3.64
+     ],
+     "perda_percentual": 98.0,
+     "peso_bruto_reconstruido": 7.0
+    },
+    {
+     "linha": 28,
+     "ingrediente": "Farinha de trigo",
+     "sku": null,
+     "peso_bruto": 0.275,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.275,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 5.9,
+     "valor": [
+      1.6225000000000003,
+      1.6225000000000003
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.275
+    },
+    {
+     "linha": 29,
+     "ingrediente": "Sal refinado",
+     "sku": null,
+     "peso_bruto": 0.015,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.015,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 2.72,
+     "valor": [
+      0.0408,
+      0.0408
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.015
+    },
+    {
+     "linha": 30,
+     "ingrediente": "Manteiga",
+     "sku": null,
+     "peso_bruto": 0.15,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.15,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 32.8,
+     "valor": [
+      4.919999999999999,
+      4.919999999999999
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.15
+    },
+    {
+     "linha": 31,
+     "ingrediente": "Parmesão",
+     "sku": null,
+     "peso_bruto": 0.015,
+     "perda_manipulacao": null,
+     "peso_liquido": 0.015,
+     "unidade": "KG",
+     "fator_correcao": 1.0,
+     "custo_compra": 48.5,
+     "valor": [
+      0.7274999999999999,
+      0.7274999999999999
+     ],
+     "perda_percentual": 0.0,
+     "peso_bruto_reconstruido": 0.015
+    }
+   ],
+   "total": {
+    "linha": 32,
+    "peso_bruto": 8.455000000000002,
+    "peso_liquido": 1.4249999999999998,
+    "unidade": "KG",
+    "valor": [
+     13.318099999999998,
+     18.1008
+    ]
+   },
+   "linha_tabela": 25,
+   "soma_das_linhas": {
+    "peso_bruto": 8.455000000000002,
+    "peso_liquido": 1.4249999999999998,
+    "col9": 13.318099999999998,
+    "col10": 18.1008
+   },
+   "e_sub_receita": true,
+   "nome_sub_receita": "BASE DE GNOCCHI"
+  }
+ ],
+ "copias_de_sub_receita": {
+  "SALADA DE LEGUMES MP": {
+   "abas": [
+    "FILÉ DE FRANGO COM LEGUMES",
+    "FILÉ DE PEIXE COM LEGUMES"
+   ],
+   "itens_identicos": true,
+   "cabecalho_identico": true
+  },
+  "SALADA DE MAIONESE": {
+   "abas": [
+    "PERNIL COM MAIONESE",
+    "SCHNITZEL COM MAIONESE"
+   ],
+   "itens_identicos": true,
+   "cabecalho_identico": true
+  }
+ },
+ "ingredientes": {
+  "ACEM MP": {
+   "grafias": [
+    "acém mp"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    62.6
+   ],
+   "usos": [
+    {
+     "aba": "CARNE GUISADA  COM BATATA CORAD",
+     "bloco": "CARNE GUISADA COM BATATA CORADA",
+     "linha": 8
+    }
+   ]
+  },
+  "ALFACE AMERICANA": {
+   "grafias": [
+    "alface americana"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    28.5
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "SALADA DA CASA ( individual)",
+     "linha": 74
+    }
+   ]
+  },
+  "ALHO BATIDO": {
+   "grafias": [
+    "alho batido"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    20.5
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 41
+    },
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 12
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 18
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "TUTU DE FEIJÃO PRETO",
+     "linha": 33
+    },
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 16
+    },
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 12
+    },
+    {
+     "aba": "FILÉ FRANGO FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 12
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "FILÉ DE FRANGO COM LEGUMES",
+     "linha": 12
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 12
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM PURÊ",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 12
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 28
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 16
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 32
+    }
+   ]
+  },
+  "ARROZ BRANCO DE BROCOLIS MP": {
+   "grafias": [
+    "arroz  branco de brocolis mp"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    8.83
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ DE PEIXE COM PURÊ",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 9
+    }
+   ]
+  },
+  "ARROZ BRANCO PRONTO": {
+   "grafias": [
+    "arroz  branco pronto"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    1.98
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "EMPADÃO DE FRANGO COM SALADA",
+     "linha": 10
+    },
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 9
+    },
+    {
+     "aba": "CARNE GUISADA  COM BATATA CORAD",
+     "bloco": "CARNE GUISADA COM BATATA CORADA",
+     "linha": 9
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 13
+    },
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 13
+    },
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 9
+    },
+    {
+     "aba": "FILÉ FRANGO FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 9
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "FILÉ DE FRANGO COM LEGUMES",
+     "linha": 9
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 9
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "PERNIL COM MAIONESE",
+     "linha": 9
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 9
+    }
+   ]
+  },
+  "AZEITE": {
+   "grafias": [
+    "azeite"
+   ],
+   "unidades": [
+    "L"
+   ],
+   "custos": [
+    47.8
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 33
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 33
+    }
+   ]
+  },
+  "BACON PICADO": {
+   "grafias": [
+    "bacon picado"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    16.45
+   ],
+   "usos": [
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "TUTU DE FEIJÃO PRETO",
+     "linha": 34
+    }
+   ]
+  },
+  "BANHA": {
+   "grafias": [
+    "Banha",
+    "banha"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    1.0
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "MASSA EMPADÃO",
+     "linha": 25
+    },
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 45
+    },
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "GUARNIÇÃO A FRANCESA",
+     "linha": 33
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 12
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "TUTU DE FEIJÃO PRETO",
+     "linha": 36
+    },
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 12
+    }
+   ]
+  },
+  "BASE DE GNOCCHI": {
+   "grafias": [
+    "Base de gnocchi"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    12.702316
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "GNOCCHI COM CARNE ASSADA",
+     "linha": 9
+    }
+   ]
+  },
+  "BATATA ASTERIX": {
+   "grafias": [
+    "Batata asterix",
+    "batata asterix"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    7.15
+   ],
+   "usos": [
+    {
+     "aba": "CARNE GUISADA  COM BATATA CORAD",
+     "bloco": "CARNE GUISADA COM BATATA CORADA",
+     "linha": 10
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 27
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 27
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 26
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 30
+    },
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "BASE DE GNOCCHI",
+     "linha": 26
+    }
+   ]
+  },
+  "BATATA FRITA": {
+   "grafias": [
+    "batata frita"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    13.75
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 10
+    },
+    {
+     "aba": "FILÉ FRANGO FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 10
+    }
+   ]
+  },
+  "BATATA PALHA MP": {
+   "grafias": [
+    "Batata palha MP"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    8.62
+   ],
+   "usos": [
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "GUARNIÇÃO A FRANCESA",
+     "linha": 28
+    }
+   ]
+  },
+  "BOMBOM DE ALCATRA": {
+   "grafias": [
+    "bombom de alcatra"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    69.75
+   ],
+   "usos": [
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 8
+    }
+   ]
+  },
+  "BROCOLIS AMERICANO": {
+   "grafias": [
+    "brócolis americano"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    47.5
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 29
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 29
+    }
+   ]
+  },
+  "CALDO DE CARNE": {
+   "grafias": [
+    "Caldo de carne"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    3.04
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "GNOCCHI COM CARNE ASSADA",
+     "linha": 12
+    }
+   ]
+  },
+  "CARNE ASSADA 120GR": {
+   "grafias": [
+    "Carne assada 120gr"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    7.97
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "GNOCCHI COM CARNE ASSADA",
+     "linha": 8
+    }
+   ]
+  },
+  "CARNE SECA DESFIADA": {
+   "grafias": [
+    "carne seca desfiada"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    49.22
+   ],
+   "usos": [
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 8
+    }
+   ]
+  },
+  "CEBOLA BRANCA": {
+   "grafias": [
+    "Cebola branca",
+    "cebola branca"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    8.7
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 39
+    },
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "SALADA DA CASA ( individual)",
+     "linha": 76
+    },
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "GUARNIÇÃO A FRANCESA",
+     "linha": 30
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 9
+    },
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 10
+    }
+   ]
+  },
+  "CENOURA": {
+   "grafias": [
+    "cenoura"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    6.99
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 28
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 28
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 27
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 31
+    }
+   ]
+  },
+  "CENOURA RALADA": {
+   "grafias": [
+    "cenoura ralada"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    6.99
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "SALADA DA CASA ( individual)",
+     "linha": 77
+    }
+   ]
+  },
+  "COPALOMBO": {
+   "grafias": [
+    "copalombo"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    16.97
+   ],
+   "usos": [
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 8
+    }
+   ]
+  },
+  "COUVE REFOGADA MP": {
+   "grafias": [
+    "couve refogada mp"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    33.52
+   ],
+   "usos": [
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 14
+    }
+   ]
+  },
+  "EMPADAO DE FRANGO": {
+   "grafias": [
+    "empadão de frango"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    11.610124
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "EMPADÃO DE FRANGO COM SALADA",
+     "linha": 8
+    }
+   ]
+  },
+  "ERVILHA CONGELADA": {
+   "grafias": [
+    "Ervilha congelada",
+    "ervilha congelada"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    12.88
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 42
+    },
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "GUARNIÇÃO A FRANCESA",
+     "linha": 31
+    }
+   ]
+  },
+  "EXTRATO DE TOMATE": {
+   "grafias": [
+    "extrato de tomate"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    14.38
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 43
+    }
+   ]
+  },
+  "FARINHA DE MANDIOCA": {
+   "grafias": [
+    "farinha de mandioca"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    5.37
+   ],
+   "usos": [
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "TUTU DE FEIJÃO PRETO",
+     "linha": 32
+    }
+   ]
+  },
+  "FARINHA DE TRIGO": {
+   "grafias": [
+    "Farinha de trigo",
+    "farinha de trigo"
+   ],
+   "unidades": [
+    "KG",
+    "L"
+   ],
+   "custos": [
+    5.9
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "MASSA EMPADÃO",
+     "linha": 24
+    },
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 16
+    },
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 15
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 12
+    },
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "BASE DE GNOCCHI",
+     "linha": 28
+    }
+   ]
+  },
+  "FARINHA PANKO": {
+   "grafias": [
+    "Farinha panko",
+    "farinha panko"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    16.2
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 16
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 13
+    }
+   ]
+  },
+  "FARINHA PANKP": {
+   "grafias": [
+    "farinha pankp"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    16.2
+   ],
+   "usos": [
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 15
+    }
+   ]
+  },
+  "FAROFA DE BACON": {
+   "grafias": [
+    "farofa de bacon"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    8.87
+   ],
+   "usos": [
+    {
+     "aba": "CARNE GUISADA  COM BATATA CORAD",
+     "bloco": "CARNE GUISADA COM BATATA CORADA",
+     "linha": 12
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 16
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "PERNIL COM MAIONESE",
+     "linha": 12
+    }
+   ]
+  },
+  "FEIJAO PRETO MP": {
+   "grafias": [
+    "feijão preto mp"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    3.15
+   ],
+   "usos": [
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 14
+    }
+   ]
+  },
+  "FEIJAO PRETO PRONTO": {
+   "grafias": [
+    "Feijão preto pronto"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    3.15
+   ],
+   "usos": [
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "TUTU DE FEIJÃO PRETO",
+     "linha": 31
+    }
+   ]
+  },
+  "FEIJAO PRONTO": {
+   "grafias": [
+    "feijão pronto"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    3.15
+   ],
+   "usos": [
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 11
+    },
+    {
+     "aba": "CARNE GUISADA  COM BATATA CORAD",
+     "bloco": "CARNE GUISADA COM BATATA CORADA",
+     "linha": 11
+    },
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 11
+    },
+    {
+     "aba": "FILÉ FRANGO FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 11
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "FILÉ DE FRANGO COM LEGUMES",
+     "linha": 11
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 11
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM PURÊ",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 11
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "PERNIL COM MAIONESE",
+     "linha": 11
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 11
+    }
+   ]
+  },
+  "FEIJAP PRETO PRONTO": {
+   "grafias": [
+    "feijãp preto pronto"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    3.15
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "EMPADÃO DE FRANGO COM SALADA",
+     "linha": 11
+    }
+   ]
+  },
+  "FILE DE FRANGO": {
+   "grafias": [
+    "filé de frango"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    14.44
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 38
+    },
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 8
+    },
+    {
+     "aba": "FILÉ FRANGO FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 8
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "FILÉ DE FRANGO COM LEGUMES",
+     "linha": 8
+    }
+   ]
+  },
+  "FILE DE TILAPIA": {
+   "grafias": [
+    "filé de tilápia"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    42.9
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 8
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM PURÊ",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 8
+    }
+   ]
+  },
+  "GUARNICAO A FRANCESA": {
+   "grafias": [
+    "guarnição à francesa"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    11.63
+   ],
+   "usos": [
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 10
+    }
+   ]
+  },
+  "ISCA DE FIGADO DE BOI": {
+   "grafias": [
+    "isca de fígado de boi"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    13.02
+   ],
+   "usos": [
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 8
+    }
+   ]
+  },
+  "LEITIOSA DE EMPANAMENTO": {
+   "grafias": [
+    "leitiosa de empanamento"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    7.25
+   ],
+   "usos": [
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 14
+    }
+   ]
+  },
+  "LEITOSA DE EMPANAMENTO": {
+   "grafias": [
+    "Leitosa de empanamento",
+    "leitosa de empanamento"
+   ],
+   "unidades": [
+    "",
+    "KG"
+   ],
+   "custos": [
+    7.25
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 14
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 14
+    }
+   ]
+  },
+  "LIMAO SCICILIANO": {
+   "grafias": [
+    "limão sciciliano"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    9.61
+   ],
+   "usos": [
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 17
+    }
+   ]
+  },
+  "MAIONESE": {
+   "grafias": [
+    "maionese "
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    14.96
+   ],
+   "usos": [
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 30
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 34
+    }
+   ]
+  },
+  "MANJERICAO": {
+   "grafias": [
+    "Manjericão"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    22.67
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "GNOCCHI COM CARNE ASSADA",
+     "linha": 13
+    }
+   ]
+  },
+  "MANTEIGA": {
+   "grafias": [
+    "Manteiga"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    32.8
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "BASE DE GNOCCHI",
+     "linha": 30
+    }
+   ]
+  },
+  "MASSA EMPADAO": {
+   "grafias": [
+    "massa empadão"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    4.857212
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "EMPADÃO DE FRANGO",
+     "linha": 58
+    }
+   ]
+  },
+  "MOLHO AO SUGO": {
+   "grafias": [
+    "Molho ao sugo"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    10.83
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "GNOCCHI COM CARNE ASSADA",
+     "linha": 10
+    }
+   ]
+  },
+  "OLEO DE SOJA": {
+   "grafias": [
+    "óleo de soja"
+   ],
+   "unidades": [
+    "L"
+   ],
+   "custos": [
+    7.89
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 17
+    },
+    {
+     "aba": "FILÉ FRANGO FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 14
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "FILÉ DE FRANGO COM LEGUMES",
+     "linha": 14
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 14
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM PURÊ",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 14
+    }
+   ]
+  },
+  "OVO": {
+   "grafias": [
+    "ovo"
+   ],
+   "unidades": [
+    "UND"
+   ],
+   "custos": [
+    0.52
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "MASSA EMPADÃO",
+     "linha": 26
+    },
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "EMPADÃO DE FRANGO",
+     "linha": 60
+    }
+   ]
+  },
+  "OVO BRANCO": {
+   "grafias": [
+    "Ovo branco"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    0.52
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "BASE DE GNOCCHI",
+     "linha": 27
+    }
+   ]
+  },
+  "PARMESAO": {
+   "grafias": [
+    "Parmesão"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    48.5
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "GNOCCHI COM CARNE ASSADA",
+     "linha": 11
+    },
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "BASE DE GNOCCHI",
+     "linha": 31
+    }
+   ]
+  },
+  "PERNIL MP": {
+   "grafias": [
+    "Pernil MP"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    36.99
+   ],
+   "usos": [
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "PERNIL COM MAIONESE",
+     "linha": 8
+    }
+   ]
+  },
+  "PRESUNTO": {
+   "grafias": [
+    "Presunto"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    22.98
+   ],
+   "usos": [
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "GUARNIÇÃO A FRANCESA",
+     "linha": 29
+    }
+   ]
+  },
+  "PURE DE BATATA MP": {
+   "grafias": [
+    "purê de batata mp"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    8.81
+   ],
+   "usos": [
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 9
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM PURÊ",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 10
+    }
+   ]
+  },
+  "RECHEIO EMPADAO": {
+   "grafias": [
+    "recheio empadão"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    13.743711
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "EMPADÃO DE FRANGO",
+     "linha": 59
+    }
+   ]
+  },
+  "RUCULA": {
+   "grafias": [
+    "Rúcula "
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    23.5
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "SALADA DA CASA ( individual)",
+     "linha": 73
+    }
+   ]
+  },
+  "SAL": {
+   "grafias": [
+    "sal"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    2.72
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "MASSA EMPADÃO",
+     "linha": 27
+    }
+   ]
+  },
+  "SAL COM PIMENTA": {
+   "grafias": [
+    "sal com pimenta"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    2.72
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 46
+    },
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "MINI ORELHA DE ELEFANTE",
+     "linha": 13
+    },
+    {
+     "aba": "CARNE GUISADA  COM BATATA CORAD",
+     "bloco": "CARNE GUISADA COM BATATA CORADA",
+     "linha": 13
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 17
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "TUTU DE FEIJÃO PRETO",
+     "linha": 35
+    },
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 15
+    },
+    {
+     "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 13
+    },
+    {
+     "aba": "FILÉ FRANGO FRITAS",
+     "bloco": "FILÉ DE FRANGO COM FRITAS",
+     "linha": 13
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "FILÉ DE FRANGO COM LEGUMES",
+     "linha": 13
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 32
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 13
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 32
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM PURÊ",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 13
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "PERNIL COM MAIONESE",
+     "linha": 13
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 29
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 15
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 33
+    }
+   ]
+  },
+  "SAL REFINADO": {
+   "grafias": [
+    "Sal refinado"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    2.72
+   ],
+   "usos": [
+    {
+     "aba": "GNOCCHI COM CARNE ASSADA",
+     "bloco": "BASE DE GNOCCHI",
+     "linha": 29
+    }
+   ]
+  },
+  "SALADA DA CASA( INDIVIDUAL)": {
+   "grafias": [
+    "salada da casa( individual)"
+   ],
+   "unidades": [
+    "PORÇÃO"
+   ],
+   "custos": [
+    18.295
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "EMPADÃO DE FRANGO COM SALADA",
+     "linha": 9
+    }
+   ]
+  },
+  "SALADA DE LEGUMES": {
+   "grafias": [
+    "salada de legumes"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    16.698551
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "FILÉ DE FRANGO COM LEGUMES",
+     "linha": 10
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "FILÉ DE PEIXE COM LEGUMES",
+     "linha": 10
+    }
+   ]
+  },
+  "SALADA DE MAIONESE MP": {
+   "grafias": [
+    "Salada de Maionese MP",
+    "Salada de maionese MP"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    9.698732
+   ],
+   "usos": [
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "PERNIL COM MAIONESE",
+     "linha": 10
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SCHNITIZEL COM MAIONESE",
+     "linha": 10
+    }
+   ]
+  },
+  "SALSA PICADA": {
+   "grafias": [
+    "Salsa picada",
+    "salsa picada"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    25.67
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 44
+    },
+    {
+     "aba": "MINI ORELHA EXECUTIVO",
+     "bloco": "GUARNIÇÃO A FRANCESA",
+     "linha": 32
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 11
+    },
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "TUTU DE FEIJÃO PRETO",
+     "linha": 37
+    },
+    {
+     "aba": "ISCA DE FÍGADO COM PURÊ",
+     "bloco": "isca de fígado com purê",
+     "linha": 11
+    },
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 31
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 31
+    },
+    {
+     "aba": "PERNIL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 31
+    },
+    {
+     "aba": "SCHNITZEL COM MAIONESE",
+     "bloco": "SALADA DE MAIONESE",
+     "linha": 35
+    }
+   ]
+  },
+  "TOMATE": {
+   "grafias": [
+    "tomate"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    14.99
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "RECHEIO EMPADÃO",
+     "linha": 40
+    }
+   ]
+  },
+  "TOMATE ITALIANO": {
+   "grafias": [
+    "tomate italiano"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    14.99
+   ],
+   "usos": [
+    {
+     "aba": "EMPADÃO DE FRANGO COM SALADA ",
+     "bloco": "SALADA DA CASA ( individual)",
+     "linha": 75
+    }
+   ]
+  },
+  "TOMATE PICADO": {
+   "grafias": [
+    "tomate picado "
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    14.99
+   ],
+   "usos": [
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 10
+    }
+   ]
+  },
+  "TUTU DE FEIJAO MP": {
+   "grafias": [
+    "tutu de feijão mp"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    5.094812
+   ],
+   "usos": [
+    {
+     "aba": "CARNE SECA COM TUTU À MINEIRA",
+     "bloco": "CARNE SECA COM TUTU A MINEIRA",
+     "linha": 15
+    }
+   ]
+  },
+  "VAGEM": {
+   "grafias": [
+    "vagem"
+   ],
+   "unidades": [
+    "KG"
+   ],
+   "custos": [
+    10.0
+   ],
+   "usos": [
+    {
+     "aba": "FILÉ DE FRANGO COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 30
+    },
+    {
+     "aba": "FILÉ DE PEIXE COM LEGUMES",
+     "bloco": "SALADA DE LEGUMES MP",
+     "linha": 30
+    }
+   ]
+  }
+ },
+ "sub_receitas_do_depara": {
+  "empadão de frango": "EMPADÃO DE FRANGO",
+  "salada da casa( individual)": "SALADA DA CASA ( individual)",
+  "massa empadão": "MASSA EMPADÃO",
+  "recheio empadão": "RECHEIO EMPADÃO",
+  "guarnição à francesa": "GUARNIÇÃO A FRANCESA",
+  "tutu de feijão mp": "TUTU DE FEIJÃO PRETO",
+  "salada de legumes": "SALADA DE LEGUMES MP",
+  "salada de maionese mp": "SALADA DE MAIONESE",
+  "base de gnocchi": "BASE DE GNOCCHI"
+ }
+}

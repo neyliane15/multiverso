@@ -1,0 +1,3995 @@
+{
+ "restaurante_id": "b0a12eca-0000-4000-8000-000000000001",
+ "resumo": {
+  "fichas": 13,
+  "itens": 99,
+  "produtos_novos": 15,
+  "produtos_distintos_usados": 39,
+  "catalogo_depois": 906,
+  "custo_total_das_fichas": 110.1092,
+  "soma_das_quantidades": 9.07,
+  "custo_da_planilha_somado": 113.3164,
+  "custo_col10_recalculado_somado": 109.9066,
+  "grupos": {
+   "Executivos": 13
+  },
+  "cmv_alvo": 20,
+  "indices": [
+   3,
+   3.5,
+   4,
+   4.5,
+   5
+  ]
+ },
+ "contadores": {
+  "catalogo_depois": 906,
+  "custos_atualizados_pela_0003": 27,
+  "fichas": 13,
+  "grafias_da_planilha": 67,
+  "itens": 99,
+  "itens_com_quantidade_do_bruto": 5,
+  "itens_por_contagem": 4,
+  "itens_por_fracao_de_embalagem": 2,
+  "linhas_de_produto_novo_sem_receita": 7,
+  "linhas_de_sub_receita": 9,
+  "linhas_do_depara": 51,
+  "produtos_criados_pela_0003": 11,
+  "produtos_criados_pela_0004": 12,
+  "produtos_distintos_usados": 39,
+  "produtos_do_retrato_pre_0003": 868,
+  "produtos_no_catalogo": 891,
+  "produtos_novos": 15,
+  "produtos_novos_sem_catalogo": 6,
+  "produtos_novos_sub_receita": 9,
+  "volta_ok": 141,
+  "volta_ok_pela_embalagem": 1,
+  "volta_pela_embalagem_limitada_pela_precisao": 1
+ },
+ "achados": [
+  {
+   "tipo": "volta_pela_embalagem_limitada_pela_precisao_de_quantidade",
+   "bloco": "SALADA DE MAIONESE",
+   "ingrediente": "maionese ",
+   "produto": "MAIONESE (2,8kg)",
+   "reconstruido": 0.15008,
+   "peso_bruto": 0.15,
+   "diferenca": 8e-05,
+   "embalagem": 2.8,
+   "quantidade": 0.0536
+  }
+ ],
+ "produtos_novos": [
+  {
+   "nome": "SAL COM PIMENTA",
+   "unidade": "KG",
+   "categoria": "TEMPEROS E AFINS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "ingrediente_sem_catalogo",
+   "custo_da_planilha": true,
+   "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato",
+   "grafias": [
+    "sal com pimenta"
+   ],
+   "custo": 2.72
+  },
+  {
+   "nome": "BANHA",
+   "unidade": "KG",
+   "categoria": "MERCEARIA",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "ingrediente_sem_catalogo",
+   "custo_da_planilha": true,
+   "motivo": "insumo de COMPRA que falta no catalogo: nao ha BANHA nem GORDURA em nenhuma das 21 categorias. Nao e preparo, nao tem receita, e o custo R$ 1,00/kg e da planilha — um numero redondo e implausivel para banha, que vai para a lista da cliente",
+   "grafias": [
+    "banha"
+   ],
+   "custo": 1.0
+  },
+  {
+   "nome": "LEITOSA DE EMPANAMENTO",
+   "unidade": "KG",
+   "categoria": "PROCESSADOS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "ingrediente_sem_catalogo",
+   "custo_da_planilha": true,
+   "motivo": "preparo de empanamento (a mistura liquida em que a carne passa antes da farinha). Nao existe no catalogo e a planilha nao da a receita; custo R$ 7,25 da planilha. Aparece com tres grafias (`leitosa`, `leitiosa`, e uma linha com a celula Unidade VAZIA)",
+   "grafias": [
+    "leitosa de empanamento",
+    "leitiosa de empanamento"
+   ],
+   "custo": 7.25
+  },
+  {
+   "nome": "ACÉM MP",
+   "unidade": "KG",
+   "categoria": "CARNES",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "ingrediente_sem_catalogo",
+   "custo_da_planilha": true,
+   "motivo": "acem GUISADO, preparo da casa. O catalogo tem ACEM cru a R$ 30,59 e a planilha cobra R$ 62,60 — 2,05x, que e a perda de peso de um cozido longo (acem perde cerca de metade). Mapear para o ACEM cru subestimaria pela metade um ingrediente que e 70% do custo do prato. A planilha nao da a receita do guisado, entao o custo R$ 62,60 e dela",
+   "grafias": [
+    "acém mp"
+   ],
+   "custo": 62.6
+  },
+  {
+   "nome": "PERNIL MP",
+   "unidade": "KG",
+   "categoria": "SUÍNOS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "ingrediente_sem_catalogo",
+   "custo_da_planilha": true,
+   "motivo": "pernil ASSADO, preparo da casa. O catalogo tem PERNIL cru a R$ 13,90 e PERNIL FATIADO a R$ 19,82; a planilha cobra R$ 36,99 (2,66x o cru). Mesmo caso do acem: a planilha nao da a receita do assado, o custo e dela",
+   "grafias": [
+    "pernil mp"
+   ],
+   "custo": 36.99
+  },
+  {
+   "nome": "ARROZ BRANCO DE BRÓCOLIS MP",
+   "unidade": "KG",
+   "categoria": "FEIJOADA",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "ingrediente_sem_catalogo",
+   "custo_da_planilha": true,
+   "motivo": "arroz de brocolis, preparo da casa, sem nada parecido no catalogo e sem receita na planilha; custo R$ 8,83 dela. A categoria FEIJOADA e onde o catalogo guarda os acompanhamentos prontos (ARROZ PRONTO, FEIJÃO PRONTO, FAROFA PRONTA, COUVE PICADA)",
+   "grafias": [
+    "arroz branco de brocolis mp"
+   ],
+   "custo": 8.83
+  },
+  {
+   "nome": "MASSA EMPADÃO",
+   "unidade": "KG",
+   "categoria": "MASSAS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "massa de torta; MASSAS ja guarda MASSA DE PASTEL e MASSA DE GNOCCHI",
+   "bloco": "MASSA EMPADÃO",
+   "custo": 4.027273
+  },
+  {
+   "nome": "RECHEIO EMPADÃO",
+   "unidade": "KG",
+   "categoria": "MOLHOS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "MOLHOS ja guarda RECHEIO DE CARNE MOÍDA e RECHEIO DE PASTEL",
+   "bloco": "RECHEIO EMPADÃO",
+   "custo": 13.748041
+  },
+  {
+   "nome": "EMPADÃO DE FRANGO",
+   "unidade": "KG",
+   "categoria": "MASSAS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "torta montada; MASSAS ja guarda as EMPADA DE *. Cuidado: o catalogo tem EMPADA DE FRANGO com custo R$ 0,00, que e outra coisa (empada e individual, empadao e a torta) e esta zerada",
+   "bloco": "EMPADÃO DE FRANGO",
+   "custo": 11.327472
+  },
+  {
+   "nome": "SALADA DA CASA (individual)",
+   "unidade": "KG",
+   "categoria": "PROCESSADOS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "preparo composto da casa; PROCESSADOS e a categoria de item processado na casa. A planilha rotula a Unidade como \"porção\" mas o Custo porcao dela e por kg (R$ 2,5613 / 0,14 kg)",
+   "bloco": "SALADA DA CASA ( individual)",
+   "custo": 23.58
+  },
+  {
+   "nome": "GUARNIÇÃO À FRANCESA",
+   "unidade": "KG",
+   "categoria": "PROCESSADOS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "preparo composto da casa (batata palha, presunto, cebola, ervilha, salsa, banha)",
+   "bloco": "GUARNIÇÃO A FRANCESA",
+   "custo": 8.955429
+  },
+  {
+   "nome": "TUTU DE FEIJÃO PRETO",
+   "unidade": "KG",
+   "categoria": "FEIJOADA",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "acompanhamento pronto de feijao; FEIJOADA e onde vivem FEIJÃO PRONTO, ARROZ PRONTO, FAROFA PRONTA, COUVE PICADA",
+   "bloco": "TUTU DE FEIJÃO PRETO",
+   "custo": 6.114662
+  },
+  {
+   "nome": "SALADA DE LEGUMES MP",
+   "unidade": "KG",
+   "categoria": "PROCESSADOS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "preparo composto da casa. UM produto para as DUAS copias (abas FILÉ DE FRANGO COM LEGUMES e FILÉ DE PEIXE COM LEGUMES)",
+   "bloco": "SALADA DE LEGUMES MP",
+   "custo": 25.118841
+  },
+  {
+   "nome": "SALADA DE MAIONESE MP",
+   "unidade": "KG",
+   "categoria": "PROCESSADOS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "preparo composto da casa. UM produto para as DUAS copias (abas PERNIL COM MAIONESE e SCHNITZEL COM MAIONESE). O nome gravado leva o \"MP\" porque e assim que as duas linhas de ingrediente que o consomem o chamam",
+   "bloco": "SALADA DE MAIONESE",
+   "custo": 9.299812
+  },
+  {
+   "nome": "BASE DE GNOCCHI",
+   "unidade": "KG",
+   "categoria": "MASSAS",
+   "setor": "Cozinha",
+   "custo_fixo": true,
+   "origem": "sub_receita_da_planilha",
+   "custo_da_planilha": false,
+   "motivo": "massa de nhoque com manteiga e parmesao. O catalogo tem MASSA DE GNOCCHI a R$ 3,00, que e massa simples e um preco possivelmente velho; a receita da planilha e outra e mais caro, e as duas coexistirem e pendencia para a cliente",
+   "bloco": "BASE DE GNOCCHI",
+   "custo": 11.621965
+  }
+ ],
+ "fichas": [
+  {
+   "nome": "EMPADÃO DE FRANGO COM SALADA",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 1,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "EMPADÃO DE FRANGO",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.18,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.18,
+     "observacao": "planilha: empadão de frango · EMPADÃO DE FRANGO COM SALADA",
+     "depara": {
+      "grafia": "empadão de frango",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco EMPADÃO DE FRANGO), provada por custo_porcao_col9"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.18,
+      "peso_liquido": 0.18,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 11.610124058453955,
+      "valor_producao_col9": 2.089822330521712,
+      "valor_preco_de_custo_col10": 2.2752,
+      "col10_recalculada": 2.089822
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 11.327472,
+     "custo": 2.0389
+    },
+    {
+     "ordem": 2,
+     "produto": "SALADA DA CASA (individual)",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.14,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.14,
+     "observacao": "planilha: salada da casa( individual) · EMPADÃO DE FRANGO COM SALADA",
+     "depara": {
+      "grafia": "salada da casa( individual)",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco SALADA DA CASA ( individual)), provada por custo_porcao_col9"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.14,
+      "peso_liquido": 0.14,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "porção",
+      "custo_compra": 18.295,
+      "valor_producao_col9": 2.5613000000000006,
+      "valor_preco_de_custo_col10": 3.9692,
+      "col10_recalculada": 2.5613
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 23.58,
+     "custo": 3.3012
+    },
+    {
+     "ordem": 3,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · EMPADÃO DE FRANGO COM SALADA",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijãp preto pronto · EMPADÃO DE FRANGO COM SALADA",
+     "depara": {
+      "grafia": "feijãp preto pronto",
+      "forca": "nome",
+      "motivo": "idem, com \"feijãp\" por \"feijão\" — erro de digitacao da planilha"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.378,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    }
+   ],
+   "planilha": {
+    "aba": "EMPADÃO DE FRANGO COM SALADA ",
+    "nome_do_bloco": "EMPADÃO DE FRANGO COM SALADA",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.64,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.64,
+    "custo_total_col9": 5.425122330521712,
+    "custo_total_col10": 7.0184,
+    "custo_bruto_da_resumo": 7.0184,
+    "custo_col10_recalculado": 5.4251,
+    "precos_da_resumo": {
+     "3": 21.0552,
+     "3.5": 24.5644,
+     "4": 28.0736,
+     "4.5": 31.5828,
+     "5": 35.092
+    }
+   },
+   "custo_do_nosso_catalogo": 6.1157,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,64 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 7,02)\n  preço                 21,06       24,56       28,07       31,58       35,09\ncusto do nosso estoque (R$ 6,12) — na data da carga\n  preço                 18,35       21,40       24,46       27,52       30,58\n\nO nosso custo é -12.9% em relação ao da planilha (R$ 6,12 contra R$ 7,02). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"EMPADÃO DE FRANGO COM SALADA\" (linha 1)."
+  },
+  {
+   "nome": "MINI ORELHA EXECUTIVO",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 2,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "BOMBOM DA ALCATRA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.09,
+     "perda_percentual": 10.0,
+     "quantidade_bruta": 0.1,
+     "observacao": "planilha: bombom de alcatra · MINI ORELHA EXECUTIVO",
+     "depara": {
+      "grafia": "bombom de alcatra",
+      "forca": "custo quase exato",
+      "motivo": "R$ 69,66 contra R$ 69,75 = 0,999. \"DE\" contra \"DA\" no nome"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.1,
+      "peso_liquido": 0.09,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.1111111111111112,
+      "unidade": "KG",
+      "custo_compra": 69.75,
+      "valor_producao_col9": 6.2775,
+      "valor_preco_de_custo_col10": 6.9750000000000005,
+      "col10_recalculada": 6.975
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 69.66,
+     "custo": 6.966
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · MINI ORELHA EXECUTIVO",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 3,
+     "produto": "GUARNIÇÃO À FRANCESA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.1,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.1,
+     "observacao": "planilha: guarnição à francesa · MINI ORELHA EXECUTIVO",
+     "depara": {
+      "grafia": "guarnição à francesa",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco GUARNIÇÃO A FRANCESA), provada por custo_porcao_col9_arredondado"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.1,
+      "peso_liquido": 0.1,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 11.63,
+      "valor_producao_col9": 1.163,
+      "valor_preco_de_custo_col10": 1.213,
+      "col10_recalculada": 1.163
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 8.955429,
+     "custo": 0.8955
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · MINI ORELHA EXECUTIVO · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.378,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · MINI ORELHA EXECUTIVO",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    },
+    {
+     "ordem": 6,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · MINI ORELHA EXECUTIVO · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 7,
+     "produto": "LEITOSA DE EMPANAMENTO",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: leitiosa de empanamento · MINI ORELHA EXECUTIVO · numa das tres linhas a celula Unidade da planilha esta vazia",
+     "depara": {
+      "grafia": "leitiosa de empanamento",
+      "forca": "produto novo sem receita",
+      "motivo": "a mesma coisa com \"leitiosa\" por \"leitosa\" — erro de digitacao"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "kg",
+      "custo_compra": 7.25,
+      "valor_producao_col9": 0.145,
+      "valor_preco_de_custo_col10": 0.145,
+      "col10_recalculada": 0.145
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.25,
+     "custo": 0.145
+    },
+    {
+     "ordem": 8,
+     "produto": "FARINHA PANKO (1kg)",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: farinha pankp · MINI ORELHA EXECUTIVO",
+     "depara": {
+      "grafia": "farinha pankp",
+      "forca": "custo exato",
+      "motivo": "o mesmo produto com erro de digitacao no nome; R$ 16,20 = R$ 16,20"
+     },
+     "planilha": {
+      "linha": 15,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "kg",
+      "custo_compra": 16.2,
+      "valor_producao_col9": 0.324,
+      "valor_preco_de_custo_col10": 0.324,
+      "col10_recalculada": 0.324
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 16.2,
+     "custo": 0.324
+    },
+    {
+     "ordem": 9,
+     "produto": "FARINHA DE TRIGO (1kg)",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.01,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.01,
+     "observacao": "planilha: farinha de trigo · MINI ORELHA EXECUTIVO · uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro",
+     "depara": {
+      "grafia": "farinha de trigo",
+      "forca": "nome",
+      "motivo": "nome identico mais o tamanho. R$ 4,10 contra R$ 5,90 = 0,695. Uma das cinco linhas de farinha da planilha esta com Unidade L — erro de rotulo dela; a unidade gravada e a do nosso cadastro, KG"
+     },
+     "planilha": {
+      "linha": 16,
+      "peso_bruto": 0.01,
+      "peso_liquido": 0.01,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "L",
+      "custo_compra": 5.9,
+      "valor_producao_col9": 0.059000000000000004,
+      "valor_preco_de_custo_col10": 0.059000000000000004,
+      "col10_recalculada": 0.059
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 4.1,
+     "custo": 0.041
+    }
+   ],
+   "planilha": {
+    "aba": "MINI ORELHA EXECUTIVO",
+    "nome_do_bloco": "MINI ORELHA DE ELEFANTE",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.5850000000000001,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.5850000000000001,
+    "custo_total_col9": 9.166099999999998,
+    "custo_total_col10": 9.913599999999999,
+    "custo_bruto_da_resumo": 9.913599999999999,
+    "custo_col10_recalculado": 9.8636,
+    "precos_da_resumo": {
+     "3": 29.740799999999997,
+     "3.5": 34.697599999999994,
+     "4": 39.654399999999995,
+     "4.5": 44.6112,
+     "5": 49.568
+    }
+   },
+   "custo_do_nosso_catalogo": 9.5779,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,585 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 9,91)\n  preço                 29,74       34,70       39,65       44,61       49,57\ncusto do nosso estoque (R$ 9,58) — na data da carga\n  preço                 28,73       33,52       38,31       43,10       47,89\n\nO nosso custo é -3.4% em relação ao da planilha (R$ 9,58 contra R$ 9,91). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"MINI ORELHA EXECUTIVO\", bloco \"MINI ORELHA DE ELEFANTE\" (linha 1). O nome vendido é o da aba Resumo."
+  },
+  {
+   "nome": "CARNE GUISADA  COM BATATA CORADA",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 3,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "ACÉM MP",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.1,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.1,
+     "observacao": "planilha: acém mp · CARNE GUISADA  COM BATATA CORAD · custo R$ 62,60 vindo da planilha: e acem guisado e a planilha nao da a receita",
+     "depara": {
+      "grafia": "acém mp",
+      "forca": "produto novo sem receita",
+      "motivo": "acem GUISADO, preparo da casa. O catalogo tem ACEM cru a R$ 30,59 e a planilha cobra R$ 62,60 — 2,05x, que e a perda de peso de um cozido longo (acem perde cerca de metade). Mapear para o ACEM cru subestimaria pela metade um ingrediente que e 70% do custo do prato. A planilha nao da a receita do guisado, entao o custo R$ 62,60 e dela"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.1,
+      "peso_liquido": 0.1,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 62.6,
+      "valor_producao_col9": 6.260000000000001,
+      "valor_preco_de_custo_col10": 6.260000000000001,
+      "col10_recalculada": 6.26
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 62.6,
+     "custo": 6.26
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · CARNE GUISADA  COM BATATA CORAD",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 3,
+     "produto": "BATATA ASTERIX",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.1,
+     "perda_percentual": 50.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: batata asterix · CARNE GUISADA  COM BATATA CORAD",
+     "depara": {
+      "grafia": "batata asterix",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.1,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 2.0,
+      "unidade": "KG",
+      "custo_compra": 7.15,
+      "valor_producao_col9": 0.7150000000000001,
+      "valor_preco_de_custo_col10": 1.4300000000000002,
+      "col10_recalculada": 1.43
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 5.13,
+     "custo": 1.026
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · CARNE GUISADA  COM BATATA CORAD · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.378,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "FAROFA PRONTA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.05,
+     "observacao": "planilha: farofa de bacon · CARNE GUISADA  COM BATATA CORAD",
+     "depara": {
+      "grafia": "farofa de bacon",
+      "forca": "escolha forcada",
+      "motivo": "a unica farofa do catalogo. R$ 9,80 contra R$ 8,87 = 1,105. O nosso cadastro nao diz de que e a farofa"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.05,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 8.87,
+      "valor_producao_col9": 0.4435,
+      "valor_preco_de_custo_col10": 0.4435,
+      "col10_recalculada": 0.4435
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.8,
+     "custo": 0.49
+    },
+    {
+     "ordem": 6,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · CARNE GUISADA  COM BATATA CORAD · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    }
+   ],
+   "planilha": {
+    "aba": "CARNE GUISADA  COM BATATA CORAD",
+    "nome_do_bloco": "CARNE GUISADA COM BATATA CORADA",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.5750000000000001,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.5750000000000001,
+    "custo_total_col9": 8.206100000000001,
+    "custo_total_col10": 8.921100000000001,
+    "custo_bruto_da_resumo": 8.921100000000001,
+    "custo_col10_recalculado": 8.9211,
+    "precos_da_resumo": {
+     "3": 26.7633,
+     "3.5": 31.223850000000002,
+     "4": 35.684400000000004,
+     "4.5": 40.14495,
+     "5": 44.605500000000006
+    }
+   },
+   "custo_do_nosso_catalogo": 8.5652,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,575 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 8,92)\n  preço                 26,76       31,22       35,68       40,14       44,61\ncusto do nosso estoque (R$ 8,57) — na data da carga\n  preço                 25,70       29,98       34,26       38,54       42,83\n\nO nosso custo é -4.0% em relação ao da planilha (R$ 8,57 contra R$ 8,92). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"CARNE GUISADA  COM BATATA CORAD\", bloco \"CARNE GUISADA COM BATATA CORADA\" (linha 1). O nome vendido é o da aba Resumo."
+  },
+  {
+   "nome": "CARNE SECA COM TUTU À MINEIRA",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 4,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "CARNE SECA LAGARTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.08,
+     "perda_percentual": 50.0,
+     "quantidade_bruta": 0.16,
+     "observacao": "planilha: carne seca desfiada · CARNE SECA COM TUTU À MINEIRA",
+     "depara": {
+      "grafia": "carne seca desfiada",
+      "forca": "custo quase exato",
+      "motivo": "R$ 47,90 contra R$ 49,22 = 0,973. A CARNE SECA de FEIJOADA custa R$ 143,70 (2,9x) e as CARNE SECA (150g)/(200g) sao porcao pronta"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.16,
+      "peso_liquido": 0.08,
+      "perda_manipulacao": 0.08,
+      "fator_correcao": 2.0,
+      "unidade": "KG",
+      "custo_compra": 49.22,
+      "valor_producao_col9": 3.9376,
+      "valor_preco_de_custo_col10": 7.8752,
+      "col10_recalculada": 7.8752
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 47.9,
+     "custo": 7.664
+    },
+    {
+     "ordem": 2,
+     "produto": "CEBOLA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 28.571,
+     "quantidade_bruta": 0.07,
+     "observacao": "planilha: cebola branca · CARNE SECA COM TUTU À MINEIRA",
+     "depara": {
+      "grafia": "cebola branca",
+      "forca": "exclusao",
+      "motivo": "o catalogo tem CEBOLA, CEBOLA ROXA, CEBOLA CALABRESA e CEBOLA CRISPY; a branca e a sem adjetivo. R$ 4,46 contra R$ 8,70 = 0,51, e a ROXA (R$ 7,37) ficaria mais perto no preco — mas a planilha diz BRANCA e cor de cebola nao se decide por preco"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.07,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": 0.02,
+      "fator_correcao": 1.4000000000000001,
+      "unidade": "KG",
+      "custo_compra": 8.7,
+      "valor_producao_col9": 0.435,
+      "valor_preco_de_custo_col10": 0.609,
+      "col10_recalculada": 0.609
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 4.46,
+     "custo": 0.3122
+    },
+    {
+     "ordem": 3,
+     "produto": "TOMATE SALADA MADURO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 75.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: tomate picado · CARNE SECA COM TUTU À MINEIRA",
+     "depara": {
+      "grafia": "tomate picado ",
+      "forca": "exclusao",
+      "motivo": "picar nao muda a massa. A planilha lista `tomate italiano` em linha propria, entao o tomate sem adjetivo e o outro. R$ 7,60 contra R$ 14,99 = 0,51: o preco da planilha e de tomate caro/antigo"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": 0.15,
+      "fator_correcao": 4.0,
+      "unidade": "KG",
+      "custo_compra": 14.99,
+      "valor_producao_col9": 0.7495,
+      "valor_preco_de_custo_col10": 2.998,
+      "col10_recalculada": 2.998
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.6,
+     "custo": 1.52
+    },
+    {
+     "ordem": 4,
+     "produto": "SALSA",
+     "produto_novo": false,
+     "unidade": "UND",
+     "quantidade": 0.015,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.015,
+     "observacao": "planilha: salsa picada · CARNE SECA COM TUTU À MINEIRA · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND",
+     "depara": {
+      "grafia": "salsa picada",
+      "forca": "nome",
+      "motivo": "picar nao muda a massa. R$ 24,20 contra R$ 25,67 = 0,943 — e a razao proxima de 1 e que diz que a UND do nosso cadastro e cerca de um quilo. A SALSA CRESPA VERDE custa R$ 2,20, outra coisa. Ver AVISO_NO_ITEM"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.015,
+      "peso_liquido": 0.015,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 25.67,
+      "valor_producao_col9": 0.38505,
+      "valor_preco_de_custo_col10": 0.38505,
+      "col10_recalculada": 0.38505
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 24.2,
+     "custo": 0.363
+    },
+    {
+     "ordem": 5,
+     "produto": "BANHA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.04,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.04,
+     "observacao": "planilha: banha · CARNE SECA COM TUTU À MINEIRA · custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha",
+     "depara": {
+      "grafia": "banha",
+      "forca": "produto novo sem receita",
+      "motivo": "insumo de COMPRA que falta no catalogo: nao ha BANHA nem GORDURA em nenhuma das 21 categorias. Nao e preparo, nao tem receita, e o custo R$ 1,00/kg e da planilha — um numero redondo e implausivel para banha, que vai para a lista da cliente"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.04,
+      "peso_liquido": 0.04,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.0,
+      "valor_producao_col9": 0.04,
+      "valor_preco_de_custo_col10": 0.04,
+      "col10_recalculada": 0.04
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.0,
+     "custo": 0.04
+    },
+    {
+     "ordem": 6,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · CARNE SECA COM TUTU À MINEIRA",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 7,
+     "produto": "COUVE PICADA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 50.0,
+     "quantidade_bruta": 0.1,
+     "observacao": "planilha: couve refogada mp · CARNE SECA COM TUTU À MINEIRA",
+     "depara": {
+      "grafia": "couve refogada mp",
+      "forca": "custo exato",
+      "motivo": "R$ 33,52 = R$ 33,52, exato. A planilha chama de \"refogada\" o que o nosso catalogo chama de \"picada\" e precifica igual — e o mesmo item"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.1,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 2.0,
+      "unidade": "KG",
+      "custo_compra": 33.52,
+      "valor_producao_col9": 1.6760000000000002,
+      "valor_preco_de_custo_col10": 3.3520000000000003,
+      "col10_recalculada": 3.352
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 33.52,
+     "custo": 3.352
+    },
+    {
+     "ordem": 8,
+     "produto": "TUTU DE FEIJÃO PRETO",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: tutu de feijão mp · CARNE SECA COM TUTU À MINEIRA",
+     "depara": {
+      "grafia": "tutu de feijão mp",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco TUTU DE FEIJÃO PRETO), provada por custo_porcao_col9"
+     },
+     "planilha": {
+      "linha": 15,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 5.094812030075188,
+      "valor_producao_col9": 0.6113774436090225,
+      "valor_preco_de_custo_col10": 0.6113774436090225,
+      "col10_recalculada": 0.611377
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 6.114662,
+     "custo": 0.7338
+    },
+    {
+     "ordem": 9,
+     "produto": "FAROFA PRONTA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.05,
+     "observacao": "planilha: farofa de bacon · CARNE SECA COM TUTU À MINEIRA",
+     "depara": {
+      "grafia": "farofa de bacon",
+      "forca": "escolha forcada",
+      "motivo": "a unica farofa do catalogo. R$ 9,80 contra R$ 8,87 = 1,105. O nosso cadastro nao diz de que e a farofa"
+     },
+     "planilha": {
+      "linha": 16,
+      "peso_bruto": 0.05,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 8.87,
+      "valor_producao_col9": 0.4435,
+      "valor_preco_de_custo_col10": 0.4435,
+      "col10_recalculada": 0.4435
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.8,
+     "custo": 0.49
+    },
+    {
+     "ordem": 10,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · CARNE SECA COM TUTU À MINEIRA · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 17,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 11,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · CARNE SECA COM TUTU À MINEIRA",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 18,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    }
+   ],
+   "planilha": {
+    "aba": "CARNE SECA COM TUTU À MINEIRA",
+    "nome_do_bloco": "CARNE SECA COM TUTU A MINEIRA",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.68,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.68,
+    "custo_total_col9": 9.097627443609024,
+    "custo_total_col10": 17.133727443609025,
+    "custo_bruto_da_resumo": 17.133727443609025,
+    "custo_col10_recalculado": 17.1337,
+    "precos_da_resumo": {
+     "3": 51.401182330827076,
+     "3.5": 59.96804605263159,
+     "4": 68.5349097744361,
+     "4.5": 77.10177349624061,
+     "5": 85.66863721804512
+    }
+   },
+   "custo_do_nosso_catalogo": 15.2518,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,68 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 17,13)\n  preço                 51,40       59,97       68,53       77,10       85,67\ncusto do nosso estoque (R$ 15,25) — na data da carga\n  preço                 45,76       53,38       61,01       68,63       76,26\n\nO nosso custo é -11.0% em relação ao da planilha (R$ 15,25 contra R$ 17,13). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"CARNE SECA COM TUTU À MINEIRA\", bloco \"CARNE SECA COM TUTU A MINEIRA\" (linha 1). O nome vendido é o da aba Resumo."
+  },
+  {
+   "nome": "ISCA DE FÍGADO COM PURÊ",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 5,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "FIGADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 20.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: isca de fígado de boi · ISCA DE FÍGADO COM PURÊ",
+     "depara": {
+      "grafia": "isca de fígado de boi",
+      "forca": "escolha forcada",
+      "motivo": "o unico figado do catalogo. R$ 8,43 contra R$ 13,02 = 0,648; a planilha parece cobrar a isca ja cortada"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.02,
+      "fator_correcao": 1.25,
+      "unidade": "KG",
+      "custo_compra": 13.02,
+      "valor_producao_col9": 1.5623999999999998,
+      "valor_preco_de_custo_col10": 1.9529999999999998,
+      "col10_recalculada": 1.953
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 8.43,
+     "custo": 1.2645
+    },
+    {
+     "ordem": 2,
+     "produto": "PURE DE BATATA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.15,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: purê de batata mp · ISCA DE FÍGADO COM PURÊ",
+     "depara": {
+      "grafia": "purê de batata mp",
+      "forca": "nome",
+      "motivo": "nome identico sem o \"MP\". R$ 9,69 contra R$ 8,81 = 1,10"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 8.81,
+      "valor_producao_col9": 1.3215000000000001,
+      "valor_preco_de_custo_col10": 1.3215000000000001,
+      "col10_recalculada": 1.3215
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.69,
+     "custo": 1.4535
+    },
+    {
+     "ordem": 3,
+     "produto": "CEBOLA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 28.571,
+     "quantidade_bruta": 0.07,
+     "observacao": "planilha: cebola branca · ISCA DE FÍGADO COM PURÊ",
+     "depara": {
+      "grafia": "cebola branca",
+      "forca": "exclusao",
+      "motivo": "o catalogo tem CEBOLA, CEBOLA ROXA, CEBOLA CALABRESA e CEBOLA CRISPY; a branca e a sem adjetivo. R$ 4,46 contra R$ 8,70 = 0,51, e a ROXA (R$ 7,37) ficaria mais perto no preco — mas a planilha diz BRANCA e cor de cebola nao se decide por preco"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.07,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": 0.02,
+      "fator_correcao": 1.4000000000000001,
+      "unidade": "KG",
+      "custo_compra": 8.7,
+      "valor_producao_col9": 0.435,
+      "valor_preco_de_custo_col10": 0.609,
+      "col10_recalculada": 0.609
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 4.46,
+     "custo": 0.3122
+    },
+    {
+     "ordem": 4,
+     "produto": "SALSA",
+     "produto_novo": false,
+     "unidade": "UND",
+     "quantidade": 0.015,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.015,
+     "observacao": "planilha: salsa picada · ISCA DE FÍGADO COM PURÊ · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND",
+     "depara": {
+      "grafia": "salsa picada",
+      "forca": "nome",
+      "motivo": "picar nao muda a massa. R$ 24,20 contra R$ 25,67 = 0,943 — e a razao proxima de 1 e que diz que a UND do nosso cadastro e cerca de um quilo. A SALSA CRESPA VERDE custa R$ 2,20, outra coisa. Ver AVISO_NO_ITEM"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.015,
+      "peso_liquido": 0.015,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 25.67,
+      "valor_producao_col9": 0.38505,
+      "valor_preco_de_custo_col10": 0.38505,
+      "col10_recalculada": 0.38505
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 24.2,
+     "custo": 0.363
+    },
+    {
+     "ordem": 5,
+     "produto": "BANHA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: banha · ISCA DE FÍGADO COM PURÊ · custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha",
+     "depara": {
+      "grafia": "banha",
+      "forca": "produto novo sem receita",
+      "motivo": "insumo de COMPRA que falta no catalogo: nao ha BANHA nem GORDURA em nenhuma das 21 categorias. Nao e preparo, nao tem receita, e o custo R$ 1,00/kg e da planilha — um numero redondo e implausivel para banha, que vai para a lista da cliente"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.0,
+      "valor_producao_col9": 0.02,
+      "valor_preco_de_custo_col10": 0.02,
+      "col10_recalculada": 0.02
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.0,
+     "custo": 0.02
+    },
+    {
+     "ordem": 6,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · ISCA DE FÍGADO COM PURÊ",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 7,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão preto mp · ISCA DE FÍGADO COM PURÊ",
+     "depara": {
+      "grafia": "feijão preto mp",
+      "forca": "nome",
+      "motivo": "feijao preto pronto e o FEIJÃO PRONTO (R$ 3,58 contra R$ 3,15 = 1,137); o FEIJÃO PRETO (1kg) do catalogo, a R$ 5,89, e o grao cru"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.378,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 8,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · ISCA DE FÍGADO COM PURÊ · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 15,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 9,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · ISCA DE FÍGADO COM PURÊ",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 16,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    }
+   ],
+   "planilha": {
+    "aba": "ISCA DE FÍGADO COM PURÊ",
+    "nome_do_bloco": "isca de fígado com purê",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.7000000000000001,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.7000000000000001,
+    "custo_total_col9": 4.921550000000001,
+    "custo_total_col10": 5.486149999999999,
+    "custo_bruto_da_resumo": 5.486149999999999,
+    "custo_col10_recalculado": 5.4861,
+    "precos_da_resumo": {
+     "3": 16.45845,
+     "3.5": 19.201524999999997,
+     "4": 21.944599999999998,
+     "4.5": 24.687675,
+     "5": 27.430749999999996
+    }
+   },
+   "custo_do_nosso_catalogo": 4.6196,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,7 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 5,49)\n  preço                 16,46       19,20       21,94       24,69       27,43\ncusto do nosso estoque (R$ 4,62) — na data da carga\n  preço                 13,86       16,17       18,48       20,79       23,10\n\nO nosso custo é -15.8% em relação ao da planilha (R$ 4,62 contra R$ 5,49). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"ISCA DE FÍGADO COM PURÊ\", bloco \"isca de fígado com purê\" (linha 1). O nome vendido é o da aba Resumo."
+  },
+  {
+   "nome": "FILÉ FRANGO EMPANADO COM FRITAS",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 6,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "PEITO DE FRANGO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.1,
+     "perda_percentual": 16.667,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: filé de frango · FILÉ FRANGO EMPANADO COM FRITAS",
+     "depara": {
+      "grafia": "filé de frango",
+      "forca": "custo quase exato",
+      "motivo": "R$ 14,41 contra R$ 14,44 = 0,998. File de frango e peito desossado; o FILE DE FRANGO 100 GR do catalogo e porcao pronta em UND (R$ 2,98) e a receita pesa em KG"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.1,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.2,
+      "unidade": "KG",
+      "custo_compra": 14.44,
+      "valor_producao_col9": 1.444,
+      "valor_preco_de_custo_col10": 1.7328,
+      "col10_recalculada": 1.7328
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 14.41,
+     "custo": 1.7292
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · FILÉ FRANGO EMPANADO COM FRITAS",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 3,
+     "produto": "BATATA CONGELADA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.15,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: batata frita · FILÉ FRANGO EMPANADO COM FRITAS",
+     "depara": {
+      "grafia": "batata frita",
+      "forca": "custo quase exato",
+      "motivo": "R$ 13,38 contra R$ 13,75 = 0,973, e e o insumo cru que a casa frita. A BATATA FRITA (300g) do catalogo custa R$ 7,75 (0,56x) e e porcao pronta"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 13.75,
+      "valor_producao_col9": 2.0625,
+      "valor_preco_de_custo_col10": 2.0625,
+      "col10_recalculada": 2.0625
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 13.38,
+     "custo": 2.007
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · FILÉ FRANGO EMPANADO COM FRITAS · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 0.8,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.4725,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": null,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · FILÉ FRANGO EMPANADO COM FRITAS",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    },
+    {
+     "ordem": 6,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · FILÉ FRANGO EMPANADO COM FRITAS · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 7,
+     "produto": "LEITOSA DE EMPANAMENTO",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: Leitosa de empanamento · FILÉ FRANGO EMPANADO COM FRITAS · numa das tres linhas a celula Unidade da planilha esta vazia",
+     "depara": {
+      "grafia": "Leitosa de empanamento",
+      "forca": "produto novo sem receita",
+      "motivo": "preparo de empanamento (a mistura liquida em que a carne passa antes da farinha). Nao existe no catalogo e a planilha nao da a receita; custo R$ 7,25 da planilha. Aparece com tres grafias (`leitosa`, `leitiosa`, e uma linha com a celula Unidade VAZIA)"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": null,
+      "custo_compra": 7.25,
+      "valor_producao_col9": 0.145,
+      "valor_preco_de_custo_col10": 0.145,
+      "col10_recalculada": 0.145
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.25,
+     "custo": 0.145
+    },
+    {
+     "ordem": 8,
+     "produto": "FARINHA DE TRIGO (1kg)",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.01,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.01,
+     "observacao": "planilha: Farinha de trigo · FILÉ FRANGO EMPANADO COM FRITAS · uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro",
+     "depara": {
+      "grafia": "Farinha de trigo",
+      "forca": "nome",
+      "motivo": "nome identico mais o tamanho. R$ 4,10 contra R$ 5,90 = 0,695. Uma das cinco linhas de farinha da planilha esta com Unidade L — erro de rotulo dela; a unidade gravada e a do nosso cadastro, KG"
+     },
+     "planilha": {
+      "linha": 15,
+      "peso_bruto": 0.01,
+      "peso_liquido": 0.01,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 5.9,
+      "valor_producao_col9": 0.059000000000000004,
+      "valor_preco_de_custo_col10": 0.059000000000000004,
+      "col10_recalculada": 0.059
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 4.1,
+     "custo": 0.041
+    },
+    {
+     "ordem": 9,
+     "produto": "FARINHA PANKO (1kg)",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: Farinha panko · FILÉ FRANGO EMPANADO COM FRITAS",
+     "depara": {
+      "grafia": "Farinha panko",
+      "forca": "custo exato",
+      "motivo": "R$ 16,20 = R$ 16,20, exato"
+     },
+     "planilha": {
+      "linha": 16,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 16.2,
+      "valor_producao_col9": 0.324,
+      "valor_preco_de_custo_col10": 0.324,
+      "col10_recalculada": 0.324
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 16.2,
+     "custo": 0.324
+    },
+    {
+     "ordem": 10,
+     "produto": "ÓLEO DE SOJA (6lts)",
+     "produto_novo": false,
+     "unidade": "LTS",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: óleo de soja · FILÉ FRANGO EMPANADO COM FRITAS",
+     "depara": {
+      "grafia": "óleo de soja",
+      "forca": "custo quase exato",
+      "motivo": "R$ 7,80/litro contra R$ 7,89/litro = 0,989. A garrafa de 0,9 L (R$ 7,70 a UND) sairia a R$ 8,56/litro. A unidade do nosso cadastro e LTS"
+     },
+     "planilha": {
+      "linha": 17,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "L",
+      "custo_compra": 7.89,
+      "valor_producao_col9": 0.1578,
+      "valor_preco_de_custo_col10": 0.1578,
+      "col10_recalculada": 0.1578
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.8,
+     "custo": 0.156
+    }
+   ],
+   "planilha": {
+    "aba": "FILÉ FRANGO EMPANADO COM FRITAS",
+    "nome_do_bloco": "FILÉ DE FRANGO COM FRITAS",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.6950000000000002,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.6950000000000002,
+    "custo_total_col9": 5.4844,
+    "custo_total_col10": 5.6787,
+    "custo_bruto_da_resumo": 5.6787,
+    "custo_col10_recalculado": 5.6787,
+    "precos_da_resumo": {
+     "3": 17.0361,
+     "3.5": 19.87545,
+     "4": 22.7148,
+     "4.5": 25.55415,
+     "5": 28.3935
+    }
+   },
+   "custo_do_nosso_catalogo": 5.6086,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,695 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 5,68)\n  preço                 17,04       19,88       22,71       25,55       28,39\ncusto do nosso estoque (R$ 5,61) — na data da carga\n  preço                 16,83       19,63       22,43       25,24       28,04\n\nO nosso custo é -1.2% em relação ao da planilha (R$ 5,61 contra R$ 5,68). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"FILÉ FRANGO EMPANADO COM FRITAS\", bloco \"FILÉ DE FRANGO COM FRITAS\" (linha 1). O nome vendido é o da aba Resumo."
+  },
+  {
+   "nome": "FILÉ FRANGO FRITAS",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 7,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "PEITO DE FRANGO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.15,
+     "perda_percentual": 11.765,
+     "quantidade_bruta": 0.17,
+     "observacao": "planilha: filé de frango · FILÉ FRANGO FRITAS",
+     "depara": {
+      "grafia": "filé de frango",
+      "forca": "custo quase exato",
+      "motivo": "R$ 14,41 contra R$ 14,44 = 0,998. File de frango e peito desossado; o FILE DE FRANGO 100 GR do catalogo e porcao pronta em UND (R$ 2,98) e a receita pesa em KG"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.17,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.1333333333333335,
+      "unidade": "KG",
+      "custo_compra": 14.44,
+      "valor_producao_col9": 2.166,
+      "valor_preco_de_custo_col10": 2.4548,
+      "col10_recalculada": 2.4548
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 14.41,
+     "custo": 2.4497
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · FILÉ FRANGO FRITAS",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 3,
+     "produto": "BATATA CONGELADA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.15,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: batata frita · FILÉ FRANGO FRITAS",
+     "depara": {
+      "grafia": "batata frita",
+      "forca": "custo quase exato",
+      "motivo": "R$ 13,38 contra R$ 13,75 = 0,973, e e o insumo cru que a casa frita. A BATATA FRITA (300g) do catalogo custa R$ 7,75 (0,56x) e e porcao pronta"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 13.75,
+      "valor_producao_col9": 2.0625,
+      "valor_preco_de_custo_col10": 2.0625,
+      "col10_recalculada": 2.0625
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 13.38,
+     "custo": 2.007
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · FILÉ FRANGO FRITAS · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 0.8,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.4725,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": null,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · FILÉ FRANGO FRITAS",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    },
+    {
+     "ordem": 6,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · FILÉ FRANGO FRITAS · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 7,
+     "produto": "ÓLEO DE SOJA (6lts)",
+     "produto_novo": false,
+     "unidade": "LTS",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: óleo de soja · FILÉ FRANGO FRITAS",
+     "depara": {
+      "grafia": "óleo de soja",
+      "forca": "custo quase exato",
+      "motivo": "R$ 7,80/litro contra R$ 7,89/litro = 0,989. A garrafa de 0,9 L (R$ 7,70 a UND) sairia a R$ 8,56/litro. A unidade do nosso cadastro e LTS"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "L",
+      "custo_compra": 7.89,
+      "valor_producao_col9": 0.1578,
+      "valor_preco_de_custo_col10": 0.1578,
+      "col10_recalculada": 0.1578
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.8,
+     "custo": 0.156
+    }
+   ],
+   "planilha": {
+    "aba": "FILÉ FRANGO FRITAS",
+    "nome_do_bloco": "FILÉ DE FRANGO COM FRITAS",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.6950000000000001,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.6950000000000001,
+    "custo_total_col9": 5.6784,
+    "custo_total_col10": 5.8727,
+    "custo_bruto_da_resumo": 5.8727,
+    "custo_col10_recalculado": 5.8727,
+    "precos_da_resumo": {
+     "3": 17.6181,
+     "3.5": 20.55445,
+     "4": 23.4908,
+     "4.5": 26.42715,
+     "5": 29.363500000000002
+    }
+   },
+   "custo_do_nosso_catalogo": 5.8191,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,695 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 5,87)\n  preço                 17,62       20,55       23,49       26,43       29,36\ncusto do nosso estoque (R$ 5,82) — na data da carga\n  preço                 17,46       20,37       23,28       26,19       29,10\n\nO nosso custo é -0.9% em relação ao da planilha (R$ 5,82 contra R$ 5,87). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"FILÉ FRANGO FRITAS\", bloco \"FILÉ DE FRANGO COM FRITAS\" (linha 1). O nome vendido é o da aba Resumo."
+  },
+  {
+   "nome": "FILÉ DE FRANGO COM LEGUMES",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 8,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "PEITO DE FRANGO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.15,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: filé de frango · FILÉ DE FRANGO COM LEGUMES",
+     "depara": {
+      "grafia": "filé de frango",
+      "forca": "custo quase exato",
+      "motivo": "R$ 14,41 contra R$ 14,44 = 0,998. File de frango e peito desossado; o FILE DE FRANGO 100 GR do catalogo e porcao pronta em UND (R$ 2,98) e a receita pesa em KG"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 14.44,
+      "valor_producao_col9": 2.166,
+      "valor_preco_de_custo_col10": 2.166,
+      "col10_recalculada": 2.166
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 14.41,
+     "custo": 2.1615
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · FILÉ DE FRANGO COM LEGUMES",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 3,
+     "produto": "SALADA DE LEGUMES MP",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.15,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: salada de legumes · FILÉ DE FRANGO COM LEGUMES",
+     "depara": {
+      "grafia": "salada de legumes",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco SALADA DE LEGUMES MP), provada por custo_porcao_col9"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 16.698550724637684,
+      "valor_producao_col9": 2.5047826086956526,
+      "valor_preco_de_custo_col10": 3.582,
+      "col10_recalculada": 2.504783
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 25.118841,
+     "custo": 3.7678
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · FILÉ DE FRANGO COM LEGUMES · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 0.8,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.4725,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": null,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · FILÉ DE FRANGO COM LEGUMES",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    },
+    {
+     "ordem": 6,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · FILÉ DE FRANGO COM LEGUMES · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 7,
+     "produto": "ÓLEO DE SOJA (6lts)",
+     "produto_novo": false,
+     "unidade": "LTS",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: óleo de soja · FILÉ DE FRANGO COM LEGUMES",
+     "depara": {
+      "grafia": "óleo de soja",
+      "forca": "custo quase exato",
+      "motivo": "R$ 7,80/litro contra R$ 7,89/litro = 0,989. A garrafa de 0,9 L (R$ 7,70 a UND) sairia a R$ 8,56/litro. A unidade do nosso cadastro e LTS"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "L",
+      "custo_compra": 7.89,
+      "valor_producao_col9": 0.1578,
+      "valor_preco_de_custo_col10": 0.1578,
+      "col10_recalculada": 0.1578
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.8,
+     "custo": 0.156
+    }
+   ],
+   "planilha": {
+    "aba": "FILÉ DE FRANGO COM LEGUMES",
+    "nome_do_bloco": "FILÉ DE FRANGO COM LEGUMES",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.6950000000000001,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.6950000000000001,
+    "custo_total_col9": 6.1206826086956525,
+    "custo_total_col10": 7.103400000000001,
+    "custo_bruto_da_resumo": 7.103400000000001,
+    "custo_col10_recalculado": 6.0262,
+    "precos_da_resumo": {
+     "3": 21.310200000000002,
+     "3.5": 24.861900000000002,
+     "4": 28.413600000000002,
+     "4.5": 31.965300000000003,
+     "5": 35.517
+    }
+   },
+   "custo_do_nosso_catalogo": 7.2917,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,695 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 7,10)\n  preço                 21,31       24,86       28,41       31,97       35,52\ncusto do nosso estoque (R$ 7,29) — na data da carga\n  preço                 21,88       25,52       29,17       32,81       36,46\n\nO nosso custo é +2.7% em relação ao da planilha (R$ 7,29 contra R$ 7,10). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"FILÉ DE FRANGO COM LEGUMES\" (linha 1)."
+  },
+  {
+   "nome": "FILÉ DE PEIXE COM LEGUMES",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 9,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "FILÉ DE TILÁPIA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 20.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: filé de tilápia · FILÉ DE PEIXE COM LEGUMES",
+     "depara": {
+      "grafia": "filé de tilápia",
+      "forca": "custo exato",
+      "motivo": "nome identico E custo identico: R$ 42,90 nos dois lados"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.25,
+      "unidade": "KG",
+      "custo_compra": 42.9,
+      "valor_producao_col9": 5.148,
+      "valor_preco_de_custo_col10": 6.435,
+      "col10_recalculada": 6.435
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 42.9,
+     "custo": 6.435
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · FILÉ DE PEIXE COM LEGUMES",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 3,
+     "produto": "SALADA DE LEGUMES MP",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.15,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: salada de legumes · FILÉ DE PEIXE COM LEGUMES",
+     "depara": {
+      "grafia": "salada de legumes",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco SALADA DE LEGUMES MP), provada por custo_porcao_col9"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 16.698550724637684,
+      "valor_producao_col9": 2.5047826086956526,
+      "valor_preco_de_custo_col10": 3.582,
+      "col10_recalculada": 2.504783
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 25.118841,
+     "custo": 3.7678
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · FILÉ DE PEIXE COM LEGUMES · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 0.8,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.4725,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": null,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · FILÉ DE PEIXE COM LEGUMES",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    },
+    {
+     "ordem": 6,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · FILÉ DE PEIXE COM LEGUMES · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 7,
+     "produto": "ÓLEO DE SOJA (6lts)",
+     "produto_novo": false,
+     "unidade": "LTS",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: óleo de soja · FILÉ DE PEIXE COM LEGUMES",
+     "depara": {
+      "grafia": "óleo de soja",
+      "forca": "custo quase exato",
+      "motivo": "R$ 7,80/litro contra R$ 7,89/litro = 0,989. A garrafa de 0,9 L (R$ 7,70 a UND) sairia a R$ 8,56/litro. A unidade do nosso cadastro e LTS"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "L",
+      "custo_compra": 7.89,
+      "valor_producao_col9": 0.1578,
+      "valor_preco_de_custo_col10": 0.1578,
+      "col10_recalculada": 0.1578
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.8,
+     "custo": 0.156
+    }
+   ],
+   "planilha": {
+    "aba": "FILÉ DE PEIXE COM LEGUMES",
+    "nome_do_bloco": "FILÉ DE PEIXE COM LEGUMES",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.665,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.665,
+    "custo_total_col9": 9.102682608695654,
+    "custo_total_col10": 11.3724,
+    "custo_bruto_da_resumo": 11.3724,
+    "custo_col10_recalculado": 10.2952,
+    "precos_da_resumo": {
+     "3": 34.117200000000004,
+     "3.5": 39.8034,
+     "4": 45.4896,
+     "4.5": 51.1758,
+     "5": 56.862
+    }
+   },
+   "custo_do_nosso_catalogo": 11.5652,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,665 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 11,37)\n  preço                 34,12       39,80       45,49       51,18       56,86\ncusto do nosso estoque (R$ 11,57) — na data da carga\n  preço                 34,70       40,48       46,26       52,04       57,83\n\nO nosso custo é +1.7% em relação ao da planilha (R$ 11,57 contra R$ 11,37). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"FILÉ DE PEIXE COM LEGUMES\" (linha 1)."
+  },
+  {
+   "nome": "FILÉ DE PEIXE COM PURÊ",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 10,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "FILÉ DE TILÁPIA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 20.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: filé de tilápia · FILÉ DE PEIXE COM PURÊ",
+     "depara": {
+      "grafia": "filé de tilápia",
+      "forca": "custo exato",
+      "motivo": "nome identico E custo identico: R$ 42,90 nos dois lados"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.25,
+      "unidade": "KG",
+      "custo_compra": 42.9,
+      "valor_producao_col9": 5.148,
+      "valor_preco_de_custo_col10": 6.435,
+      "col10_recalculada": 6.435
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 42.9,
+     "custo": 6.435
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ BRANCO DE BRÓCOLIS MP",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco de brocolis mp · FILÉ DE PEIXE COM PURÊ",
+     "depara": {
+      "grafia": "arroz  branco de brocolis mp",
+      "forca": "produto novo sem receita",
+      "motivo": "arroz de brocolis, preparo da casa, sem nada parecido no catalogo e sem receita na planilha; custo R$ 8,83 dela. A categoria FEIJOADA e onde o catalogo guarda os acompanhamentos prontos (ARROZ PRONTO, FEIJÃO PRONTO, FAROFA PRONTA, COUVE PICADA)"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 8.83,
+      "valor_producao_col9": 1.766,
+      "valor_preco_de_custo_col10": 1.766,
+      "col10_recalculada": 1.766
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 8.83,
+     "custo": 1.766
+    },
+    {
+     "ordem": 3,
+     "produto": "PURE DE BATATA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.15,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.15,
+     "observacao": "planilha: purê de batata mp · FILÉ DE PEIXE COM PURÊ",
+     "depara": {
+      "grafia": "purê de batata mp",
+      "forca": "nome",
+      "motivo": "nome identico sem o \"MP\". R$ 9,69 contra R$ 8,81 = 1,10"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.15,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 8.81,
+      "valor_producao_col9": 1.3215000000000001,
+      "valor_preco_de_custo_col10": 1.3215000000000001,
+      "col10_recalculada": 1.3215
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.69,
+     "custo": 1.4535
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · FILÉ DE PEIXE COM PURÊ · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.15,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 0.8,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.4725,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": null,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · FILÉ DE PEIXE COM PURÊ",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    },
+    {
+     "ordem": 6,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · FILÉ DE PEIXE COM PURÊ · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 7,
+     "produto": "ÓLEO DE SOJA (6lts)",
+     "produto_novo": false,
+     "unidade": "LTS",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: óleo de soja · FILÉ DE PEIXE COM PURÊ",
+     "depara": {
+      "grafia": "óleo de soja",
+      "forca": "custo quase exato",
+      "motivo": "R$ 7,80/litro contra R$ 7,89/litro = 0,989. A garrafa de 0,9 L (R$ 7,70 a UND) sairia a R$ 8,56/litro. A unidade do nosso cadastro e LTS"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "L",
+      "custo_compra": 7.89,
+      "valor_producao_col9": 0.1578,
+      "valor_preco_de_custo_col10": 0.1578,
+      "col10_recalculada": 0.1578
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.8,
+     "custo": 0.156
+    }
+   ],
+   "planilha": {
+    "aba": "FILÉ DE PEIXE COM PURÊ",
+    "nome_do_bloco": "FILÉ DE PEIXE COM LEGUMES",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.665,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.665,
+    "custo_total_col9": 9.2894,
+    "custo_total_col10": 10.481900000000001,
+    "custo_bruto_da_resumo": 10.481900000000001,
+    "custo_col10_recalculado": 10.4819,
+    "precos_da_resumo": {
+     "3": 31.445700000000002,
+     "3.5": 36.68665000000001,
+     "4": 41.927600000000005,
+     "4.5": 47.16855,
+     "5": 52.40950000000001
+    }
+   },
+   "custo_do_nosso_catalogo": 10.6709,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,665 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 10,48)\n  preço                 31,45       36,69       41,93       47,17       52,41\ncusto do nosso estoque (R$ 10,67) — na data da carga\n  preço                 32,01       37,35       42,68       48,02       53,35\n\nO nosso custo é +1.8% em relação ao da planilha (R$ 10,67 contra R$ 10,48). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"FILÉ DE PEIXE COM PURÊ\", bloco \"FILÉ DE PEIXE COM LEGUMES\" (linha 1). O nome vendido é o da aba Resumo."
+  },
+  {
+   "nome": "PERNIL COM MAIONESE",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 11,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "PERNIL MP",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: Pernil MP · PERNIL COM MAIONESE · custo R$ 36,99 vindo da planilha: e pernil assado e a planilha nao da a receita",
+     "depara": {
+      "grafia": "Pernil MP",
+      "forca": "produto novo sem receita",
+      "motivo": "pernil ASSADO, preparo da casa. O catalogo tem PERNIL cru a R$ 13,90 e PERNIL FATIADO a R$ 19,82; a planilha cobra R$ 36,99 (2,66x o cru). Mesmo caso do acem: a planilha nao da a receita do assado, o custo e dela"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 36.99,
+      "valor_producao_col9": 4.4388,
+      "valor_preco_de_custo_col10": 4.4388,
+      "col10_recalculada": 4.4388
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 36.99,
+     "custo": 4.4388
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · PERNIL COM MAIONESE",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 3,
+     "produto": "SALADA DE MAIONESE MP",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.1,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.1,
+     "observacao": "planilha: Salada de Maionese MP · PERNIL COM MAIONESE",
+     "depara": {
+      "grafia": "Salada de Maionese MP",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco SALADA DE MAIONESE), provada por custo_porcao_col9"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.1,
+      "peso_liquido": 0.1,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 9.698732394366198,
+      "valor_producao_col9": 0.9698732394366198,
+      "valor_preco_de_custo_col10": 1.077,
+      "col10_recalculada": 0.969873
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.299812,
+     "custo": 0.93
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · PERNIL COM MAIONESE · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.378,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "FAROFA PRONTA",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.05,
+     "observacao": "planilha: farofa de bacon · PERNIL COM MAIONESE",
+     "depara": {
+      "grafia": "farofa de bacon",
+      "forca": "escolha forcada",
+      "motivo": "a unica farofa do catalogo. R$ 9,80 contra R$ 8,87 = 1,105. O nosso cadastro nao diz de que e a farofa"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.05,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 8.87,
+      "valor_producao_col9": 0.4435,
+      "valor_preco_de_custo_col10": 0.4435,
+      "col10_recalculada": 0.4435
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.8,
+     "custo": 0.49
+    },
+    {
+     "ordem": 6,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · PERNIL COM MAIONESE · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    }
+   ],
+   "planilha": {
+    "aba": "PERNIL COM MAIONESE",
+    "nome_do_bloco": "PERNIL COM MAIONESE",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.5950000000000001,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.5950000000000001,
+    "custo_total_col9": 6.63977323943662,
+    "custo_total_col10": 6.7469,
+    "custo_bruto_da_resumo": 6.7469,
+    "custo_col10_recalculado": 6.6398,
+    "precos_da_resumo": {
+     "3": 20.2407,
+     "3.5": 23.614150000000002,
+     "4": 26.9876,
+     "4.5": 30.36105,
+     "5": 33.7345
+    }
+   },
+   "custo_do_nosso_catalogo": 6.648,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,595 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 6,75)\n  preço                 20,24       23,61       26,99       30,36       33,73\ncusto do nosso estoque (R$ 6,65) — na data da carga\n  preço                 19,94       23,27       26,59       29,92       33,24\n\nO nosso custo é -1.5% em relação ao da planilha (R$ 6,65 contra R$ 6,75). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"PERNIL COM MAIONESE\" (linha 1)."
+  },
+  {
+   "nome": "SCHNITZEL COM MAIONESE",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 12,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "LOMBO SUÍNO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.1,
+     "perda_percentual": 16.667,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: copalombo · SCHNITZEL COM MAIONESE · mapeado para LOMBO SUÍNO e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta com custo de porcao numa unidade KG",
+     "depara": {
+      "grafia": "copalombo",
+      "forca": "custo quase exato",
+      "motivo": "A DECISAO MAIS AGRESSIVA DO DE-PARA, e o argumento esta no preco. R$ 18,90 contra R$ 16,97 = 1,114. O catalogo TEM \"COPA LOMBO\", em duas linhas, mas as duas sao porcao pronta com o custo da porcao gravado numa unidade KG: COPA LOMBO (120G) a R$ 4,30 e COPA LOMBO (250G) a R$ 9,70 — que dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha. Mapear para elas poria R$ 0,52 de carne num schnitzel. O LOMBO SUINO e o corte cru, no preco da planilha. Se eu estiver errado, 1 ficha subestima a carne"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.1,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.2,
+      "unidade": "KG",
+      "custo_compra": 16.97,
+      "valor_producao_col9": 1.697,
+      "valor_preco_de_custo_col10": 2.0364,
+      "col10_recalculada": 2.0364
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 18.9,
+     "custo": 2.268
+    },
+    {
+     "ordem": 2,
+     "produto": "ARROZ PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.2,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.2,
+     "observacao": "planilha: arroz  branco pronto · SCHNITZEL COM MAIONESE",
+     "depara": {
+      "grafia": "arroz  branco pronto",
+      "forca": "nome",
+      "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.2,
+      "peso_liquido": 0.2,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 1.98,
+      "valor_producao_col9": 0.396,
+      "valor_preco_de_custo_col10": 0.396,
+      "col10_recalculada": 0.396
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 1.73,
+     "custo": 0.346
+    },
+    {
+     "ordem": 3,
+     "produto": "SALADA DE MAIONESE MP",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.1,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.1,
+     "observacao": "planilha: Salada de maionese MP · SCHNITZEL COM MAIONESE",
+     "depara": {
+      "grafia": "Salada de maionese MP",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco SALADA DE MAIONESE), provada por custo_porcao_col9"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.1,
+      "peso_liquido": 0.1,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 9.698732394366198,
+      "valor_producao_col9": 0.9698732394366198,
+      "valor_preco_de_custo_col10": 1.077,
+      "col10_recalculada": 0.969873
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.299812,
+     "custo": 0.93
+    },
+    {
+     "ordem": 4,
+     "produto": "FEIJÃO PRONTO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.12,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.12,
+     "observacao": "planilha: feijão pronto · SCHNITZEL COM MAIONESE · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "depara": {
+      "grafia": "feijão pronto",
+      "forca": "nome",
+      "motivo": "nome identico"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.12,
+      "peso_liquido": 0.12,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 3.15,
+      "valor_producao_col9": 0.378,
+      "valor_preco_de_custo_col10": 0.378,
+      "col10_recalculada": 0.378
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 3.58,
+     "custo": 0.4296
+    },
+    {
+     "ordem": 5,
+     "produto": "FARINHA DE TRIGO (1kg)",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.05,
+     "observacao": "planilha: farinha de trigo · SCHNITZEL COM MAIONESE · uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro",
+     "depara": {
+      "grafia": "farinha de trigo",
+      "forca": "nome",
+      "motivo": "nome identico mais o tamanho. R$ 4,10 contra R$ 5,90 = 0,695. Uma das cinco linhas de farinha da planilha esta com Unidade L — erro de rotulo dela; a unidade gravada e a do nosso cadastro, KG"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.05,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 5.9,
+      "valor_producao_col9": 0.29500000000000004,
+      "valor_preco_de_custo_col10": 0.29500000000000004,
+      "col10_recalculada": 0.295
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 4.1,
+     "custo": 0.205
+    },
+    {
+     "ordem": 6,
+     "produto": "FARINHA PANKO (1kg)",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: farinha panko · SCHNITZEL COM MAIONESE",
+     "depara": {
+      "grafia": "farinha panko",
+      "forca": "custo exato",
+      "motivo": "R$ 16,20 = R$ 16,20, exato"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 16.2,
+      "valor_producao_col9": 0.324,
+      "valor_preco_de_custo_col10": 0.324,
+      "col10_recalculada": 0.324
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 16.2,
+     "custo": 0.324
+    },
+    {
+     "ordem": 7,
+     "produto": "LEITOSA DE EMPANAMENTO",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: leitosa de empanamento · SCHNITZEL COM MAIONESE · numa das tres linhas a celula Unidade da planilha esta vazia",
+     "depara": {
+      "grafia": "leitosa de empanamento",
+      "forca": "produto novo sem receita",
+      "motivo": "preparo de empanamento (a mistura liquida em que a carne passa antes da farinha). Nao existe no catalogo e a planilha nao da a receita; custo R$ 7,25 da planilha. Aparece com tres grafias (`leitosa`, `leitiosa`, e uma linha com a celula Unidade VAZIA)"
+     },
+     "planilha": {
+      "linha": 14,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 7.25,
+      "valor_producao_col9": 0.145,
+      "valor_preco_de_custo_col10": 0.145,
+      "col10_recalculada": 0.145
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 7.25,
+     "custo": 0.145
+    },
+    {
+     "ordem": 8,
+     "produto": "SAL COM PIMENTA",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: sal com pimenta · SCHNITZEL COM MAIONESE · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "depara": {
+      "grafia": "sal com pimenta",
+      "forca": "produto novo sem receita",
+      "motivo": "MISTURA de dois ingredientes, e por isso nao e \"sal cortado de outra forma\": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato"
+     },
+     "planilha": {
+      "linha": 15,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 2.72,
+      "valor_producao_col9": 0.013600000000000001,
+      "valor_preco_de_custo_col10": 0.013600000000000001,
+      "col10_recalculada": 0.0136
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 2.72,
+     "custo": 0.0136
+    },
+    {
+     "ordem": 9,
+     "produto": "ALHO DESCASCADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: alho batido · SCHNITZEL COM MAIONESE",
+     "depara": {
+      "grafia": "alho batido",
+      "forca": "custo quase exato",
+      "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+     },
+     "planilha": {
+      "linha": 16,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 20.5,
+      "valor_producao_col9": 0.41000000000000003,
+      "valor_preco_de_custo_col10": 0.41000000000000003,
+      "col10_recalculada": 0.41
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 20.86,
+     "custo": 0.4172
+    },
+    {
+     "ordem": 10,
+     "produto": "LIMÃO SICILIANO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: limão sciciliano · SCHNITZEL COM MAIONESE",
+     "depara": {
+      "grafia": "limão sciciliano",
+      "forca": "nome",
+      "motivo": "o nome da planilha tem \"scicilia\" por \"sicilia\". R$ 9,13 contra R$ 9,61 = 0,95. O outro limao do catalogo e o TAHITI (R$ 7,11)"
+     },
+     "planilha": {
+      "linha": 17,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": 0.0,
+      "fator_correcao": 1.0,
+      "unidade": "kg",
+      "custo_compra": 9.61,
+      "valor_producao_col9": 0.19219999999999998,
+      "valor_preco_de_custo_col10": 0.19219999999999998,
+      "col10_recalculada": 0.1922
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.13,
+     "custo": 0.1826
+    }
+   ],
+   "planilha": {
+    "aba": "SCHNITZEL COM MAIONESE",
+    "nome_do_bloco": "SCHNITIZEL COM MAIONESE",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 0.6550000000000001,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 0.6550000000000001,
+    "custo_total_col9": 4.218473239436619,
+    "custo_total_col10": 4.665,
+    "custo_bruto_da_resumo": 4.665,
+    "custo_col10_recalculado": 5.1601,
+    "precos_da_resumo": {
+     "3": 13.995000000000001,
+     "3.5": 16.3275,
+     "4": 18.66,
+     "4.5": 20.9925,
+     "5": 23.325
+    }
+   },
+   "custo_do_nosso_catalogo": 5.261,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 0,655 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 4,67)\n  preço                 14,00       16,33       18,66       20,99       23,32\ncusto do nosso estoque (R$ 5,26) — na data da carga\n  preço                 15,78       18,41       21,04       23,67       26,30\n\nO nosso custo é +12.8% em relação ao da planilha (R$ 5,26 contra R$ 4,67). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"SCHNITZEL COM MAIONESE\", bloco \"SCHNITIZEL COM MAIONESE\" (linha 1). O nome vendido é o da aba Resumo."
+  },
+  {
+   "nome": "GNOCCHI COM CARNE ASSADA",
+   "grupo": "Executivos",
+   "rendimento": 1,
+   "unidade_rendimento": "PORCAO",
+   "preco_venda": 0,
+   "cmv_alvo": 20,
+   "ativo": true,
+   "ordem": 13,
+   "itens": [
+    {
+     "ordem": 1,
+     "produto": "CARNE ASSADA SANDUICHE (120g)",
+     "produto_novo": false,
+     "unidade": "UND",
+     "quantidade": 1.0,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 1.0,
+     "observacao": "planilha: Carne assada 120gr · GNOCCHI COM CARNE ASSADA · o PesoBruto 1 e UMA porcao de 120 g; o nosso cadastro mede em UND e custa R$ 7,97, igual ao Custo compra · a planilha rotula 1 KG e o nome diz 120 g; gravado como 1 UND da porcao de 120 g, que e o que o Custo compra R$ 7,97 precifica",
+     "depara": {
+      "grafia": "Carne assada 120gr",
+      "forca": "custo exato",
+      "motivo": "R$ 7,97 = R$ 7,97, exato, e o nosso cadastro mede em UND. E isso que resolve o \"1 KG de carne assada\" da planilha: o 1 e UMA PORCAO de 120 g, nao um quilo — ver CONTAGEM e AVISO_NO_ITEM"
+     },
+     "planilha": {
+      "linha": 8,
+      "peso_bruto": 1.0,
+      "peso_liquido": 1.0,
+      "perda_manipulacao": null,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 7.97,
+      "valor_producao_col9": 7.97,
+      "valor_preco_de_custo_col10": 7.97,
+      "col10_recalculada": 7.97
+     },
+     "volta_do_perda_percentual_ok": null,
+     "custo_unitario": 7.97,
+     "custo": 7.97
+    },
+    {
+     "ordem": 2,
+     "produto": "BASE DE GNOCCHI",
+     "produto_novo": true,
+     "unidade": "KG",
+     "quantidade": 0.25,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.25,
+     "observacao": "planilha: Base de gnocchi · GNOCCHI COM CARNE ASSADA",
+     "depara": {
+      "grafia": "Base de gnocchi",
+      "forca": "sub-receita",
+      "motivo": "sub-receita da propria planilha (bloco BASE DE GNOCCHI), provada por custo_porcao_col10"
+     },
+     "planilha": {
+      "linha": 9,
+      "peso_bruto": 0.25,
+      "peso_liquido": 0.25,
+      "perda_manipulacao": null,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 12.702315789473685,
+      "valor_producao_col9": 3.1755789473684213,
+      "valor_preco_de_custo_col10": 3.1755789473684213,
+      "col10_recalculada": 3.175579
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 11.621965,
+     "custo": 2.9055
+    },
+    {
+     "ordem": 3,
+     "produto": "MOLHO DE TOMATE E MANJERICÃO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.05,
+     "observacao": "planilha: Molho ao sugo · GNOCCHI COM CARNE ASSADA",
+     "depara": {
+      "grafia": "Molho ao sugo",
+      "forca": "custo quase exato",
+      "motivo": "R$ 11,22 contra R$ 10,83 = 1,036. Sugo e molho de tomate com manjericao; o outro molho de tomate do catalogo e o APIMENTADO (R$ 24,75), 2,29x"
+     },
+     "planilha": {
+      "linha": 10,
+      "peso_bruto": 0.05,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": null,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 10.83,
+      "valor_producao_col9": 0.5415,
+      "valor_preco_de_custo_col10": 0.5415,
+      "col10_recalculada": 0.5415
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 11.22,
+     "custo": 0.561
+    },
+    {
+     "ordem": 4,
+     "produto": "PARMESÃO QUEIJO RALADO",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.02,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.02,
+     "observacao": "planilha: Parmesão · GNOCCHI COM CARNE ASSADA",
+     "depara": {
+      "grafia": "Parmesão",
+      "forca": "custo exato",
+      "motivo": "R$ 48,50 = R$ 48,50, exato. Os outros dois parmesoes do catalogo (PARMESÃO COZINHA e QUEIJO PARMESÃO) valem R$ 58,96 — a planilha usa o ralado"
+     },
+     "planilha": {
+      "linha": 11,
+      "peso_bruto": 0.02,
+      "peso_liquido": 0.02,
+      "perda_manipulacao": null,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 48.5,
+      "valor_producao_col9": 0.97,
+      "valor_preco_de_custo_col10": 0.97,
+      "col10_recalculada": 0.97
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 48.5,
+     "custo": 0.97
+    },
+    {
+     "ordem": 5,
+     "produto": "CALDO DE CARNE",
+     "produto_novo": false,
+     "unidade": "KG",
+     "quantidade": 0.05,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.05,
+     "observacao": "planilha: Caldo de carne · GNOCCHI COM CARNE ASSADA",
+     "depara": {
+      "grafia": "Caldo de carne",
+      "forca": "nome",
+      "motivo": "nome identico, na MERCEARIA (o caldo de po). O homonimo de MOLHOS (R$ 17,31) e caldo feito na casa; a planilha nao diz qual, e o nome exato decide"
+     },
+     "planilha": {
+      "linha": 12,
+      "peso_bruto": 0.05,
+      "peso_liquido": 0.05,
+      "perda_manipulacao": null,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 3.04,
+      "valor_producao_col9": 0.15200000000000002,
+      "valor_preco_de_custo_col10": 0.15200000000000002,
+      "col10_recalculada": 0.152
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 9.59,
+     "custo": 0.4795
+    },
+    {
+     "ordem": 6,
+     "produto": "MANJERICÃO",
+     "produto_novo": false,
+     "unidade": "UND",
+     "quantidade": 0.005,
+     "perda_percentual": 0.0,
+     "quantidade_bruta": 0.005,
+     "observacao": "planilha: Manjericão · GNOCCHI COM CARNE ASSADA · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND",
+     "depara": {
+      "grafia": "Manjericão",
+      "forca": "nome",
+      "motivo": "nome identico. O nosso cadastro mede em UND e a receita em KG — ver AVISO_NO_ITEM. E o mesmo defeito que os drinques acharam no MORANGO"
+     },
+     "planilha": {
+      "linha": 13,
+      "peso_bruto": 0.005,
+      "peso_liquido": 0.005,
+      "perda_manipulacao": null,
+      "fator_correcao": 1.0,
+      "unidade": "KG",
+      "custo_compra": 22.67,
+      "valor_producao_col9": 0.11335,
+      "valor_preco_de_custo_col10": 0.11335,
+      "col10_recalculada": 0.11335
+     },
+     "volta_do_perda_percentual_ok": true,
+     "custo_unitario": 45.7,
+     "custo": 0.2285
+    }
+   ],
+   "planilha": {
+    "aba": "GNOCCHI COM CARNE ASSADA",
+    "nome_do_bloco": "GNOCCHI COM CARNE ASSADA",
+    "linha_do_cabecalho": 1,
+    "rendimento_rotulado": 1.375,
+    "peso_porcao": 1.0,
+    "peso_do_prato_kg": 1.375,
+    "custo_total_col9": 12.92242894736842,
+    "custo_total_col10": 12.92242894736842,
+    "custo_bruto_da_resumo": 12.92242894736842,
+    "custo_col10_recalculado": 12.9224,
+    "precos_da_resumo": {
+     "3": 38.767286842105264,
+     "3.5": 45.22850131578947,
+     "4": 51.68971578947368,
+     "4.5": 58.15093026315789,
+     "5": 64.6121447368421
+    }
+   },
+   "custo_do_nosso_catalogo": 13.1145,
+   "descricao": "Executivo · Bar do Zeca Norte Shopping.\n\nA receita rende 1 prato de 1,375 kg. (A planilha chama esse peso de \"Rendimento (porções)\"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)\nCMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).\n\nPREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.\n\níndice                      3         3,5           4         4,5           5\n-----------------------------------------------------------------------------\ncusto da planilha (R$ 12,92)\n  preço                 38,77       45,23       51,69       58,15       64,61\ncusto do nosso estoque (R$ 13,11) — na data da carga\n  preço                 39,34       45,90       52,46       59,02       65,57\n\nO nosso custo é +1.5% em relação ao da planilha (R$ 13,11 contra R$ 12,92). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.\n\nO preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.\n\nNa planilha: aba \"GNOCCHI COM CARNE ASSADA\" (linha 1)."
+  }
+ ],
+ "depara": [
+  {
+   "grafia": "alface americana",
+   "produto": "ALFACE AMERICANA",
+   "forca": "nome",
+   "motivo": "nome identico; o catalogo tem quatro alfaces e so esta e americana"
+  },
+  {
+   "grafia": "batata asterix",
+   "produto": "BATATA ASTERIX",
+   "forca": "nome",
+   "motivo": "nome identico"
+  },
+  {
+   "grafia": "brócolis americano",
+   "produto": "BRÓCOLIS AMERICANO",
+   "forca": "nome",
+   "motivo": "nome identico; o outro candidato (BROCOLIS, R$ 28,55) nao e americano. O nosso cadastro mede em UND e a receita em KG — ver AVISO_NO_ITEM"
+  },
+  {
+   "grafia": "caldo de carne",
+   "produto": "CALDO DE CARNE",
+   "forca": "nome",
+   "motivo": "nome identico, na MERCEARIA (o caldo de po). O homonimo de MOLHOS (R$ 17,31) e caldo feito na casa; a planilha nao diz qual, e o nome exato decide"
+  },
+  {
+   "grafia": "cenoura",
+   "produto": "CENOURA",
+   "forca": "nome",
+   "motivo": "nome identico"
+  },
+  {
+   "grafia": "ervilha congelada",
+   "produto": "ERVILHA CONGELADA",
+   "forca": "custo exato",
+   "motivo": "nome identico E custo identico: R$ 12,88 nos dois lados"
+  },
+  {
+   "grafia": "extrato de tomate",
+   "produto": "EXTRATO DE TOMATE",
+   "forca": "nome",
+   "motivo": "nome identico"
+  },
+  {
+   "grafia": "feijão pronto",
+   "produto": "FEIJÃO PRONTO",
+   "forca": "nome",
+   "motivo": "nome identico"
+  },
+  {
+   "grafia": "filé de tilápia",
+   "produto": "FILÉ DE TILÁPIA",
+   "forca": "custo exato",
+   "motivo": "nome identico E custo identico: R$ 42,90 nos dois lados"
+  },
+  {
+   "grafia": "manjericão",
+   "produto": "MANJERICÃO",
+   "forca": "nome",
+   "motivo": "nome identico. O nosso cadastro mede em UND e a receita em KG — ver AVISO_NO_ITEM. E o mesmo defeito que os drinques acharam no MORANGO"
+  },
+  {
+   "grafia": "farinha panko",
+   "produto": "FARINHA PANKO (1kg)",
+   "forca": "custo exato",
+   "motivo": "R$ 16,20 = R$ 16,20, exato"
+  },
+  {
+   "grafia": "farinha pankp",
+   "produto": "FARINHA PANKO (1kg)",
+   "forca": "custo exato",
+   "motivo": "o mesmo produto com erro de digitacao no nome; R$ 16,20 = R$ 16,20"
+  },
+  {
+   "grafia": "farinha de mandioca",
+   "produto": "FARINHA DE MANDIOCA (1kg)",
+   "forca": "custo exato",
+   "motivo": "R$ 5,37 = R$ 5,37, exato"
+  },
+  {
+   "grafia": "parmesão",
+   "produto": "PARMESÃO QUEIJO RALADO",
+   "forca": "custo exato",
+   "motivo": "R$ 48,50 = R$ 48,50, exato. Os outros dois parmesoes do catalogo (PARMESÃO COZINHA e QUEIJO PARMESÃO) valem R$ 58,96 — a planilha usa o ralado"
+  },
+  {
+   "grafia": "couve refogada mp",
+   "produto": "COUVE PICADA",
+   "forca": "custo exato",
+   "motivo": "R$ 33,52 = R$ 33,52, exato. A planilha chama de \"refogada\" o que o nosso catalogo chama de \"picada\" e precifica igual — e o mesmo item"
+  },
+  {
+   "grafia": "carne assada 120gr",
+   "produto": "CARNE ASSADA SANDUICHE (120g)",
+   "forca": "custo exato",
+   "motivo": "R$ 7,97 = R$ 7,97, exato, e o nosso cadastro mede em UND. E isso que resolve o \"1 KG de carne assada\" da planilha: o 1 e UMA PORCAO de 120 g, nao um quilo — ver CONTAGEM e AVISO_NO_ITEM"
+  },
+  {
+   "grafia": "molho ao sugo",
+   "produto": "MOLHO DE TOMATE E MANJERICÃO",
+   "forca": "custo quase exato",
+   "motivo": "R$ 11,22 contra R$ 10,83 = 1,036. Sugo e molho de tomate com manjericao; o outro molho de tomate do catalogo e o APIMENTADO (R$ 24,75), 2,29x"
+  },
+  {
+   "grafia": "bombom de alcatra",
+   "produto": "BOMBOM DA ALCATRA",
+   "forca": "custo quase exato",
+   "motivo": "R$ 69,66 contra R$ 69,75 = 0,999. \"DE\" contra \"DA\" no nome"
+  },
+  {
+   "grafia": "filé de frango",
+   "produto": "PEITO DE FRANGO",
+   "forca": "custo quase exato",
+   "motivo": "R$ 14,41 contra R$ 14,44 = 0,998. File de frango e peito desossado; o FILE DE FRANGO 100 GR do catalogo e porcao pronta em UND (R$ 2,98) e a receita pesa em KG"
+  },
+  {
+   "grafia": "carne seca desfiada",
+   "produto": "CARNE SECA LAGARTO",
+   "forca": "custo quase exato",
+   "motivo": "R$ 47,90 contra R$ 49,22 = 0,973. A CARNE SECA de FEIJOADA custa R$ 143,70 (2,9x) e as CARNE SECA (150g)/(200g) sao porcao pronta"
+  },
+  {
+   "grafia": "manteiga",
+   "produto": "MANTEIGA COM SAL",
+   "forca": "custo quase exato",
+   "motivo": "R$ 32,40 contra R$ 32,80 = 0,988. A MANTEIGA SEM SAL custa R$ 24,00 (0,73x)"
+  },
+  {
+   "grafia": "batata frita",
+   "produto": "BATATA CONGELADA",
+   "forca": "custo quase exato",
+   "motivo": "R$ 13,38 contra R$ 13,75 = 0,973, e e o insumo cru que a casa frita. A BATATA FRITA (300g) do catalogo custa R$ 7,75 (0,56x) e e porcao pronta"
+  },
+  {
+   "grafia": "óleo de soja",
+   "produto": "ÓLEO DE SOJA (6lts)",
+   "forca": "custo quase exato",
+   "motivo": "R$ 7,80/litro contra R$ 7,89/litro = 0,989. A garrafa de 0,9 L (R$ 7,70 a UND) sairia a R$ 8,56/litro. A unidade do nosso cadastro e LTS"
+  },
+  {
+   "grafia": "alho batido",
+   "produto": "ALHO DESCASCADO",
+   "forca": "custo quase exato",
+   "motivo": "R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca"
+  },
+  {
+   "grafia": "cenoura ralada",
+   "produto": "CENOURA",
+   "forca": "nome",
+   "motivo": "ralar nao muda a massa; a planilha precifica as duas a R$ 6,99. Nenhum bloco usa \"cenoura\" e \"cenoura ralada\" juntos"
+  },
+  {
+   "grafia": "tomate picado",
+   "produto": "TOMATE SALADA MADURO",
+   "forca": "exclusao",
+   "motivo": "picar nao muda a massa. A planilha lista `tomate italiano` em linha propria, entao o tomate sem adjetivo e o outro. R$ 7,60 contra R$ 14,99 = 0,51: o preco da planilha e de tomate caro/antigo"
+  },
+  {
+   "grafia": "tomate",
+   "produto": "TOMATE SALADA MADURO",
+   "forca": "exclusao",
+   "motivo": "idem — a planilha lista `tomate italiano` separado"
+  },
+  {
+   "grafia": "tomate italiano",
+   "produto": "TOMATE ITALIANO MADURO",
+   "forca": "nome",
+   "motivo": "nome identico mais \"MADURO\". R$ 6,83 contra R$ 14,99 = 0,46"
+  },
+  {
+   "grafia": "salsa picada",
+   "produto": "SALSA",
+   "forca": "nome",
+   "motivo": "picar nao muda a massa. R$ 24,20 contra R$ 25,67 = 0,943 — e a razao proxima de 1 e que diz que a UND do nosso cadastro e cerca de um quilo. A SALSA CRESPA VERDE custa R$ 2,20, outra coisa. Ver AVISO_NO_ITEM"
+  },
+  {
+   "grafia": "bacon picado",
+   "produto": "BACON",
+   "forca": "nome",
+   "motivo": "picar nao muda a massa. R$ 25,90 contra R$ 16,45 = 1,57. O catalogo tem tres bacons quase no mesmo preco (25,75 / 25,90 / 25,99); escolhi o de EMBUTIDOS, que e o generico, e nao o de FEIJOADA nem o de SUINOS"
+  },
+  {
+   "grafia": "limão sciciliano",
+   "produto": "LIMÃO SICILIANO",
+   "forca": "nome",
+   "motivo": "o nome da planilha tem \"scicilia\" por \"sicilia\". R$ 9,13 contra R$ 9,61 = 0,95. O outro limao do catalogo e o TAHITI (R$ 7,11)"
+  },
+  {
+   "grafia": "cebola branca",
+   "produto": "CEBOLA",
+   "forca": "exclusao",
+   "motivo": "o catalogo tem CEBOLA, CEBOLA ROXA, CEBOLA CALABRESA e CEBOLA CRISPY; a branca e a sem adjetivo. R$ 4,46 contra R$ 8,70 = 0,51, e a ROXA (R$ 7,37) ficaria mais perto no preco — mas a planilha diz BRANCA e cor de cebola nao se decide por preco"
+  },
+  {
+   "grafia": "rúcula",
+   "produto": "RÚCULA HIDROPÔNICA",
+   "forca": "escolha forcada",
+   "motivo": "a unica rucula do catalogo. R$ 27,00 contra R$ 23,50 = 1,149. Mede em UND e a receita em KG — ver AVISO_NO_ITEM"
+  },
+  {
+   "grafia": "vagem",
+   "produto": "VAGEM FRANCESA",
+   "forca": "escolha forcada",
+   "motivo": "a unica vagem do catalogo. R$ 17,60 contra R$ 10,00 = 1,76. Mede em UND e a receita em KG — ver AVISO_NO_ITEM"
+  },
+  {
+   "grafia": "presunto",
+   "produto": "PRESUNTO COZIDO",
+   "forca": "escolha forcada",
+   "motivo": "o unico presunto do catalogo. R$ 19,50 contra R$ 22,98 = 0,849"
+  },
+  {
+   "grafia": "isca de fígado de boi",
+   "produto": "FIGADO",
+   "forca": "escolha forcada",
+   "motivo": "o unico figado do catalogo. R$ 8,43 contra R$ 13,02 = 0,648; a planilha parece cobrar a isca ja cortada"
+  },
+  {
+   "grafia": "batata palha mp",
+   "produto": "BATATA PALHA",
+   "forca": "escolha forcada",
+   "motivo": "a unica batata palha do catalogo. R$ 5,19 contra R$ 8,62 = 0,602. O \"MP\" do nome sugere preparo da casa, mas batata palha se compra pronta"
+  },
+  {
+   "grafia": "purê de batata mp",
+   "produto": "PURE DE BATATA",
+   "forca": "nome",
+   "motivo": "nome identico sem o \"MP\". R$ 9,69 contra R$ 8,81 = 1,10"
+  },
+  {
+   "grafia": "farofa de bacon",
+   "produto": "FAROFA PRONTA",
+   "forca": "escolha forcada",
+   "motivo": "a unica farofa do catalogo. R$ 9,80 contra R$ 8,87 = 1,105. O nosso cadastro nao diz de que e a farofa"
+  },
+  {
+   "grafia": "arroz branco pronto",
+   "produto": "ARROZ PRONTO",
+   "forca": "nome",
+   "motivo": "arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874"
+  },
+  {
+   "grafia": "farinha de trigo",
+   "produto": "FARINHA DE TRIGO (1kg)",
+   "forca": "nome",
+   "motivo": "nome identico mais o tamanho. R$ 4,10 contra R$ 5,90 = 0,695. Uma das cinco linhas de farinha da planilha esta com Unidade L — erro de rotulo dela; a unidade gravada e a do nosso cadastro, KG"
+  },
+  {
+   "grafia": "sal",
+   "produto": "SAL REFINADO (1kg)",
+   "forca": "nome",
+   "motivo": "o sal de cozinha e o refinado; o SAL GROSSO custa R$ 2,90. R$ 1,75 contra R$ 2,72 = 0,643"
+  },
+  {
+   "grafia": "sal refinado",
+   "produto": "SAL REFINADO (1kg)",
+   "forca": "nome",
+   "motivo": "nome identico mais o tamanho"
+  },
+  {
+   "grafia": "copalombo",
+   "produto": "LOMBO SUÍNO",
+   "forca": "custo quase exato",
+   "motivo": "A DECISAO MAIS AGRESSIVA DO DE-PARA, e o argumento esta no preco. R$ 18,90 contra R$ 16,97 = 1,114. O catalogo TEM \"COPA LOMBO\", em duas linhas, mas as duas sao porcao pronta com o custo da porcao gravado numa unidade KG: COPA LOMBO (120G) a R$ 4,30 e COPA LOMBO (250G) a R$ 9,70 — que dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha. Mapear para elas poria R$ 0,52 de carne num schnitzel. O LOMBO SUINO e o corte cru, no preco da planilha. Se eu estiver errado, 1 ficha subestima a carne"
+  },
+  {
+   "grafia": "ovo",
+   "produto": "OVO BRANCO",
+   "forca": "nome",
+   "motivo": "nome identico mais a cor; o OVO CAIPIRA custa R$ 0,00 no catalogo. R$ 0,67 contra R$ 0,52 = 1,29, e os dois sao preco de UM ovo"
+  },
+  {
+   "grafia": "ovo branco",
+   "produto": "OVO BRANCO",
+   "forca": "nome",
+   "motivo": "nome identico. A planilha rotula esta linha como KG com PesoBruto 7 — sao 7 ovos, nao 7 quilos: o Custo compra R$ 0,52 e o mesmo da linha `ovo` em UND nas outras duas receitas. Ver CONTAGEM"
+  },
+  {
+   "grafia": "azeite",
+   "produto": "AZEITE EXTRA VIRGEM (5lts)",
+   "forca": "nome",
+   "motivo": "o nosso cadastro vende a lata e mede em UND, entao a receita de 0,03 L entra como 0,03/5 = 0,006 lata — a mesma conversao de fracao que as doses dos drinques usam. R$ 197,90/5 L = R$ 39,58/L contra R$ 47,80/L da planilha = 0,828. A garrafa O-LIVE de 500 ml sairia a R$ 52,98/L (1,108), mais perto em preco — mas a lata de 5 L e o que uma cozinha usa para temperar 1,035 kg de salada em lote. Ver EMBALAGEM"
+  },
+  {
+   "grafia": "maionese",
+   "produto": "MAIONESE (2,8kg)",
+   "forca": "custo quase exato",
+   "motivo": "R$ 39,90 / 2,8 kg = R$ 14,25/kg contra R$ 14,96/kg da planilha = 0,952. O nosso cadastro vende o balde e mede em UND, entao 0,15 kg entra como 0,15/2,8 = 0,0536 balde. A MAIONESE DE ALHO (R$ 13,85/kg) mediria em KG sem conversao, mas e outro produto — e a receita ja leva alho batido em linha propria. Ver EMBALAGEM"
+  },
+  {
+   "grafia": "feijão preto mp",
+   "produto": "FEIJÃO PRONTO",
+   "forca": "nome",
+   "motivo": "feijao preto pronto e o FEIJÃO PRONTO (R$ 3,58 contra R$ 3,15 = 1,137); o FEIJÃO PRETO (1kg) do catalogo, a R$ 5,89, e o grao cru"
+  },
+  {
+   "grafia": "feijão preto pronto",
+   "produto": "FEIJÃO PRONTO",
+   "forca": "nome",
+   "motivo": "idem"
+  },
+  {
+   "grafia": "feijãp preto pronto",
+   "produto": "FEIJÃO PRONTO",
+   "forca": "nome",
+   "motivo": "idem, com \"feijãp\" por \"feijão\" — erro de digitacao da planilha"
+  }
+ ],
+ "sub_receitas": {
+  "MASSA EMPADÃO": "MASSA EMPADÃO",
+  "RECHEIO EMPADÃO": "RECHEIO EMPADÃO",
+  "EMPADÃO DE FRANGO": "EMPADÃO DE FRANGO",
+  "SALADA DA CASA ( individual)": "SALADA DA CASA (individual)",
+  "GUARNIÇÃO A FRANCESA": "GUARNIÇÃO À FRANCESA",
+  "TUTU DE FEIJÃO PRETO": "TUTU DE FEIJÃO PRETO",
+  "SALADA DE LEGUMES MP": "SALADA DE LEGUMES MP",
+  "SALADA DE MAIONESE": "SALADA DE MAIONESE MP",
+  "BASE DE GNOCCHI": "BASE DE GNOCCHI"
+ },
+ "copias_de_sub_receita": {
+  "SALADA DE LEGUMES MP": {
+   "abas": [
+    "FILÉ DE FRANGO COM LEGUMES",
+    "FILÉ DE PEIXE COM LEGUMES"
+   ],
+   "itens_identicos": true,
+   "cabecalho_identico": true
+  },
+  "SALADA DE MAIONESE": {
+   "abas": [
+    "PERNIL COM MAIONESE",
+    "SCHNITZEL COM MAIONESE"
+   ],
+   "itens_identicos": true,
+   "cabecalho_identico": true
+  }
+ }
+}

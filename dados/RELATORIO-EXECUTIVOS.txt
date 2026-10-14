@@ -1,0 +1,1385 @@
+RELATORIO · FICHAS TECNICAS DOS PRATOS EXECUTIVOS
+Bar do Zeca · Norte Shopping
+
+fonte  : dados/EXECUTIVOS_BDZ_NORTE_SHOPPING.xlsx
+destino: supabase/seed/0005_fichas_executivos.sql
+
+  pratos (fichas) ........................ 13
+  itens de ficha ......................... 99
+  produtos novos ......................... 15
+    sub-receita, custo recursivo ......... 9
+    sem catalogo, custo da planilha ...... 6
+  produtos distintos usados .............. 39
+  catalogo: 891 -> 906
+
+  custo somado pelo NOSSO catalogo ....... R$ 110,11
+  custo somado da planilha (Resumo) ...... R$ 113,32
+  custo somado col10 recalculada ......... R$ 109,91
+  soma das quantidades (ancora da carga) . 9,07
+  cmv_alvo em todas ...................... 20
+  preco_venda em todas ................... 0  (decisao da cliente)
+
+==============================================================================
+1 · A PLANILHA, CONFERIDA — e nao presumida
+==============================================================================
+
+14 abas: 13 de prato e a Resumo. 24 blocos, 165 linhas de ingrediente,
+76 grafias de ingrediente (67 nomes distintos quando se ignora caixa e acento).
+
+As sete relacoes que o extrator confere linha por linha e bloco por bloco:
+
+  1 col9  = Peso Liquido x Custo compra ....... 165 ok de 165
+  2 col10 = PesoBruto    x Custo compra ....... 157 ok de 165
+  3 Fator de Correcao = PesoBruto/Peso Liquido  163 ok de 163 preenchidas (2 vazias)
+  4 Perda manipulacao = PesoBruto-Peso Liquido  122 ok, 31 DIVERGENTES, 12 vazias
+  5 linha TOTAL = soma das linhas ............. col9 23/24 · col10 23/24 · bruto 22/24 · liq 22/24
+  6 Custo total do cabecalho = linha TOTAL .... col9 24/24 · col10 24/24
+  7 Custo porcao = Custo total / PESO PORCAO .. 48 de 48
+    Custo porcao = Custo total / RENDIMENTO ... 0 de 48
+    Preco = Custo porcao x Indice ............. 48 de 48
+    CMV = 1 / Indice ......................... 48 de 48
+
+E a Resumo: 13 linhas, 5 indices, preco = custo x indice em 65 de 65.
+
+CRITICA A VARREDURA INICIAL DO BRIEFING: ela diz 164 linhas de ingrediente e
+75 ingredientes distintos; sao 165 e 76. A linha a mais e a UNICA do arquivo
+com a celula Unidade VAZIA:
+    aba FILÉ FRANGO EMPANADO COM FRITAS · bloco FILÉ DE FRANGO COM FRITAS · linha 14 · "Leitosa de empanamento" · R$ 0,14
+  Um leitor que pare na ausencia de unidade a perde — e ela vale dinheiro e
+  entra na linha TOTAL do bloco, que e justamente o que faz a conferencia 5
+  passar. E a mesma familia do nome mutilado dos drinques: defeito de leitura
+  que uma conferencia de total pega so se o total contar a linha perdida.
+
+==============================================================================
+2 · AS DUAS COLUNAS DE VALOR, e qual delas confere
+==============================================================================
+
+col9  "Valor producao"       = Peso Liquido x Custo compra   (165 de 165)
+col10 "Valor preco de custo" = PesoBruto    x Custo compra   (157 de 165)
+
+A diferenca entre as duas e exatamente o fator de correcao: a col9 cobra o que
+vai no prato, a col10 cobra o que sai do estoque.
+
+USO A col10, e o motivo nao e "porque a Resumo usa". A nossa vw_ficha_itens
+calcula  quantidade_bruta x fator x custo_unitario , com
+quantidade_bruta = quantidade / (1 - perda/100) — que E o PesoBruto. A nossa
+vista reproduz a FORMULA da col10. A col9 subestima o estoque em toda linha
+com perda: 36 das 165 linhas tem fator maior que 1, 124 tem bruto igual ao
+liquido (e nelas as duas colunas dao o mesmo numero) e 5 tem liquido MAIOR
+que o bruto, que e impossivel e esta na secao 4.
+
+AS 8 LINHAS EM QUE A col10 NAO FECHA sao as 8 linhas de sub-receita — e nas
+8 o PesoBruto e IGUAL ao Peso Liquido (fator 1), logo col9 e col10 deveriam
+ser iguais. Nao sao: a col10 delas foi digitada a mao.
+
+  EMPADÃO DE FRANGO COM SALA . empadão de frango           col10 impressa 2,28          bruto x custo 2,09
+  EMPADÃO DE FRANGO COM SALA . salada da casa( individual  col10 impressa 3,97          bruto x custo 2,56
+  EMPADÃO DE FRANGO          . recheio empadão             col10 impressa 36,71         bruto x custo 32,98
+  MINI ORELHA DE ELEFANTE    . guarnição à francesa        col10 impressa 1,21          bruto x custo 1,16
+  FILÉ DE FRANGO COM LEGUMES . salada de legumes           col10 impressa 3,58          bruto x custo 2,50
+  FILÉ DE PEIXE COM LEGUMES  . salada de legumes           col10 impressa 3,58          bruto x custo 2,50
+  PERNIL COM MAIONESE        . Salada de Maionese MP       col10 impressa 1,08          bruto x custo 0,97
+  SCHNITIZEL COM MAIONESE    . Salada de maionese MP       col10 impressa 1,08          bruto x custo 0,97
+
+  O pior dos oito e `recheio empadão` dentro de EMPADÃO DE FRANGO: a col10
+  impressa (R$ 36,7065) e o Custo total do LOTE INTEIRO do RECHEIO EMPADÃO,
+  nao o custo de 2,4 kg dele. Por isso a conferencia de custo deste relatorio
+  usa a col10 RECALCULADA (PesoBruto x Custo compra) e nao a impressa — a
+  mesma licao do cache velho do PDV nos drinques.
+
+==============================================================================
+3 · AS TRES COLUNAS DE PESO: qual conta a verdade
+==============================================================================
+
+PesoBruto · Perda manipulacao · Peso Liquido, e o Fator de Correcao ao lado.
+
+  Fator de Correcao == PesoBruto / Peso Liquido : 163 de 163 preenchidas, ZERO divergencias
+  Perda manipulacao == PesoBruto - Peso Liquido : 122 de 165, 31 DIVERGENCIAS
+
+O ARGUMENTO, e nao a preferencia: o fator e uma FORMULA (nao erra uma vez em
+163) e a perda e um numero DIGITADO (erra 31 vezes em 153 preenchidas). E,
+decisivo: a `Perda manipulacao` NAO ENTRA EM FORMULA NENHUMA da planilha.
+As duas colunas que alimentam o Custo total sao a col9 (Peso Liquido) e a
+col10 (PesoBruto), e as duas fecham. A perda e decoracao — e decoracao errada.
+
+O caso que o briefing cita, com a conta aberta:
+  ISCA DE FIGADO · isca de fígado de boi: bruto 0,15, perda 0,02, liquido 0,12
+    bruto - perda = 0,03, e o liquido impresso e 0,12 — nao fecha.
+    bruto / liquido = 1,25, que e exatamente o Fator de Correcao — fecha.
+
+As 31 divergencias por tipo:
+  perda > 0 com PesoBruto IGUAL ao Peso Liquido (perda que nao existe) .. 3
+  perda = 0 com PesoBruto MAIOR que o Peso Liquido (perda nao anotada) .. 21
+  perda = 0 com Peso Liquido MAIOR que o PesoBruto (impossivel) ......... 5
+  perda > 0 e diferente de bruto - liquido .............................. 2
+
+==============================================================================
+4 · perda_percentual, E A PROVA DA VOLTA
+==============================================================================
+
+    quantidade       = Peso Liquido
+    perda_percentual = (1 - Peso Liquido / PesoBruto) x 100 = (1 - 1/fator) x 100
+
+A volta, na precisao do schema (quantidade numeric(14,4), perda numeric(6,3)):
+    quantidade_bruta = round(quantidade / (1 - perda/100), 4)  ==  PesoBruto ?
+
+  no extrator, sobre as 165 linhas da planilha ...... 160 exatas, 0 falhas, 5 impossiveis
+  no normalizador, sobre os itens gravados .......... 141 exatas, 1 pela embalagem, 0 falhas
+
+A tabela fator -> perda, que e o vocabulario inteiro da planilha:
+  fator 0,8                  -> perda 0 %
+  fator 1                    -> perda 0 %
+  fator 1,111111111111       -> perda 10 %
+  fator 1,133333333333       -> perda 11,765 %
+  fator 1,2                  -> perda 16,667 %
+  fator 1,25                 -> perda 20 %
+  fator 1,4                  -> perda 28,571 %
+  fator 2                    -> perda 50 %
+  fator 4                    -> perda 75 %
+
+AS 5 LINHAS QUE A VOLTA NAO PODE FECHAR, e o que eu fiz com elas:
+
+  aba FILÉ FRANGO EMPANADO COM FRITAS  · feijão pronto
+      PesoBruto 0,12 · Peso Liquido 0,15 · fator 0,8 · perda seria -25 %
+  aba FILÉ FRANGO FRITAS               · feijão pronto
+      PesoBruto 0,12 · Peso Liquido 0,15 · fator 0,8 · perda seria -25 %
+  aba FILÉ DE FRANGO COM LEGUMES       · feijão pronto
+      PesoBruto 0,12 · Peso Liquido 0,15 · fator 0,8 · perda seria -25 %
+  aba FILÉ DE PEIXE COM LEGUMES        · feijão pronto
+      PesoBruto 0,12 · Peso Liquido 0,15 · fator 0,8 · perda seria -25 %
+  aba FILÉ DE PEIXE COM PURÊ           · feijão pronto
+      PesoBruto 0,12 · Peso Liquido 0,15 · fator 0,8 · perda seria -25 %
+
+  Peso Liquido MAIOR que PesoBruto pediria perda_percentual NEGATIVA, e o
+  check (perda_percentual >= 0) do schema recusa. Gravei quantidade = PesoBruto
+  (0,12) e perda = 0, por quatro razoes e nao por preferencia:
+
+    1. perda de limpeza nao cria massa: liquido > bruto e impossivel;
+    2. o check do schema recusa o negativo, entao nao ha a opcao de gravar 0,15
+       com perda -25%;
+    3. o MESMO ingrediente aparece 0,12 / 0,12 com fator 1 em OITO outros
+       blocos da mesma planilha: 0,12 e o padrao da casa, 0,15 e a excecao;
+    4. e a razao que fecha a conta: a col10 — a coluna que a Resumo publica e
+       que a nossa vista reproduz — ja calcula 0,12 x 3,15 = R$ 0,378, identico
+       aos oito blocos certos. No dinheiro, a planilha ja se comporta como 0,12.
+
+  Cada um dos 5 itens leva o aviso na observacao.
+
+==============================================================================
+5 · rendimento: por que 1 e nao 0,655
+==============================================================================
+
+O schema calcula custo_porcao = custo_total / rendimento. Gravar 0,655 faria
+o SCHNITZEL custar 1/0,655 = 1,527 vez o custo dos seus itens: +52,7%.
+
+A PLANILHA NAO FAZ ISSO, e a prova sao dois contadores:
+    Custo porcao = Custo total / PESO PORCAO ... 48 de 48
+    Custo porcao = Custo total / RENDIMENTO .... 0 de 48
+
+Nos 13 pratos o Peso Porcao e 1, entao Custo porcao = Custo total — e e esse
+numero, nao o dividido por 0,655, que a Resumo publica como Custo bruto e
+multiplica pelos cinco indices. Conferido: o Custo bruto da Resumo e o Custo
+total col10 do primeiro bloco da aba nas 13 linhas.
+
+E O QUE E, ENTAO, O "Rendimento (porcoes)"? E o PESO do prato em quilos. Ele e
+exatamente a soma dos Pesos Liquidos nos 13 pratos (13 de 13), e vale 1 nos 11
+blocos de sub-receita. O rotulo "(porcoes)" esta errado na planilha.
+
+  prato                              rotulado   peso liq   coerente?   
+  EMPADÃO DE FRANGO COM SALADA       0,64       0,64       sim
+  MINI ORELHA EXECUTIVO              0,585      0,585      sim
+  CARNE GUISADA  COM BATATA CORADA   0,575      0,575      sim
+  CARNE SECA COM TUTU À MINEIRA      0,68       0,68       sim
+  ISCA DE FÍGADO COM PURÊ            0,7        0,7        sim
+  FILÉ FRANGO EMPANADO COM FRITAS    0,695      0,695      sim
+  FILÉ FRANGO FRITAS                 0,695      0,695      sim
+  FILÉ DE FRANGO COM LEGUMES         0,695      0,695      sim
+  FILÉ DE PEIXE COM LEGUMES          0,665      0,665      sim
+  FILÉ DE PEIXE COM PURÊ             0,665      0,665      sim
+  PERNIL COM MAIONESE                0,595      0,595      sim
+  SCHNITZEL COM MAIONESE             0,655      0,655      sim
+  GNOCCHI COM CARNE ASSADA           1,375      1,375      sim
+
+A PLANILHA E COERENTE? Sim, e por uma razao fragil: ela nunca divide pelo
+rendimento. Se alguem na casa trocar a formula de Custo porcao de "/Peso
+Porcao" para "/Rendimento", os 13 precos da Resumo mudam de uma vez e o
+GNOCCHI (rendimento 1,375) vai para BAIXO enquanto os outros 12 sobem.
+
+Gravei rendimento = 1 e unidade_rendimento = PORCAO nas 13, e o peso do prato
+foi para a descricao, onde e informacao e nao divisor.
+
+==============================================================================
+6 · O NOME DO PRATO: as duas armadilhas de nome, resolvidas com prova
+==============================================================================
+
+A chave NAO pode ser o nome do bloco, e nao pode ser o nome da aba.
+
+ARMADILHA 1 · dois blocos com o mesmo nome em abas diferentes
+
+  aba FILÉ FRANGO EMPANADO COM FRITAS  bloco FILÉ DE FRANGO COM FRITAS  10 itens  col10 R$ 5,68
+  aba FILÉ FRANGO FRITAS               bloco FILÉ DE FRANGO COM FRITAS   7 itens  col10 R$ 5,87
+
+  Sao pratos DIFERENTES com nome igual: 10 ingredientes contra 7, e custos
+  R$ 5,6787 contra R$ 5,8727. A Resumo lista os DOIS, com nomes distintos
+  (FILÉ FRANGO EMPANADO COM FRITAS e FILÉ FRANGO FRITAS) e com esses dois
+  custos. Entao nenhum atropela o outro: a prova e que os dois custos da
+  Resumo aparecem, cada um ligado a sua aba, e os 13 custos da Resumo casam
+  um a um com a col10 de um primeiro bloco diferente.
+
+ARMADILHA 2 · nome de bloco que nao bate com a aba — e sao CINCO, nao uma
+
+  aba                              nome do bloco                nome na Resumo
+  MINI ORELHA EXECUTIVO            MINI ORELHA DE ELEFANTE      MINI ORELHA EXECUTIVO
+  FILÉ FRANGO EMPANADO COM FRITAS  FILÉ DE FRANGO COM FRITAS    FILÉ FRANGO EMPANADO COM FRITAS
+  FILÉ FRANGO FRITAS               FILÉ DE FRANGO COM FRITAS    FILÉ FRANGO FRITAS
+  FILÉ DE PEIXE COM PURÊ           FILÉ DE PEIXE COM LEGUMES    FILÉ DE PEIXE COM PURÊ
+  SCHNITZEL COM MAIONESE           SCHNITIZEL COM MAIONESE      SCHNITZEL COM MAIONESE
+
+  A aba FILÉ DE PEIXE COM PURÊ e a que o briefing cita, e a decisao e a Resumo:
+  ela lista FILÉ DE PEIXE COM PURÊ e e a lista do que a casa vende. Mas a prova
+  nao e a autoridade da Resumo — e o INGREDIENTE: a aba PURÊ leva
+  `purê de batata mp` e `arroz branco de brocolis mp`; a aba LEGUMES leva
+  `salada de legumes`. O prato da aba PURÊ tem pure dentro. O nome do bloco e
+  resto de uma aba copiada.
+
+ARMADILHA 3 (que o briefing nao viu) · o nome da ABA tambem nao serve
+
+  aba   "CARNE GUISADA  COM BATATA CORAD"  (31 caracteres — o limite do Excel)
+  Resumo "CARNE GUISADA  COM BATATA CORADA"  (32 caracteres)
+
+  O Excel corta nome de aba em 31 caracteres e comeu o "A" final. Quem usar o
+  nome da aba como nome do prato grava um nome truncado — e truncado nao perde
+  um centavo, exatamente como o nome mutilado dos drinques, e por isso passa
+  em todas as conferencias de total.
+
+A SOLUCAO: o nome vem da Resumo, e a ligacao Resumo -> aba e feita por TRES
+caminhos que tem de concordar — posicao, nome normalizado e o Custo bruto
+contra a col10 do bloco. Concordam em 12 de 13; a decima terceira e justamente
+a aba truncada, onde o nome discorda e os outros dois caminhos decidem.
+
+==============================================================================
+7 · O DE-PARA, escrito a mao, linha por linha
+==============================================================================
+
+51 linhas de ingrediente + 9 de sub-receita + 7 de produto novo.
+
+Dos 67 nomes distintos da planilha, 9 sao sub-receita dela e 11 casam com o
+catalogo por nome identico (ignorando caixa e acento). Os outros 47 foram
+escritos um a um. 7 dessas grafias viraram 6 produtos novos por nao
+existirem no catalogo (duas grafias caem no mesmo produto: `leitosa` e
+`leitiosa` de empanamento).
+
+O desempate, em ordem de forca: custo exato > nome > exclusao > escolha forcada.
+Semelhanca automatica so PROPOS; nenhuma linha entrou sem os dois nomes a vista.
+
+  alface americana               -> ALFACE AMERICANA                   [nome]
+      nosso: KG    R$ 30,5       HORTIFRUTI
+      nome identico; o catalogo tem quatro alfaces e so esta e americana
+
+  batata asterix                 -> BATATA ASTERIX                     [nome]
+      nosso: KG    R$ 5,13       HORTIFRUTI
+      nome identico
+
+  brócolis americano             -> BRÓCOLIS AMERICANO                 [nome]
+      nosso: UND   R$ 53,55      HORTIFRUTI
+      nome identico; o outro candidato (BROCOLIS, R$ 28,55) nao e americano. O nosso cadastro mede em UND e a receita em KG — ver AVISO_NO_ITEM
+
+  caldo de carne                 -> CALDO DE CARNE                     [nome]
+      nosso: KG    R$ 9,59       MERCEARIA
+      nome identico, na MERCEARIA (o caldo de po). O homonimo de MOLHOS (R$ 17,31) e caldo feito na casa; a planilha nao diz qual, e o nome exato decide
+
+  cenoura                        -> CENOURA                            [nome]
+      nosso: KG    R$ 7,21       HORTIFRUTI
+      nome identico
+
+  ervilha congelada              -> ERVILHA CONGELADA                  [custo exato]
+      nosso: KG    R$ 12,88      CONGELADOS
+      nome identico E custo identico: R$ 12,88 nos dois lados
+
+  extrato de tomate              -> EXTRATO DE TOMATE                  [nome]
+      nosso: KG    R$ 23,99      MERCEARIA
+      nome identico
+
+  feijão pronto                  -> FEIJÃO PRONTO                      [nome]
+      nosso: KG    R$ 3,58       FEIJOADA
+      nome identico
+
+  filé de tilápia                -> FILÉ DE TILÁPIA                    [custo exato]
+      nosso: KG    R$ 42,9       PEIXES E FRUTOS DO MAR
+      nome identico E custo identico: R$ 42,90 nos dois lados
+
+  manjericão                     -> MANJERICÃO                         [nome]
+      nosso: UND   R$ 45,7       HORTIFRUTI
+      nome identico. O nosso cadastro mede em UND e a receita em KG — ver AVISO_NO_ITEM. E o mesmo defeito que os drinques acharam no MORANGO
+
+  farinha panko                  -> FARINHA PANKO (1kg)                [custo exato]
+      nosso: KG    R$ 16,2       MERCEARIA
+      R$ 16,20 = R$ 16,20, exato
+
+  farinha pankp                  -> FARINHA PANKO (1kg)                [custo exato]
+      nosso: KG    R$ 16,2       MERCEARIA
+      o mesmo produto com erro de digitacao no nome; R$ 16,20 = R$ 16,20
+
+  farinha de mandioca            -> FARINHA DE MANDIOCA (1kg)          [custo exato]
+      nosso: KG    R$ 5,37       MERCEARIA
+      R$ 5,37 = R$ 5,37, exato
+
+  parmesão                       -> PARMESÃO QUEIJO RALADO             [custo exato]
+      nosso: KG    R$ 48,5       CARNES
+      R$ 48,50 = R$ 48,50, exato. Os outros dois parmesoes do catalogo (PARMESÃO COZINHA e QUEIJO PARMESÃO) valem R$ 58,96 — a planilha usa o ralado
+
+  couve refogada mp              -> COUVE PICADA                       [custo exato]
+      nosso: KG    R$ 33,52      FEIJOADA
+      R$ 33,52 = R$ 33,52, exato. A planilha chama de "refogada" o que o nosso catalogo chama de "picada" e precifica igual — e o mesmo item
+
+  carne assada 120gr             -> CARNE ASSADA SANDUICHE (120g)      [custo exato]
+      nosso: UND   R$ 7,97       CARNES
+      R$ 7,97 = R$ 7,97, exato, e o nosso cadastro mede em UND. E isso que resolve o "1 KG de carne assada" da planilha: o 1 e UMA PORCAO de 120 g, nao um quilo — ver CONTAGEM e AVISO_NO_ITEM
+
+  molho ao sugo                  -> MOLHO DE TOMATE E MANJERICÃO       [custo quase exato]
+      nosso: KG    R$ 11,22      MOLHOS
+      R$ 11,22 contra R$ 10,83 = 1,036. Sugo e molho de tomate com manjericao; o outro molho de tomate do catalogo e o APIMENTADO (R$ 24,75), 2,29x
+
+  bombom de alcatra              -> BOMBOM DA ALCATRA                  [custo quase exato]
+      nosso: KG    R$ 69,66      PROTEÍNAS CLIENTE
+      R$ 69,66 contra R$ 69,75 = 0,999. "DE" contra "DA" no nome
+
+  filé de frango                 -> PEITO DE FRANGO                    [custo quase exato]
+      nosso: KG    R$ 14,41      PROTEÍNAS CLIENTE
+      R$ 14,41 contra R$ 14,44 = 0,998. File de frango e peito desossado; o FILE DE FRANGO 100 GR do catalogo e porcao pronta em UND (R$ 2,98) e a receita pesa em KG
+
+  carne seca desfiada            -> CARNE SECA LAGARTO                 [custo quase exato]
+      nosso: KG    R$ 47,9       PROTEÍNAS CLIENTE
+      R$ 47,90 contra R$ 49,22 = 0,973. A CARNE SECA de FEIJOADA custa R$ 143,70 (2,9x) e as CARNE SECA (150g)/(200g) sao porcao pronta
+
+  manteiga                       -> MANTEIGA COM SAL                   [custo quase exato]
+      nosso: KG    R$ 32,4       LATICÍNIOS
+      R$ 32,40 contra R$ 32,80 = 0,988. A MANTEIGA SEM SAL custa R$ 24,00 (0,73x)
+
+  batata frita                   -> BATATA CONGELADA                   [custo quase exato]
+      nosso: KG    R$ 13,38      CONGELADOS
+      R$ 13,38 contra R$ 13,75 = 0,973, e e o insumo cru que a casa frita. A BATATA FRITA (300g) do catalogo custa R$ 7,75 (0,56x) e e porcao pronta
+
+  óleo de soja                   -> ÓLEO DE SOJA (6lts)                [custo quase exato]
+      nosso: LTS   R$ 7,8        MERCEARIA
+      R$ 7,80/litro contra R$ 7,89/litro = 0,989. A garrafa de 0,9 L (R$ 7,70 a UND) sairia a R$ 8,56/litro. A unidade do nosso cadastro e LTS
+
+  alho batido                    -> ALHO DESCASCADO                    [custo quase exato]
+      nosso: KG    R$ 20,86      HORTIFRUTI
+      R$ 20,86 contra R$ 20,50 = 1,018. Alho batido e alho descascado passado na faca: bater nao muda a massa nem o preco. O ALHO TORRADO custa R$ 45,00 (2,2x) e o ALHO ROXO COM CASCA R$ 17,90, mas com casca
+
+  cenoura ralada                 -> CENOURA                            [nome]
+      nosso: KG    R$ 7,21       HORTIFRUTI
+      ralar nao muda a massa; a planilha precifica as duas a R$ 6,99. Nenhum bloco usa "cenoura" e "cenoura ralada" juntos
+
+  tomate picado                  -> TOMATE SALADA MADURO               [exclusao]
+      nosso: KG    R$ 7,6        HORTIFRUTI
+      picar nao muda a massa. A planilha lista `tomate italiano` em linha propria, entao o tomate sem adjetivo e o outro. R$ 7,60 contra R$ 14,99 = 0,51: o preco da planilha e de tomate caro/antigo
+
+  tomate                         -> TOMATE SALADA MADURO               [exclusao]
+      nosso: KG    R$ 7,6        HORTIFRUTI
+      idem — a planilha lista `tomate italiano` separado
+
+  tomate italiano                -> TOMATE ITALIANO MADURO             [nome]
+      nosso: KG    R$ 6,83       HORTIFRUTI
+      nome identico mais "MADURO". R$ 6,83 contra R$ 14,99 = 0,46
+
+  salsa picada                   -> SALSA                              [nome]
+      nosso: UND   R$ 24,2       HORTIFRUTI
+      picar nao muda a massa. R$ 24,20 contra R$ 25,67 = 0,943 — e a razao proxima de 1 e que diz que a UND do nosso cadastro e cerca de um quilo. A SALSA CRESPA VERDE custa R$ 2,20, outra coisa. Ver AVISO_NO_ITEM
+
+  bacon picado                   -> BACON                              [nome]
+      nosso: KG    R$ 25,9       EMBUTIDOS
+      picar nao muda a massa. R$ 25,90 contra R$ 16,45 = 1,57. O catalogo tem tres bacons quase no mesmo preco (25,75 / 25,90 / 25,99); escolhi o de EMBUTIDOS, que e o generico, e nao o de FEIJOADA nem o de SUINOS
+
+  limão sciciliano               -> LIMÃO SICILIANO                    [nome]
+      nosso: KG    R$ 9,13       HORTIFRUTI
+      o nome da planilha tem "scicilia" por "sicilia". R$ 9,13 contra R$ 9,61 = 0,95. O outro limao do catalogo e o TAHITI (R$ 7,11)
+
+  cebola branca                  -> CEBOLA                             [exclusao]
+      nosso: KG    R$ 4,46       HORTIFRUTI
+      o catalogo tem CEBOLA, CEBOLA ROXA, CEBOLA CALABRESA e CEBOLA CRISPY; a branca e a sem adjetivo. R$ 4,46 contra R$ 8,70 = 0,51, e a ROXA (R$ 7,37) ficaria mais perto no preco — mas a planilha diz BRANCA e cor de cebola nao se decide por preco
+
+  rúcula                         -> RÚCULA HIDROPÔNICA                 [escolha forcada]
+      nosso: UND   R$ 27         HORTIFRUTI
+      a unica rucula do catalogo. R$ 27,00 contra R$ 23,50 = 1,149. Mede em UND e a receita em KG — ver AVISO_NO_ITEM
+
+  vagem                          -> VAGEM FRANCESA                     [escolha forcada]
+      nosso: UND   R$ 17,6       HORTIFRUTI
+      a unica vagem do catalogo. R$ 17,60 contra R$ 10,00 = 1,76. Mede em UND e a receita em KG — ver AVISO_NO_ITEM
+
+  presunto                       -> PRESUNTO COZIDO                    [escolha forcada]
+      nosso: KG    R$ 19,5       LATICÍNIOS
+      o unico presunto do catalogo. R$ 19,50 contra R$ 22,98 = 0,849
+
+  isca de fígado de boi          -> FIGADO                             [escolha forcada]
+      nosso: KG    R$ 8,43       PROTEÍNAS CLIENTE
+      o unico figado do catalogo. R$ 8,43 contra R$ 13,02 = 0,648; a planilha parece cobrar a isca ja cortada
+
+  batata palha mp                -> BATATA PALHA                       [escolha forcada]
+      nosso: KG    R$ 5,19       MERCEARIA
+      a unica batata palha do catalogo. R$ 5,19 contra R$ 8,62 = 0,602. O "MP" do nome sugere preparo da casa, mas batata palha se compra pronta
+
+  purê de batata mp              -> PURE DE BATATA                     [nome]
+      nosso: KG    R$ 9,69       CARNES
+      nome identico sem o "MP". R$ 9,69 contra R$ 8,81 = 1,10
+
+  farofa de bacon                -> FAROFA PRONTA                      [escolha forcada]
+      nosso: KG    R$ 9,8        FEIJOADA
+      a unica farofa do catalogo. R$ 9,80 contra R$ 8,87 = 1,105. O nosso cadastro nao diz de que e a farofa
+
+  arroz branco pronto            -> ARROZ PRONTO                       [nome]
+      nosso: KG    R$ 1,73       FEIJOADA
+      arroz branco pronto e o ARROZ PRONTO; o ARROZ PARBOILIZADO (R$ 4,97) e o grao cru. R$ 1,73 contra R$ 1,98 = 0,874
+
+  farinha de trigo               -> FARINHA DE TRIGO (1kg)             [nome]
+      nosso: KG    R$ 4,1        MERCEARIA
+      nome identico mais o tamanho. R$ 4,10 contra R$ 5,90 = 0,695. Uma das cinco linhas de farinha da planilha esta com Unidade L — erro de rotulo dela; a unidade gravada e a do nosso cadastro, KG
+
+  sal                            -> SAL REFINADO (1kg)                 [nome]
+      nosso: KG    R$ 1,75       MERCEARIA
+      o sal de cozinha e o refinado; o SAL GROSSO custa R$ 2,90. R$ 1,75 contra R$ 2,72 = 0,643
+
+  sal refinado                   -> SAL REFINADO (1kg)                 [nome]
+      nosso: KG    R$ 1,75       MERCEARIA
+      nome identico mais o tamanho
+
+  copalombo                      -> LOMBO SUÍNO                        [custo quase exato]
+      nosso: KG    R$ 18,9       PROTEÍNAS CLIENTE
+      A DECISAO MAIS AGRESSIVA DO DE-PARA, e o argumento esta no preco. R$ 18,90 contra R$ 16,97 = 1,114. O catalogo TEM "COPA LOMBO", em duas linhas, mas as duas sao porcao pronta com o custo da porcao gravado numa unidade KG: COPA LOMBO (120G) a R$ 4,30 e COPA LOMBO (250G) a R$ 9,70 — que dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha. Mapear para elas poria R$ 0,52 de carne num schnitzel. O LOMBO SUINO e o corte cru, no preco da planilha. Se eu estiver errado, 1 ficha subestima a carne
+
+  ovo                            -> OVO BRANCO                         [nome]
+      nosso: UND   R$ 0,67       HORTIFRUTI
+      nome identico mais a cor; o OVO CAIPIRA custa R$ 0,00 no catalogo. R$ 0,67 contra R$ 0,52 = 1,29, e os dois sao preco de UM ovo
+
+  ovo branco                     -> OVO BRANCO                         [nome]
+      nosso: UND   R$ 0,67       HORTIFRUTI
+      nome identico. A planilha rotula esta linha como KG com PesoBruto 7 — sao 7 ovos, nao 7 quilos: o Custo compra R$ 0,52 e o mesmo da linha `ovo` em UND nas outras duas receitas. Ver CONTAGEM
+
+  azeite                         -> AZEITE EXTRA VIRGEM (5lts)         [nome]
+      nosso: UND   R$ 197,9      MERCEARIA
+      o nosso cadastro vende a lata e mede em UND, entao a receita de 0,03 L entra como 0,03/5 = 0,006 lata — a mesma conversao de fracao que as doses dos drinques usam. R$ 197,90/5 L = R$ 39,58/L contra R$ 47,80/L da planilha = 0,828. A garrafa O-LIVE de 500 ml sairia a R$ 52,98/L (1,108), mais perto em preco — mas a lata de 5 L e o que uma cozinha usa para temperar 1,035 kg de salada em lote. Ver EMBALAGEM
+
+  maionese                       -> MAIONESE (2,8kg)                   [custo quase exato]
+      nosso: UND   R$ 39,9       MERCEARIA
+      R$ 39,90 / 2,8 kg = R$ 14,25/kg contra R$ 14,96/kg da planilha = 0,952. O nosso cadastro vende o balde e mede em UND, entao 0,15 kg entra como 0,15/2,8 = 0,0536 balde. A MAIONESE DE ALHO (R$ 13,85/kg) mediria em KG sem conversao, mas e outro produto — e a receita ja leva alho batido em linha propria. Ver EMBALAGEM
+
+  feijão preto mp                -> FEIJÃO PRONTO                      [nome]
+      nosso: KG    R$ 3,58       FEIJOADA
+      feijao preto pronto e o FEIJÃO PRONTO (R$ 3,58 contra R$ 3,15 = 1,137); o FEIJÃO PRETO (1kg) do catalogo, a R$ 5,89, e o grao cru
+
+  feijão preto pronto            -> FEIJÃO PRONTO                      [nome]
+      nosso: KG    R$ 3,58       FEIJOADA
+      idem
+
+  feijãp preto pronto            -> FEIJÃO PRONTO                      [nome]
+      nosso: KG    R$ 3,58       FEIJOADA
+      idem, com "feijãp" por "feijão" — erro de digitacao da planilha
+
+
+==============================================================================
+8 · OS PRODUTOS NOVOS: 9 sub-receitas + 6 sem catalogo
+==============================================================================
+
+A sub-receita vira PRODUTO e nao ficha (o modulo nao tem ficha dentro de
+ficha), com custo_fixo = true, setor Cozinha e categoria que ja existe.
+
+AS 9 SUB-RECEITAS — custo calculado RECURSIVAMENTE pelo nosso catalogo.
+
+  MASSA EMPADÃO                  [KG] MASSAS · Cozinha
+      custo R$ 4,027273 por KG   (a planilha calculava R$ 4,8572)
+      massa de torta; MASSAS ja guarda MASSA DE PASTEL e MASSA DE GNOCCHI
+      a conta, pelo NOSSO catalogo (lote de 1,65 KG):
+          1          FARINHA DE TRIGO (1kg)           x R$ 4,1        = R$ 4,1
+                     (planilha: farinha de trigo @ R$ 5,9)
+          0,5        BANHA                            x R$ 1          = R$ 0,5
+                     (planilha: banha @ R$ 1)
+          3          OVO BRANCO                       x R$ 0,67       = R$ 2,01
+                     (planilha: ovo @ R$ 0,52)
+          0,02       SAL REFINADO (1kg)               x R$ 1,75       = R$ 0,035
+                     (planilha: sal @ R$ 2,72)
+                     TOTAL DO LOTE                      R$ 6,645
+                     / Peso Porcao = 1,65               R$ 4,027273 por KG
+
+  RECHEIO EMPADÃO                [KG] MOLHOS · Cozinha
+      custo R$ 13,748041 por KG   (a planilha calculava R$ 15,1367)
+      MOLHOS ja guarda RECHEIO DE CARNE MOÍDA e RECHEIO DE PASTEL
+      a conta, pelo NOSSO catalogo (lote de 2,425 KG):
+          1,5        PEITO DE FRANGO                  x R$ 14,41      = R$ 21,615
+                     (planilha: filé de frango @ R$ 14,44)
+          0,3        CEBOLA                           x R$ 4,46       = R$ 1,338
+                     (planilha: cebola branca @ R$ 8,7)
+          0,4        TOMATE SALADA MADURO             x R$ 7,6        = R$ 3,04
+                     (planilha: tomate @ R$ 14,99)
+          0,05       ALHO DESCASCADO                  x R$ 20,86      = R$ 1,043
+                     (planilha: alho batido @ R$ 20,5)
+          0,2        ERVILHA CONGELADA                x R$ 12,88      = R$ 2,576
+                     (planilha: ervilha congelada @ R$ 12,88)
+          0,1        EXTRATO DE TOMATE                x R$ 23,99      = R$ 2,399
+                     (planilha: extrato de tomate @ R$ 14,38)
+          0,05       SALSA                            x R$ 24,2       = R$ 1,21
+                     (planilha: salsa picada @ R$ 25,67)
+          0,05       BANHA                            x R$ 1          = R$ 0,05
+                     (planilha: banha @ R$ 1)
+          0,025      SAL COM PIMENTA                  x R$ 2,72       = R$ 0,068
+                     (planilha: sal com pimenta @ R$ 2,72)
+                     TOTAL DO LOTE                      R$ 33,339
+                     / Peso Porcao = 2,425              R$ 13,748041 por KG
+
+  EMPADÃO DE FRANGO              [KG] MASSAS · Cozinha
+      custo R$ 11,327472 por KG   (a planilha calculava R$ 12,6439)
+      torta montada; MASSAS ja guarda as EMPADA DE *. Cuidado: o catalogo tem EMPADA DE FRANGO com custo R$ 0,00, que e outra coisa (empada e individual, empadao e a torta) e esta zerada
+      a conta, pelo NOSSO catalogo (lote de 3,6 KG):
+          1,6        MASSA EMPADÃO                    x R$ 4,027273   = R$ 6,4436
+                     (planilha: massa empadão @ R$ 4,8572)
+          2,4        RECHEIO EMPADÃO                  x R$ 13,748041  = R$ 32,9953
+                     (planilha: recheio empadão @ R$ 13,7437)
+          2          OVO BRANCO                       x R$ 0,67       = R$ 1,34
+                     (planilha: ovo @ R$ 0,52)
+                     TOTAL DO LOTE                      R$ 40,7789
+                     / Peso Porcao = 3,6                R$ 11,327472 por KG
+
+  SALADA DA CASA (individual)    [KG] PROCESSADOS · Cozinha
+      custo R$ 23,58 por KG   (a planilha calculava R$ 28,3514)
+      preparo composto da casa; PROCESSADOS e a categoria de item processado na casa. A planilha rotula a Unidade como "porção" mas o Custo porcao dela e por kg (R$ 2,5613 / 0,14 kg)
+      a conta, pelo NOSSO catalogo (lote de 0,14 KG):
+          0,03       RÚCULA HIDROPÔNICA               x R$ 27         = R$ 0,81
+                     (planilha: Rúcula @ R$ 23,5)
+          0,05       ALFACE AMERICANA                 x R$ 30,5       = R$ 1,525
+                     (planilha: alface americana @ R$ 28,5)
+          0,1        TOMATE ITALIANO MADURO           x R$ 6,83       = R$ 0,683
+                     (planilha: tomate italiano @ R$ 14,99)
+          0,015      CEBOLA                           x R$ 4,46       = R$ 0,0669
+                     (planilha: cebola branca @ R$ 8,7)
+          0,03       CENOURA                          x R$ 7,21       = R$ 0,2163
+                     (planilha: cenoura ralada @ R$ 6,99)
+                     TOTAL DO LOTE                      R$ 3,3012
+                     / Peso Porcao = 0,14               R$ 23,58 por KG
+
+  GUARNIÇÃO À FRANCESA           [KG] PROCESSADOS · Cozinha
+      custo R$ 8,955429 por KG   (a planilha calculava R$ 12,1311)
+      preparo composto da casa (batata palha, presunto, cebola, ervilha, salsa, banha)
+      a conta, pelo NOSSO catalogo (lote de 0,175 KG):
+          0,08       BATATA PALHA                     x R$ 5,19       = R$ 0,4152
+                     (planilha: Batata palha MP @ R$ 8,62)
+          0,03       PRESUNTO COZIDO                  x R$ 19,5       = R$ 0,585
+                     (planilha: Presunto @ R$ 22,98)
+          0,04       CEBOLA                           x R$ 4,46       = R$ 0,1784
+                     (planilha: Cebola branca @ R$ 8,7)
+          0,02       ERVILHA CONGELADA                x R$ 12,88      = R$ 0,2576
+                     (planilha: Ervilha congelada @ R$ 12,88)
+          0,005      SALSA                            x R$ 24,2       = R$ 0,121
+                     (planilha: Salsa picada @ R$ 25,67)
+          0,01       BANHA                            x R$ 1          = R$ 0,01
+                     (planilha: Banha @ R$ 1)
+                     TOTAL DO LOTE                      R$ 1,5672
+                     / Peso Porcao = 0,175              R$ 8,955429 por KG
+
+  TUTU DE FEIJÃO PRETO           [KG] FEIJOADA · Cozinha
+      custo R$ 6,114662 por KG   (a planilha calculava R$ 5,0948)
+      acompanhamento pronto de feijao; FEIJOADA e onde vivem FEIJÃO PRONTO, ARROZ PRONTO, FAROFA PRONTA, COUVE PICADA
+      a conta, pelo NOSSO catalogo (lote de 1,33 KG):
+          1          FEIJÃO PRONTO                    x R$ 3,58       = R$ 3,58
+                     (planilha: Feijão preto pronto @ R$ 3,15)
+          0,15       FARINHA DE MANDIOCA (1kg)        x R$ 5,37       = R$ 0,8055
+                     (planilha: farinha de mandioca @ R$ 5,37)
+          0,03       ALHO DESCASCADO                  x R$ 20,86      = R$ 0,6258
+                     (planilha: alho batido @ R$ 20,5)
+          0,1        BACON                            x R$ 25,9       = R$ 2,59
+                     (planilha: bacon picado @ R$ 16,45)
+          0,01       SAL COM PIMENTA                  x R$ 2,72       = R$ 0,0272
+                     (planilha: sal com pimenta @ R$ 2,72)
+          0,02       BANHA                            x R$ 1          = R$ 0,02
+                     (planilha: banha @ R$ 1)
+          0,02       SALSA                            x R$ 24,2       = R$ 0,484
+                     (planilha: salsa picada @ R$ 25,67)
+                     TOTAL DO LOTE                      R$ 8,1325
+                     / Peso Porcao = 1,33               R$ 6,114662 por KG
+
+  SALADA DE LEGUMES MP           [KG] PROCESSADOS · Cozinha
+      custo R$ 25,118841 por KG   (a planilha calculava R$ 23,0754)
+      preparo composto da casa. UM produto para as DUAS copias (abas FILÉ DE FRANGO COM LEGUMES e FILÉ DE PEIXE COM LEGUMES)
+      a conta, pelo NOSSO catalogo (lote de 1,035 KG):
+          0,5        BATATA ASTERIX                   x R$ 5,13       = R$ 2,565
+                     (planilha: batata asterix @ R$ 7,15)
+          0,3        CENOURA                          x R$ 7,21       = R$ 2,163
+                     (planilha: cenoura @ R$ 6,99)
+          0,3        BRÓCOLIS AMERICANO               x R$ 53,55      = R$ 16,065
+                     (planilha: brócolis americano @ R$ 47,5)
+          0,2        VAGEM FRANCESA                   x R$ 17,6       = R$ 3,52
+                     (planilha: vagem @ R$ 10)
+          0,02       SALSA                            x R$ 24,2       = R$ 0,484
+                     (planilha: salsa picada @ R$ 25,67)
+          0,005      SAL COM PIMENTA                  x R$ 2,72       = R$ 0,0136
+                     (planilha: sal com pimenta @ R$ 2,72)
+          0,006      AZEITE EXTRA VIRGEM (5lts)       x R$ 197,9      = R$ 1,1874
+                     (planilha: azeite @ R$ 47,8)
+                     TOTAL DO LOTE                      R$ 25,998
+                     / Peso Porcao = 1,035              R$ 25,118841 por KG
+
+  SALADA DE MAIONESE MP          [KG] PROCESSADOS · Cozinha
+      custo R$ 9,299812 por KG   (a planilha calculava R$ 10,7669)
+      preparo composto da casa. UM produto para as DUAS copias (abas PERNIL COM MAIONESE e SCHNITZEL COM MAIONESE). O nome gravado leva o "MP" porque e assim que as duas linhas de ingrediente que o consomem o chamam
+      a conta, pelo NOSSO catalogo (lote de 1,065 KG):
+          0,75       BATATA ASTERIX                   x R$ 5,13       = R$ 3,8475
+                     (planilha: Batata asterix @ R$ 7,15)
+          0,2        CENOURA                          x R$ 7,21       = R$ 1,442
+                     (planilha: cenoura @ R$ 6,99)
+          0,1        ALHO DESCASCADO                  x R$ 20,86      = R$ 2,086
+                     (planilha: alho batido @ R$ 20,5)
+          0,01       SAL COM PIMENTA                  x R$ 2,72       = R$ 0,0272
+                     (planilha: sal com pimenta @ R$ 2,72)
+          0,0536     MAIONESE (2,8kg)                 x R$ 39,9       = R$ 2,1386
+                     (planilha: maionese @ R$ 14,96)
+          0,015      SALSA                            x R$ 24,2       = R$ 0,363
+                     (planilha: salsa picada @ R$ 25,67)
+                     TOTAL DO LOTE                      R$ 9,9043
+                     / Peso Porcao = 1,065              R$ 9,299812 por KG
+
+  BASE DE GNOCCHI                [KG] MASSAS · Cozinha
+      custo R$ 11,621965 por KG   (a planilha calculava R$ 12,7023)
+      massa de nhoque com manteiga e parmesao. O catalogo tem MASSA DE GNOCCHI a R$ 3,00, que e massa simples e um preco possivelmente velho; a receita da planilha e outra e mais caro, e as duas coexistirem e pendencia para a cliente
+      a conta, pelo NOSSO catalogo (lote de 1,425 KG):
+          1          BATATA ASTERIX                   x R$ 5,13       = R$ 5,13
+                     (planilha: Batata asterix @ R$ 7,15)
+          7          OVO BRANCO                       x R$ 0,67       = R$ 4,69
+                     (planilha: Ovo branco @ R$ 0,52)
+          0,275      FARINHA DE TRIGO (1kg)           x R$ 4,1        = R$ 1,1275
+                     (planilha: Farinha de trigo @ R$ 5,9)
+          0,015      SAL REFINADO (1kg)               x R$ 1,75       = R$ 0,0263
+                     (planilha: Sal refinado @ R$ 2,72)
+          0,15       MANTEIGA COM SAL                 x R$ 32,4       = R$ 4,86
+                     (planilha: Manteiga @ R$ 32,8)
+          0,015      PARMESÃO QUEIJO RALADO           x R$ 48,5       = R$ 0,7275
+                     (planilha: Parmesão @ R$ 48,5)
+                     TOTAL DO LOTE                      R$ 16,5613
+                     / Peso Porcao = 1,425              R$ 11,621965 por KG
+
+AS 6 SEM CATALOGO — custo vindo do `Custo compra` DA PLANILHA, porque a
+planilha nao da a receita e nao ha nada para recalcular. ESTE CUSTO E DA
+PLANILHA, E NAO DO NOSSO ESTOQUE, e e a unica excecao a regra do briefing.
+
+  SAL COM PIMENTA                [KG] TEMPEROS E AFINS · Cozinha
+      custo R$ 2,72  <<< DA PLANILHA
+      grafias: 'sal com pimenta'
+      usado em 17 linhas de ingrediente
+      MISTURA de dois ingredientes, e por isso nao e "sal cortado de outra forma": a regra que mapeia `alho batido` para ALHO DESCASCADO e `cenoura ralada` para CENOURA vale para a forma de UM ingrediente, nao para uma mistura. O catalogo nao tem o item. O custo R$ 2,72 e da planilha, e note que e o MESMO que ela usa para `sal` e `sal refinado`: na aritmetica dela a pimenta custa zero. Usado em 17 dos 24 blocos, R$ 0,009 a R$ 0,044 por prato
+
+  BANHA                          [KG] MERCEARIA · Cozinha
+      custo R$ 1  <<< DA PLANILHA
+      grafias: 'banha'
+      usado em 6 linhas de ingrediente
+      insumo de COMPRA que falta no catalogo: nao ha BANHA nem GORDURA em nenhuma das 21 categorias. Nao e preparo, nao tem receita, e o custo R$ 1,00/kg e da planilha — um numero redondo e implausivel para banha, que vai para a lista da cliente
+
+  LEITOSA DE EMPANAMENTO         [KG] PROCESSADOS · Cozinha
+      custo R$ 7,25  <<< DA PLANILHA
+      grafias: 'leitosa de empanamento', 'leitiosa de empanamento'
+      usado em 3 linhas de ingrediente
+      preparo de empanamento (a mistura liquida em que a carne passa antes da farinha). Nao existe no catalogo e a planilha nao da a receita; custo R$ 7,25 da planilha. Aparece com tres grafias (`leitosa`, `leitiosa`, e uma linha com a celula Unidade VAZIA)
+
+  ACÉM MP                        [KG] CARNES · Cozinha
+      custo R$ 62,6  <<< DA PLANILHA
+      grafias: 'acém mp'
+      usado em 1 linhas de ingrediente
+      acem GUISADO, preparo da casa. O catalogo tem ACEM cru a R$ 30,59 e a planilha cobra R$ 62,60 — 2,05x, que e a perda de peso de um cozido longo (acem perde cerca de metade). Mapear para o ACEM cru subestimaria pela metade um ingrediente que e 70% do custo do prato. A planilha nao da a receita do guisado, entao o custo R$ 62,60 e dela
+
+  PERNIL MP                      [KG] SUÍNOS · Cozinha
+      custo R$ 36,99  <<< DA PLANILHA
+      grafias: 'pernil mp'
+      usado em 1 linhas de ingrediente
+      pernil ASSADO, preparo da casa. O catalogo tem PERNIL cru a R$ 13,90 e PERNIL FATIADO a R$ 19,82; a planilha cobra R$ 36,99 (2,66x o cru). Mesmo caso do acem: a planilha nao da a receita do assado, o custo e dela
+
+  ARROZ BRANCO DE BRÓCOLIS MP    [KG] FEIJOADA · Cozinha
+      custo R$ 8,83  <<< DA PLANILHA
+      grafias: 'arroz branco de brocolis mp'
+      usado em 1 linhas de ingrediente
+      arroz de brocolis, preparo da casa, sem nada parecido no catalogo e sem receita na planilha; custo R$ 8,83 dela. A categoria FEIJOADA e onde o catalogo guarda os acompanhamentos prontos (ARROZ PRONTO, FEIJÃO PRONTO, FAROFA PRONTA, COUVE PICADA)
+
+
+==============================================================================
+9 · A SUB-RECEITA REPETIDA EM ABAS DIFERENTES: UM produto, e as copias NAO divergem
+==============================================================================
+
+Duas sub-receitas aparecem em duas abas cada. O briefing manda virar UM produto
+e avisa que divergencia entre as copias e achado. Comparei as copias item a
+item (nome, PesoBruto, Peso Liquido, unidade, Custo compra) e cabecalho a
+cabecalho (Custo total nas duas colunas, Peso Porcao):
+
+  SALADA DE LEGUMES MP     abas: FILÉ DE FRANGO COM LEGUMES + FILÉ DE PEIXE COM LEGUMES
+      itens identicos ..... SIM
+      cabecalho identico .. SIM
+  SALADA DE MAIONESE       abas: PERNIL COM MAIONESE + SCHNITZEL COM MAIONESE
+      itens identicos ..... SIM
+      cabecalho identico .. SIM
+
+As copias sao identicas nas duas. Nao e achado — e e uma boa noticia: as duas
+abas foram copiadas uma da outra e ninguem editou uma das copias depois. Cada
+uma virou UM produto, consumido por duas fichas.
+
+==============================================================================
+10 · CONFERENCIA DE CUSTO: o nosso catalogo contra a planilha
+==============================================================================
+
+A planilha e CONFERENCIA, nunca fonte. A coluna de comparacao e a col10
+RECALCULADA (PesoBruto x Custo compra), e nao a impressa, porque as 8 linhas
+de sub-receita tem col10 digitada a mao (secao 2).
+
+prato                                   NOSSO     Resumo  col10 rec    dif %
+------------------------------------------------------------------------------
+FILÉ DE FRANGO COM LEGUMES               7,29       7,10       6,03    +21.0
+ISCA DE FÍGADO COM PURÊ                  4,62       5,49       5,49    -15.8
+EMPADÃO DE FRANGO COM SALADA             6,12       7,02       5,43    +12.7
+FILÉ DE PEIXE COM LEGUMES               11,57      11,37      10,30    +12.3
+CARNE SECA COM TUTU À MINEIRA           15,25      17,13      17,13    -11.0
+CARNE GUISADA  COM BATATA CORADA         8,57       8,92       8,92     -4.0
+MINI ORELHA EXECUTIVO                    9,58       9,91       9,86     -2.9
+SCHNITZEL COM MAIONESE                   5,26       4,67       5,16     +2.0
+FILÉ DE PEIXE COM PURÊ                  10,67      10,48      10,48     +1.8
+GNOCCHI COM CARNE ASSADA                13,11      12,92      12,92     +1.5
+FILÉ FRANGO EMPANADO COM FRITAS          5,61       5,68       5,68     -1.2
+FILÉ FRANGO FRITAS                       5,82       5,87       5,87     -0.9
+PERNIL COM MAIONESE                      6,65       6,75       6,64     +0.1
+------------------------------------------------------------------------------
+SOMA                                   110,11     113,32     109,91
+
+A DISTRIBUICAO, contada e nao resumida:
+  dentro de +/-  1% ....... 2 de 13
+  dentro de +/-  5% ....... 8 de 13
+  dentro de +/- 10% ....... 8 de 13
+  dentro de +/- 20% ....... 12 de 13
+  dentro de +/- 50% ....... 13 de 13
+  ACIMA de +/- 20% ........ 1
+  mediana do |desvio| ..... 2.9%
+  pior .................... 21.0%
+
+O Custo bruto da Resumo contra a col10 recalculada, por prato — e aqui que
+aparece o SCHNITZEL, cuja soma de dinheiro nao conta as duas ultimas linhas:
+
+  EMPADÃO DE FRANGO COM SALADA       Resumo R$ 7,02        col10 recalculada R$ 5,43        falta R$ -1,59
+  MINI ORELHA EXECUTIVO              Resumo R$ 9,91        col10 recalculada R$ 9,86        falta R$ -0,05
+  FILÉ DE FRANGO COM LEGUMES         Resumo R$ 7,10        col10 recalculada R$ 6,03        falta R$ -1,08
+  FILÉ DE PEIXE COM LEGUMES          Resumo R$ 11,37       col10 recalculada R$ 10,30       falta R$ -1,08
+  PERNIL COM MAIONESE                Resumo R$ 6,75        col10 recalculada R$ 6,64        falta R$ -0,11
+  SCHNITZEL COM MAIONESE             Resumo R$ 4,67        col10 recalculada R$ 5,16        falta R$ 0,50
+
+==============================================================================
+11 · OS ACHADOS DA PLANILHA, com a aritmetica
+==============================================================================
+
+A1 · O SCHNITZEL PERDE R$ 0,6022 DE INGREDIENTE NA PROPRIA SOMA
+
+  bloco SCHNITIZEL COM MAIONESE (aba SCHNITZEL COM MAIONESE), coluna col9:
+    soma das 10 linhas .. R$ 4,82
+    TOTAL impresso ..... R$ 4,22
+    o TOTAL soma so as 8 PRIMEIRAS linhas; de fora ficaram:
+        linha 16  alho batido                R$ 0,41
+        linha 17  limão sciciliano           R$ 0,19
+  bloco SCHNITIZEL COM MAIONESE (aba SCHNITZEL COM MAIONESE), coluna col10:
+    soma das 10 linhas .. R$ 5,27
+    TOTAL impresso ..... R$ 4,67
+    o TOTAL soma so as 8 PRIMEIRAS linhas; de fora ficaram:
+        linha 16  alho batido                R$ 0,41
+        linha 17  limão sciciliano           R$ 0,19
+
+  As colunas de PESO do mesmo bloco somam as 10 linhas (TOTAL bruto 0,675 e
+  liquido 0,655 fecham com a soma); so as duas colunas de DINHEIRO param na
+  oitava. E intervalo de SUM curto, nao ingrediente esquecido.
+
+  CONSEQUENCIA EM DINHEIRO: o Custo bruto do SCHNITZEL na Resumo e R$ 4,665 e
+  deveria ser R$ 5,2672 — 12,9% a menos. Os cinco precos dele estao 12,9%
+  baixos: no indice 5 a Resumo diz R$ 23,33 e a conta certa da R$ 26,34.
+  E o SCHNITZEL e justamente o exemplo que o briefing usa.
+
+A2 · O GNOCCHI LEVA 1 KG ONDE O NOME DIZ 120 G
+
+  A planilha: `Carne assada 120gr`, PesoBruto 1, Unidade KG, Custo compra
+  R$ 7,97, col10 R$ 7,97 — 61,7%% do custo do prato (R$ 12,92).
+
+  O catalogo resolve sem chute: CARNE ASSADA SANDUICHE (120g), unidade UND,
+  custo R$ 7,97 — IGUAL ao Custo compra, ao centavo. Entao o "1" e UMA
+  porcao de 120 g e o rotulo KG da planilha e que esta errado.
+
+  A confirmacao vem do peso do prato: os outros 12 pesam de 0,575 a 0,700 kg
+  e o GNOCCHI pesa 1,375 — o unico fora, e a unica linha que explica o
+  excesso e a que diz 1 "KG" de carne. Com a porcao no lugar, o prato pesa
+  0,495 kg, dentro da familia.
+
+  Gravado: quantidade 1 UND de CARNE ASSADA SANDUICHE (120g), custo R$ 7,97.
+
+A3 · OS 7 OVOS QUE PESAVAM 0,14 KG
+
+  BASE DE GNOCCHI, linha `Ovo branco`: PesoBruto 7, Peso Liquido 0,14,
+  Unidade KG, Fator de Correcao 50. Sete quilos de ovo rendendo 140 gramas.
+
+  As duas colunas falam de coisas diferentes: o 7 e uma CONTAGEM e o 0,14 e um
+  peso. A prova de que o 7 e o numero certo esta em tres lugares:
+    · o Custo compra R$ 0,52 e o preco de UM ovo — e o mesmo que a mesma
+      planilha usa nas linhas `ovo` das receitas MASSA EMPADÃO (3 und) e
+      EMPADÃO DE FRANGO (2 UND);
+    · o nosso OVO BRANCO se cadastra em UND, a R$ 0,67;
+    · a col10 da planilha calcula 7 x 0,52 = R$ 3,64, e e esse numero que
+      entra no Custo total da BASE DE GNOCCHI (R$ 18,1008) e portanto no
+      preco do prato. A planilha ja cobra 7 ovos.
+
+  Gravei 7 UND. Gravar 0,14 KG faria mv_fator_para_produto devolver NULO
+  (massa nao converte para unidade e conteudo_quantidade esta vazio), o item
+  viraria unidade_incompativel com custo NULO e a propria carga se recusaria
+  a aplicar — a licao A6/N3 dos drinques, medida la e valida aqui.
+
+A4 · DOIS BLOCOS COM A LINHA TOTAL DE PESO QUE NAO FECHA
+
+  MASSA EMPADÃO          coluna peso_bruto   soma das linhas 4,52       TOTAL impresso 1,65
+  MASSA EMPADÃO          coluna peso_liquido soma das linhas 4,52       TOTAL impresso 1,65
+  EMPADÃO DE FRANGO      coluna peso_bruto   soma das linhas 6          TOTAL impresso 4
+  EMPADÃO DE FRANGO      coluna peso_liquido soma das linhas 6          TOTAL impresso 3,6
+
+  MASSA EMPADÃO: a soma da 4,52 e o TOTAL diz 1,65, porque a linha `ovo` tem
+  3 (unidades) numa coluna somada em quilo. O TOTAL impresso, 1,65 kg, e o peso
+  real do lote e e ele que o Custo porcao usa como divisor — esta certo.
+  EMPADÃO DE FRANGO: a soma da 6,0 e o TOTAL diz 4 (bruto) e 3,6 (liquido),
+  pelo mesmo motivo (2 ovos) mais 0,4 kg de perda de forno que nenhuma linha
+  anota. Os dois TOTAIS de DINHEIRO desses blocos fecham, e e o dinheiro que
+  vai para a ficha.
+
+A5 · AS 5 LINHAS COM PESO LIQUIDO MAIOR QUE O BRUTO
+  Secao 4, com as quatro razoes da decisao.
+
+A6 · A `Perda manipulacao` CONTRADIZ AS OUTRAS DUAS COLUNAS EM 31 LINHAS
+  Secao 3.
+
+A7 · DUAS LINHAS SEM FATOR DE CORRECAO
+
+  MASSA EMPADÃO          sal                    bruto 0,02 = liquido 0,02
+  TUTU DE FEIJÃO PRETO   bacon picado           bruto 0,1 = liquido 0,1
+  Nas duas o bruto e igual ao liquido, entao o fator seria 1 e a perda 0 — a
+  celula vazia nao esconde nada. Gravado perda 0.
+
+A8 · UMA LINHA COM A CELULA UNIDADE VAZIA, e e a que a varredura do briefing perdeu
+  Secao 1.
+
+A9 · INGREDIENTE COM UNIDADE DIVERGENTE DENTRO DA PROPRIA PLANILHA
+
+  FARINHA DE TRIGO             unidades na planilha: ['KG', 'L']
+  LEITOSA DE EMPANAMENTO       unidades na planilha: ['', 'KG']
+  `farinha de trigo` aparece em KG em quatro linhas e em L numa (MINI ORELHA):
+  farinha medida em litro. A unidade gravada e a do nosso cadastro, KG, nas 5.
+
+A10 · O CUSTO DA SUB-RECEITA QUE ENTRA NO PRATO NAO E O MESMO QUE A SUB-RECEITA SOMA
+
+  A ligacao de 11 linhas de ingrediente a 9 blocos de sub-receita foi provada
+  pelo numero: provadas pelo Custo porcao col9 9, pelo col10 1, pelo col9
+  arredondado a dois decimais 1, sem prova 0.
+
+  Mas as tres formas serem necessarias E o achado: a planilha nao usa um
+  criterio so. Oito linhas pegam o Custo porcao da col9 (o custo SEM o fator
+  de correcao da sub-receita), uma (`Base de gnocchi`) pega o da col10, e uma
+  (`guarnição à francesa`) pega o da col9 ARREDONDADO a R$ 11,63 quando a
+  sub-receita soma R$ 11,634. Tres criterios em nove ligacoes.
+
+  Consequencia: o prato consome a sub-receita a um custo que NAO inclui a perda
+  de limpeza dela, em 8 das 9. No nosso banco isso nao acontece — o custo do
+  produto de sub-receita e calculado pelo PesoBruto dos ingredientes dela
+  (secao 8), que e a conta certa.
+
+A11 · O CATALOGO TEM PRODUTOS QUE PARECEM SER O MESMO QUE ESTAS SUB-RECEITAS
+
+  MASSA DE GNOCCHI         KG    R$ 3          MASSAS                  R$ 3,00/kg contra a BASE DE GNOCCHI da planilha; a da planilha leva manteiga e parmesao
+  EMPADA DE FRANGO         KG    R$ 0          MASSAS                  custo R$ 0,00 no catalogo; empada e individual e empadao e a torta, mas vale reconciliar
+  PURE DE BATATA           KG    R$ 9,69       CARNES                  usado pelo de-para — nao e duplicata, e a prova de que a casa ja cadastra preparo de cozinha como produto
+
+
+==============================================================================
+12 · UNIDADE: o que foi gravado, e por que nao a da planilha
+==============================================================================
+
+A unidade gravada e SEMPRE a do nosso cadastro. Gravar a da planilha faria
+mv_fator_para_produto devolver NULO quando as familias nao se convertem (KG
+para UND), o item viraria unidade_incompativel, o custo viria NULO e a carga
+se recusaria a aplicar. Isso foi medido nos drinques (laudo 3, N3).
+
+produto                      planilha nosso    o que eu fiz
+------------------------------------------------------------------------------
+SALADA DA CASA (individual)  PORÇÃO   KG       gravado KG + aviso na observacao
+FARINHA DE TRIGO (1kg)       L        KG       gravado KG + aviso na observacao
+SALSA                        KG       UND      gravado UND + aviso na observacao
+LEITOSA DE EMPANAMENTO       (VAZIA)  KG       gravado KG + aviso na observacao
+ÓLEO DE SOJA (6lts)          L        LTS      gravado LTS + aviso na observacao
+CARNE ASSADA SANDUICHE (120g KG       UND      o numero da planilha e contagem
+MANJERICÃO                   KG       UND      gravado UND + aviso na observacao
+
+Os itens que levam aviso de unidade na observacao: 3.
+
+==============================================================================
+13 · AS 13 FICHAS, ITEM A ITEM
+==============================================================================
+
+
+------------------------------------------------------------------------------
+EMPADÃO DE FRANGO COM SALADA   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "EMPADÃO DE FRANGO COM SALADA", bloco "EMPADÃO DE FRANGO COM SALADA", linha 1
+  rendimento gravado 1 · peso do prato 0,64 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 6,12        Resumo R$ 7,02        col10 recalculada R$ 5,43
+
+  produto                          un          qtd  perda%     bruta     custo
+  EMPADÃO DE FRANGO                KG         0,18       0      0,18      2,04
+      planilha: empadão de frango          bruto 0,18     liq 0,18     fator 1          @ R$ 11,6101  ->  col9 R$ 2,09 · col10 R$ 2,28
+  SALADA DA CASA (individual)      KG         0,14       0      0,14      3,30
+      planilha: salada da casa( individual) bruto 0,14     liq 0,14     fator 1          @ R$ 18,295  ->  col9 R$ 2,56 · col10 R$ 3,97
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijãp preto pronto        bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
+
+------------------------------------------------------------------------------
+MINI ORELHA EXECUTIVO   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "MINI ORELHA EXECUTIVO", bloco "MINI ORELHA DE ELEFANTE", linha 1
+  rendimento gravado 1 · peso do prato 0,585 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 9,58        Resumo R$ 9,91        col10 recalculada R$ 9,86
+
+  produto                          un          qtd  perda%     bruta     custo
+  BOMBOM DA ALCATRA                KG         0,09      10       0,1      6,97
+      planilha: bombom de alcatra          bruto 0,1      liq 0,09     fator 1,111111   @ R$ 69,75  ->  col9 R$ 6,28 · col10 R$ 6,98
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  GUARNIÇÃO À FRANCESA             KG          0,1       0       0,1      0,90
+      planilha: guarnição à francesa       bruto 0,1      liq 0,1      fator 1          @ R$ 11,63  ->  col9 R$ 1,16 · col10 R$ 1,21
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
+      aviso: nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  LEITOSA DE EMPANAMENTO           KG         0,02       0      0,02      0,14
+      planilha: leitiosa de empanamento    bruto 0,02     liq 0,02     fator 1          @ R$ 7,25  ->  col9 R$ 0,14 · col10 R$ 0,14
+      aviso: numa das tres linhas a celula Unidade da planilha esta vazia
+  FARINHA PANKO (1kg)              KG         0,02       0      0,02      0,32
+      planilha: farinha pankp              bruto 0,02     liq 0,02     fator 1          @ R$ 16,2  ->  col9 R$ 0,32 · col10 R$ 0,32
+  FARINHA DE TRIGO (1kg)           KG         0,01       0      0,01      0,04
+      planilha: farinha de trigo           bruto 0,01     liq 0,01     fator 1          @ R$ 5,9  ->  col9 R$ 0,06 · col10 R$ 0,06
+      aviso: uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro
+
+------------------------------------------------------------------------------
+CARNE GUISADA  COM BATATA CORADA   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "CARNE GUISADA  COM BATATA CORAD", bloco "CARNE GUISADA COM BATATA CORADA", linha 1
+  rendimento gravado 1 · peso do prato 0,575 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 8,57        Resumo R$ 8,92        col10 recalculada R$ 8,92
+
+  produto                          un          qtd  perda%     bruta     custo
+  ACÉM MP                          KG          0,1       0       0,1      6,26
+      planilha: acém mp                    bruto 0,1      liq 0,1      fator 1          @ R$ 62,6  ->  col9 R$ 6,26 · col10 R$ 6,26
+      aviso: custo R$ 62,60 vindo da planilha: e acem guisado e a planilha nao da a receita
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  BATATA ASTERIX                   KG          0,1      50       0,2      1,03
+      planilha: batata asterix             bruto 0,2      liq 0,1      fator 2          @ R$ 7,15  ->  col9 R$ 0,72 · col10 R$ 1,43
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
+      aviso: nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  FAROFA PRONTA                    KG         0,05       0      0,05      0,49
+      planilha: farofa de bacon            bruto 0,05     liq 0,05     fator 1          @ R$ 8,87  ->  col9 R$ 0,44 · col10 R$ 0,44
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+
+------------------------------------------------------------------------------
+CARNE SECA COM TUTU À MINEIRA   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "CARNE SECA COM TUTU À MINEIRA", bloco "CARNE SECA COM TUTU A MINEIRA", linha 1
+  rendimento gravado 1 · peso do prato 0,68 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 15,25       Resumo R$ 17,13       col10 recalculada R$ 17,13
+
+  produto                          un          qtd  perda%     bruta     custo
+  CARNE SECA LAGARTO               KG         0,08      50      0,16      7,66
+      planilha: carne seca desfiada        bruto 0,16     liq 0,08     fator 2          @ R$ 49,22  ->  col9 R$ 3,94 · col10 R$ 7,88
+  CEBOLA                           KG         0,05  28,571      0,07      0,31
+      planilha: cebola branca              bruto 0,07     liq 0,05     fator 1,4        @ R$ 8,7  ->  col9 R$ 0,43 · col10 R$ 0,61
+  TOMATE SALADA MADURO             KG         0,05      75       0,2      1,52
+      planilha: tomate picado              bruto 0,2      liq 0,05     fator 4          @ R$ 14,99  ->  col9 R$ 0,75 · col10 R$ 3,00
+  SALSA                            UND       0,015       0     0,015      0,36
+      planilha: salsa picada               bruto 0,015    liq 0,015    fator 1          @ R$ 25,67  ->  col9 R$ 0,39 · col10 R$ 0,39
+      aviso: a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND
+  BANHA                            KG         0,04       0      0,04      0,04
+      planilha: banha                      bruto 0,04     liq 0,04     fator 1          @ R$ 1  ->  col9 R$ 0,04 · col10 R$ 0,04
+      aviso: custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  COUVE PICADA                     KG         0,05      50       0,1      3,35
+      planilha: couve refogada mp          bruto 0,1      liq 0,05     fator 2          @ R$ 33,52  ->  col9 R$ 1,68 · col10 R$ 3,35
+  TUTU DE FEIJÃO PRETO             KG         0,12       0      0,12      0,73
+      planilha: tutu de feijão mp          bruto 0,12     liq 0,12     fator 1          @ R$ 5,0948  ->  col9 R$ 0,61 · col10 R$ 0,61
+  FAROFA PRONTA                    KG         0,05       0      0,05      0,49
+      planilha: farofa de bacon            bruto 0,05     liq 0,05     fator 1          @ R$ 8,87  ->  col9 R$ 0,44 · col10 R$ 0,44
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+
+------------------------------------------------------------------------------
+ISCA DE FÍGADO COM PURÊ   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "ISCA DE FÍGADO COM PURÊ", bloco "isca de fígado com purê", linha 1
+  rendimento gravado 1 · peso do prato 0,7 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 4,62        Resumo R$ 5,49        col10 recalculada R$ 5,49
+
+  produto                          un          qtd  perda%     bruta     custo
+  FIGADO                           KG         0,12      20      0,15      1,26
+      planilha: isca de fígado de boi      bruto 0,15     liq 0,12     fator 1,25       @ R$ 13,02  ->  col9 R$ 1,56 · col10 R$ 1,95
+  PURE DE BATATA                   KG         0,15       0      0,15      1,45
+      planilha: purê de batata mp          bruto 0,15     liq 0,15     fator 1          @ R$ 8,81  ->  col9 R$ 1,32 · col10 R$ 1,32
+  CEBOLA                           KG         0,05  28,571      0,07      0,31
+      planilha: cebola branca              bruto 0,07     liq 0,05     fator 1,4        @ R$ 8,7  ->  col9 R$ 0,43 · col10 R$ 0,61
+  SALSA                            UND       0,015       0     0,015      0,36
+      planilha: salsa picada               bruto 0,015    liq 0,015    fator 1          @ R$ 25,67  ->  col9 R$ 0,39 · col10 R$ 0,39
+      aviso: a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND
+  BANHA                            KG         0,02       0      0,02      0,02
+      planilha: banha                      bruto 0,02     liq 0,02     fator 1          @ R$ 1  ->  col9 R$ 0,02 · col10 R$ 0,02
+      aviso: custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão preto mp            bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+
+------------------------------------------------------------------------------
+FILÉ FRANGO EMPANADO COM FRITAS   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "FILÉ FRANGO EMPANADO COM FRITAS", bloco "FILÉ DE FRANGO COM FRITAS", linha 1
+  rendimento gravado 1 · peso do prato 0,695 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 5,61        Resumo R$ 5,68        col10 recalculada R$ 5,68
+
+  produto                          un          qtd  perda%     bruta     custo
+  PEITO DE FRANGO                  KG          0,1  16,667      0,12      1,73
+      planilha: filé de frango             bruto 0,12     liq 0,1      fator 1,2        @ R$ 14,44  ->  col9 R$ 1,44 · col10 R$ 1,73
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  BATATA CONGELADA                 KG         0,15       0      0,15      2,01
+      planilha: batata frita               bruto 0,15     liq 0,15     fator 1          @ R$ 13,75  ->  col9 R$ 2,06 · col10 R$ 2,06
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,15     fator 0,8        @ R$ 3,15  ->  col9 R$ 0,47 · col10 R$ 0,38
+      aviso: Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  LEITOSA DE EMPANAMENTO           KG         0,02       0      0,02      0,14
+      planilha: Leitosa de empanamento     bruto 0,02     liq 0,02     fator 1          @ R$ 7,25  ->  col9 R$ 0,14 · col10 R$ 0,14
+      aviso: numa das tres linhas a celula Unidade da planilha esta vazia
+  FARINHA DE TRIGO (1kg)           KG         0,01       0      0,01      0,04
+      planilha: Farinha de trigo           bruto 0,01     liq 0,01     fator 1          @ R$ 5,9  ->  col9 R$ 0,06 · col10 R$ 0,06
+      aviso: uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro
+  FARINHA PANKO (1kg)              KG         0,02       0      0,02      0,32
+      planilha: Farinha panko              bruto 0,02     liq 0,02     fator 1          @ R$ 16,2  ->  col9 R$ 0,32 · col10 R$ 0,32
+  ÓLEO DE SOJA (6lts)              LTS        0,02       0      0,02      0,16
+      planilha: óleo de soja               bruto 0,02     liq 0,02     fator 1          @ R$ 7,89  ->  col9 R$ 0,16 · col10 R$ 0,16
+
+------------------------------------------------------------------------------
+FILÉ FRANGO FRITAS   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "FILÉ FRANGO FRITAS", bloco "FILÉ DE FRANGO COM FRITAS", linha 1
+  rendimento gravado 1 · peso do prato 0,695 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 5,82        Resumo R$ 5,87        col10 recalculada R$ 5,87
+
+  produto                          un          qtd  perda%     bruta     custo
+  PEITO DE FRANGO                  KG         0,15  11,765      0,17      2,45
+      planilha: filé de frango             bruto 0,17     liq 0,15     fator 1,133333   @ R$ 14,44  ->  col9 R$ 2,17 · col10 R$ 2,45
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  BATATA CONGELADA                 KG         0,15       0      0,15      2,01
+      planilha: batata frita               bruto 0,15     liq 0,15     fator 1          @ R$ 13,75  ->  col9 R$ 2,06 · col10 R$ 2,06
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,15     fator 0,8        @ R$ 3,15  ->  col9 R$ 0,47 · col10 R$ 0,38
+      aviso: Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  ÓLEO DE SOJA (6lts)              LTS        0,02       0      0,02      0,16
+      planilha: óleo de soja               bruto 0,02     liq 0,02     fator 1          @ R$ 7,89  ->  col9 R$ 0,16 · col10 R$ 0,16
+
+------------------------------------------------------------------------------
+FILÉ DE FRANGO COM LEGUMES   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "FILÉ DE FRANGO COM LEGUMES", bloco "FILÉ DE FRANGO COM LEGUMES", linha 1
+  rendimento gravado 1 · peso do prato 0,695 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 7,29        Resumo R$ 7,10        col10 recalculada R$ 6,03
+
+  produto                          un          qtd  perda%     bruta     custo
+  PEITO DE FRANGO                  KG         0,15       0      0,15      2,16
+      planilha: filé de frango             bruto 0,15     liq 0,15     fator 1          @ R$ 14,44  ->  col9 R$ 2,17 · col10 R$ 2,17
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  SALADA DE LEGUMES MP             KG         0,15       0      0,15      3,77
+      planilha: salada de legumes          bruto 0,15     liq 0,15     fator 1          @ R$ 16,6986  ->  col9 R$ 2,50 · col10 R$ 3,58
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,15     fator 0,8        @ R$ 3,15  ->  col9 R$ 0,47 · col10 R$ 0,38
+      aviso: Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  ÓLEO DE SOJA (6lts)              LTS        0,02       0      0,02      0,16
+      planilha: óleo de soja               bruto 0,02     liq 0,02     fator 1          @ R$ 7,89  ->  col9 R$ 0,16 · col10 R$ 0,16
+
+------------------------------------------------------------------------------
+FILÉ DE PEIXE COM LEGUMES   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "FILÉ DE PEIXE COM LEGUMES", bloco "FILÉ DE PEIXE COM LEGUMES", linha 1
+  rendimento gravado 1 · peso do prato 0,665 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 11,57       Resumo R$ 11,37       col10 recalculada R$ 10,30
+
+  produto                          un          qtd  perda%     bruta     custo
+  FILÉ DE TILÁPIA                  KG         0,12      20      0,15      6,43
+      planilha: filé de tilápia            bruto 0,15     liq 0,12     fator 1,25       @ R$ 42,9  ->  col9 R$ 5,15 · col10 R$ 6,43
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  SALADA DE LEGUMES MP             KG         0,15       0      0,15      3,77
+      planilha: salada de legumes          bruto 0,15     liq 0,15     fator 1          @ R$ 16,6986  ->  col9 R$ 2,50 · col10 R$ 3,58
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,15     fator 0,8        @ R$ 3,15  ->  col9 R$ 0,47 · col10 R$ 0,38
+      aviso: Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  ÓLEO DE SOJA (6lts)              LTS        0,02       0      0,02      0,16
+      planilha: óleo de soja               bruto 0,02     liq 0,02     fator 1          @ R$ 7,89  ->  col9 R$ 0,16 · col10 R$ 0,16
+
+------------------------------------------------------------------------------
+FILÉ DE PEIXE COM PURÊ   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "FILÉ DE PEIXE COM PURÊ", bloco "FILÉ DE PEIXE COM LEGUMES", linha 1
+  rendimento gravado 1 · peso do prato 0,665 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 10,67       Resumo R$ 10,48       col10 recalculada R$ 10,48
+
+  produto                          un          qtd  perda%     bruta     custo
+  FILÉ DE TILÁPIA                  KG         0,12      20      0,15      6,43
+      planilha: filé de tilápia            bruto 0,15     liq 0,12     fator 1,25       @ R$ 42,9  ->  col9 R$ 5,15 · col10 R$ 6,43
+  ARROZ BRANCO DE BRÓCOLIS MP      KG          0,2       0       0,2      1,77
+      planilha: arroz  branco de brocolis mp bruto 0,2      liq 0,2      fator 1          @ R$ 8,83  ->  col9 R$ 1,77 · col10 R$ 1,77
+  PURE DE BATATA                   KG         0,15       0      0,15      1,45
+      planilha: purê de batata mp          bruto 0,15     liq 0,15     fator 1          @ R$ 8,81  ->  col9 R$ 1,32 · col10 R$ 1,32
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,15     fator 0,8        @ R$ 3,15  ->  col9 R$ 0,47 · col10 R$ 0,38
+      aviso: Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  ÓLEO DE SOJA (6lts)              LTS        0,02       0      0,02      0,16
+      planilha: óleo de soja               bruto 0,02     liq 0,02     fator 1          @ R$ 7,89  ->  col9 R$ 0,16 · col10 R$ 0,16
+
+------------------------------------------------------------------------------
+PERNIL COM MAIONESE   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "PERNIL COM MAIONESE", bloco "PERNIL COM MAIONESE", linha 1
+  rendimento gravado 1 · peso do prato 0,595 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 6,65        Resumo R$ 6,75        col10 recalculada R$ 6,64
+
+  produto                          un          qtd  perda%     bruta     custo
+  PERNIL MP                        KG         0,12       0      0,12      4,44
+      planilha: Pernil MP                  bruto 0,12     liq 0,12     fator 1          @ R$ 36,99  ->  col9 R$ 4,44 · col10 R$ 4,44
+      aviso: custo R$ 36,99 vindo da planilha: e pernil assado e a planilha nao da a receita
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  SALADA DE MAIONESE MP            KG          0,1       0       0,1      0,93
+      planilha: Salada de Maionese MP      bruto 0,1      liq 0,1      fator 1          @ R$ 9,6987  ->  col9 R$ 0,97 · col10 R$ 1,08
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
+      aviso: nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  FAROFA PRONTA                    KG         0,05       0      0,05      0,49
+      planilha: farofa de bacon            bruto 0,05     liq 0,05     fator 1          @ R$ 8,87  ->  col9 R$ 0,44 · col10 R$ 0,44
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+
+------------------------------------------------------------------------------
+SCHNITZEL COM MAIONESE   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "SCHNITZEL COM MAIONESE", bloco "SCHNITIZEL COM MAIONESE", linha 1
+  rendimento gravado 1 · peso do prato 0,655 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 5,26        Resumo R$ 4,67        col10 recalculada R$ 5,16
+
+  produto                          un          qtd  perda%     bruta     custo
+  LOMBO SUÍNO                      KG          0,1  16,667      0,12      2,27
+      planilha: copalombo                  bruto 0,12     liq 0,1      fator 1,2        @ R$ 16,97  ->  col9 R$ 1,70 · col10 R$ 2,04
+      aviso: mapeado para LOMBO SUÍNO e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta com custo de porcao numa unidade KG
+  ARROZ PRONTO                     KG          0,2       0       0,2      0,35
+      planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
+  SALADA DE MAIONESE MP            KG          0,1       0       0,1      0,93
+      planilha: Salada de maionese MP      bruto 0,1      liq 0,1      fator 1          @ R$ 9,6987  ->  col9 R$ 0,97 · col10 R$ 1,08
+  FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
+      planilha: feijão pronto              bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
+      aviso: nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
+  FARINHA DE TRIGO (1kg)           KG         0,05       0      0,05      0,20
+      planilha: farinha de trigo           bruto 0,05     liq 0,05     fator 1          @ R$ 5,9  ->  col9 R$ 0,30 · col10 R$ 0,30
+      aviso: uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro
+  FARINHA PANKO (1kg)              KG         0,02       0      0,02      0,32
+      planilha: farinha panko              bruto 0,02     liq 0,02     fator 1          @ R$ 16,2  ->  col9 R$ 0,32 · col10 R$ 0,32
+  LEITOSA DE EMPANAMENTO           KG         0,02       0      0,02      0,14
+      planilha: leitosa de empanamento     bruto 0,02     liq 0,02     fator 1          @ R$ 7,25  ->  col9 R$ 0,14 · col10 R$ 0,14
+      aviso: numa das tres linhas a celula Unidade da planilha esta vazia
+  SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
+      planilha: sal com pimenta            bruto 0,005    liq 0,005    fator 1          @ R$ 2,72  ->  col9 R$ 0,01 · col10 R$ 0,01
+      aviso: custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero
+  ALHO DESCASCADO                  KG         0,02       0      0,02      0,42
+      planilha: alho batido                bruto 0,02     liq 0,02     fator 1          @ R$ 20,5  ->  col9 R$ 0,41 · col10 R$ 0,41
+  LIMÃO SICILIANO                  KG         0,02       0      0,02      0,18
+      planilha: limão sciciliano           bruto 0,02     liq 0,02     fator 1          @ R$ 9,61  ->  col9 R$ 0,19 · col10 R$ 0,19
+
+------------------------------------------------------------------------------
+GNOCCHI COM CARNE ASSADA   [Executivos]
+------------------------------------------------------------------------------
+  planilha: aba "GNOCCHI COM CARNE ASSADA", bloco "GNOCCHI COM CARNE ASSADA", linha 1
+  rendimento gravado 1 · peso do prato 1,375 kg · cmv_alvo 20 · preco_venda 0
+  custo NOSSO R$ 13,11       Resumo R$ 12,92       col10 recalculada R$ 12,92
+
+  produto                          un          qtd  perda%     bruta     custo
+  CARNE ASSADA SANDUICHE (120g)    UND           1       0         1      7,97
+      planilha: Carne assada 120gr         bruto 1        liq 1        fator 1          @ R$ 7,97  ->  col9 R$ 7,97 · col10 R$ 7,97
+      aviso: o PesoBruto 1 e UMA porcao de 120 g; o nosso cadastro mede em UND e custa R$ 7,97, igual ao Custo compra · a planilha rotula 1 KG e o nome diz 120 g; gravado como 1 UND da porcao de 120 g, que e o que o Custo compra R$ 7,97 precifica
+  BASE DE GNOCCHI                  KG         0,25       0      0,25      2,91
+      planilha: Base de gnocchi            bruto 0,25     liq 0,25     fator 1          @ R$ 12,7023  ->  col9 R$ 3,18 · col10 R$ 3,18
+  MOLHO DE TOMATE E MANJERICÃO     KG         0,05       0      0,05      0,56
+      planilha: Molho ao sugo              bruto 0,05     liq 0,05     fator 1          @ R$ 10,83  ->  col9 R$ 0,54 · col10 R$ 0,54
+  PARMESÃO QUEIJO RALADO           KG         0,02       0      0,02      0,97
+      planilha: Parmesão                   bruto 0,02     liq 0,02     fator 1          @ R$ 48,5  ->  col9 R$ 0,97 · col10 R$ 0,97
+  CALDO DE CARNE                   KG         0,05       0      0,05      0,48
+      planilha: Caldo de carne             bruto 0,05     liq 0,05     fator 1          @ R$ 3,04  ->  col9 R$ 0,15 · col10 R$ 0,15
+  MANJERICÃO                       UND       0,005       0     0,005      0,23
+      planilha: Manjericão                 bruto 0,005    liq 0,005    fator 1          @ R$ 22,67  ->  col9 R$ 0,11 · col10 R$ 0,11
+      aviso: a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND
+
+==============================================================================
+14 · A `descricao`: os cinco indices, nas duas linhas de preco
+==============================================================================
+
+Decisao da cliente: preco_venda = 0 e os cinco indices gravados na descricao,
+com DUAS linhas de preco — os cinco do custo dela e os cinco do nosso custo.
+
+Exemplo (a primeira ficha), como ela aparece na tela:
+
+  | Executivo · Bar do Zeca Norte Shopping.
+  | 
+  | A receita rende 1 prato de 0,64 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
+  | CMV alvo 20%, que é o que a própria aba usa (Índice de custo 5, CMV 0,2).
+  | 
+  | PREÇO POR ÍNDICE DE MARKUP — preço = custo × índice; o CMV é o inverso do índice.
+  | 
+  | índice                      3         3,5           4         4,5           5
+  | -----------------------------------------------------------------------------
+  | custo da planilha (R$ 7,02)
+  |   preço                 21,06       24,56       28,07       31,58       35,09
+  | custo do nosso estoque (R$ 6,12) — na data da carga
+  |   preço                 18,35       21,40       24,46       27,52       30,58
+  | 
+  | O nosso custo é -12.9% em relação ao da planilha (R$ 6,12 contra R$ 7,02). A diferença entre as duas linhas de preço é a diferença entre o custo com que a casa precifica e o custo real do estoque.
+  | 
+  | O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
+  | 
+  | Na planilha: aba "EMPADÃO DE FRANGO COM SALADA" (linha 1).
+
+A segunda linha de preco e um RETRATO da data da carga, e o texto diz isso.
+O custo vivo esta em vw_fichas_completas.custo_total, que a tela le e que
+acompanha o preco real do estoque; a descricao nao se atualiza sozinha.
+
+==============================================================================
+15 · O QUE PRECISA DA CLIENTE
+==============================================================================
+
+ 1 · PRECO DE VENDA das 13 fichas
+     Nascem com 0, por decisao dela. Sem preco nao existe CMV nem margem — a
+     vista devolve nulo nos dois. Os cinco indices estao na descricao de cada
+     ficha, nas duas linhas de preco.
+
+ 2 · O SCHNITZEL esta 12,9% barato na propria planilha
+     A soma de dinheiro do bloco nao conta `alho batido` e `limão sciciliano`
+     (R$ 0,6022). Corrigir o intervalo da formula SUM muda o Custo bruto de
+     R$ 4,665 para R$ 5,2672 e os cinco precos com ele. Enquanto nao for
+     corrigido, qualquer preco tirado da Resumo para o SCHNITZEL nasce baixo.
+
+ 3 · O GNOCCHI leva 1 "KG" de carne assada onde o nome diz 120 g
+     Gravei 1 UND da porcao de 120 g, porque o Custo compra R$ 7,97 e
+     exatamente o custo da CARNE ASSADA SANDUICHE (120g) do nosso catalogo.
+     Confirmar; se for 1 kg mesmo, o prato tem 1,375 kg de comida e custa
+     outra coisa.
+
+ 4 · `copalombo` -> LOMBO SUÍNO: a minha escolha mais agressiva
+     O catalogo TEM COPA LOMBO, em duas linhas (120G e 250G), mas as duas
+     gravam o custo da PORCAO numa unidade KG — R$ 4,30 e R$ 9,70, que dao R$
+     35,83/kg e R$ 38,80/kg. Mapeei para LOMBO SUÍNO (R$ 18,90/kg, 1,11x a
+     planilha). Se eu estiver errado, 1 ficha subestima a carne.
+
+ 5 · `BANHA` a R$ 1,00/kg
+     Nao existe banha nem gordura no catalogo. Criei o produto com o custo da
+     planilha, e R$ 1,00/kg e um numero redondo e implausivel. Usado em 6
+     blocos.
+
+ 6 · `SAL COM PIMENTA` a R$ 2,72/kg
+     O ingrediente mais usado da planilha (17 dos 24 blocos) e uma MISTURA
+     que nao existe no catalogo. Criei o produto com o custo dela, que e o
+     MESMO preco do sal puro: na conta da planilha a pimenta custa zero.
+
+ 7 · `ACÉM MP` a R$ 62,60/kg e `PERNIL MP` a R$ 36,99/kg
+     Preparos de carne que a planilha nao detalha. Os custos sao dela, e sao
+     2,05x e 2,66x o corte cru do nosso catalogo — compativel com perda de
+     coccao, mas nao verificavel. Sao 70% e 66% do custo dos seus pratos.
+
+ 8 · `ARROZ BRANCO DE BRÓCOLIS MP` a R$ 8,83/kg e `LEITOSA DE EMPANAMENTO` a R$ 7,25/kg
+     Idem: preparos sem receita na planilha e sem nada parecido no catalogo.
+
+ 9 · Unidade: 5 ingredientes que a planilha pesa e o nosso catalogo conta
+     BRÓCOLIS AMERICANO, MANJERICÃO, RÚCULA HIDROPÔNICA, SALSA e VAGEM
+     FRANCESA estao em UND no nosso cadastro e em KG na receita. Gravei a
+     unidade do cadastro com o aviso na observacao, porque gravar KG
+     derrubaria a carga. Resolver cadastrando em KG ou preenchendo
+     produtos.conteudo_quantidade.
+
+10 · produtos.conteudo_quantidade esta vazio em todo o catalogo
+     Preenchido (5000 ML na lata de azeite, 2800 G no balde de maionese, o
+     peso da UND do manjericao), o item deixa de precisar da conversao de
+     fracao que eu fiz a mao e os 5 avisos de unidade desaparecem. E um
+     campo.
+
+11 · As 5 linhas de `feijão pronto` com Peso Liquido 0,15 e PesoBruto 0,12
+     Gravei 0,12. Confirmar, e corrigir na planilha: em oito outros blocos o
+     mesmo ingrediente esta 0,12 / 0,12.
+
+12 · A `Perda manipulacao` nao e usada por nada e esta errada em 31 linhas
+     Ou ela passa a alimentar o Peso Liquido (liquido = bruto - perda) ou sai
+     da planilha. Hoje ela e uma terceira versao da verdade que ninguem le.
+
+13 · O nome do prato so existe certo na aba Resumo
+     Cinco blocos tem nome diferente do que se vende, um deles com erro de
+     digitacao (SCHNITIZEL), e uma aba esta truncada em 31 caracteres pelo
+     Excel. Vale renomear os blocos para o nome vendido.
+
+14 · MASSA DE GNOCCHI (R$ 3,00/kg) e EMPADA DE FRANGO (R$ 0,00) no catalogo
+     Parecem ser o mesmo que a BASE DE GNOCCHI e o EMPADÃO DE FRANGO que eu
+     criei. Se forem, ha duplicata; se nao forem, a EMPADA DE FRANGO esta com
+     custo zero.
+
+15 · `modo_preparo` e nulo nas 13
+     A planilha e de custo e nao traz preparo. A ficha serve ao CMV e nao ao
+     cozinheiro enquanto isso nao for digitado.
+
+16 · Precos da planilha que estao longe do nosso estoque
+     As piores razoes do de-para, todas com o nome dos dois lados na secao 7:
+     tomate 0,46x e 0,51x, cebola 0,51x, batata palha 0,60x, figado 0,65x,
+     farinha de trigo 0,70x, vagem 1,76x, bacon 1,57x. Nenhuma e erro de
+     mapeamento; sao precos de compra de datas diferentes.
+
