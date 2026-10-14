@@ -163,6 +163,24 @@ RE_COMPONENTE = re.compile(
 # o de-para encontram o item.
 RE_CODIGO_ORFAO = re.compile(r'^\s+([A-Za-z0-9][A-Za-z0-9._-]{6,})\s*$')
 
+# Codigo COLADO no nome, sem espaco nenhum: `28000000011XAROPE DE MEL - LT`.
+# Acontece com os 8 componentes cujo codigo tem 11 digitos — a coluna do PDV
+# tem largura fixa e o codigo a estoura, encostando no nome.
+#
+# Sem tratar, a RE_COMPONENTE come a primeira palavra do NOME junto com o
+# codigo (o `[A-Za-z0-9]*` e guloso): `XAROPE DE MEL` virava `DE MEL`,
+# `LEITOSA EMPANAMENTO MP` virava `EMPANAMENTO MP` e `AIPIM COZIDO MP` virava
+# `COZIDO MP`. Nenhum centavo se perde — qtd, V. Unit e Subtotal ficam certos —
+# mas o NOME e a chave pela qual o achatamento acha a sub-receita e pela qual o
+# de-para acha o produto do catalogo, e um nome mutilado nao casa com nada.
+# `XAROPE DE MEL` esta dentro de um drinque (FOLIA DO DOM), entao isso valia
+# correcao e nao nota de rodape.
+#
+# A separacao exige 9 digitos ou mais seguidos de letra, para nao partir os
+# codigos legitimos que misturam letra e numero (BDZ50153, SG207989,
+# BDZVGFSJ001): nenhum deles tem uma corrida de 9 digitos no meio.
+RE_CODIGO_COLADO = re.compile(r'^(\s+)(\d{9,})([A-Za-zÀ-Üà-ü])')
+
 # Componente cuja linha ja perdeu o codigo para a linha anterior: comeca pelo
 # nome. Exige as quatro colunas numericas, que e o que a distingue de uma
 # linha de ficha.
@@ -189,6 +207,7 @@ def parsear(texto):
     atual = None
     codigo_pendente = None   # codigo que saiu sozinho na linha anterior
     remontadas = []          # linhas recompostas, para o relatorio
+    descoladas = []          # linhas em que o codigo estava colado no nome
 
     def add_componente(cod, nome, un, qtd, est, vun, sub, n):
         atual['componentes'].append({
@@ -207,6 +226,13 @@ def parsear(texto):
         linha = cru.replace('\f', '')
         if not linha.strip():
             continue
+        # Codigo colado no nome: separa ANTES de qualquer regex, porque e a
+        # RE_COMPONENTE que seria enganada por ele.
+        m = RE_CODIGO_COLADO.match(linha)
+        if m:
+            linha = RE_CODIGO_COLADO.sub(r'\1\2 \3', linha, count=1)
+            descoladas.append({'linha': n, 'codigo': m.group(2),
+                               'texto_corrigido': txt(linha)})
         if RE_RODAPE.match(linha) or RE_EMPRESA.search(linha):
             continue
         if RE_CABECALHO.match(linha):
@@ -266,7 +292,7 @@ def parsear(texto):
 
         ignoradas.append({'linha': n, 'texto': txt(linha), 'motivo': 'nao casou'})
 
-    return fichas, ignoradas, remontadas
+    return fichas, ignoradas, remontadas, descoladas
 
 
 # --------------------------------------------------------------- tolerancias --
@@ -558,7 +584,7 @@ def achatar(fichas, codigo_unico, nome_unico):
 
 def main():
     texto, md5 = ler_pdf()
-    fichas, ignoradas, remontadas = parsear(texto)
+    fichas, ignoradas, remontadas, descoladas = parsear(texto)
     ok, falhou, linhas_falhou = conferir(fichas)
     codigo_unico, nome_unico, codigos_ambiguos, nomes_repetidos = indexar(fichas)
     cache_divergente = recalcular(fichas, codigo_unico, nome_unico)
@@ -591,6 +617,7 @@ def main():
             'conferencia_ficha_falhou': len(falhou),
             'conferencia_linha_falhou': len(linhas_falhou),
             'linhas_remontadas': len(remontadas),
+            'linhas_codigo_descolado': len(descoladas),
             'linhas_ignoradas': len(ignoradas),
             'codigos_ambiguos': len(codigos_ambiguos),
             'nomes_de_ficha_repetidos': len(nomes_repetidos),
@@ -603,6 +630,7 @@ def main():
         'conferencia_ficha_falhou': falhou,
         'conferencia_linha_falhou': linhas_falhou,
         'linhas_remontadas': remontadas,
+        'linhas_codigo_descolado': descoladas,
         'linhas_ignoradas': ignoradas,
         'codigos_ambiguos': codigos_ambiguos,
         'nomes_de_ficha_repetidos': nomes_repetidos,

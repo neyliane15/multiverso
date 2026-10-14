@@ -17,6 +17,7 @@
   "conferencia_ficha_falhou": 0,
   "conferencia_linha_falhou": 0,
   "linhas_remontadas": 12,
+  "linhas_codigo_descolado": 8,
   "linhas_ignoradas": 0,
   "codigos_ambiguos": 5,
   "nomes_de_ficha_repetidos": 0,
@@ -100,6 +101,48 @@
    "codigo": "2211991400486",
    "nome": "CARNE MOIDA ACÉM",
    "ficha": "RECHEIO CARNE MOIDA MP"
+  }
+ ],
+ "linhas_codigo_descolado": [
+  {
+   "linha": 288,
+   "codigo": "28000000311",
+   "texto_corrigido": "28000000311 AIPIM COZIDO MP - KG 0.138 106.743 17,650 2,440"
+  },
+  {
+   "linha": 1620,
+   "codigo": "28000000481",
+   "texto_corrigido": "28000000481 FAROFA DE BACON MP - KG 0.040 -236.244 8,290 0,330"
+  },
+  {
+   "linha": 1695,
+   "codigo": "28000000481",
+   "texto_corrigido": "28000000481 FAROFA DE BACON MP - KG 0.100 -236.244 8,290 0,830"
+  },
+  {
+   "linha": 1798,
+   "codigo": "28000000011",
+   "texto_corrigido": "28000000011 XAROPE DE MEL - LT 0.020 -1.650 62,790 1,260"
+  },
+  {
+   "linha": 2038,
+   "codigo": "28000000262",
+   "texto_corrigido": "28000000262 LEITOSA EMPANAMENTO MP - KG 0.030 0.000 6,870 0,210"
+  },
+  {
+   "linha": 2055,
+   "codigo": "28000000262",
+   "texto_corrigido": "28000000262 LEITOSA EMPANAMENTO MP - KG 0.030 0.000 6,870 0,210"
+  },
+  {
+   "linha": 2451,
+   "codigo": "28000000262",
+   "texto_corrigido": "28000000262 LEITOSA EMPANAMENTO MP - KG 0.100 0.000 6,870 0,690"
+  },
+  {
+   "linha": 2474,
+   "codigo": "28000000262",
+   "texto_corrigido": "28000000262 LEITOSA EMPANAMENTO MP - KG 0.100 0.000 6,870 0,690"
   }
  ],
  "linhas_ignoradas": [],
@@ -593,6 +636,7 @@
   "AGUA COM GAS",
   "AGUA SEM GAS",
   "AIOLI DE ALHO (FADO)",
+  "AIPIM COZIDO MP",
   "AIPO",
   "ALECRIM",
   "ALHO",
@@ -672,7 +716,6 @@
   "COSTELA SUÍNA SALGADA",
   "COUVE MANTEIGA",
   "COXA E SOBRECOXA S/DORSO",
-  "COZIDO MP",
   "CPD ACEM 50G",
   "CPD APERITIVO DE ALCATRA 350G",
   "CPD BOLINHO DE BACALHAU (6UND)",
@@ -695,8 +738,6 @@
   "CROQUETE DE CARNE",
   "CRUMBLE DE CANELA",
   "DADINHO DE TAPIOCA MP",
-  "DE BACON MP",
-  "DE MEL",
   "DEMI GLACE",
   "DOMECO D JARAUTA LAR DE SOTOMAYOR 2010",
   "DS ABSOLUT",
@@ -723,7 +764,6 @@
   "DS TANQUERAY",
   "DS TEQUILA JOSE CUERVO",
   "DS TEQUILA JOSE CUERVO ORO",
-  "EMPANAMENTO MP",
   "EMULSIFICANTE",
   "ERVILHA CONGELADA",
   "ESPETINHO DE ALCATRA",
@@ -736,6 +776,7 @@
   "FARINHA DE TRIGO BUNGE 5KG",
   "FARINHA DE TRIGO COMUM",
   "FARINHA PANKO",
+  "FAROFA DE BACON MP",
   "FAROFA DE COCO MP",
   "FAROFA DE OVOS MP",
   "FEIJAO PRETO MP",
@@ -809,6 +850,7 @@
   "LEITE CONDENSADO",
   "LEITE DE COCO",
   "LEITE INTEGRAL",
+  "LEITOSA EMPANAMENTO MP",
   "LEMON PEPPER SEM GLUTAMATO",
   "LIMA DA PERSIA",
   "LIMÃO",
@@ -949,6 +991,7 @@
   "XAROPE DE GENGIBRE",
   "XAROPE DE HIBISCO",
   "XAROPE DE MARACUJA",
+  "XAROPE DE MEL",
   "XAROPE DE MORANGO",
   "XAROPE DE UVA",
   "XAROPE FRANCES BAUNILHA",
@@ -2715,7 +2758,7 @@
      "valor_unitario": 16.41,
      "subtotal": 3.28,
      "linha_pdf": 202,
-     "custo_unitario_recalculado": 16.4036
+     "custo_unitario_recalculado": 16.4022
     },
     {
      "codigo": "3898000098",
@@ -2742,7 +2785,7 @@
    ],
    "total_impresso": 15.78,
    "soma_calculada": 15.7757,
-   "total_recalculado": 15.7755,
+   "total_recalculado": 15.7752,
    "componentes_achatados": [
     {
      "codigo": "FT278",
@@ -2849,7 +2892,7 @@
      "valor_unitario": 16.41,
      "subtotal": 3.28,
      "linha_pdf": 202,
-     "custo_unitario_recalculado": 16.4036,
+     "custo_unitario_recalculado": 16.4022,
      "achatado_de": null
     },
     {
@@ -2916,7 +2959,7 @@
      "valor_unitario": 16.41,
      "subtotal": 5.74,
      "linha_pdf": 212,
-     "custo_unitario_recalculado": 16.4036
+     "custo_unitario_recalculado": 16.4022
     },
     {
      "codigo": "2800000001",
@@ -3009,7 +3052,7 @@
    ],
    "total_impresso": 29.79,
    "soma_calculada": 29.7872,
-   "total_recalculado": 29.7868,
+   "total_recalculado": 29.7863,
    "componentes_achatados": [
     {
      "codigo": "FT1844",
@@ -3044,7 +3087,7 @@
      "valor_unitario": 16.41,
      "subtotal": 5.74,
      "linha_pdf": 212,
-     "custo_unitario_recalculado": 16.4036,
+     "custo_unitario_recalculado": 16.4022,
      "achatado_de": null
     },
     {
@@ -3591,20 +3634,20 @@
      "custo_unitario_recalculado": 67.51
     },
     {
-     "codigo": "28000000311AIPIM",
-     "nome": "COZIDO MP",
+     "codigo": "28000000311",
+     "nome": "AIPIM COZIDO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.138,
      "estoque": 106.743,
      "valor_unitario": 17.65,
      "subtotal": 2.44,
      "linha_pdf": 288,
-     "custo_unitario_recalculado": 17.65
+     "custo_unitario_recalculado": 17.64
     }
    ],
    "total_impresso": 16.41,
    "soma_calculada": 16.4036,
-   "total_recalculado": 16.4036,
+   "total_recalculado": 16.4022,
    "componentes_achatados": [
     {
      "codigo": "FT101",
@@ -3751,15 +3794,15 @@
      "achatado_de": null
     },
     {
-     "codigo": "28000000311AIPIM",
-     "nome": "COZIDO MP",
+     "codigo": "28000000311",
+     "nome": "AIPIM COZIDO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.138,
      "estoque": 106.743,
      "valor_unitario": 17.65,
      "subtotal": 2.44,
      "linha_pdf": 288,
-     "custo_unitario_recalculado": 17.65,
+     "custo_unitario_recalculado": 17.64,
      "achatado_de": null
     }
    ],
@@ -4448,7 +4491,7 @@
      "valor_unitario": 16.41,
      "subtotal": 5.41,
      "linha_pdf": 370,
-     "custo_unitario_recalculado": 16.4036
+     "custo_unitario_recalculado": 16.4022
     },
     {
      "codigo": "2800000048",
@@ -4464,7 +4507,7 @@
    ],
    "total_impresso": 16.55,
    "soma_calculada": 16.5519,
-   "total_recalculado": 16.5496,
+   "total_recalculado": 16.5491,
    "componentes_achatados": [
     {
      "codigo": "FT104",
@@ -4547,7 +4590,7 @@
      "valor_unitario": 16.41,
      "subtotal": 5.41,
      "linha_pdf": 370,
-     "custo_unitario_recalculado": 16.4036,
+     "custo_unitario_recalculado": 16.4022,
      "achatado_de": null
     },
     {
@@ -13246,15 +13289,15 @@
      "custo_unitario_recalculado": 7.75
     },
     {
-     "codigo": "28000000481FAROFA",
-     "nome": "DE BACON MP",
+     "codigo": "28000000481",
+     "nome": "FAROFA DE BACON MP",
      "unidade_pdv": "KG",
      "quantidade": 0.04,
      "estoque": -236.244,
      "valor_unitario": 8.29,
      "subtotal": 0.33,
      "linha_pdf": 1620,
-     "custo_unitario_recalculado": 8.29
+     "custo_unitario_recalculado": 8.2914
     },
     {
      "codigo": "2800000048",
@@ -13270,7 +13313,7 @@
    ],
    "total_impresso": 8.68,
    "soma_calculada": 8.6821,
-   "total_recalculado": 8.6807,
+   "total_recalculado": 8.6808,
    "componentes_achatados": [
     {
      "codigo": "FT245",
@@ -13297,15 +13340,15 @@
      "achatado_de": null
     },
     {
-     "codigo": "28000000481FAROFA",
-     "nome": "DE BACON MP",
+     "codigo": "28000000481",
+     "nome": "FAROFA DE BACON MP",
      "unidade_pdv": "KG",
      "quantidade": 0.04,
      "estoque": -236.244,
      "valor_unitario": 8.29,
      "subtotal": 0.33,
      "linha_pdf": 1620,
-     "custo_unitario_recalculado": 8.29,
+     "custo_unitario_recalculado": 8.2914,
      "achatado_de": null
     },
     {
@@ -13800,31 +13843,31 @@
    "linha_pdf": 1694,
    "componentes": [
     {
-     "codigo": "28000000481FAROFA",
-     "nome": "DE BACON MP",
+     "codigo": "28000000481",
+     "nome": "FAROFA DE BACON MP",
      "unidade_pdv": "KG",
      "quantidade": 0.1,
      "estoque": -236.244,
      "valor_unitario": 8.29,
      "subtotal": 0.83,
      "linha_pdf": 1695,
-     "custo_unitario_recalculado": 8.29
+     "custo_unitario_recalculado": 8.2914
     }
    ],
    "total_impresso": 0.83,
    "soma_calculada": 0.829,
-   "total_recalculado": 0.829,
+   "total_recalculado": 0.8291,
    "componentes_achatados": [
     {
-     "codigo": "28000000481FAROFA",
-     "nome": "DE BACON MP",
+     "codigo": "28000000481",
+     "nome": "FAROFA DE BACON MP",
      "unidade_pdv": "KG",
      "quantidade": 0.1,
      "estoque": -236.244,
      "valor_unitario": 8.29,
      "subtotal": 0.83,
      "linha_pdf": 1695,
-     "custo_unitario_recalculado": 8.29,
+     "custo_unitario_recalculado": 8.2914,
      "achatado_de": null
     }
    ],
@@ -14675,15 +14718,15 @@
      "custo_unitario_recalculado": 0.0
     },
     {
-     "codigo": "28000000011XAROPE",
-     "nome": "DE MEL",
+     "codigo": "28000000011",
+     "nome": "XAROPE DE MEL",
      "unidade_pdv": "LT",
      "quantidade": 0.02,
      "estoque": -1.65,
      "valor_unitario": 62.79,
      "subtotal": 1.26,
      "linha_pdf": 1798,
-     "custo_unitario_recalculado": 62.79
+     "custo_unitario_recalculado": 62.788
     }
    ],
    "total_impresso": 17.4,
@@ -14739,15 +14782,15 @@
      "achatado_de": null
     },
     {
-     "codigo": "28000000011XAROPE",
-     "nome": "DE MEL",
+     "codigo": "28000000011",
+     "nome": "XAROPE DE MEL",
      "unidade_pdv": "LT",
      "quantidade": 0.02,
      "estoque": -1.65,
      "valor_unitario": 62.79,
      "subtotal": 1.26,
      "linha_pdf": 1798,
-     "custo_unitario_recalculado": 62.79,
+     "custo_unitario_recalculado": 62.788,
      "achatado_de": null
     }
    ],
@@ -16403,15 +16446,15 @@
      "custo_unitario_recalculado": 16.2
     },
     {
-     "codigo": "28000000262LEITOSA",
-     "nome": "EMPANAMENTO MP",
+     "codigo": "28000000262",
+     "nome": "LEITOSA EMPANAMENTO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.03,
      "estoque": 0.0,
      "valor_unitario": 6.87,
      "subtotal": 0.21,
      "linha_pdf": 2038,
-     "custo_unitario_recalculado": 6.87
+     "custo_unitario_recalculado": 6.872
     },
     {
      "codigo": "FT1844",
@@ -16460,7 +16503,7 @@
    ],
    "total_impresso": 14.74,
    "soma_calculada": 14.7414,
-   "total_recalculado": 14.7414,
+   "total_recalculado": 14.7415,
    "componentes_achatados": [
     {
      "codigo": "FT116",
@@ -16499,15 +16542,15 @@
      "achatado_de": null
     },
     {
-     "codigo": "28000000262LEITOSA",
-     "nome": "EMPANAMENTO MP",
+     "codigo": "28000000262",
+     "nome": "LEITOSA EMPANAMENTO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.03,
      "estoque": 0.0,
      "valor_unitario": 6.87,
      "subtotal": 0.21,
      "linha_pdf": 2038,
-     "custo_unitario_recalculado": 6.87,
+     "custo_unitario_recalculado": 6.872,
      "achatado_de": null
     },
     {
@@ -16601,15 +16644,15 @@
      "custo_unitario_recalculado": 13.48
     },
     {
-     "codigo": "28000000262LEITOSA",
-     "nome": "EMPANAMENTO MP",
+     "codigo": "28000000262",
+     "nome": "LEITOSA EMPANAMENTO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.03,
      "estoque": 0.0,
      "valor_unitario": 6.87,
      "subtotal": 0.21,
      "linha_pdf": 2055,
-     "custo_unitario_recalculado": 6.87
+     "custo_unitario_recalculado": 6.872
     },
     {
      "codigo": "2800000048",
@@ -16730,15 +16773,15 @@
      "achatado_de": null
     },
     {
-     "codigo": "28000000262LEITOSA",
-     "nome": "EMPANAMENTO MP",
+     "codigo": "28000000262",
+     "nome": "LEITOSA EMPANAMENTO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.03,
      "estoque": 0.0,
      "valor_unitario": 6.87,
      "subtotal": 0.21,
      "linha_pdf": 2055,
-     "custo_unitario_recalculado": 6.87,
+     "custo_unitario_recalculado": 6.872,
      "achatado_de": null
     },
     {
@@ -20967,15 +21010,15 @@
      "custo_unitario_recalculado": 0.0
     },
     {
-     "codigo": "28000000262LEITOSA",
-     "nome": "EMPANAMENTO MP",
+     "codigo": "28000000262",
+     "nome": "LEITOSA EMPANAMENTO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.1,
      "estoque": 0.0,
      "valor_unitario": 6.87,
      "subtotal": 0.69,
      "linha_pdf": 2451,
-     "custo_unitario_recalculado": 6.87
+     "custo_unitario_recalculado": 6.872
     },
     {
      "codigo": "2800000001",
@@ -21079,7 +21122,7 @@
    ],
    "total_impresso": 23.97,
    "soma_calculada": 23.9693,
-   "total_recalculado": 7.7511,
+   "total_recalculado": 7.7513,
    "componentes_achatados": [
     {
      "codigo": "CPD0064",
@@ -21094,15 +21137,15 @@
      "achatado_de": null
     },
     {
-     "codigo": "28000000262LEITOSA",
-     "nome": "EMPANAMENTO MP",
+     "codigo": "28000000262",
+     "nome": "LEITOSA EMPANAMENTO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.1,
      "estoque": 0.0,
      "valor_unitario": 6.87,
      "subtotal": 0.69,
      "linha_pdf": 2451,
-     "custo_unitario_recalculado": 6.87,
+     "custo_unitario_recalculado": 6.872,
      "achatado_de": null
     },
     {
@@ -21300,15 +21343,15 @@
      "custo_unitario_recalculado": 10.9475
     },
     {
-     "codigo": "28000000262LEITOSA",
-     "nome": "EMPANAMENTO MP",
+     "codigo": "28000000262",
+     "nome": "LEITOSA EMPANAMENTO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.1,
      "estoque": 0.0,
      "valor_unitario": 6.87,
      "subtotal": 0.69,
      "linha_pdf": 2474,
-     "custo_unitario_recalculado": 6.87
+     "custo_unitario_recalculado": 6.872
     },
     {
      "codigo": "CPD0064",
@@ -21335,7 +21378,7 @@
    ],
    "total_impresso": 35.41,
    "soma_calculada": 35.4078,
-   "total_recalculado": 19.1881,
+   "total_recalculado": 19.1883,
    "componentes_achatados": [
     {
      "codigo": "FT121",
@@ -21422,15 +21465,15 @@
      "achatado_de": null
     },
     {
-     "codigo": "28000000262LEITOSA",
-     "nome": "EMPANAMENTO MP",
+     "codigo": "28000000262",
+     "nome": "LEITOSA EMPANAMENTO MP",
      "unidade_pdv": "KG",
      "quantidade": 0.1,
      "estoque": 0.0,
      "valor_unitario": 6.87,
      "subtotal": 0.69,
      "linha_pdf": 2474,
-     "custo_unitario_recalculado": 6.87,
+     "custo_unitario_recalculado": 6.872,
      "achatado_de": null
     },
     {
@@ -22073,7 +22116,7 @@
      "valor_unitario": 16.41,
      "subtotal": 0.49,
      "linha_pdf": 2571,
-     "custo_unitario_recalculado": 16.4036
+     "custo_unitario_recalculado": 16.4022
     },
     {
      "codigo": "FT340",
@@ -22100,7 +22143,7 @@
    ],
    "total_impresso": 16.96,
    "soma_calculada": 16.9641,
-   "total_recalculado": 16.9639,
+   "total_recalculado": 16.9638,
    "componentes_achatados": [
     {
      "codigo": "3299000042",
@@ -22111,7 +22154,7 @@
      "valor_unitario": 16.41,
      "subtotal": 0.49,
      "linha_pdf": 2571,
-     "custo_unitario_recalculado": 16.4036,
+     "custo_unitario_recalculado": 16.4022,
      "achatado_de": null
     },
     {
