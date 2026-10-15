@@ -584,7 +584,14 @@ export function Produtos(): JSX.Element {
           podeEditar={podeAdministrar}
           salvando={salvar.isPending || arquivar.isPending}
           erroDoServidor={salvar.error instanceof Error ? salvar.error.message : null}
-          aoSalvar={(entrada) => salvar.mutate(entrada, { onSuccess: fechar })}
+          aoSalvar={(entrada) =>
+            // `anterior` é a linha de onde este formulário partiu: é com ela
+            // que o save sabe quais vínculos tirar, sem reler o servidor.
+            salvar.mutate(
+              { ...entrada, anterior: editando.produto },
+              { onSuccess: fechar },
+            )
+          }
           aoArquivar={(ativo) => {
             const id = editando.produto?.id
             if (id) arquivar.mutate({ id, ativo }, { onSuccess: fechar })
