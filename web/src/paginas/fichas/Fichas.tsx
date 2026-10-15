@@ -62,13 +62,15 @@ import {
   UNIDADES_DA_RECEITA,
   agruparPorGrupo,
   custoDoItem,
+  escadaDeMarkup,
   filtrarFichas,
+  indiceDoCmv,
   precoParaAMeta,
   resumoDaFicha,
-  vereditoDoCmv,
   type ItemEmEdicao,
   type ProdutoParaFicha,
   type Veredito,
+  vereditoDoCmv,
 } from './logicaDeFichas'
 
 const TOM_DO_VEREDITO: Record<Veredito, 'sucesso' | 'alerta' | 'erro' | 'neutro'> = {
@@ -453,6 +455,10 @@ function PainelDaFicha({
   )
   const veredito = vereditoDoCmv(resumo.cmv, campos.cmv_alvo)
   const precoAlvo = precoParaAMeta(resumo.custoPorcao, campos.cmv_alvo)
+  // Índice e CMV são o mesmo número invertido, e a casa pensa em índice. Sem
+  // isto na tela, alguém faz a conta de cabeça — e é aí que o preço sai errado.
+  const indiceAtual = indiceDoCmv(campos.cmv_alvo)
+  const escada = useMemo(() => escadaDeMarkup(resumo.custoPorcao), [resumo.custoPorcao])
 
   const jaEstao = useMemo(() => new Set(itens.map((i) => i.produto_id)), [itens])
   const candidatos = useMemo(() => {
@@ -598,6 +604,35 @@ function PainelDaFicha({
               aoMudar={(v) => mudar('preco_venda', v)}
             />
             <p className="mt-1.5 text-micro text-texto-fraco">Da porção, como está no cardápio.</p>
+            {escada.length > 0 && (
+              <div className="mt-2">
+                <p className="text-micro text-texto-fraco">
+                  Pelo markup, sobre o custo de {dinheiro(resumo.custoPorcao)}:
+                </p>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {escada.map((degrau) => (
+                    <button
+                      key={degrau.indice}
+                      type="button"
+                      onClick={() => mudar('preco_venda', degrau.preco)}
+                      title={`Índice ${degrau.indice} · CMV ${porcentagem(degrau.cmv)}`}
+                      className={clsx(
+                        'mv-numero rounded-md border px-2 py-1 text-micro transition-colors',
+                        Math.abs(campos.preco_venda - degrau.preco) < 0.005
+                          ? 'border-primaria bg-primaria/10 text-texto'
+                          : 'border-borda text-texto-suave hover:border-primaria hover:text-texto',
+                      )}
+                    >
+                      <span className="text-texto-fraco">{degrau.indice}×</span>{' '}
+                      {dinheiro(degrau.preco)}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1 text-micro text-texto-fraco">
+                  Clique para usar. O índice é o multiplicador do custo; o CMV é ele invertido.
+                </p>
+              </div>
+            )}
           </div>
           <div>
             <Rotulo para="ficha-alvo">Meta de CMV (%)</Rotulo>
@@ -608,8 +643,9 @@ function PainelDaFicha({
               aoMudar={(v) => mudar('cmv_alvo', v)}
             />
             <p className="mt-1.5 text-micro text-texto-fraco">
-              É a meta da casa para ESTE prato. 30% num prato de cozinha é razoável; num drink, 20%
-              já é caro.
+              É a meta da casa para ESTE prato, e é o markup pelo avesso
+              {indiceAtual !== null ? `: ${porcentagem(campos.cmv_alvo)} é o índice ${indiceAtual}` : ''}
+              . 30% num prato de cozinha é razoável; num drink, 20% já é caro.
             </p>
           </div>
         </div>

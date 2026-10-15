@@ -2,15 +2,17 @@ import { describe, expect, it } from 'vitest'
 import {
   agruparPorGrupo,
   custoDoItem,
+  escadaDeMarkup,
   fatorEntreUnidades,
   fatorParaProduto,
   filtrarFichas,
+  indiceDoCmv,
   precoParaAMeta,
   quantidadeBruta,
   resumoDaFicha,
-  vereditoDoCmv,
   type ItemEmEdicao,
   type ProdutoParaFicha,
+  vereditoDoCmv,
 } from './logicaDeFichas'
 
 function produto(parcial: Partial<ProdutoParaFicha> & { id: string }): ProdutoParaFicha {
@@ -193,5 +195,38 @@ describe('a listagem do cardapio', () => {
     expect(filtrarFichas(FICHAS, 'caipirinha').map((f) => f.nome)).toEqual(['Caipirinha'])
     expect(filtrarFichas(FICHAS, 'PRATOS')).toHaveLength(2)
     expect(filtrarFichas(FICHAS, '')).toHaveLength(4)
+  })
+})
+
+describe('escadaDeMarkup', () => {
+  it('devolve os cinco índices que a casa usa, do mais barato ao mais caro', () => {
+    const escada = escadaDeMarkup(10)
+    expect(escada.map((d) => d.indice)).toEqual([3, 3.5, 4, 4.5, 5])
+    expect(escada.map((d) => d.preco)).toEqual([30, 35, 40, 45, 50])
+  })
+
+  it('casa com a aba Resumo da planilha de executivos', () => {
+    // SCHNITZEL COM MAIONESE: custo 4,665 na planilha, e ela imprime
+    // 13,995 / 16,3275 / 18,66 / 20,9925 / 23,325 nos cinco índices.
+    const escada = escadaDeMarkup(4.665)
+    expect(escada.map((d) => d.preco)).toEqual([14, 16.33, 18.66, 20.99, 23.33])
+  })
+
+  it('índice e CMV são o mesmo número invertido', () => {
+    const escada = escadaDeMarkup(10)
+    expect(escada.find((d) => d.indice === 5)?.cmv).toBe(20)
+    expect(escada.find((d) => d.indice === 4)?.cmv).toBe(25)
+    expect(escada.find((d) => d.indice === 3)?.cmv).toBe(33.33)
+  })
+
+  it('sem custo não há escada — não se precifica o que não se sabe custar', () => {
+    expect(escadaDeMarkup(0)).toEqual([])
+    expect(escadaDeMarkup(-1)).toEqual([])
+  })
+
+  it('indiceDoCmv faz o caminho de volta', () => {
+    expect(indiceDoCmv(20)).toBe(5)
+    expect(indiceDoCmv(25)).toBe(4)
+    expect(indiceDoCmv(0)).toBeNull()
   })
 })

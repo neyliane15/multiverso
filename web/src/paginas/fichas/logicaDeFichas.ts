@@ -217,6 +217,45 @@ export function precoParaAMeta(custoPorcao: number, alvo: number): number | null
   return arredondar(custoPorcao / (alvo / 100), 2)
 }
 
+/* ─────────────────────────────────────────────────────────────── markup ──── */
+
+/**
+ * Os índices que a casa usa para precificar. Vêm da planilha de executivos do
+ * Bar do Zeca, que traz esta mesma escada na aba Resumo — é o vocabulário que
+ * a cozinha já fala, e não uma régua inventada aqui.
+ */
+export const INDICES_DE_MARKUP = [3, 3.5, 4, 4.5, 5] as const
+
+export interface DegrauDeMarkup {
+  indice: number
+  preco: number
+  /** O CMV que este índice produz. Índice e CMV são o mesmo número invertido. */
+  cmv: number
+}
+
+/**
+ * A escada de preços que o markup permite, do mais barato ao mais caro.
+ *
+ * Índice e CMV dizem a mesma coisa de dois jeitos: multiplicar o custo por 4 é
+ * o mesmo que mirar um CMV de 25%. Quem trabalha na cozinha pensa em índice,
+ * quem olha o resultado pensa em CMV, e a tela precisa falar as duas línguas —
+ * senão alguém faz a conta de cabeça, e é aí que o preço sai errado.
+ */
+export function escadaDeMarkup(custoPorcao: number): DegrauDeMarkup[] {
+  if (custoPorcao <= 0) return []
+  return INDICES_DE_MARKUP.map((indice) => ({
+    indice,
+    preco: arredondar(custoPorcao * indice, 2),
+    cmv: arredondar(100 / indice, 2),
+  }))
+}
+
+/** O índice que corresponde a uma meta de CMV. CMV 20% é índice 5. */
+export function indiceDoCmv(alvo: number): number | null {
+  if (alvo <= 0) return null
+  return arredondar(100 / alvo, 2)
+}
+
 /* ─────────────────────────────────────────────────────────── a listagem ──── */
 
 export interface GrupoDeFichas<T> {
