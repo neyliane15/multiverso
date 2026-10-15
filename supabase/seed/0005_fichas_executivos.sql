@@ -103,6 +103,94 @@ on conflict (id) do nothing;
 -- @fim:arquivo_fichas
 
 -- ---------------------------------------------------------------------------
+-- 0a · A TRAVA DO NOME, antes de qualquer insert
+--
+-- `fichas_nome_unico` e um indice UNIQUE sobre
+-- `(restaurante_id, lower(mv_sem_acento(nome)))`, e o `insert into fichas` desta
+-- carga usa `on conflict (id) do update` — o alvo do `on conflict` e a chave
+-- PRIMARIA, nao este indice. Entao o nome e um recurso compartilhado que nenhuma
+-- clausula da carga absorve.
+--
+-- O caso e a coisa mais natural que a casa pode fazer: apagar um prato na tela e
+-- digita-lo de novo. A ficha nova nasce com `gen_random_uuid()` e com o mesmo
+-- nome, e a carga morre assim:
+--
+--     ERROR:  duplicate key value violates unique constraint "fichas_nome_unico"
+--     DETAIL: Key (restaurante_id, lower(mv_sem_acento(nome)))=(…, schnitzel com
+--             maionese) already exists.
+--
+-- Isso nao diz qual ficha, nao diz por que, e nao diz o que fazer — e a mesma
+-- carga que escreve nove diagnosticos cuidadosos no fim morreria com um erro
+-- cru do Postgres no meio. A trava abaixo troca o erro pela instrucao.
+--
+-- POR QUE NAO `on conflict (nome)`: isso faria a carga CAPTURAR a ficha que a
+-- casa criou, sobrescrevendo o trabalho dela com o do arquivo — exatamente o que
+-- o desenho da posse (`origem_carga`) existe para evitar. Recusar e aplicar e a
+-- resposta certa; a casa decide se renomeia a dela ou se apaga.
+--
+-- A mesma exposicao existe em `produtos_nome_unico`, com a mesma forma, e por
+-- isso a trava cobre os dois. Hoje ela nao dispara em produto (os 15 nomes
+-- desta carga e os 12 da 0004 sao disjuntos), mas o custo de cobrir e uma
+-- consulta e o custo de nao cobrir e a mesma mensagem crua.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_n int;
+  v_quais text;
+begin
+  -- Ficha com um dos nomes desta carga, mas com OUTRO id. Comparada pela mesma
+  -- expressao do indice, senao a trava deixa passar o que o indice vai recusar.
+  select count(*), string_agg(format('%L (id %s, origem %s)', f.nome, f.id,
+                                     coalesce(f.origem_carga, 'feita na tela')),
+                              ', ' order by f.nome)
+    into v_n, v_quais
+    from fichas f
+   where f.restaurante_id = 'b0a12eca-0000-4000-8000-000000000001'
+     and f.id not in (select id from arquivo_fichas)
+     and lower(mv_sem_acento(f.nome)) in (
+       lower(mv_sem_acento('EMPADÃO DE FRANGO COM SALADA')), lower(mv_sem_acento('MINI ORELHA EXECUTIVO')),
+       lower(mv_sem_acento('CARNE GUISADA  COM BATATA CORADA')), lower(mv_sem_acento('CARNE SECA COM TUTU À MINEIRA')),
+       lower(mv_sem_acento('ISCA DE FÍGADO COM PURÊ')), lower(mv_sem_acento('FILÉ FRANGO EMPANADO COM FRITAS')),
+       lower(mv_sem_acento('FILÉ FRANGO FRITAS')), lower(mv_sem_acento('FILÉ DE FRANGO COM LEGUMES')),
+       lower(mv_sem_acento('FILÉ DE PEIXE COM LEGUMES')), lower(mv_sem_acento('FILÉ DE PEIXE COM PURÊ')),
+       lower(mv_sem_acento('PERNIL COM MAIONESE')), lower(mv_sem_acento('SCHNITZEL COM MAIONESE')),
+       lower(mv_sem_acento('GNOCCHI COM CARNE ASSADA'))
+     );
+  if v_n <> 0 then
+    raise exception '0005: % ficha(s) com um nome desta carga e outro id: %. O indice fichas_nome_unico recusaria o insert com "duplicate key" e esta carga nao aplicaria. Isso acontece quando a ficha foi apagada e redigitada na tela. O que fazer: renomeie ou apague a ficha listada acima, e reaplique. A carga NAO a sobrescreve de proposito — o trabalho feito na tela nao e dela.',
+      v_n, v_quais;
+  end if;
+
+  -- O mesmo para produto, pelo mesmo motivo e com a mesma mensagem.
+  select count(*), string_agg(format('%L (id %s)', p.nome, p.id), ', ' order by p.nome)
+    into v_n, v_quais
+    from produtos p
+   where p.restaurante_id = 'b0a12eca-0000-4000-8000-000000000001'
+     and p.id not in (
+    '9fb59ead-0cb9-5e6f-9572-c49ed776ee3b', '969f31f5-c349-5dba-9e1d-3b82bb636450', '8f4a4937-9614-5cfd-9ad7-5da56fa301ac',
+    'e228ba6d-748e-5f6a-b993-308ba94d2f25', 'da10f787-d2ca-5e3f-ad6a-e16d11f50352', '8e3a491c-5e1f-522e-beef-736e62871376',
+    '37321a58-4cf1-5213-a2a9-5a2a3b9527ee', '7156d30d-b75a-5542-b5a3-75f35e9a4ef2', '2357a894-7acf-5559-aea1-6109c8e43312',
+    '90c7f67d-c747-51d2-8d93-1227d53f3f41', '3cc9e4f2-26c0-51b6-a0c1-99afbb90ee2a', 'e0c73456-6161-5d00-a03c-79a9a2af4a48',
+    'd9fd3f84-08bd-5fbe-a389-f8d05264bc29', '990c9c4b-0ecb-5e85-9118-188de9ef448c', 'e577acfe-b291-562f-932f-b2bd7f2b37c0'
+     )
+     and lower(mv_sem_acento(p.nome)) in (
+       lower(mv_sem_acento('SAL COM PIMENTA')), lower(mv_sem_acento('BANHA')),
+       lower(mv_sem_acento('LEITOSA DE EMPANAMENTO')), lower(mv_sem_acento('ACÉM MP')),
+       lower(mv_sem_acento('PERNIL MP')), lower(mv_sem_acento('ARROZ BRANCO DE BRÓCOLIS MP')),
+       lower(mv_sem_acento('MASSA EMPADÃO')), lower(mv_sem_acento('RECHEIO EMPADÃO')),
+       lower(mv_sem_acento('EMPADÃO DE FRANGO')), lower(mv_sem_acento('SALADA DA CASA (individual)')),
+       lower(mv_sem_acento('GUARNIÇÃO À FRANCESA')), lower(mv_sem_acento('TUTU DE FEIJÃO PRETO')),
+       lower(mv_sem_acento('SALADA DE LEGUMES MP')), lower(mv_sem_acento('SALADA DE MAIONESE MP')),
+       lower(mv_sem_acento('BASE DE GNOCCHI'))
+     );
+  if v_n <> 0 then
+    raise exception '0005: % produto(s) com um nome desta carga e outro id: %. O indice produtos_nome_unico recusaria o insert. O que fazer: RENOMEIE o produto listado (ou apague-o, se ele for mesmo duplicata do desta carga) e reaplique. DESATIVAR NAO RESOLVE: o indice nao olha a coluna ativo, medido — com o produto desativado a carga recusa igual.',
+      v_n, v_quais;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
 -- 0b · AS FICHAS QUE ESTA CARGA POSSUI, e as que ela nao possui
 --
 -- A posse e definida UMA VEZ, aqui, e tanto o `delete` da secao 4b quanto a
@@ -113,15 +201,28 @@ on conflict (id) do nothing;
 -- hoje nao tem mais contava como ficha de outra carga — o delete a apagava
 -- (certo) e a verificacao acusava invasao (errado), derrubando a transacao.
 --
--- POSSE = estar no arquivo de hoje, OU ter o `grupo` desta carga E um id que
--- seja o UUIDv5 recalculado do proprio nome. A segunda metade e o que alcanca a
--- ficha que saiu da lista; e a CONJUNCAO (grupo E UUIDv5) e o que impede que
--- ela alcance as fichas de drinque da 0004, que tambem nascem de
--- `UUIDv5(restaurante, 'ficha:' || nome)` mas estao em outro grupo.
+-- POSSE = estar no arquivo de hoje, OU ter o rotulo `origem_carga = '0005'`.
 --
--- A aritmetica do UUIDv5 (RFC 4122) em SQL, com o `pgcrypto` que o banco ja
--- tem: sha1(namespace_em_bytes || nome), 16 primeiros bytes, versao 5 no byte 6
--- e variante RFC no byte 8. E a mesma conta do `uuid5()` do gerar-seed.mjs.
+-- O rotulo vem da migracao 0021 e substituiu uma posse CALCULADA: ate ela, esta
+-- carga reconhecia as suas fichas refazendo em SQL a conta de
+-- `UUIDv5(restaurante_id, 'ficha-executivo:' || nome)` — 21 linhas de sha1,
+-- set_byte e substring — e comparando com o id gravado. Funcionava, e tinha
+-- dois defeitos que o rotulo resolve de uma vez:
+--
+--  · **a chave era mutavel.** `nome` e coluna que a casa edita na tela. Ficha
+--    renomeada deixava de ser reconhecida pela propria carga que a criou, e se
+--    depois saisse da lista ficava no cardapio PARA SEMPRE — nem esta carga nem
+--    nenhuma versao futura dela conseguia remove-la. O rotulo nao muda quando o
+--    nome muda;
+--  · **a separacao entre cargas dependia de convencao.** Era o prefixo que
+--    separava esta carga da 0004 (`'ficha:'`), e uma 0006 escrita copiando uma
+--    das duas e esquecendo de trocar o prefixo apagaria as fichas da outra em
+--    silencio. Nao e hipotese: esta carga nasceu com `'ficha:'` e so um teste
+--    pegou. Com o rotulo, cada carga escreve o seu literal e nao ha o que
+--    esquecer.
+--
+-- Os ids continuam UUIDv5 do nome — eles so deixam de CARREGAR a posse, o que e
+-- ganho: um id passa a ser um id.
 -- ---------------------------------------------------------------------------
 
 create temporary table fichas_desta_carga (id uuid primary key) on commit drop;
@@ -129,27 +230,11 @@ create temporary table fichas_desta_carga (id uuid primary key) on commit drop;
 insert into fichas_desta_carga (id) select id from arquivo_fichas;
 
 insert into fichas_desta_carga (id)
-with posse as (
-  select f.id, f.nome,
-         substring(digest(decode(replace(f.restaurante_id::text, '-', ''), 'hex')
-                          || convert_to('ficha-executivo:' || f.nome, 'UTF8'),
-                          'sha1')
-                   from 1 for 16) as h
-    from fichas f
-   where f.restaurante_id = 'b0a12eca-0000-4000-8000-000000000001'
-     and f.id not in (select id from arquivo_fichas)
-), v5 as (
-  select id,
-         encode(set_byte(set_byte(h, 6, (get_byte(h, 6) & 15) | 80),
-                         8, (get_byte(h, 8) & 63) | 128), 'hex') as hex
-    from posse
-)
 select f.id
   from fichas f
-  join v5 on f.id = v5.id
- where f.id::text = substring(v5.hex, 1, 8) || '-' || substring(v5.hex, 9, 4) || '-'
-                 || substring(v5.hex, 13, 4) || '-' || substring(v5.hex, 17, 4) || '-'
-                 || substring(v5.hex, 21, 12)
+ where f.restaurante_id = 'b0a12eca-0000-4000-8000-000000000001'
+   and f.origem_carga = '0005'
+   and f.id not in (select id from arquivo_fichas)
 on conflict (id) do nothing;
 
 -- O retrato das fichas que NAO sao desta carga, tirado ANTES de qualquer insert
@@ -298,7 +383,7 @@ on conflict (produto_id, setor_id) do update set
 -- ---------------------------------------------------------------------------
 
 -- @bloco:fichas
-insert into fichas (id, restaurante_id, nome, grupo, descricao, modo_preparo, rendimento, unidade_rendimento, preco_venda, cmv_alvo, ativo, ordem) values
+insert into fichas (id, restaurante_id, nome, grupo, descricao, modo_preparo, rendimento, unidade_rendimento, preco_venda, cmv_alvo, ativo, ordem, origem_carga) values
   ('ccda32ce-7160-5c45-a6ed-89f1eb42e06b', 'b0a12eca-0000-4000-8000-000000000001', 'EMPADÃO DE FRANGO COM SALADA', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,64 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -317,7 +402,7 @@ O nosso custo é -12.9% em relação ao da planilha (R$ 6,12 contra R$ 7,02). A 
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "EMPADÃO DE FRANGO COM SALADA" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 1),
+Na planilha: aba "EMPADÃO DE FRANGO COM SALADA" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 1, '0005'),
   ('c13c63a9-1701-5574-8fe8-fd79fc227b11', 'b0a12eca-0000-4000-8000-000000000001', 'MINI ORELHA EXECUTIVO', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,585 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -336,7 +421,7 @@ O nosso custo é -3.4% em relação ao da planilha (R$ 9,58 contra R$ 9,91). A d
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "MINI ORELHA EXECUTIVO", bloco "MINI ORELHA DE ELEFANTE" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 2),
+Na planilha: aba "MINI ORELHA EXECUTIVO", bloco "MINI ORELHA DE ELEFANTE" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 2, '0005'),
   ('636b9ea4-5c1b-5a92-9df4-ec63b824c8e7', 'b0a12eca-0000-4000-8000-000000000001', 'CARNE GUISADA  COM BATATA CORADA', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,575 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -355,7 +440,7 @@ O nosso custo é -4.0% em relação ao da planilha (R$ 8,57 contra R$ 8,92). A d
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "CARNE GUISADA  COM BATATA CORAD", bloco "CARNE GUISADA COM BATATA CORADA" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 3),
+Na planilha: aba "CARNE GUISADA  COM BATATA CORAD", bloco "CARNE GUISADA COM BATATA CORADA" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 3, '0005'),
   ('5543f567-9af1-533a-aa2f-5460f86c1719', 'b0a12eca-0000-4000-8000-000000000001', 'CARNE SECA COM TUTU À MINEIRA', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,68 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -374,7 +459,7 @@ O nosso custo é -11.0% em relação ao da planilha (R$ 15,25 contra R$ 17,13). 
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "CARNE SECA COM TUTU À MINEIRA", bloco "CARNE SECA COM TUTU A MINEIRA" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 4),
+Na planilha: aba "CARNE SECA COM TUTU À MINEIRA", bloco "CARNE SECA COM TUTU A MINEIRA" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 4, '0005'),
   ('c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', 'b0a12eca-0000-4000-8000-000000000001', 'ISCA DE FÍGADO COM PURÊ', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,7 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -393,7 +478,7 @@ O nosso custo é -15.8% em relação ao da planilha (R$ 4,62 contra R$ 5,49). A 
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "ISCA DE FÍGADO COM PURÊ", bloco "isca de fígado com purê" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 5),
+Na planilha: aba "ISCA DE FÍGADO COM PURÊ", bloco "isca de fígado com purê" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 5, '0005'),
   ('ca06c802-a195-5afd-81df-da729255e4df', 'b0a12eca-0000-4000-8000-000000000001', 'FILÉ FRANGO EMPANADO COM FRITAS', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,695 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -412,7 +497,7 @@ O nosso custo é -1.2% em relação ao da planilha (R$ 5,61 contra R$ 5,68). A d
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "FILÉ FRANGO EMPANADO COM FRITAS", bloco "FILÉ DE FRANGO COM FRITAS" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 6),
+Na planilha: aba "FILÉ FRANGO EMPANADO COM FRITAS", bloco "FILÉ DE FRANGO COM FRITAS" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 6, '0005'),
   ('2d7cc0a5-8104-5765-bfcc-fa98d04438aa', 'b0a12eca-0000-4000-8000-000000000001', 'FILÉ FRANGO FRITAS', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,695 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -431,7 +516,7 @@ O nosso custo é -0.9% em relação ao da planilha (R$ 5,82 contra R$ 5,87). A d
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "FILÉ FRANGO FRITAS", bloco "FILÉ DE FRANGO COM FRITAS" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 7),
+Na planilha: aba "FILÉ FRANGO FRITAS", bloco "FILÉ DE FRANGO COM FRITAS" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 7, '0005'),
   ('c369eb8c-fe78-5f83-b286-61313fec6882', 'b0a12eca-0000-4000-8000-000000000001', 'FILÉ DE FRANGO COM LEGUMES', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,695 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -450,7 +535,7 @@ O nosso custo é +2.7% em relação ao da planilha (R$ 7,29 contra R$ 7,10). A d
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "FILÉ DE FRANGO COM LEGUMES" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 8),
+Na planilha: aba "FILÉ DE FRANGO COM LEGUMES" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 8, '0005'),
   ('79e10549-7ced-5edc-8eb6-9fa3a01b8fed', 'b0a12eca-0000-4000-8000-000000000001', 'FILÉ DE PEIXE COM LEGUMES', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,665 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -469,7 +554,7 @@ O nosso custo é +1.7% em relação ao da planilha (R$ 11,57 contra R$ 11,37). A
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "FILÉ DE PEIXE COM LEGUMES" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 9),
+Na planilha: aba "FILÉ DE PEIXE COM LEGUMES" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 9, '0005'),
   ('07e7fd1e-ae2a-5cd3-a5aa-e3980ac6d490', 'b0a12eca-0000-4000-8000-000000000001', 'FILÉ DE PEIXE COM PURÊ', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,665 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -488,7 +573,7 @@ O nosso custo é +1.8% em relação ao da planilha (R$ 10,67 contra R$ 10,48). A
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "FILÉ DE PEIXE COM PURÊ", bloco "FILÉ DE PEIXE COM LEGUMES" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 10),
+Na planilha: aba "FILÉ DE PEIXE COM PURÊ", bloco "FILÉ DE PEIXE COM LEGUMES" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 10, '0005'),
   ('e10f2aec-e835-5aa9-bfc9-59b1a0fb2b46', 'b0a12eca-0000-4000-8000-000000000001', 'PERNIL COM MAIONESE', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,595 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -507,7 +592,7 @@ O nosso custo é -1.5% em relação ao da planilha (R$ 6,65 contra R$ 6,75). A d
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "PERNIL COM MAIONESE" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 11),
+Na planilha: aba "PERNIL COM MAIONESE" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 11, '0005'),
   ('d2509dff-f6ce-5728-a972-6dc16737e2e5', 'b0a12eca-0000-4000-8000-000000000001', 'SCHNITZEL COM MAIONESE', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 0,655 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -526,7 +611,7 @@ O nosso custo é +12.8% em relação ao da planilha (R$ 5,26 contra R$ 4,67). A 
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "SCHNITZEL COM MAIONESE", bloco "SCHNITIZEL COM MAIONESE" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 12),
+Na planilha: aba "SCHNITZEL COM MAIONESE", bloco "SCHNITIZEL COM MAIONESE" (linha 1). O nome vendido é o da aba Resumo.', null, 1, 'PORCAO', 0, 20, true, 12, '0005'),
   ('3861d64f-bc4c-5689-aac0-d18655ed2f7a', 'b0a12eca-0000-4000-8000-000000000001', 'GNOCCHI COM CARNE ASSADA', 'Executivos', 'Executivo · Bar do Zeca Norte Shopping.
 
 A receita rende 1 prato de 1,375 kg. (A planilha chama esse peso de "Rendimento (porções)"; ela não divide o custo por ele — divide pelo Peso Porção, que é 1.)
@@ -545,31 +630,57 @@ O nosso custo é +1.5% em relação ao da planilha (R$ 13,11 contra R$ 12,92). A
 
 O preço de venda nasce 0 por decisão da casa: os cinco índices ficam aqui e o preço é escolhido prato a prato na tela. Enquanto ele for 0, o CMV e a margem da ficha são nulos.
 
-Na planilha: aba "GNOCCHI COM CARNE ASSADA" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 13)
+Na planilha: aba "GNOCCHI COM CARNE ASSADA" (linha 1).', null, 1, 'PORCAO', 0, 20, true, 13, '0005')
 on conflict (id) do update set
      nome = excluded.nome,
      grupo = excluded.grupo,
      descricao = excluded.descricao,
      rendimento = excluded.rendimento,
      unidade_rendimento = excluded.unidade_rendimento,
-     cmv_alvo = excluded.cmv_alvo,
-     ordem = excluded.ordem;
+     ordem = excluded.ordem,
+     origem_carga = excluded.origem_carga;
 
 -- @fim:fichas
 
--- `preco_venda` e `ativo` de proposito FORA do `do update`, e os dois por
--- medicao e nao por simetria:
+-- O carimbo da posse, para a ficha que ESTA no arquivo de hoje mas que
+-- nasceu antes da migracao 0021 (e por isso tem `origem_carga` nula). O
+-- `do update` acima ja resolve isso, e este `update` existe para o caso em que
+-- a linha nao passou pelo `do update` — e tambem porque ele casa por **id**
+-- contra `arquivo_fichas`, o que alcanca a ficha que a casa RENOMEOU: o nome
+-- mudou, o id nao.
 --
---  · `preco_venda`: a cliente vai preencher o preco pela tela, prato a prato,
+-- A clausula `origem_carga is null or = '0005'` e o que impede esta carga de
+-- reivindicar ficha de outra: se um id deste arquivo ja estivesse carimbado como
+-- '0004' (impossivel hoje, porque os espacos de id sao disjuntos), o carimbo nao
+-- aconteceria e a verificacao da secao 5 acusaria a contagem errada.
+update fichas set origem_carga = '0005'
+ where id in (select id from arquivo_fichas)
+   and (origem_carga is null or origem_carga = '0005');
+
+
+-- TRES COLUNAS de proposito FORA do `do update`, e as tres por medicao e nao
+-- por simetria. O criterio e um so: campo em que a casa DECIDE algo a carga nao
+-- sobrescreve; campo que descreve o que veio da planilha, sim.
+--
+--  · `preco_venda`: a casa vai preencher o preco pela tela, prato a prato,
 --    olhando os cinco indices da descricao. Reaplicar a carga nao pode zerar
 --    isso. O arquivo manda no que veio da planilha; o preco e dela.
 --  · `ativo`: com `ativo = true` no `do update`, uma ficha que ela DESATIVOU
 --    voltava ativa na reaplicacao. Desativar e como o modulo diz "este prato
 --    saiu do cardapio", e a carga nao tem autoridade para discordar. (Medido na
 --    0004: `XEREM` desativada voltava ativa.)
+--  · `cmv_alvo`: esta saiu depois, e o motivo e o mesmo. O `cmv_alvo` e o OUTRO
+--    LADO do indice de markup — indice 4 quer dizer CMV 25% — e a decisao que a
+--    casa tomou foi justamente escolher o indice prato a prato na tela. Com
+--    `cmv_alvo` no `do update`, ela punha 25 no GNOCCHI e a reaplicacao
+--    devolvia 20, mudando o veredito de CMV da tela junto. Medido.
+--
+-- O 20 que a carga grava na PRIMEIRA vez continua sendo o da planilha (indice 5,
+-- CMV 0,2, em 48 de 48 celulas) — ele e o ponto de partida, nao a palavra final.
 --
 -- `modo_preparo` nasce nulo: a planilha e de CUSTO e nao traz preparo. Nao se
--- inventa modo de preparo, e isso esta na lista da cliente.
+-- inventa modo de preparo, e isso esta na lista da cliente. Ele tambem esta fora
+-- do `do update`, entao o preparo que ela digitar sobrevive — medido.
 
 -- ---------------------------------------------------------------------------
 -- 3 · Os 99 itens
@@ -594,13 +705,13 @@ on conflict (id) do update set
 
 -- @bloco:ficha_itens
 insert into ficha_itens (id, ficha_id, produto_id, quantidade, unidade, perda_percentual, observacao, ordem) values
-  ('87b3af88-176c-56e8-a1a9-694a6dbad1e4', 'ccda32ce-7160-5c45-a6ed-89f1eb42e06b', '2357a894-7acf-5559-aea1-6109c8e43312', 0.18, 'KG', 0, 'planilha: empadão de frango · EMPADÃO DE FRANGO COM SALADA', 1),
-  ('60c7dff1-2718-5a2e-8f59-e1d75d39797d', 'ccda32ce-7160-5c45-a6ed-89f1eb42e06b', '90c7f67d-c747-51d2-8d93-1227d53f3f41', 0.14, 'KG', 0, 'planilha: salada da casa( individual) · EMPADÃO DE FRANGO COM SALADA', 2),
+  ('87b3af88-176c-56e8-a1a9-694a6dbad1e4', 'ccda32ce-7160-5c45-a6ed-89f1eb42e06b', '2357a894-7acf-5559-aea1-6109c8e43312', 0.18, 'KG', 0, 'planilha: empadão de frango · EMPADÃO DE FRANGO COM SALADA · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 33,3% do custo deste prato', 1),
+  ('60c7dff1-2718-5a2e-8f59-e1d75d39797d', 'ccda32ce-7160-5c45-a6ed-89f1eb42e06b', '90c7f67d-c747-51d2-8d93-1227d53f3f41', 0.14, 'KG', 0, 'planilha: salada da casa( individual) · EMPADÃO DE FRANGO COM SALADA · este preparo leva RÚCULA HIDROPÔNICA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 54,0% do custo deste prato', 2),
   ('98c694e5-25d2-599d-b88d-2591a44460bc', 'ccda32ce-7160-5c45-a6ed-89f1eb42e06b', 'f7a853f8-89a0-59d1-b8a0-f28ef01be9d8', 0.2, 'KG', 0, 'planilha: arroz  branco pronto · EMPADÃO DE FRANGO COM SALADA', 3),
   ('428116a5-6e77-5a34-bb00-799bc54a3a1f', 'ccda32ce-7160-5c45-a6ed-89f1eb42e06b', 'eb9dcea5-e35e-59aa-bc11-f36963955283', 0.12, 'KG', 0, 'planilha: feijãp preto pronto · EMPADÃO DE FRANGO COM SALADA', 4),
   ('c08c80b3-7dde-504f-b502-c2bcb59889e1', 'c13c63a9-1701-5574-8fe8-fd79fc227b11', '1edb9df2-19b4-5274-8b1d-93cc29ea9364', 0.09, 'KG', 10, 'planilha: bombom de alcatra · MINI ORELHA EXECUTIVO', 1),
   ('0397fbf7-cb74-5fa6-b826-6409506283b6', 'c13c63a9-1701-5574-8fe8-fd79fc227b11', 'f7a853f8-89a0-59d1-b8a0-f28ef01be9d8', 0.2, 'KG', 0, 'planilha: arroz  branco pronto · MINI ORELHA EXECUTIVO', 2),
-  ('6606facf-58fb-55a2-9434-36fafd820c3f', 'c13c63a9-1701-5574-8fe8-fd79fc227b11', '3cc9e4f2-26c0-51b6-a0c1-99afbb90ee2a', 0.1, 'KG', 0, 'planilha: guarnição à francesa · MINI ORELHA EXECUTIVO', 3),
+  ('6606facf-58fb-55a2-9434-36fafd820c3f', 'c13c63a9-1701-5574-8fe8-fd79fc227b11', '3cc9e4f2-26c0-51b6-a0c1-99afbb90ee2a', 0.1, 'KG', 0, 'planilha: guarnição à francesa · MINI ORELHA EXECUTIVO · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 9,3% do custo deste prato', 3),
   ('16610194-8a4f-5930-b5ec-1cd04e775522', 'c13c63a9-1701-5574-8fe8-fd79fc227b11', 'eb9dcea5-e35e-59aa-bc11-f36963955283', 0.12, 'KG', 0, 'planilha: feijão pronto · MINI ORELHA EXECUTIVO · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio', 4),
   ('ed108139-120c-547c-85a3-45133dbce2a6', 'c13c63a9-1701-5574-8fe8-fd79fc227b11', 'a69083be-e47d-5939-9c67-92a252f45374', 0.02, 'KG', 0, 'planilha: alho batido · MINI ORELHA EXECUTIVO', 5),
   ('3f956b35-5925-5c66-bafe-9f508022f2af', 'c13c63a9-1701-5574-8fe8-fd79fc227b11', '9fb59ead-0cb9-5e6f-9572-c49ed776ee3b', 0.005, 'KG', 0, 'planilha: sal com pimenta · MINI ORELHA EXECUTIVO · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero', 6),
@@ -616,18 +727,18 @@ insert into ficha_itens (id, ficha_id, produto_id, quantidade, unidade, perda_pe
   ('1063abae-4315-5c89-94e5-cec4c019a8bc', '5543f567-9af1-533a-aa2f-5460f86c1719', 'd12167a2-e880-5d8f-b7e8-71eb94b962b7', 0.08, 'KG', 50, 'planilha: carne seca desfiada · CARNE SECA COM TUTU À MINEIRA', 1),
   ('d2105d97-ca2f-5754-ba4a-992230914ed5', '5543f567-9af1-533a-aa2f-5460f86c1719', '7e90b683-4849-5588-b938-8222f78f4810', 0.05, 'KG', 28.571, 'planilha: cebola branca · CARNE SECA COM TUTU À MINEIRA', 2),
   ('2aea16ad-27b5-5536-8ccd-668550fcec80', '5543f567-9af1-533a-aa2f-5460f86c1719', '8459cad7-c47f-59c6-8900-454cf67cfc81', 0.05, 'KG', 75, 'planilha: tomate picado · CARNE SECA COM TUTU À MINEIRA', 3),
-  ('6f136a24-ed38-5e37-a777-b4fbaba722ec', '5543f567-9af1-533a-aa2f-5460f86c1719', '0e626ef9-04d7-5238-8fa4-b3a0da68fea4', 0.015, 'UND', 0, 'planilha: salsa picada · CARNE SECA COM TUTU À MINEIRA · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND', 4),
+  ('6f136a24-ed38-5e37-a777-b4fbaba722ec', '5543f567-9af1-533a-aa2f-5460f86c1719', '0e626ef9-04d7-5238-8fa4-b3a0da68fea4', 0.015, 'UND', 0, 'planilha: salsa picada · CARNE SECA COM TUTU À MINEIRA · a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg', 4),
   ('5d9e78cc-a89d-5d9a-83b4-4353e8e89e42', '5543f567-9af1-533a-aa2f-5460f86c1719', '969f31f5-c349-5dba-9e1d-3b82bb636450', 0.04, 'KG', 0, 'planilha: banha · CARNE SECA COM TUTU À MINEIRA · custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha', 5),
   ('b3e5281b-a9a5-506e-ae94-75ed4ffffa42', '5543f567-9af1-533a-aa2f-5460f86c1719', 'f7a853f8-89a0-59d1-b8a0-f28ef01be9d8', 0.2, 'KG', 0, 'planilha: arroz  branco pronto · CARNE SECA COM TUTU À MINEIRA', 6),
   ('16807473-d3f2-5e17-8e25-93879e146a2b', '5543f567-9af1-533a-aa2f-5460f86c1719', 'c9e40591-fbe0-5641-9dba-3328a1fad2ce', 0.05, 'KG', 50, 'planilha: couve refogada mp · CARNE SECA COM TUTU À MINEIRA', 7),
-  ('29b78dec-d88b-520a-97b2-b7044c52810e', '5543f567-9af1-533a-aa2f-5460f86c1719', 'e0c73456-6161-5d00-a03c-79a9a2af4a48', 0.12, 'KG', 0, 'planilha: tutu de feijão mp · CARNE SECA COM TUTU À MINEIRA', 8),
+  ('29b78dec-d88b-520a-97b2-b7044c52810e', '5543f567-9af1-533a-aa2f-5460f86c1719', 'e0c73456-6161-5d00-a03c-79a9a2af4a48', 0.12, 'KG', 0, 'planilha: tutu de feijão mp · CARNE SECA COM TUTU À MINEIRA · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 4,8% do custo deste prato', 8),
   ('effe48a7-a27a-5e7d-bf15-5a2ff8bdae69', '5543f567-9af1-533a-aa2f-5460f86c1719', '6cd5b998-4fa3-572a-a9b0-67a352927d95', 0.05, 'KG', 0, 'planilha: farofa de bacon · CARNE SECA COM TUTU À MINEIRA', 9),
   ('6e8264b2-7787-5b28-9c08-9a2c4b3f968f', '5543f567-9af1-533a-aa2f-5460f86c1719', '9fb59ead-0cb9-5e6f-9572-c49ed776ee3b', 0.005, 'KG', 0, 'planilha: sal com pimenta · CARNE SECA COM TUTU À MINEIRA · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero', 10),
   ('91bee3f3-a4a8-56fe-ab81-1ae10f6c9d1f', '5543f567-9af1-533a-aa2f-5460f86c1719', 'a69083be-e47d-5939-9c67-92a252f45374', 0.02, 'KG', 0, 'planilha: alho batido · CARNE SECA COM TUTU À MINEIRA', 11),
   ('190a8d4d-92f8-5b0a-b8ab-38c0c229f001', 'c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', '085ffb7e-1eba-5c2c-89c6-3ae31e3d7971', 0.12, 'KG', 20, 'planilha: isca de fígado de boi · ISCA DE FÍGADO COM PURÊ', 1),
   ('7882cbe0-d686-5fda-926e-6e3719d75502', 'c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', '118053d9-beec-5b7d-bbb9-9912ceadee2f', 0.15, 'KG', 0, 'planilha: purê de batata mp · ISCA DE FÍGADO COM PURÊ', 2),
   ('9a1bf42a-182d-53bf-92f1-7e91581bfebd', 'c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', '7e90b683-4849-5588-b938-8222f78f4810', 0.05, 'KG', 28.571, 'planilha: cebola branca · ISCA DE FÍGADO COM PURÊ', 3),
-  ('d3a6ca79-ff31-5527-9ac5-a41be0295974', 'c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', '0e626ef9-04d7-5238-8fa4-b3a0da68fea4', 0.015, 'UND', 0, 'planilha: salsa picada · ISCA DE FÍGADO COM PURÊ · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND', 4),
+  ('d3a6ca79-ff31-5527-9ac5-a41be0295974', 'c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', '0e626ef9-04d7-5238-8fa4-b3a0da68fea4', 0.015, 'UND', 0, 'planilha: salsa picada · ISCA DE FÍGADO COM PURÊ · a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg', 4),
   ('81733ae6-21a2-5468-8c53-08e5b7829e7f', 'c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', '969f31f5-c349-5dba-9e1d-3b82bb636450', 0.02, 'KG', 0, 'planilha: banha · ISCA DE FÍGADO COM PURÊ · custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha', 5),
   ('7fd887d9-1728-5652-ac1a-cb1d8bc5293e', 'c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', 'f7a853f8-89a0-59d1-b8a0-f28ef01be9d8', 0.2, 'KG', 0, 'planilha: arroz  branco pronto · ISCA DE FÍGADO COM PURÊ', 6),
   ('09998898-18e7-5ebc-8707-26814aab6f52', 'c05f5997-d1b7-5fe6-842e-c8d5e3b31d6e', 'eb9dcea5-e35e-59aa-bc11-f36963955283', 0.12, 'KG', 0, 'planilha: feijão preto mp · ISCA DE FÍGADO COM PURÊ', 7),
@@ -652,14 +763,14 @@ insert into ficha_itens (id, ficha_id, produto_id, quantidade, unidade, perda_pe
   ('a0cb881d-835e-5d31-a8d0-1eb06309741d', '2d7cc0a5-8104-5765-bfcc-fa98d04438aa', 'd11f2374-bef0-5e32-852f-e293685e6dea', 0.02, 'LTS', 0, 'planilha: óleo de soja · FILÉ FRANGO FRITAS', 7),
   ('59442bd4-1631-53b7-ac34-d2aada99651c', 'c369eb8c-fe78-5f83-b286-61313fec6882', '75760a42-bafd-5208-a2c8-325aa0f85335', 0.15, 'KG', 0, 'planilha: filé de frango · FILÉ DE FRANGO COM LEGUMES', 1),
   ('04c9e0bb-ce5f-5a05-91b5-388697e69afd', 'c369eb8c-fe78-5f83-b286-61313fec6882', 'f7a853f8-89a0-59d1-b8a0-f28ef01be9d8', 0.2, 'KG', 0, 'planilha: arroz  branco pronto · FILÉ DE FRANGO COM LEGUMES', 2),
-  ('5d43e6f9-bc4b-51a3-ba4f-dc2f571e648b', 'c369eb8c-fe78-5f83-b286-61313fec6882', 'd9fd3f84-08bd-5fbe-a389-f8d05264bc29', 0.15, 'KG', 0, 'planilha: salada de legumes · FILÉ DE FRANGO COM LEGUMES', 3),
+  ('5d43e6f9-bc4b-51a3-ba4f-dc2f571e648b', 'c369eb8c-fe78-5f83-b286-61313fec6882', 'd9fd3f84-08bd-5fbe-a389-f8d05264bc29', 0.15, 'KG', 0, 'planilha: salada de legumes · FILÉ DE FRANGO COM LEGUMES · este preparo leva BRÓCOLIS AMERICANO, VAGEM FRANCESA e SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 51,7% do custo deste prato', 3),
   ('fbfc8bcc-907b-56d2-8c57-4b1434bb2cc2', 'c369eb8c-fe78-5f83-b286-61313fec6882', 'eb9dcea5-e35e-59aa-bc11-f36963955283', 0.12, 'KG', 0, 'planilha: feijão pronto · FILÉ DE FRANGO COM LEGUMES · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio', 4),
   ('bf00b210-533e-55d2-b168-a94a1f91e4e8', 'c369eb8c-fe78-5f83-b286-61313fec6882', 'a69083be-e47d-5939-9c67-92a252f45374', 0.02, 'KG', 0, 'planilha: alho batido · FILÉ DE FRANGO COM LEGUMES', 5),
   ('25996e2a-b527-51be-918d-2953c677dfd9', 'c369eb8c-fe78-5f83-b286-61313fec6882', '9fb59ead-0cb9-5e6f-9572-c49ed776ee3b', 0.005, 'KG', 0, 'planilha: sal com pimenta · FILÉ DE FRANGO COM LEGUMES · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero', 6),
   ('a2ab380d-0cdc-5a3f-8eaf-5b73a6a1a515', 'c369eb8c-fe78-5f83-b286-61313fec6882', 'd11f2374-bef0-5e32-852f-e293685e6dea', 0.02, 'LTS', 0, 'planilha: óleo de soja · FILÉ DE FRANGO COM LEGUMES', 7),
   ('a2a43d51-a046-5f8d-86a9-cc0e91bf3c5e', '79e10549-7ced-5edc-8eb6-9fa3a01b8fed', '87c945e4-cb26-5333-a93e-16d6a01e2a87', 0.12, 'KG', 20, 'planilha: filé de tilápia · FILÉ DE PEIXE COM LEGUMES', 1),
   ('f552a4ef-43a4-577e-92de-fa5b2cfe84bd', '79e10549-7ced-5edc-8eb6-9fa3a01b8fed', 'f7a853f8-89a0-59d1-b8a0-f28ef01be9d8', 0.2, 'KG', 0, 'planilha: arroz  branco pronto · FILÉ DE PEIXE COM LEGUMES', 2),
-  ('94df27b6-1224-5aea-995c-54f1558ff7c6', '79e10549-7ced-5edc-8eb6-9fa3a01b8fed', 'd9fd3f84-08bd-5fbe-a389-f8d05264bc29', 0.15, 'KG', 0, 'planilha: salada de legumes · FILÉ DE PEIXE COM LEGUMES', 3),
+  ('94df27b6-1224-5aea-995c-54f1558ff7c6', '79e10549-7ced-5edc-8eb6-9fa3a01b8fed', 'd9fd3f84-08bd-5fbe-a389-f8d05264bc29', 0.15, 'KG', 0, 'planilha: salada de legumes · FILÉ DE PEIXE COM LEGUMES · este preparo leva BRÓCOLIS AMERICANO, VAGEM FRANCESA e SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 32,6% do custo deste prato', 3),
   ('8a57eeea-7e79-5855-b15c-0168591a717d', '79e10549-7ced-5edc-8eb6-9fa3a01b8fed', 'eb9dcea5-e35e-59aa-bc11-f36963955283', 0.12, 'KG', 0, 'planilha: feijão pronto · FILÉ DE PEIXE COM LEGUMES · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio', 4),
   ('fffe1f3f-c8f1-57ad-bb37-211dc5f32b40', '79e10549-7ced-5edc-8eb6-9fa3a01b8fed', 'a69083be-e47d-5939-9c67-92a252f45374', 0.02, 'KG', 0, 'planilha: alho batido · FILÉ DE PEIXE COM LEGUMES', 5),
   ('302e8bab-a9e8-5377-8075-541a9a824669', '79e10549-7ced-5edc-8eb6-9fa3a01b8fed', '9fb59ead-0cb9-5e6f-9572-c49ed776ee3b', 0.005, 'KG', 0, 'planilha: sal com pimenta · FILÉ DE PEIXE COM LEGUMES · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero', 6),
@@ -673,13 +784,13 @@ insert into ficha_itens (id, ficha_id, produto_id, quantidade, unidade, perda_pe
   ('eeb793e7-c8e4-5f43-a7df-90cbb1a6726a', '07e7fd1e-ae2a-5cd3-a5aa-e3980ac6d490', 'd11f2374-bef0-5e32-852f-e293685e6dea', 0.02, 'LTS', 0, 'planilha: óleo de soja · FILÉ DE PEIXE COM PURÊ', 7),
   ('2d4be078-b763-5084-a8de-82a9a9cc4f20', 'e10f2aec-e835-5aa9-bfc9-59b1a0fb2b46', 'da10f787-d2ca-5e3f-ad6a-e16d11f50352', 0.12, 'KG', 0, 'planilha: Pernil MP · PERNIL COM MAIONESE · custo R$ 36,99 vindo da planilha: e pernil assado e a planilha nao da a receita', 1),
   ('ee0330aa-7b53-52a2-9002-87d116fde63d', 'e10f2aec-e835-5aa9-bfc9-59b1a0fb2b46', 'f7a853f8-89a0-59d1-b8a0-f28ef01be9d8', 0.2, 'KG', 0, 'planilha: arroz  branco pronto · PERNIL COM MAIONESE', 2),
-  ('8f152949-0147-52b0-bfcf-c424c9e3ded1', 'e10f2aec-e835-5aa9-bfc9-59b1a0fb2b46', '990c9c4b-0ecb-5e85-9118-188de9ef448c', 0.1, 'KG', 0, 'planilha: Salada de Maionese MP · PERNIL COM MAIONESE', 3),
+  ('8f152949-0147-52b0-bfcf-c424c9e3ded1', 'e10f2aec-e835-5aa9-bfc9-59b1a0fb2b46', '990c9c4b-0ecb-5e85-9118-188de9ef448c', 0.1, 'KG', 0, 'planilha: Salada de Maionese MP · PERNIL COM MAIONESE · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 14,0% do custo deste prato', 3),
   ('4da316fe-2380-5507-9316-a9e6ab13b8a0', 'e10f2aec-e835-5aa9-bfc9-59b1a0fb2b46', 'eb9dcea5-e35e-59aa-bc11-f36963955283', 0.12, 'KG', 0, 'planilha: feijão pronto · PERNIL COM MAIONESE · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio', 4),
   ('690944de-05b5-5d73-925a-de10acc118f9', 'e10f2aec-e835-5aa9-bfc9-59b1a0fb2b46', '6cd5b998-4fa3-572a-a9b0-67a352927d95', 0.05, 'KG', 0, 'planilha: farofa de bacon · PERNIL COM MAIONESE', 5),
   ('a2b1f550-416c-5951-ae1f-16ce54576d45', 'e10f2aec-e835-5aa9-bfc9-59b1a0fb2b46', '9fb59ead-0cb9-5e6f-9572-c49ed776ee3b', 0.005, 'KG', 0, 'planilha: sal com pimenta · PERNIL COM MAIONESE · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero', 6),
-  ('ed7fc95d-f4ce-527d-8e26-970d9185907b', 'd2509dff-f6ce-5728-a972-6dc16737e2e5', 'da34f141-0c21-520c-9682-a6466be4cdf8', 0.1, 'KG', 16.667, 'planilha: copalombo · SCHNITZEL COM MAIONESE · mapeado para LOMBO SUÍNO e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta com custo de porcao numa unidade KG', 1),
+  ('ed7fc95d-f4ce-527d-8e26-970d9185907b', 'd2509dff-f6ce-5728-a972-6dc16737e2e5', 'da34f141-0c21-520c-9682-a6466be4cdf8', 0.1, 'KG', 16.667, 'planilha: copalombo · SCHNITZEL COM MAIONESE · mapeado para LOMBO SUÍNO (R$ 18,90/kg contra R$ 16,97 da planilha, +11,4%) e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta com custo de porcao numa unidade KG. O LOMBO SUÍNO SALGADO (R$ 17,65, a +4,0%) estava mais perto no preco e foi recusado por ser carne CURADA, nao por preco — se o copalombo da planilha for curado, troque para ele', 1),
   ('d32992da-8218-50e9-821d-f90c90e136d3', 'd2509dff-f6ce-5728-a972-6dc16737e2e5', 'f7a853f8-89a0-59d1-b8a0-f28ef01be9d8', 0.2, 'KG', 0, 'planilha: arroz  branco pronto · SCHNITZEL COM MAIONESE', 2),
-  ('84ce4036-d013-5d4a-bb3a-92abfd6faafe', 'd2509dff-f6ce-5728-a972-6dc16737e2e5', '990c9c4b-0ecb-5e85-9118-188de9ef448c', 0.1, 'KG', 0, 'planilha: Salada de maionese MP · SCHNITZEL COM MAIONESE', 3),
+  ('84ce4036-d013-5d4a-bb3a-92abfd6faafe', 'd2509dff-f6ce-5728-a972-6dc16737e2e5', '990c9c4b-0ecb-5e85-9118-188de9ef448c', 0.1, 'KG', 0, 'planilha: Salada de maionese MP · SCHNITZEL COM MAIONESE · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 17,7% do custo deste prato', 3),
   ('452e72ad-362e-520e-91d6-e8b2cccb3fa6', 'd2509dff-f6ce-5728-a972-6dc16737e2e5', 'eb9dcea5-e35e-59aa-bc11-f36963955283', 0.12, 'KG', 0, 'planilha: feijão pronto · SCHNITZEL COM MAIONESE · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio', 4),
   ('4f9916e5-82b5-5214-8c1d-411173979ef0', 'd2509dff-f6ce-5728-a972-6dc16737e2e5', '128475ff-39b7-56f3-ae73-1293beb9d365', 0.05, 'KG', 0, 'planilha: farinha de trigo · SCHNITZEL COM MAIONESE · uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro', 5),
   ('6bc2f617-add5-5d29-a287-83f5b2f10da7', 'd2509dff-f6ce-5728-a972-6dc16737e2e5', 'e21600dd-1642-5435-9a87-f5f430a54ee7', 0.02, 'KG', 0, 'planilha: farinha panko · SCHNITZEL COM MAIONESE', 6),
@@ -692,7 +803,7 @@ insert into ficha_itens (id, ficha_id, produto_id, quantidade, unidade, perda_pe
   ('b5e33513-6665-5b14-b927-4bd497042258', '3861d64f-bc4c-5689-aac0-d18655ed2f7a', 'b6397ef5-3551-5712-a3c2-dae5abb37007', 0.05, 'KG', 0, 'planilha: Molho ao sugo · GNOCCHI COM CARNE ASSADA', 3),
   ('2b5ec15a-1d09-5965-8792-cebe33d1136d', '3861d64f-bc4c-5689-aac0-d18655ed2f7a', '1fad2733-3491-5d7d-8b03-1ca12ea54cfc', 0.02, 'KG', 0, 'planilha: Parmesão · GNOCCHI COM CARNE ASSADA', 4),
   ('59c7653e-2218-5fec-93c8-4595d9c4061a', '3861d64f-bc4c-5689-aac0-d18655ed2f7a', '2f59adb3-0ee9-5c27-829a-3ed23e36ac14', 0.05, 'KG', 0, 'planilha: Caldo de carne · GNOCCHI COM CARNE ASSADA', 5),
-  ('ff8395df-8b16-57ab-a845-606d8818e7d7', '3861d64f-bc4c-5689-aac0-d18655ed2f7a', 'bcdcb808-aa5a-589e-b7c8-da9437be95d1', 0.005, 'UND', 0, 'planilha: Manjericão · GNOCCHI COM CARNE ASSADA · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND', 6)
+  ('ff8395df-8b16-57ab-a845-606d8818e7d7', '3861d64f-bc4c-5689-aac0-d18655ed2f7a', 'bcdcb808-aa5a-589e-b7c8-da9437be95d1', 0.005, 'UND', 0, 'planilha: Manjericão · GNOCCHI COM CARNE ASSADA · a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg', 6)
 on conflict (ficha_id, produto_id) do update set
      quantidade = excluded.quantidade,
      unidade = excluded.unidade,
@@ -784,47 +895,41 @@ delete from ficha_itens i
 -- na tela da cliente.
 --
 -- O problema e saber QUAIS fichas sao desta carga, e a resposta esta na secao
--- 0b: `fichas_desta_carga` = o arquivo de hoje MAIS toda ficha do tenant cujo
--- id seja o UUIDv5 recalculado de `'ficha-executivo:' || nome`. O delete
--- tira dessa tabela as que estao no arquivo de hoje — e o que sobra e,
--- exatamente, "ficha que uma versao anterior desta carga criou e que a versao
--- de hoje nao tem mais".
+-- 0b: `fichas_desta_carga` = o arquivo de hoje MAIS toda ficha do tenant com o
+-- rotulo `origem_carga = '0005'`. O delete tira dessa tabela as que estao no
+-- arquivo de hoje — e o que sobra e, exatamente, "ficha que uma versao anterior
+-- desta carga criou e que a versao de hoje nao tem mais".
 --
--- O ESPACO DE NOMES 'ficha-executivo' E O QUE TORNA ISSO EXATO. A 0004 usa
--- 'ficha:' e esta certa para ela; se esta carga usasse o mesmo prefixo, a posse
--- viraria um palpite e o delete alcancaria as fichas da outra carga. Isso foi
--- medido: a clausula da 0004, copiada tal e qual para ca, alcanca as 56 fichas
--- de drinque — 49 em Drinques, 3 em Happy Hour, 4 em Sem Alcool, contadas.
--- Com o prefixo proprio, nenhuma ficha da 0004 e nenhuma ficha criada na tela
--- (que nasce de `gen_random_uuid()`) satisfaz a igualdade; seria preciso
--- acertar 122 bits.
+-- O ROTULO torna isso exato por construcao. Ele e gravado pela propria carga
+-- (secao 2), sobrevive a um renome, e e outro literal na 0004 — entao:
 --
--- E POR QUE NAO HA CLAUSULA DE `grupo` AQUI. A primeira versao desta carga
--- tinha: ela usava 'ficha:' e somava `grupo = 'Executivos'` como segunda trava.
--- O teste derrubou as duas metades dessa ideia:
+--   · ficha da 0004 nao e alcancada, porque o rotulo dela e '0004';
+--   · ficha feita na tela nao e alcancada, porque o rotulo dela e NULO;
+--   · ficha desta carga e alcancada esteja em que grupo estiver e com o nome
+--     que a casa tiver dado a ela.
 --
---   · o `grupo` nao protege o que importa — a cliente mover a ficha XEREM para
---     o grupo "Executivos" fez esta carga APAGA-LA, e a carga deu COMMIT, porque
---     o retrato das "fichas de fora" era tirado depois de ela ja ter entrado no
---     grupo. O comentario de entao prometia que a verificacao detectaria o
---     caso. Nao detectava;
---   · e o `grupo` ATRAPALHA no caso legitimo: se a cliente mudar o grupo de
---     uma ficha DESTA carga e ela depois sair da lista, a clausula de grupo
---     impediria o delete e deixaria a ficha orfa no banco.
+-- O QUE ESTA SEÇÃO JA DISSE DE ERRADO, e vale ficar escrito porque o erro foi de
+-- metodo e nao de codigo:
 --
--- Com a posse pelo espaco de nomes, os dois casos ficam certos sem clausula de
--- grupo: o drinque movido nao e alcancado porque o id nao casa, e a ficha desta
--- carga e alcancada esteja ela em que grupo estiver.
+--   · uma versao anterior provava posse recalculando o UUIDv5 do nome e somava
+--     `grupo = 'Executivos'` como segunda trava, com um comentario aqui prometendo
+--     que a verificacao DETECTARIA o caso restante (a casa mover um drinque para
+--     o grupo Executivos). Nao detectava: o teste apagou a ficha XEREM e a carga
+--     deu COMMIT, porque o retrato das "fichas de fora" era tirado depois de ela
+--     ja ter entrado no grupo;
+--   · e outra versao afirmava aqui que reaplicar a 0004 apagava as 13 fichas
+--     desta carga (`DELETE 13`). Aquilo foi medido quando esta carga ainda usava
+--     o prefixo `'ficha:'` da 0004, e deixou de ser verdade no instante em que o
+--     prefixo mudou — mas o teste nao foi refeito e a frase ficou. Hoje, medido
+--     de novo: reaplicar a 0004 da `DELETE 0` e as 13 sobrevivem com o custo
+--     igual, e num banco novo a sequencia 0005 → 0004 → 0005 fecha certo. A
+--     ORDEM NAO IMPORTA e a 0004 nao precisa de conserto por causa desta carga.
 --
--- A aritmetica do UUIDv5 (RFC 4122) em SQL, com o `pgcrypto` que o banco ja
--- tem: sha1(namespace_em_bytes || nome), 16 primeiros bytes, versao 5 no byte 6
--- e variante RFC no byte 8. E a mesma conta do `uuid5()` do gerar-seed.mjs.
---
--- O QUE ESTA CARGA NAO PODE RESOLVER, e esta no laudo: a 0004 nao tem espaco de
--- nomes proprio nem clausula de grupo, entao REAPLICAR A 0004 depois desta
--- apaga as 13 fichas daqui (`DELETE 13`, medido). O conserto e uma linha na
--- 0004 e nao e entregavel deste turno. Enquanto isso, a ordem importa: 0004
--- antes, 0005 depois — que e a ordem em que supabase/testes/executar.sh aplica.
+-- As duas frases erradas tinham a mesma causa: afirmacao em comentario que
+-- sobreviveu a mudanca do codigo que a sustentava. E o padrao que o laudo da
+-- 0004 batizou — "a promessa escrita ao lado do codigo que a quebrava" — e a
+-- regra que fica e refazer o teste sempre que a solucao muda, inclusive o teste
+-- que passava.
 -- ---------------------------------------------------------------------------
 
 delete from fichas f

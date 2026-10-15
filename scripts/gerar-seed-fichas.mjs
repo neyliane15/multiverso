@@ -70,6 +70,12 @@ export const PRODUTOS_ANTES = 879
 // Data da carga, estampada em custo_atualizado_em dos produtos de preparo. E a
 // referencia da contagem de outubro e nao now(): reaplicar o seed em outro dia
 // nao pode mudar o dado.
+// O ROTULO DA POSSE desta carga, gravado em `fichas.origem_carga` pela migracao
+// 0021. E ele que diz quais fichas esta carga pode apagar, e e um literal e nao
+// uma conta: ele sobrevive a um renome feito na tela e nao depende de nenhuma
+// convencao de prefixo entre cargas irmas.
+export const CARGA = '0004'
+
 export const CARGA_EM = '2026-10-01 23:59:00-03'
 
 // ------------------------------------------------------------- utilidades --
@@ -310,6 +316,71 @@ create temporary table arquivo_fichas (id uuid primary key) on commit drop;
     'on conflict (id) do nothing'))
   p.push('')
 
+  // ------------------------------------------------- a trava do nome unico --
+  p.push(`-- ---------------------------------------------------------------------------
+-- 0a · A TRAVA DO NOME, antes de qualquer insert
+--
+-- \`fichas_nome_unico\` e um indice UNIQUE sobre
+-- \`(restaurante_id, lower(mv_sem_acento(nome)))\`, e o \`insert into fichas\` desta
+-- carga usa \`on conflict (id) do update\` — o alvo do \`on conflict\` e a chave
+-- PRIMARIA, nao este indice. Entao o nome e um recurso compartilhado que nenhuma
+-- clausula da carga absorve.
+--
+-- O caso e a coisa mais natural que a casa pode fazer: apagar um drinque na tela
+-- e digita-lo de novo. A ficha nova nasce com \`gen_random_uuid()\` e com o mesmo
+-- nome, e a carga morre assim:
+--
+--     ERROR:  duplicate key value violates unique constraint "fichas_nome_unico"
+--
+-- Isso nao diz qual ficha, nao diz por que, e nao diz o que fazer. A trava
+-- abaixo troca o erro cru pela instrucao.
+--
+-- POR QUE NAO \`on conflict (nome)\`: isso faria a carga CAPTURAR a ficha que a
+-- casa criou, sobrescrevendo o trabalho dela com o do arquivo — exatamente o que
+-- o desenho da posse (\`origem_carga\`) existe para evitar. Recusar e aplicar e a
+-- resposta certa; a casa decide se renomeia a dela ou se apaga.
+--
+-- \`produtos_nome_unico\` tem a mesma forma e a mesma exposicao, e por isso a
+-- trava cobre os dois.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_n int;
+  v_quais text;
+begin
+  select count(*), string_agg(format('%L (id %s, origem %s)', f.nome, f.id,
+                                     coalesce(f.origem_carga, 'feita na tela')),
+                              ', ' order by f.nome)
+    into v_n, v_quais
+    from fichas f
+   where f.restaurante_id = ${txt(RESTAURANTE_ID)}
+     and f.id not in (select id from arquivo_fichas)
+     and lower(mv_sem_acento(f.nome)) in (
+${emLotes(m.fichas, 2).map((lote) => '       ' + lote.map((f) => `lower(mv_sem_acento(${txt(f.nome)}))`).join(', ')).join(',\n')}
+     );
+  if v_n <> 0 then
+    raise exception '0004: % ficha(s) com um nome desta carga e outro id: %. O indice fichas_nome_unico recusaria o insert com "duplicate key" e esta carga nao aplicaria. Isso acontece quando a ficha foi apagada e redigitada na tela. O que fazer: renomeie ou apague a ficha listada acima, e reaplique. A carga NAO a sobrescreve de proposito — o trabalho feito na tela nao e dela.',
+      v_n, v_quais;
+  end if;
+
+  select count(*), string_agg(format('%L (id %s)', p.nome, p.id), ', ' order by p.nome)
+    into v_n, v_quais
+    from produtos p
+   where p.restaurante_id = ${txt(RESTAURANTE_ID)}
+     and p.id not in (
+${listaDeIds(m.preparos.map((x) => x.id))}
+     )
+     and lower(mv_sem_acento(p.nome)) in (
+${emLotes(m.preparos, 2).map((lote) => '       ' + lote.map((x) => `lower(mv_sem_acento(${txt(x.nome)}))`).join(', ')).join(',\n')}
+     );
+  if v_n <> 0 then
+    raise exception '0004: % produto(s) com um nome desta carga e outro id: %. O indice produtos_nome_unico recusaria o insert. O que fazer: RENOMEIE o produto listado (ou apague-o, se ele for mesmo duplicata do desta carga) e reaplique. DESATIVAR NAO RESOLVE: o indice nao olha a coluna ativo, medido — com o produto desativado a carga recusa igual.',
+      v_n, v_quais;
+  end if;
+end $$;
+`)
+
   // --------------------------------------------------- produtos dos preparos -
   p.push(`-- ---------------------------------------------------------------------------
 -- 1 · Os ${m.preparos.length} preparos da casa, como produto do catalogo
@@ -394,12 +465,12 @@ create temporary table arquivo_fichas (id uuid primary key) on commit drop;
     'fichas', 'fichas',
     ['id', 'restaurante_id', 'nome', 'grupo', 'descricao', 'modo_preparo',
       'rendimento', 'unidade_rendimento', 'preco_venda', 'cmv_alvo', 'ativo',
-      'ordem'],
+      'ordem', 'origem_carga'],
     m.fichas.map((f) => [
       txt(f.id), txt(RESTAURANTE_ID), txt(f.nome), txt(f.grupo),
       txt(f.descricao), txt(f.modoPreparo), num(f.rendimento, 4),
       txt(f.unidadeRendimento), num(f.precoVenda, 4), num(f.cmvAlvo, 3),
-      'true', String(f.ordem),
+      'true', String(f.ordem), txt(CARGA),
     ].join(', ')),
     `on conflict (id) do update set
      nome = excluded.nome,
@@ -407,18 +478,38 @@ create temporary table arquivo_fichas (id uuid primary key) on commit drop;
      descricao = excluded.descricao,
      rendimento = excluded.rendimento,
      unidade_rendimento = excluded.unidade_rendimento,
-     cmv_alvo = excluded.cmv_alvo,
-     ordem = excluded.ordem`))
+     ordem = excluded.ordem,
+     origem_carga = excluded.origem_carga`))
   p.push('')
-  p.push(`-- preco_venda E \`ativo\` de proposito FORA do \`do update\`: se a cliente
--- preencher o preco pela tela, reaplicar esta carga nao pode zerar o trabalho
--- dela. O arquivo manda no que veio do PDF; o preco e dela.
+  p.push(`-- O carimbo da posse, para a ficha que ESTA no arquivo de hoje mas nasceu
+-- antes da migracao 0021 (e por isso teria \`origem_carga\` nula). O \`do update\`
+-- acima ja resolve isso; este \`update\` existe porque ele casa por **id** contra
+-- \`arquivo_fichas\`, o que alcanca tambem a ficha que a casa RENOMEOU — o nome
+-- mudou, o id nao.
+update fichas set origem_carga = ${txt(CARGA)}
+ where id in (select id from arquivo_fichas)
+   and (origem_carga is null or origem_carga = ${txt(CARGA)});
+`)
+  p.push('')
+  p.push(`-- TRES colunas de proposito FORA do \`do update\`. O criterio e um so: campo em
+-- que a casa DECIDE algo a carga nao sobrescreve; campo que descreve o que veio
+-- do PDF, sim.
+--
+-- \`preco_venda\`: se a cliente preencher o preco pela tela, reaplicar esta carga
+-- nao pode zerar o trabalho dela. O arquivo manda no que veio do PDF; o preco e
+-- dela.
 --
 -- \`ativo\` entrou nessa lista por medicao, nao por simetria: com \`ativo = true\`
 -- no \`do update\`, uma ficha que a cliente DESATIVOU pela tela voltava ativa na
 -- proxima reaplicacao. Desativar e a forma que o modulo tem de dizer "este
 -- drinque saiu do cardapio", e a carga nao tem autoridade para discordar. A
 -- ficha nasce \`true\` no insert; depois disso, quem manda e ela.
+--
+-- \`cmv_alvo\` entrou depois, pelo mesmo raciocinio e tambem por medicao: ele e a
+-- META de CMV que a casa escolhe para o item, e com ele no \`do update\` um
+-- ajuste feito na tela era desfeito na reaplicacao. O valor que a carga grava na
+-- primeira vez (20 em coquetel, 30 em revenda, 100 em cortesia) e ponto de
+-- partida, nao palavra final.
 `)
 
   // ------------------------------------------------------------------ itens -
@@ -494,43 +585,32 @@ ${emLotes(m.itens, 2).map((lote) => '    ' + lote.map((i) => `(${txt(i.fichaId)}
 -- apagaria a ficha que a cliente criou na tela; apagar por \`grupo\` tambem,
 -- porque o grupo e texto livre e ela pode digitar "Cortesias".
 --
--- A POSSE E DEMONSTRAVEL PELO DADO, e e isso que resolve. Toda ficha desta
--- carga nasce com \`id = UUIDv5(restaurante_id, 'ficha:' || nome)\` — e o que
--- \`idDe('ficha', nome)\` calcula no gerador. Ficha criada pela tela nasce de
--- \`gen_random_uuid()\` e nao satisfaz essa igualdade nem por acidente (seria
--- preciso acertar 122 bits). Entao o delete abaixo recalcula o UUIDv5 em SQL, a
--- partir do \`nome\` que esta na propria linha, e so apaga a ficha em que o
--- recalculo CASA com o id gravado.
+-- A POSSE E GRAVADA, em \`fichas.origem_carga\` — a coluna que a migracao 0021
+-- criou. Esta carga escreve \`'${CARGA}'\` nela (secao 2), ficha feita na tela fica
+-- com a coluna NULA, e a 0005 escreve \`'0005'\`. Entao o delete abaixo alcanca
+-- exatamente as fichas que uma versao ANTERIOR desta mesma carga criou e que a
+-- versao de hoje nao tem mais.
 --
--- Em outras palavras: ele alcanca exatamente as fichas que uma versao ANTERIOR
--- desta mesma carga criou e que a versao de hoje nao tem mais. Nunca a ficha
--- da cliente, sem coluna nova, sem migracao e sem lista de nomes.
+-- ATE A 0021 ISSO ERA CALCULADO: a carga reconhecia as suas fichas refazendo em
+-- SQL a conta de \`UUIDv5(restaurante_id, 'ficha:' || nome)\` — 20 linhas de
+-- sha1, set_byte e substring — e comparando com o id gravado. Funcionava, e
+-- tinha dois defeitos que o rotulo resolve:
 --
--- A aritmetica do UUIDv5 (RFC 4122) em SQL, com o \`pgcrypto\` que o banco ja
--- tem: sha1(namespace_em_bytes || nome), 16 primeiros bytes, versao 5 no byte 6
--- e variante RFC no byte 8. E a mesma conta do \`uuid5()\` do gerar-seed.mjs.
+--  · **a chave era mutavel.** \`nome\` e coluna que a casa edita na tela. Ficha
+--    renomeada deixava de ser reconhecida pela propria carga que a criou, e se
+--    depois saisse da lista ficava no cardapio PARA SEMPRE — fora do alcance de
+--    qualquer versao futura desta carga. O rotulo nao muda quando o nome muda;
+--  · **a separacao entre cargas virava convencao.** Era o prefixo que separava
+--    esta carga da 0005, e uma 0006 copiada de uma das duas sem trocar o
+--    prefixo apagaria as fichas da outra em silencio.
+--
+-- Os ids continuam UUIDv5 do nome: eles so deixam de CARREGAR a posse.
 -- ---------------------------------------------------------------------------
 
-with posse as (
-  select f.id, f.nome,
-         substring(digest(decode(replace(f.restaurante_id::text, '-', ''), 'hex')
-                          || convert_to('ficha:' || f.nome, 'UTF8'), 'sha1')
-                   from 1 for 16) as h
-    from fichas f
-   where f.restaurante_id = ${txt(RESTAURANTE_ID)}
-     and f.id not in (select id from arquivo_fichas)
-), v5 as (
-  select id,
-         encode(set_byte(set_byte(h, 6, (get_byte(h, 6) & 15) | 80),
-                         8, (get_byte(h, 8) & 63) | 128), 'hex') as hex
-    from posse
-)
 delete from fichas f
- using v5
- where f.id = v5.id
-   and f.id::text = substring(v5.hex, 1, 8) || '-' || substring(v5.hex, 9, 4) || '-'
-                 || substring(v5.hex, 13, 4) || '-' || substring(v5.hex, 17, 4) || '-'
-                 || substring(v5.hex, 21, 12);
+ where f.restaurante_id = ${txt(RESTAURANTE_ID)}
+   and f.origem_carga = ${txt(CARGA)}
+   and f.id not in (select id from arquivo_fichas);
 `)
 
   // ------------------------------------------------------------ verificacao -
@@ -723,6 +803,10 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
   for (const g of modelo.grupos) {
     linha(`  ${g}`, modelo.fichas.filter((f) => f.grupo === g).length)
   }
-  linha('bytes de SQL', sql.length)
+  // `sql.length` conta UNIDADES UTF-16, nao bytes: cada acento do cardapio
+  // (NHOQUE, LIMÃO, CAIPIRINHA) cabe em 1 unidade e ocupa 2 bytes no arquivo.
+  // O numero impresso ficava menor que o arquivo no disco e nao servia para
+  // conferir nada. Medido nesta carga: 99096 impresso contra 99282 em disco.
+  linha('bytes de SQL', Buffer.byteLength(sql, 'utf8'))
   console.log(`\nescrito: ${DESTINO_SQL}`)
 }

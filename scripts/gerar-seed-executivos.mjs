@@ -19,9 +19,9 @@
 //     casos de encolhimento: item removido, ficha que encolheu, ficha que trocou
 //     um produto por outro. A carga de outubro quebrou por nao ter isso.
 //
-//  3. O `delete` de FICHA e por POSSE PROVADA PELO DADO — o id tem de ser o
-//     UUIDv5 recalculado do proprio nome da linha. Ficha criada na tela nasce de
-//     `gen_random_uuid()` e nao satisfaz a igualdade.
+//  3. O `delete` de FICHA e por POSSE GRAVADA: `fichas.origem_carga = '0005'`,
+//     a coluna que a migracao 0021 criou. Ficha feita na tela nasce com a coluna
+//     NULA e nenhuma carga a reivindica.
 //
 //  4. Dinheiro em `raise warning`, nao `raise exception`. A 0004 prendia a si
 //     mesma a um catalogo congelado: uma nota fiscal de limao a tornava
@@ -34,28 +34,32 @@
 //  6. `raise warning` e nao `raise notice` no diagnostico final, porque o
 //     `set local client_min_messages = warning` do topo esconderia o notice.
 //
-// E UMA COISA QUE A 0004 NAO PRECISAVA E ESTA CARGA PRECISA — a mais importante
-// deste arquivo:
+//  7. Uma TRAVA DE NOME antes de qualquer insert. `fichas_nome_unico` e um
+//     indice UNIQUE sobre `lower(mv_sem_acento(nome))` e esta carga insere com
+//     `on conflict (id)` — o alvo e a chave primaria, nao o nome. Entao se a
+//     casa apagar um prato na tela e redigita-lo, a carga morria com
+//     `ERROR: duplicate key value violates unique constraint "fichas_nome_unico"`,
+//     que nao diz qual ficha nem o que fazer. A trava troca isso por um
+//     diagnostico que nomeia a ficha e manda a acao. Vale igual para `produtos`.
 //
-//  7. O `delete` de ficha da 0004, copiado tal e qual, APAGARIA AS 56 FICHAS DE
-//     DRINQUE. A prova de posse dela e "o id e o UUIDv5 do nome", e as 56 fichas
-//     de drinque satisfazem isso exatamente como as 13 daqui — elas foram
-//     criadas pelo mesmo `idDe('ficha', nome)`. Sozinha, aquela clausula varre
-//     toda ficha do tenant que nao esteja no arquivo DESTA carga.
-//
-//     Entao aqui o delete exige DUAS coisas ao mesmo tempo: a posse pelo UUIDv5
-//     E o `grupo` desta carga. A conjuncao e que e segura, e nenhuma das duas
-//     metades seria:
-//       · so o grupo seria inseguro porque `grupo` e texto livre e a cliente
-//         pode digitar "Executivos" numa ficha dela;
-//       · so o UUIDv5 seria catastrofico, porque apagaria os drinques.
-//     A limitacao que sobra esta dita no SQL, e nao escondida.
-//
-//  8. E, porque promessa em comentario nao vale nada, a carga MEDE a promessa:
-//     ela guarda, antes de tocar em qualquer coisa, a contagem e o custo somado
-//     das fichas que NAO sao desta carga, e levanta excecao se qualquer um dos
-//     dois se mexer. Isso cobra "nao encostar nas 56" sem escrever 56 em lugar
+//  8. E, porque promessa em comentario nao vale nada, a carga MEDE a promessa de
+//     nao encostar nas fichas de outra carga: ela guarda, antes de tocar em
+//     qualquer coisa, a contagem, os itens e o custo somado das fichas que NAO
+//     sao desta carga, e levanta excecao se qualquer um dos tres se mexer. Isso
+//     cobra "nao encostar nas 56 fichas de drinque" sem escrever 56 em lugar
 //     nenhum — o que importa e a invariancia, nao o numero.
+//
+// SOBRE A CONVIVENCIA COM A 0004, e vale dizer porque este arquivo ja afirmou o
+// contrario: as duas cargas sao independentes e a ORDEM NAO IMPORTA. Cada uma
+// apaga so o que tem o seu proprio `origem_carga`. Isso foi medido nos dois
+// sentidos e num banco onde a 0005 aplicou ANTES da 0004.
+//
+// Uma versao anterior deste arquivo afirmava, em comentario, que reaplicar a
+// 0004 apagava as 13 fichas daqui (`DELETE 13`). Aquilo foi medido contra uma
+// versao em que esta carga ainda usava o prefixo `'ficha:'` da 0004, e deixou de
+// ser verdade quando o prefixo mudou — sem que o teste fosse refeito. Fica como
+// regra: teste cujo resultado dependa de codigo alterado tem de ser refeito,
+// inclusive o que passou.
 //
 // Reaproveita `idDe`/`txt`/`num`/`RESTAURANTE_ID` do gerar-seed.mjs por import,
 // para que o id de um produto seja o MESMO que a 0001/0003/0004 calculariam.
@@ -84,34 +88,27 @@ export const PRODUTOS_ANTES = 891
 // O grupo do cardapio desta carga.
 export const GRUPO = 'Executivos'
 
-// O ESPACO DE NOMES DO ID DA FICHA, e esta e a linha mais importante do arquivo.
+// O ROTULO DA POSSE: quem apaga o que, gravado em `fichas.origem_carga` pela
+// migracao 0021. Esta e a linha que separa esta carga da 0004.
 //
-// A 0004 deriva o id das fichas dela de `UUIDv5(restaurante, 'ficha:' || nome)`.
-// Se esta carga usasse o MESMO prefixo, as duas passariam a nao ter como
-// distinguir as proprias fichas das da outra — e o `delete` de ficha, que
-// apaga "o que e meu e nao esta no arquivo de hoje", viraria "apaga a ficha da
-// outra carga". Isso foi MEDIDO nos dois sentidos, e nos dois ele acontece:
+// Ela e um literal e nao uma conta, e isso e a correcao de um defeito real. A
+// versao anterior provava posse recalculando `UUIDv5(restaurante, prefixo||nome)`
+// em SQL, e o prefixo proprio era o que impedia esta carga de apagar as fichas
+// da 0004. Dois problemas, os dois medidos:
 //
-//   · o delete da 0004, copiado tal e qual para ca, alcanca as 56 fichas de
-//     drinque (49 + 3 + 4, contadas);
-//   · e a 0004, reaplicada depois desta, apaga as 13 fichas daqui (`DELETE 13`,
-//     medido) — e esse e defeito DELA, que esta no laudo e nao foi corrigido
-//     aqui porque a 0004 nao e entregavel deste turno.
+//   · `nome` e coluna que a casa edita. Ficha renomeada deixava de ser
+//     reconhecida pela carga que a criou; renomeada E fora da lista, ficava no
+//     cardapio para sempre, fora do alcance de qualquer versao futura;
+//   · a separacao entre cargas virava convencao: uma 0006 copiada de uma das
+//     duas, sem trocar o prefixo, apagaria as fichas da outra em silencio.
 //
-// Com um prefixo proprio, a posse passa a ser EXATA e nao heuristica: a ficha
-// desta carga tem `id = UUIDv5(restaurante, 'ficha-executivo:' || nome)`, que
-// nenhuma ficha da 0004 e nenhuma ficha criada na tela pode satisfazer. O id
-// continua sendo funcao de (restaurante, nome), como o briefing pede — so num
-// espaco de nomes que diz de quem ele e.
-//
-// A PRIMEIRA VERSAO DESTA CARGA NAO FAZIA ASSIM. Ela usava o prefixo 'ficha:' e
-// se defendia com `grupo = 'Executivos'` ao lado do UUIDv5, e o comentario
-// prometia que a verificacao DETECTARIA o caso restante (a cliente mover um
-// drinque para o grupo Executivos). O teste mostrou que nao detectava: a ficha
-// XEREM foi apagada e a carga deu COMMIT, porque o retrato das "fichas de fora"
-// era tirado depois de ela ja ter entrado no grupo. Promessa em comentario ao
-// lado de codigo que a quebra e a pior forma de ter um defeito, e a licao ja
-// estava escrita no laudo da 0004. O prefixo proprio fecha o caso de verdade.
+// Com o rotulo nao ha o que esquecer nem o que recalcular, e a posse sobrevive a
+// um renome.
+export const CARGA = '0005'
+
+// O espaco de nomes do ID da ficha. Ele continua separado da 0004 (que usa
+// `'ficha:'`) porque dois ids iguais para fichas diferentes seria conflito de
+// chave primaria — mas ele NAO carrega mais a posse. Um id voltou a ser um id.
 export const ESPACO_DA_FICHA = 'ficha-executivo'
 
 export const CARGA_EM = '2026-10-14 23:59:00-03'
@@ -399,6 +396,79 @@ create temporary table arquivo_fichas (id uuid primary key) on commit drop;
     m.fichas.map((f) => txt(f.id)),
     'on conflict (id) do nothing'))
   p.push('')
+
+  // ------------------------------------------------- a trava do nome unico --
+  p.push(`-- ---------------------------------------------------------------------------
+-- 0a · A TRAVA DO NOME, antes de qualquer insert
+--
+-- \`fichas_nome_unico\` e um indice UNIQUE sobre
+-- \`(restaurante_id, lower(mv_sem_acento(nome)))\`, e o \`insert into fichas\` desta
+-- carga usa \`on conflict (id) do update\` — o alvo do \`on conflict\` e a chave
+-- PRIMARIA, nao este indice. Entao o nome e um recurso compartilhado que nenhuma
+-- clausula da carga absorve.
+--
+-- O caso e a coisa mais natural que a casa pode fazer: apagar um prato na tela e
+-- digita-lo de novo. A ficha nova nasce com \`gen_random_uuid()\` e com o mesmo
+-- nome, e a carga morre assim:
+--
+--     ERROR:  duplicate key value violates unique constraint "fichas_nome_unico"
+--     DETAIL: Key (restaurante_id, lower(mv_sem_acento(nome)))=(…, schnitzel com
+--             maionese) already exists.
+--
+-- Isso nao diz qual ficha, nao diz por que, e nao diz o que fazer — e a mesma
+-- carga que escreve nove diagnosticos cuidadosos no fim morreria com um erro
+-- cru do Postgres no meio. A trava abaixo troca o erro pela instrucao.
+--
+-- POR QUE NAO \`on conflict (nome)\`: isso faria a carga CAPTURAR a ficha que a
+-- casa criou, sobrescrevendo o trabalho dela com o do arquivo — exatamente o que
+-- o desenho da posse (\`origem_carga\`) existe para evitar. Recusar e aplicar e a
+-- resposta certa; a casa decide se renomeia a dela ou se apaga.
+--
+-- A mesma exposicao existe em \`produtos_nome_unico\`, com a mesma forma, e por
+-- isso a trava cobre os dois. Hoje ela nao dispara em produto (os ${m.produtos.length} nomes
+-- desta carga e os 12 da 0004 sao disjuntos), mas o custo de cobrir e uma
+-- consulta e o custo de nao cobrir e a mesma mensagem crua.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_n int;
+  v_quais text;
+begin
+  -- Ficha com um dos nomes desta carga, mas com OUTRO id. Comparada pela mesma
+  -- expressao do indice, senao a trava deixa passar o que o indice vai recusar.
+  select count(*), string_agg(format('%L (id %s, origem %s)', f.nome, f.id,
+                                     coalesce(f.origem_carga, 'feita na tela')),
+                              ', ' order by f.nome)
+    into v_n, v_quais
+    from fichas f
+   where f.restaurante_id = ${txt(RESTAURANTE_ID)}
+     and f.id not in (select id from arquivo_fichas)
+     and lower(mv_sem_acento(f.nome)) in (
+${emLotes(m.fichas, 2).map((lote) => '       ' + lote.map((f) => `lower(mv_sem_acento(${txt(f.nome)}))`).join(', ')).join(',\n')}
+     );
+  if v_n <> 0 then
+    raise exception '0005: % ficha(s) com um nome desta carga e outro id: %. O indice fichas_nome_unico recusaria o insert com "duplicate key" e esta carga nao aplicaria. Isso acontece quando a ficha foi apagada e redigitada na tela. O que fazer: renomeie ou apague a ficha listada acima, e reaplique. A carga NAO a sobrescreve de proposito — o trabalho feito na tela nao e dela.',
+      v_n, v_quais;
+  end if;
+
+  -- O mesmo para produto, pelo mesmo motivo e com a mesma mensagem.
+  select count(*), string_agg(format('%L (id %s)', p.nome, p.id), ', ' order by p.nome)
+    into v_n, v_quais
+    from produtos p
+   where p.restaurante_id = ${txt(RESTAURANTE_ID)}
+     and p.id not in (
+${listaDeIds(m.produtos.map((x) => x.id))}
+     )
+     and lower(mv_sem_acento(p.nome)) in (
+${emLotes(m.produtos, 2).map((lote) => '       ' + lote.map((x) => `lower(mv_sem_acento(${txt(x.nome)}))`).join(', ')).join(',\n')}
+     );
+  if v_n <> 0 then
+    raise exception '0005: % produto(s) com um nome desta carga e outro id: %. O indice produtos_nome_unico recusaria o insert. O que fazer: RENOMEIE o produto listado (ou apague-o, se ele for mesmo duplicata do desta carga) e reaplique. DESATIVAR NAO RESOLVE: o indice nao olha a coluna ativo, medido — com o produto desativado a carga recusa igual.',
+      v_n, v_quais;
+  end if;
+end $$;
+`)
   p.push(`-- ---------------------------------------------------------------------------
 -- 0b · AS FICHAS QUE ESTA CARGA POSSUI, e as que ela nao possui
 --
@@ -410,15 +480,28 @@ create temporary table arquivo_fichas (id uuid primary key) on commit drop;
 -- hoje nao tem mais contava como ficha de outra carga — o delete a apagava
 -- (certo) e a verificacao acusava invasao (errado), derrubando a transacao.
 --
--- POSSE = estar no arquivo de hoje, OU ter o \`grupo\` desta carga E um id que
--- seja o UUIDv5 recalculado do proprio nome. A segunda metade e o que alcanca a
--- ficha que saiu da lista; e a CONJUNCAO (grupo E UUIDv5) e o que impede que
--- ela alcance as fichas de drinque da 0004, que tambem nascem de
--- \`UUIDv5(restaurante, 'ficha:' || nome)\` mas estao em outro grupo.
+-- POSSE = estar no arquivo de hoje, OU ter o rotulo \`origem_carga = '${CARGA}'\`.
 --
--- A aritmetica do UUIDv5 (RFC 4122) em SQL, com o \`pgcrypto\` que o banco ja
--- tem: sha1(namespace_em_bytes || nome), 16 primeiros bytes, versao 5 no byte 6
--- e variante RFC no byte 8. E a mesma conta do \`uuid5()\` do gerar-seed.mjs.
+-- O rotulo vem da migracao 0021 e substituiu uma posse CALCULADA: ate ela, esta
+-- carga reconhecia as suas fichas refazendo em SQL a conta de
+-- \`UUIDv5(restaurante_id, '${ESPACO_DA_FICHA}:' || nome)\` — 21 linhas de sha1,
+-- set_byte e substring — e comparando com o id gravado. Funcionava, e tinha
+-- dois defeitos que o rotulo resolve de uma vez:
+--
+--  · **a chave era mutavel.** \`nome\` e coluna que a casa edita na tela. Ficha
+--    renomeada deixava de ser reconhecida pela propria carga que a criou, e se
+--    depois saisse da lista ficava no cardapio PARA SEMPRE — nem esta carga nem
+--    nenhuma versao futura dela conseguia remove-la. O rotulo nao muda quando o
+--    nome muda;
+--  · **a separacao entre cargas dependia de convencao.** Era o prefixo que
+--    separava esta carga da 0004 (\`'ficha:'\`), e uma 0006 escrita copiando uma
+--    das duas e esquecendo de trocar o prefixo apagaria as fichas da outra em
+--    silencio. Nao e hipotese: esta carga nasceu com \`'ficha:'\` e so um teste
+--    pegou. Com o rotulo, cada carga escreve o seu literal e nao ha o que
+--    esquecer.
+--
+-- Os ids continuam UUIDv5 do nome — eles so deixam de CARREGAR a posse, o que e
+-- ganho: um id passa a ser um id.
 -- ---------------------------------------------------------------------------
 
 create temporary table fichas_desta_carga (id uuid primary key) on commit drop;
@@ -426,27 +509,11 @@ create temporary table fichas_desta_carga (id uuid primary key) on commit drop;
 insert into fichas_desta_carga (id) select id from arquivo_fichas;
 
 insert into fichas_desta_carga (id)
-with posse as (
-  select f.id, f.nome,
-         substring(digest(decode(replace(f.restaurante_id::text, '-', ''), 'hex')
-                          || convert_to(${txt(ESPACO_DA_FICHA + ':')} || f.nome, 'UTF8'),
-                          'sha1')
-                   from 1 for 16) as h
-    from fichas f
-   where f.restaurante_id = ${txt(RESTAURANTE_ID)}
-     and f.id not in (select id from arquivo_fichas)
-), v5 as (
-  select id,
-         encode(set_byte(set_byte(h, 6, (get_byte(h, 6) & 15) | 80),
-                         8, (get_byte(h, 8) & 63) | 128), 'hex') as hex
-    from posse
-)
 select f.id
   from fichas f
-  join v5 on f.id = v5.id
- where f.id::text = substring(v5.hex, 1, 8) || '-' || substring(v5.hex, 9, 4) || '-'
-                 || substring(v5.hex, 13, 4) || '-' || substring(v5.hex, 17, 4) || '-'
-                 || substring(v5.hex, 21, 12)
+ where f.restaurante_id = ${txt(RESTAURANTE_ID)}
+   and f.origem_carga = ${txt(CARGA)}
+   and f.id not in (select id from arquivo_fichas)
 on conflict (id) do nothing;
 
 -- O retrato das fichas que NAO sao desta carga, tirado ANTES de qualquer insert
@@ -567,12 +634,12 @@ ${semCat.map((x) => `--     ${x.nome.padEnd(30)} R$ ${String(x.custo).padStart(1
     'fichas', 'fichas',
     ['id', 'restaurante_id', 'nome', 'grupo', 'descricao', 'modo_preparo',
       'rendimento', 'unidade_rendimento', 'preco_venda', 'cmv_alvo', 'ativo',
-      'ordem'],
+      'ordem', 'origem_carga'],
     m.fichas.map((f) => [
       txt(f.id), txt(RESTAURANTE_ID), txt(f.nome), txt(f.grupo),
       txt(f.descricao), txt(f.modoPreparo), num(f.rendimento, 4),
       txt(f.unidadeRendimento), num(f.precoVenda, 4), num(f.cmvAlvo, 3),
-      'true', String(f.ordem),
+      'true', String(f.ordem), txt(CARGA),
     ].join(', ')),
     `on conflict (id) do update set
      nome = excluded.nome,
@@ -580,22 +647,48 @@ ${semCat.map((x) => `--     ${x.nome.padEnd(30)} R$ ${String(x.custo).padStart(1
      descricao = excluded.descricao,
      rendimento = excluded.rendimento,
      unidade_rendimento = excluded.unidade_rendimento,
-     cmv_alvo = excluded.cmv_alvo,
-     ordem = excluded.ordem`))
+     ordem = excluded.ordem,
+     origem_carga = excluded.origem_carga`))
   p.push('')
-  p.push(`-- \`preco_venda\` e \`ativo\` de proposito FORA do \`do update\`, e os dois por
--- medicao e nao por simetria:
+  p.push(`-- O carimbo da posse, para a ficha que ESTA no arquivo de hoje mas que
+-- nasceu antes da migracao 0021 (e por isso tem \`origem_carga\` nula). O
+-- \`do update\` acima ja resolve isso, e este \`update\` existe para o caso em que
+-- a linha nao passou pelo \`do update\` — e tambem porque ele casa por **id**
+-- contra \`arquivo_fichas\`, o que alcanca a ficha que a casa RENOMEOU: o nome
+-- mudou, o id nao.
 --
---  · \`preco_venda\`: a cliente vai preencher o preco pela tela, prato a prato,
+-- A clausula \`origem_carga is null or = '${CARGA}'\` e o que impede esta carga de
+-- reivindicar ficha de outra: se um id deste arquivo ja estivesse carimbado como
+-- '0004' (impossivel hoje, porque os espacos de id sao disjuntos), o carimbo nao
+-- aconteceria e a verificacao da secao 5 acusaria a contagem errada.
+update fichas set origem_carga = ${txt(CARGA)}
+ where id in (select id from arquivo_fichas)
+   and (origem_carga is null or origem_carga = ${txt(CARGA)});
+`)
+  p.push('')
+  p.push(`-- TRES COLUNAS de proposito FORA do \`do update\`, e as tres por medicao e nao
+-- por simetria. O criterio e um so: campo em que a casa DECIDE algo a carga nao
+-- sobrescreve; campo que descreve o que veio da planilha, sim.
+--
+--  · \`preco_venda\`: a casa vai preencher o preco pela tela, prato a prato,
 --    olhando os cinco indices da descricao. Reaplicar a carga nao pode zerar
 --    isso. O arquivo manda no que veio da planilha; o preco e dela.
 --  · \`ativo\`: com \`ativo = true\` no \`do update\`, uma ficha que ela DESATIVOU
 --    voltava ativa na reaplicacao. Desativar e como o modulo diz "este prato
 --    saiu do cardapio", e a carga nao tem autoridade para discordar. (Medido na
 --    0004: \`XEREM\` desativada voltava ativa.)
+--  · \`cmv_alvo\`: esta saiu depois, e o motivo e o mesmo. O \`cmv_alvo\` e o OUTRO
+--    LADO do indice de markup — indice 4 quer dizer CMV 25% — e a decisao que a
+--    casa tomou foi justamente escolher o indice prato a prato na tela. Com
+--    \`cmv_alvo\` no \`do update\`, ela punha 25 no GNOCCHI e a reaplicacao
+--    devolvia 20, mudando o veredito de CMV da tela junto. Medido.
+--
+-- O 20 que a carga grava na PRIMEIRA vez continua sendo o da planilha (indice 5,
+-- CMV 0,2, em 48 de 48 celulas) — ele e o ponto de partida, nao a palavra final.
 --
 -- \`modo_preparo\` nasce nulo: a planilha e de CUSTO e nao traz preparo. Nao se
--- inventa modo de preparo, e isso esta na lista da cliente.
+-- inventa modo de preparo, e isso esta na lista da cliente. Ele tambem esta fora
+-- do \`do update\`, entao o preparo que ela digitar sobrevive — medido.
 `)
 
   // ----------------------------------------------------------------- itens --
@@ -671,47 +764,41 @@ ${emLotes(m.itens, 2).map((lote) => '    ' + lote.map((i) => `(${txt(i.fichaId)}
 -- na tela da cliente.
 --
 -- O problema e saber QUAIS fichas sao desta carga, e a resposta esta na secao
--- 0b: \`fichas_desta_carga\` = o arquivo de hoje MAIS toda ficha do tenant cujo
--- id seja o UUIDv5 recalculado de \`'${ESPACO_DA_FICHA}:' || nome\`. O delete
--- tira dessa tabela as que estao no arquivo de hoje — e o que sobra e,
--- exatamente, "ficha que uma versao anterior desta carga criou e que a versao
--- de hoje nao tem mais".
+-- 0b: \`fichas_desta_carga\` = o arquivo de hoje MAIS toda ficha do tenant com o
+-- rotulo \`origem_carga = '${CARGA}'\`. O delete tira dessa tabela as que estao no
+-- arquivo de hoje — e o que sobra e, exatamente, "ficha que uma versao anterior
+-- desta carga criou e que a versao de hoje nao tem mais".
 --
--- O ESPACO DE NOMES '${ESPACO_DA_FICHA}' E O QUE TORNA ISSO EXATO. A 0004 usa
--- 'ficha:' e esta certa para ela; se esta carga usasse o mesmo prefixo, a posse
--- viraria um palpite e o delete alcancaria as fichas da outra carga. Isso foi
--- medido: a clausula da 0004, copiada tal e qual para ca, alcanca as 56 fichas
--- de drinque — 49 em Drinques, 3 em Happy Hour, 4 em Sem Alcool, contadas.
--- Com o prefixo proprio, nenhuma ficha da 0004 e nenhuma ficha criada na tela
--- (que nasce de \`gen_random_uuid()\`) satisfaz a igualdade; seria preciso
--- acertar 122 bits.
+-- O ROTULO torna isso exato por construcao. Ele e gravado pela propria carga
+-- (secao 2), sobrevive a um renome, e e outro literal na 0004 — entao:
 --
--- E POR QUE NAO HA CLAUSULA DE \`grupo\` AQUI. A primeira versao desta carga
--- tinha: ela usava 'ficha:' e somava \`grupo = '${GRUPO}'\` como segunda trava.
--- O teste derrubou as duas metades dessa ideia:
+--   · ficha da 0004 nao e alcancada, porque o rotulo dela e '0004';
+--   · ficha feita na tela nao e alcancada, porque o rotulo dela e NULO;
+--   · ficha desta carga e alcancada esteja em que grupo estiver e com o nome
+--     que a casa tiver dado a ela.
 --
---   · o \`grupo\` nao protege o que importa — a cliente mover a ficha XEREM para
---     o grupo "${GRUPO}" fez esta carga APAGA-LA, e a carga deu COMMIT, porque
---     o retrato das "fichas de fora" era tirado depois de ela ja ter entrado no
---     grupo. O comentario de entao prometia que a verificacao detectaria o
---     caso. Nao detectava;
---   · e o \`grupo\` ATRAPALHA no caso legitimo: se a cliente mudar o grupo de
---     uma ficha DESTA carga e ela depois sair da lista, a clausula de grupo
---     impediria o delete e deixaria a ficha orfa no banco.
+-- O QUE ESTA SEÇÃO JA DISSE DE ERRADO, e vale ficar escrito porque o erro foi de
+-- metodo e nao de codigo:
 --
--- Com a posse pelo espaco de nomes, os dois casos ficam certos sem clausula de
--- grupo: o drinque movido nao e alcancado porque o id nao casa, e a ficha desta
--- carga e alcancada esteja ela em que grupo estiver.
+--   · uma versao anterior provava posse recalculando o UUIDv5 do nome e somava
+--     \`grupo = '${GRUPO}'\` como segunda trava, com um comentario aqui prometendo
+--     que a verificacao DETECTARIA o caso restante (a casa mover um drinque para
+--     o grupo ${GRUPO}). Nao detectava: o teste apagou a ficha XEREM e a carga
+--     deu COMMIT, porque o retrato das "fichas de fora" era tirado depois de ela
+--     ja ter entrado no grupo;
+--   · e outra versao afirmava aqui que reaplicar a 0004 apagava as 13 fichas
+--     desta carga (\`DELETE 13\`). Aquilo foi medido quando esta carga ainda usava
+--     o prefixo \`'ficha:'\` da 0004, e deixou de ser verdade no instante em que o
+--     prefixo mudou — mas o teste nao foi refeito e a frase ficou. Hoje, medido
+--     de novo: reaplicar a 0004 da \`DELETE 0\` e as 13 sobrevivem com o custo
+--     igual, e num banco novo a sequencia 0005 → 0004 → 0005 fecha certo. A
+--     ORDEM NAO IMPORTA e a 0004 nao precisa de conserto por causa desta carga.
 --
--- A aritmetica do UUIDv5 (RFC 4122) em SQL, com o \`pgcrypto\` que o banco ja
--- tem: sha1(namespace_em_bytes || nome), 16 primeiros bytes, versao 5 no byte 6
--- e variante RFC no byte 8. E a mesma conta do \`uuid5()\` do gerar-seed.mjs.
---
--- O QUE ESTA CARGA NAO PODE RESOLVER, e esta no laudo: a 0004 nao tem espaco de
--- nomes proprio nem clausula de grupo, entao REAPLICAR A 0004 depois desta
--- apaga as 13 fichas daqui (\`DELETE 13\`, medido). O conserto e uma linha na
--- 0004 e nao e entregavel deste turno. Enquanto isso, a ordem importa: 0004
--- antes, 0005 depois — que e a ordem em que supabase/testes/executar.sh aplica.
+-- As duas frases erradas tinham a mesma causa: afirmacao em comentario que
+-- sobreviveu a mudanca do codigo que a sustentava. E o padrao que o laudo da
+-- 0004 batizou — "a promessa escrita ao lado do codigo que a quebrava" — e a
+-- regra que fica e refazer o teste sempre que a solucao muda, inclusive o teste
+-- que passava.
 -- ---------------------------------------------------------------------------
 
 delete from fichas f
@@ -973,6 +1060,9 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
   linha('soma das quantidades (ancora da excecao)', modelo.somaQuantidades)
   linha('custo total somado (R$)', modelo.custoTotal)
   linha('grupo', modelo.grupos.join(', '))
-  linha('bytes de SQL', sql.length)
+  // `sql.length` conta unidades UTF-16 e nao bytes: a diferenca e o numero de
+  // caracteres nao-ASCII (924 neste arquivo, por causa dos acentos). O rotulo
+  // dizia "bytes" e o numero era outro — N8 do laudo 3.
+  linha('bytes de SQL', Buffer.byteLength(sql, 'utf8'))
   console.log(`\nescrito: ${DESTINO_SQL}`)
 }

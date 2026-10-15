@@ -147,7 +147,10 @@ SETOR_DOS_NOVOS = 'Cozinha'
 #   2. o nome diz o produto e o preco esta na mesma ordem de grandeza;
 #   3. exclusao (o catalogo tem dois candidatos e a planilha lista o outro
 #      em linha propria);
-#   4. escolha forcada (o catalogo tem um candidato so).
+#   4. escolha forcada: ou o catalogo tem um candidato so, ou os candidatos mais
+#      proximos no preco foram recusados por um argumento que nao e preco — e
+#      nesse caso o argumento fica escrito no motivo, para a cliente poder
+#      discordar dele (e o caso do `copalombo`).
 #
 # `razao` e o custo do nosso catalogo dividido pelo `Custo compra` da planilha, e
 # ele esta escrito aqui para que a conferencia nao dependa de eu ter somado bem.
@@ -156,7 +159,7 @@ EXATO = 'custo exato'           # o Custo compra da planilha == o nosso custo
 QUASE = 'custo quase exato'     # dentro de 3%, que e a faixa do resto do de-para
 NOME = 'nome'                   # o nome diz o produto
 EXCLUSAO = 'exclusao'           # o outro candidato tem linha propria na planilha
-FORCADA = 'escolha forcada'     # o catalogo tem um candidato so
+FORCADA = 'escolha forcada'     # candidato unico, ou os mais proximos recusados
 
 DE_PARA = OrderedDict([
     # ---- casam exato pelo nome, e a conferencia e so o preco ----------------
@@ -285,15 +288,22 @@ DE_PARA = OrderedDict([
         'R$ 1,75 contra R$ 2,72 = 0,643')),
     ('sal refinado', ('SAL REFINADO (1kg)', NOME,
         'nome identico mais o tamanho')),
-    ('copalombo', ('LOMBO SUÍNO', QUASE,
-        'A DECISAO MAIS AGRESSIVA DO DE-PARA, e o argumento esta no preco. '
-        'R$ 18,90 contra R$ 16,97 = 1,114. O catalogo TEM "COPA LOMBO", em duas '
-        'linhas, mas as duas sao porcao pronta com o custo da porcao gravado numa '
-        'unidade KG: COPA LOMBO (120G) a R$ 4,30 e COPA LOMBO (250G) a R$ 9,70 — '
-        'que dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha. '
-        'Mapear para elas poria R$ 0,52 de carne num schnitzel. O LOMBO SUINO e '
-        'o corte cru, no preco da planilha. Se eu estiver errado, 1 ficha '
-        'subestima a carne')),
+    ('copalombo', ('LOMBO SUÍNO', FORCADA,
+        'A DECISAO MAIS AGRESSIVA DO DE-PARA, e ela NAO e "custo quase exato": '
+        'R$ 18,90 contra R$ 16,97 = 1,114, e 11,4% esta fora da faixa de 3% em '
+        'que as outras sete grafias desse rotulo cabem (a pior delas e 3,6%). E '
+        'escolha forcada, e a forca aparece na lista inteira de candidatos: '
+        'COPA LOMBO (120G) R$ 4,30 e COPA LOMBO (250G) R$ 9,70 sao porcao pronta '
+        'com o custo da porcao gravado numa unidade KG (dao R$ 35,83/kg e '
+        'R$ 38,80/kg, coerentes entre si e 2,2x a planilha, e mapear para elas '
+        'poria R$ 0,52 de carne num schnitzel); LOMBO SALGADO R$ 29,94 (razao '
+        '1,764) e da FEIJOADA; LOMBO SUÍNO SALGADO R$ 17,65 (razao 1,040) e '
+        'LOMBO SUÍNO SALGADO (SUÍNOS) R$ 18,49 (razao 1,090) estao MAIS PERTO no '
+        'preco do que o escolhido, e foram recusados por serem carne CURADA, nao '
+        'por preco: schnitzel se faz com lombo fresco. Sobra o LOMBO SUÍNO, que e '
+        'o corte cru. A recusa esta registrada aqui e na observacao do item para '
+        'que a cliente possa discordar do argumento, e nao do numero. Se eu '
+        'estiver errado, 1 ficha subestima a carne')),
 
     # ---- contagem: o numero da planilha e uma CONTAGEM, nao um peso ---------
     ('ovo', ('OVO BRANCO', NOME,
@@ -458,18 +468,47 @@ SUB_RECEITA_PRODUTO = OrderedDict([
 # cadastro e escrever a duvida, porque gravar a unidade da planilha faria
 # `mv_fator_para_produto` devolver NULO, o item viraria `unidade_incompativel`,
 # o custo viria nulo e a propria carga se recusaria a aplicar.
+#
+# O AVISO DE UNIDADE JA ESTEVE ERRADO, e o erro era do tipo pior: ele mandava a
+# cliente FAZER a coisa que derruba o sistema. O texto antigo era "conferir o
+# peso da UND", e a leitura natural dele, na tela de produto, e trocar a unidade
+# do produto para KG — que e a unidade que a receita usa. Medido, e por dois
+# caminhos independentes:
+#
+#   update produtos set unidade='KG' where nome in ('MANJERICÃO','SALSA')
+#      -> 4 fichas perdem custo:  GNOCCHI COM CARNE ASSADA     R$ 0,2285
+#                                 CARNE SECA COM TUTU A MINEIRA R$ 0,3630
+#                                 ISCA DE FIGADO COM PURE       R$ 0,3630
+#                                 LIMONCELLO SPRITZ (DRINQUE!)  R$ 0,4570
+#      -> R$ 1,4115 somados, e as DUAS cargas param de aplicar:
+#         ERROR: 0004: 1 item(ns) com unidade incompativel
+#         ERROR: 0005: 3 item(ns) com unidade incompativel
+#
+# O estrago passa por cima do muro entre as cargas porque o MANJERICÃO e
+# ingrediente de drinque tambem: o aviso desta carga podia derrubar a 0004.
+#
+# A acao certa nao e trocar a unidade depois; e NAO TROCAR NUNCA.
+# `mv_fator_para_produto` converte peso<->contagem pela EMBALAGEM: com
+# `conteudo_quantidade` e `conteudo_unidade` preenchidos, o item fala KG, o
+# produto continua em UND (que e o que a folha de contagem usa) e o fator
+# converte sozinho — medido com `conteudo_quantidade = 1 / conteudo_unidade = KG`
+# na SALSA: fator 1, custo R$ 0,3630 antes e depois, zero itens incompativeis.
 # ---------------------------------------------------------------------------
+AVISO_UNIDADE = (
+    'a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do '
+    'produto para KG: isso faz o fator de conversao vir nulo, o custo deste item '
+    'vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e '
+    'preencher conteudo_quantidade e conteudo_unidade do produto com o peso de '
+    '1 UND; o fator passa a converter sozinho, a unidade do produto continua UND '
+    'para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg'
+)
+
 AVISO_NO_ITEM = {
-    'brócolis americano':
-        'a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND',
-    'manjericão':
-        'a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND',
-    'rúcula':
-        'a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND',
-    'vagem':
-        'a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND',
-    'salsa picada':
-        'a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND',
+    'brócolis americano': AVISO_UNIDADE,
+    'manjericão': AVISO_UNIDADE,
+    'rúcula': AVISO_UNIDADE,
+    'vagem': AVISO_UNIDADE,
+    'salsa picada': AVISO_UNIDADE,
     'ovo branco':
         'a planilha rotula KG e o numero (7) e contagem de ovos, nao quilos',
     'carne assada 120gr':
@@ -490,8 +529,11 @@ AVISO_NO_ITEM = {
     'leitiosa de empanamento':
         'numa das tres linhas a celula Unidade da planilha esta vazia',
     'copalombo':
-        'mapeado para LOMBO SUÍNO e nao para COPA LOMBO (120G/250G), que no nosso '
-        'catalogo sao porcao pronta com custo de porcao numa unidade KG',
+        'mapeado para LOMBO SUÍNO (R$ 18,90/kg contra R$ 16,97 da planilha, +11,4%) '
+        'e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta '
+        'com custo de porcao numa unidade KG. O LOMBO SUÍNO SALGADO (R$ 17,65, a '
+        '+4,0%) estava mais perto no preco e foi recusado por ser carne CURADA, nao '
+        'por preco — se o copalombo da planilha for curado, troque para ele',
     'acém mp':
         'custo R$ 62,60 vindo da planilha: e acem guisado e a planilha nao da a receita',
     'pernil mp':
@@ -505,6 +547,12 @@ AVISO_NO_ITEM = {
         'custo R$ 8,83/kg vindo da planilha: a planilha nao da a receita',
 }
 
+# As grafias que o aviso de unidade cobre, derivadas da PROPRIA tabela acima.
+# Nao e uma segunda lista a manter: se uma sexta grafia entrar em
+# `AVISO_NO_ITEM` apontando para `AVISO_UNIDADE`, ela entra aqui sozinha, e o
+# aviso herdado das sub-receitas passa a encontra-la sem eu editar nada.
+GRAFIAS_EM_UND = frozenset(g for g, t in AVISO_NO_ITEM.items() if t is AVISO_UNIDADE)
+
 # ---------------------------------------------------------------------------
 # As 5 linhas em que o Peso Liquido (0,15) e MAIOR que o PesoBruto (0,12), o que
 # pediria `perda_percentual` negativa e o schema recusa.
@@ -512,10 +560,13 @@ AVISO_NO_ITEM = {
 # A quantidade gravada e 0,12, e sao quatro razoes e nao uma preferencia:
 #   1. liquido maior que bruto e impossivel: perda de limpeza nao cria massa;
 #   2. o `check (perda_percentual >= 0)` do schema recusa o negativo;
-#   3. o MESMO ingrediente aparece 0,12 / 0,12 com fator 1 em oito outros blocos
-#      da mesma planilha — 0,12 e o padrao da casa e 0,15 e a excecao;
+#   3. o MESMO produto aparece 0,12 / 0,12 com fator 1 em SEIS outros blocos
+#      da mesma planilha — 0,12 e o padrao da casa e 0,15 e a excecao. Sao seis,
+#      e nao oito: das 12 linhas que resolvem para FEIJÃO PRONTO, 6 estao a
+#      0,12/0,12, 5 a 0,12/0,15 e 1 e a linha de LOTE do TUTU (1/1). O 8 do
+#      primeiro laudo contava blocos que nao eram deste produto;
 #   4. a col10 — a coluna que a `Resumo` publica e que a nossa vista reproduz —
-#      ja calcula 0,12 x 3,15 = R$ 0,378, identico aos oito blocos certos. A
+#      ja calcula 0,12 x 3,15 = R$ 0,378, identico aos seis blocos certos. A
 #      propria planilha, no dinheiro, ja se comporta como se fosse 0,12.
 # ---------------------------------------------------------------------------
 QUANTIDADE_DO_BRUTO = {
@@ -727,6 +778,51 @@ def main() -> int:
         if bn not in produto_da_sub:
             sys.exit('bloco de sub-receita sem produto declarado: %s' % bn)
 
+    # -----------------------------------------------------------------------
+    # O AVISO DE UNIDADE TEM DE SUBIR A ARVORE.
+    #
+    # Dos cinco ingredientes que a planilha pesa e o nosso cadastro conta, TRES
+    # — BRÓCOLIS AMERICANO, RÚCULA HIDROPÔNICA e VAGEM FRANCESA — nao aparecem em
+    # NENHUMA linha de `ficha_itens`:
+    #
+    #     BRÓCOLIS AMERICANO|UND|(nenhuma ficha)|0
+    #     MANJERICÃO        |UND|Drinques|1 · Executivos|1
+    #     RÚCULA HIDROPÔNICA|UND|(nenhuma ficha)|0
+    #     SALSA             |UND|Executivos|2
+    #     VAGEM FRANCESA    |UND|(nenhuma ficha)|0
+    #
+    # Eles vivem DENTRO de um produto de sub-receita, e o aviso deles ficava numa
+    # linha que a cliente nao ve em lugar nenhum: a tela mostra a ficha do prato,
+    # e na ficha do prato o que aparece e `SALADA DE LEGUMES MP`, uma linha so.
+    # O aviso existia e nao servia para nada — era aviso para mim, no JSON.
+    #
+    # Esta funcao desce a arvore do preparo e devolve os produtos em UND que
+    # estao abaixo dele, em qualquer profundidade, para que o aviso apareca na
+    # linha que ELA ve. Nao e cosmetica: `SALADA DE LEGUMES MP` e a maior parcela
+    # de custo do prato de maior divergencia da planilha, e e ela que carrega o
+    # brocolis e a vagem.
+    # -----------------------------------------------------------------------
+    memo_und: dict = {}
+
+    def und_abaixo(sub_nome: str, caminho: tuple = ()) -> list:
+        if sub_nome in memo_und:
+            return memo_und[sub_nome]
+        if sub_nome in caminho:
+            sys.exit('ciclo de sub-receita ao procurar unidade: %s' % sub_nome)
+        achado: list = []
+        for it in bloco_da_sub[sub_nome]['itens']:
+            dentro = it.get('sub_receita')
+            if dentro:
+                achado.extend(und_abaixo(dentro, caminho + (sub_nome,)))
+            elif k_ing(it['ingrediente']) in GRAFIAS_EM_UND:
+                achado.append(DE_PARA[k_ing(it['ingrediente'])][0])
+        unicos: list = []
+        for nome_und in achado:
+            if nome_und not in unicos:
+                unicos.append(nome_und)
+        memo_und[sub_nome] = unicos
+        return unicos
+
     # =======================================================================
     # Resolver uma linha de ingrediente: produto, unidade, quantidade, perda.
     # A MESMA funcao serve o prato e a sub-receita — e e por isso que o custo do
@@ -747,11 +843,24 @@ def main() -> int:
         avisos = []
 
         sub = item.get('sub_receita')
+        herdados: list = []
         if sub:
             nome_produto = produto_da_sub[sub]
             motivo = 'sub-receita da propria planilha (bloco %s), provada por %s' % (
                 sub, item.get('prova_da_sub_receita'))
             forca = 'sub-receita'
+            herdados = und_abaixo(sub)
+            if herdados:
+                lista = (herdados[0] if len(herdados) == 1
+                         else ', '.join(herdados[:-1]) + ' e ' + herdados[-1])
+                avisos.append(
+                    'este preparo leva %s dentro dele, que a planilha mede em KG e '
+                    'o nosso cadastro conta em UND: o custo deste item supoe '
+                    '1 UND = 1 kg desses produtos. NAO troque a unidade deles para '
+                    'KG — isso zera o custo e impede a carga de aplicar; preencha '
+                    'conteudo_quantidade e conteudo_unidade com o peso de 1 UND'
+                    % lista)
+                cont['linhas_com_aviso_de_unidade_herdado'] += 1
         elif g in PRODUTOS_NOVOS_SEM_RECEITA:
             nome_produto = PRODUTOS_NOVOS_SEM_RECEITA[g]['nome']
             motivo = PRODUTOS_NOVOS_SEM_RECEITA[g]['motivo']
@@ -844,6 +953,7 @@ def main() -> int:
             'perda_percentual': perda,
             'quantidade_bruta': qtd_bruta,
             'observacao': obs,
+            'produtos_em_und_abaixo': herdados,
             'depara': {'grafia': item['ingrediente'], 'forca': forca, 'motivo': motivo},
             'planilha': {
                 'linha': item['linha'],
@@ -958,6 +1068,16 @@ def main() -> int:
                                 'ficha': b['nome_na_resumo'], 'produto': p, 'vezes': n})
 
         nosso = arred(sum(i['custo'] for i in itens), 4)
+
+        # O aviso herdado ganha o TAMANHO do preparo no prato. E o numero que
+        # explica por que a divergencia contra a planilha mora nele, e so pode
+        # ser escrito aqui porque depende do custo da ficha fechado. A conta e
+        # a mesma `custo` que vai para o banco, nao uma estimativa.
+        for i in itens:
+            if i['produtos_em_und_abaixo'] and nosso > 0:
+                i['observacao'] += (' · este preparo e %s%% do custo deste prato'
+                                    % ('%.1f' % (i['custo'] / nosso * 100.0)).replace('.', ','))
+
         da_planilha = q(b['custo_bruto_da_resumo'])
         recalc = arred(sum(q(i['planilha']['col10_recalculada']) for i in itens), 4)
 
@@ -1293,6 +1413,21 @@ def escrever_relatorio(saida: dict, bruto: dict, por_nome: dict) -> None:
       % sum(1 for a in bruto['achados'] if a['tipo'] == 'perda_manipulacao_divergente'
             and abs(q(a['perda_impressa'])) > 1e-12
             and abs(q(a['bruto_menos_liquido'])) > 1e-12))
+    w('')
+    w('E uma impossibilidade de outra natureza, que nao e divergencia de conta:')
+    w('a perda declarada MAIOR que o PesoBruto da propria linha — perder mais do que')
+    w('entrou. Em 165 linhas da planilha ela acontece em:')
+    maiores = [a for a in bruto['achados']
+               if a['tipo'] == 'perda_manipulacao_divergente'
+               and q(a['perda_impressa']) > q(a['peso_bruto'])]
+    for a in maiores:
+        w('  %s · %s · linha %s: bruto %s, perda %s = %sx o proprio peso bruto'
+          % (a.get('bloco', a.get('aba', '?')), a['ingrediente'].strip(), a.get('linha', '?'),
+             numero(a['peso_bruto']), numero(a['perda_impressa']),
+             numero(arred(q(a['perda_impressa']) / q(a['peso_bruto']), 2))))
+    w('  total: %d de 165. Dinheiro hoje: zero, porque a `Perda manipulacao` nao'
+      % len(maiores))
+    w('  entra em formula nenhuma — e e mais um argumento para nao usa-la.')
 
     titulo(4, 'perda_percentual, E A PROVA DA VOLTA')
     w('    quantidade       = Peso Liquido')
@@ -1337,11 +1472,11 @@ def escrever_relatorio(saida: dict, bruto: dict, por_nome: dict) -> None:
     w('    1. perda de limpeza nao cria massa: liquido > bruto e impossivel;')
     w('    2. o check do schema recusa o negativo, entao nao ha a opcao de gravar 0,15')
     w('       com perda -25%;')
-    w('    3. o MESMO ingrediente aparece 0,12 / 0,12 com fator 1 em OITO outros')
+    w('    3. o MESMO produto aparece 0,12 / 0,12 com fator 1 em SEIS outros')
     w('       blocos da mesma planilha: 0,12 e o padrao da casa, 0,15 e a excecao;')
     w('    4. e a razao que fecha a conta: a col10 — a coluna que a Resumo publica e')
     w('       que a nossa vista reproduz — ja calcula 0,12 x 3,15 = R$ 0,378, identico')
-    w('       aos oito blocos certos. No dinheiro, a planilha ja se comporta como 0,12.')
+    w('       aos seis blocos certos. No dinheiro, a planilha ja se comporta como 0,12.')
     w('')
     w('  Cada um dos 5 itens leva o aviso na observacao.')
 
@@ -1828,9 +1963,20 @@ def escrever_relatorio(saida: dict, bruto: dict, por_nome: dict) -> None:
                 acao = 'gravado %s + aviso na observacao' % i['unidade']
             w('%-28s %-8s %-8s %s' % (i['produto'][:28], un_pl, i['unidade'], acao))
     w('')
-    w('Os itens que levam aviso de unidade na observacao: %d.'
-      % sum(1 for f in saida['fichas'] for i in f['itens']
-            if 'conferir o peso da UND' in (i['observacao'] or '')))
+    # Contado por duas marcas, e nao por um pedaco de frase: a grafia que esta
+    # em `GRAFIAS_EM_UND` (o ingrediente em UND aparece na propria linha) e a
+    # lista `produtos_em_und_abaixo` (o ingrediente em UND esta dentro de um
+    # preparo). O primeiro laudo disse 13 contando frase, e eram 3.
+    direto = [i for f in saida['fichas'] for i in f['itens']
+              if k_ing(i['depara']['grafia']) in GRAFIAS_EM_UND]
+    herdado = [i for f in saida['fichas'] for i in f['itens'] if i['produtos_em_und_abaixo']]
+    w('Os itens que levam aviso de unidade na observacao: %d — %d na propria linha '
+      'e %d herdados de preparo.' % (len(direto) + len(herdado), len(direto), len(herdado)))
+    for i in direto:
+        w('  direto   %-26s %s' % (i['produto'][:26], i['depara']['grafia'].strip()))
+    for i in herdado:
+        w('  herdado  %-26s leva %s' % (i['produto'][:26],
+                                        ', '.join(i['produtos_em_und_abaixo'])))
 
     titulo(13, 'AS 13 FICHAS, ITEM A ITEM')
     for f in saida['fichas']:
@@ -1914,14 +2060,25 @@ def escrever_relatorio(saida: dict, bruto: dict, por_nome: dict) -> None:
          'BRÓCOLIS AMERICANO, MANJERICÃO, RÚCULA HIDROPÔNICA, SALSA e VAGEM FRANCESA '
          'estao em UND no nosso cadastro e em KG na receita. Gravei a unidade do '
          'cadastro com o aviso na observacao, porque gravar KG derrubaria a carga. '
-         'Resolver cadastrando em KG ou preenchendo produtos.conteudo_quantidade.'),
+         'RESOLVER PREENCHENDO produtos.conteudo_quantidade e conteudo_unidade com o '
+         'peso de 1 UND — e NAO trocando a unidade do produto para KG: medido, '
+         'trocar a unidade de MANJERICÃO e SALSA apaga R$ 1,4115 de custo em 4 '
+         'fichas (uma delas o drinque LIMONCELLO SPRITZ) e faz as cargas 0004 e '
+         '0005 se recusarem a aplicar. O que falta e um numero: quanto pesa 1 UND '
+         'de cada um dos cinco.'),
         ('produtos.conteudo_quantidade esta vazio em todo o catalogo',
          'Preenchido (5000 ML na lata de azeite, 2800 G no balde de maionese, o peso '
          'da UND do manjericao), o item deixa de precisar da conversao de fracao que '
          'eu fiz a mao e os 5 avisos de unidade desaparecem. E um campo.'),
         ('As 5 linhas de `feijão pronto` com Peso Liquido 0,15 e PesoBruto 0,12',
-         'Gravei 0,12. Confirmar, e corrigir na planilha: em oito outros blocos o '
-         'mesmo ingrediente esta 0,12 / 0,12.'),
+         'Gravei 0,12. Confirmar, e corrigir na planilha: em seis outros blocos o '
+         'mesmo produto esta 0,12 / 0,12 (das 12 linhas que resolvem para FEIJÃO '
+         'PRONTO: 6 a 0,12/0,12, 5 a 0,12/0,15 e 1 linha de LOTE a 1/1).'),
+        ('A celula `I8` da aba FILÉ DE FRANGO COM LEGUMES esta `=C8*H8` e deveria ser `=E8*H8`',
+         'E a unica celula de Valor producao fora do padrao em 165 linhas. Hoje custa '
+         'ZERO porque C8 e E8 valem 0,15 nessa linha — ela e um defeito latente: no dia '
+         'em que o file de frango tiver perda, a col9 passa a somar peso BRUTO e as duas '
+         'colunas de valor viram a mesma coisa. Lido com openpyxl data_only=False.'),
         ('A `Perda manipulacao` nao e usada por nada e esta errada em 31 linhas',
          'Ou ela passa a alimentar o Peso Liquido (liquido = bruto - perda) ou sai da '
          'planilha. Hoje ela e uma terceira versao da verdade que ninguem le.'),

@@ -31,6 +31,7 @@
   "itens_com_quantidade_do_bruto": 5,
   "itens_por_contagem": 4,
   "itens_por_fracao_de_embalagem": 2,
+  "linhas_com_aviso_de_unidade_herdado": 9,
   "linhas_de_produto_novo_sem_receita": 7,
   "linhas_de_sub_receita": 9,
   "linhas_do_depara": 51,
@@ -1002,7 +1003,10 @@
      "quantidade": 0.18,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.18,
-     "observacao": "planilha: empadão de frango · EMPADÃO DE FRANGO COM SALADA",
+     "observacao": "planilha: empadão de frango · EMPADÃO DE FRANGO COM SALADA · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 33,3% do custo deste prato",
+     "produtos_em_und_abaixo": [
+      "SALSA"
+     ],
      "depara": {
       "grafia": "empadão de frango",
       "forca": "sub-receita",
@@ -1032,7 +1036,10 @@
      "quantidade": 0.14,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.14,
-     "observacao": "planilha: salada da casa( individual) · EMPADÃO DE FRANGO COM SALADA",
+     "observacao": "planilha: salada da casa( individual) · EMPADÃO DE FRANGO COM SALADA · este preparo leva RÚCULA HIDROPÔNICA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 54,0% do custo deste prato",
+     "produtos_em_und_abaixo": [
+      "RÚCULA HIDROPÔNICA"
+     ],
      "depara": {
       "grafia": "salada da casa( individual)",
       "forca": "sub-receita",
@@ -1063,6 +1070,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · EMPADÃO DE FRANGO COM SALADA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -1093,6 +1101,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijãp preto pronto · EMPADÃO DE FRANGO COM SALADA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijãp preto pronto",
       "forca": "nome",
@@ -1156,6 +1165,7 @@
      "perda_percentual": 10.0,
      "quantidade_bruta": 0.1,
      "observacao": "planilha: bombom de alcatra · MINI ORELHA EXECUTIVO",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "bombom de alcatra",
       "forca": "custo quase exato",
@@ -1186,6 +1196,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · MINI ORELHA EXECUTIVO",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -1215,7 +1226,10 @@
      "quantidade": 0.1,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.1,
-     "observacao": "planilha: guarnição à francesa · MINI ORELHA EXECUTIVO",
+     "observacao": "planilha: guarnição à francesa · MINI ORELHA EXECUTIVO · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 9,3% do custo deste prato",
+     "produtos_em_und_abaixo": [
+      "SALSA"
+     ],
      "depara": {
       "grafia": "guarnição à francesa",
       "forca": "sub-receita",
@@ -1246,6 +1260,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · MINI ORELHA EXECUTIVO · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -1276,6 +1291,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · MINI ORELHA EXECUTIVO",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -1306,6 +1322,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · MINI ORELHA EXECUTIVO · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -1336,6 +1353,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: leitiosa de empanamento · MINI ORELHA EXECUTIVO · numa das tres linhas a celula Unidade da planilha esta vazia",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "leitiosa de empanamento",
       "forca": "produto novo sem receita",
@@ -1366,6 +1384,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: farinha pankp · MINI ORELHA EXECUTIVO",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "farinha pankp",
       "forca": "custo exato",
@@ -1396,6 +1415,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.01,
      "observacao": "planilha: farinha de trigo · MINI ORELHA EXECUTIVO · uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "farinha de trigo",
       "forca": "nome",
@@ -1459,6 +1479,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.1,
      "observacao": "planilha: acém mp · CARNE GUISADA  COM BATATA CORAD · custo R$ 62,60 vindo da planilha: e acem guisado e a planilha nao da a receita",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "acém mp",
       "forca": "produto novo sem receita",
@@ -1489,6 +1510,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · CARNE GUISADA  COM BATATA CORAD",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -1519,6 +1541,7 @@
      "perda_percentual": 50.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: batata asterix · CARNE GUISADA  COM BATATA CORAD",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "batata asterix",
       "forca": "nome",
@@ -1549,6 +1572,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · CARNE GUISADA  COM BATATA CORAD · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -1579,6 +1603,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.05,
      "observacao": "planilha: farofa de bacon · CARNE GUISADA  COM BATATA CORAD",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "farofa de bacon",
       "forca": "escolha forcada",
@@ -1609,6 +1634,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · CARNE GUISADA  COM BATATA CORAD · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -1672,6 +1698,7 @@
      "perda_percentual": 50.0,
      "quantidade_bruta": 0.16,
      "observacao": "planilha: carne seca desfiada · CARNE SECA COM TUTU À MINEIRA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "carne seca desfiada",
       "forca": "custo quase exato",
@@ -1702,6 +1729,7 @@
      "perda_percentual": 28.571,
      "quantidade_bruta": 0.07,
      "observacao": "planilha: cebola branca · CARNE SECA COM TUTU À MINEIRA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "cebola branca",
       "forca": "exclusao",
@@ -1732,6 +1760,7 @@
      "perda_percentual": 75.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: tomate picado · CARNE SECA COM TUTU À MINEIRA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "tomate picado ",
       "forca": "exclusao",
@@ -1761,7 +1790,8 @@
      "quantidade": 0.015,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.015,
-     "observacao": "planilha: salsa picada · CARNE SECA COM TUTU À MINEIRA · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND",
+     "observacao": "planilha: salsa picada · CARNE SECA COM TUTU À MINEIRA · a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "salsa picada",
       "forca": "nome",
@@ -1792,6 +1822,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.04,
      "observacao": "planilha: banha · CARNE SECA COM TUTU À MINEIRA · custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "banha",
       "forca": "produto novo sem receita",
@@ -1822,6 +1853,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · CARNE SECA COM TUTU À MINEIRA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -1852,6 +1884,7 @@
      "perda_percentual": 50.0,
      "quantidade_bruta": 0.1,
      "observacao": "planilha: couve refogada mp · CARNE SECA COM TUTU À MINEIRA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "couve refogada mp",
       "forca": "custo exato",
@@ -1881,7 +1914,10 @@
      "quantidade": 0.12,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
-     "observacao": "planilha: tutu de feijão mp · CARNE SECA COM TUTU À MINEIRA",
+     "observacao": "planilha: tutu de feijão mp · CARNE SECA COM TUTU À MINEIRA · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 4,8% do custo deste prato",
+     "produtos_em_und_abaixo": [
+      "SALSA"
+     ],
      "depara": {
       "grafia": "tutu de feijão mp",
       "forca": "sub-receita",
@@ -1912,6 +1948,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.05,
      "observacao": "planilha: farofa de bacon · CARNE SECA COM TUTU À MINEIRA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "farofa de bacon",
       "forca": "escolha forcada",
@@ -1942,6 +1979,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · CARNE SECA COM TUTU À MINEIRA · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -1972,6 +2010,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · CARNE SECA COM TUTU À MINEIRA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -2035,6 +2074,7 @@
      "perda_percentual": 20.0,
      "quantidade_bruta": 0.15,
      "observacao": "planilha: isca de fígado de boi · ISCA DE FÍGADO COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "isca de fígado de boi",
       "forca": "escolha forcada",
@@ -2065,6 +2105,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.15,
      "observacao": "planilha: purê de batata mp · ISCA DE FÍGADO COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "purê de batata mp",
       "forca": "nome",
@@ -2095,6 +2136,7 @@
      "perda_percentual": 28.571,
      "quantidade_bruta": 0.07,
      "observacao": "planilha: cebola branca · ISCA DE FÍGADO COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "cebola branca",
       "forca": "exclusao",
@@ -2124,7 +2166,8 @@
      "quantidade": 0.015,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.015,
-     "observacao": "planilha: salsa picada · ISCA DE FÍGADO COM PURÊ · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND",
+     "observacao": "planilha: salsa picada · ISCA DE FÍGADO COM PURÊ · a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "salsa picada",
       "forca": "nome",
@@ -2155,6 +2198,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: banha · ISCA DE FÍGADO COM PURÊ · custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "banha",
       "forca": "produto novo sem receita",
@@ -2185,6 +2229,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · ISCA DE FÍGADO COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -2215,6 +2260,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão preto mp · ISCA DE FÍGADO COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão preto mp",
       "forca": "nome",
@@ -2245,6 +2291,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · ISCA DE FÍGADO COM PURÊ · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -2275,6 +2322,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · ISCA DE FÍGADO COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -2338,6 +2386,7 @@
      "perda_percentual": 16.667,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: filé de frango · FILÉ FRANGO EMPANADO COM FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "filé de frango",
       "forca": "custo quase exato",
@@ -2368,6 +2417,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · FILÉ FRANGO EMPANADO COM FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -2398,6 +2448,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.15,
      "observacao": "planilha: batata frita · FILÉ FRANGO EMPANADO COM FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "batata frita",
       "forca": "custo quase exato",
@@ -2428,6 +2479,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · FILÉ FRANGO EMPANADO COM FRITAS · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -2458,6 +2510,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · FILÉ FRANGO EMPANADO COM FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -2488,6 +2541,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · FILÉ FRANGO EMPANADO COM FRITAS · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -2518,6 +2572,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: Leitosa de empanamento · FILÉ FRANGO EMPANADO COM FRITAS · numa das tres linhas a celula Unidade da planilha esta vazia",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Leitosa de empanamento",
       "forca": "produto novo sem receita",
@@ -2548,6 +2603,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.01,
      "observacao": "planilha: Farinha de trigo · FILÉ FRANGO EMPANADO COM FRITAS · uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Farinha de trigo",
       "forca": "nome",
@@ -2578,6 +2634,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: Farinha panko · FILÉ FRANGO EMPANADO COM FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Farinha panko",
       "forca": "custo exato",
@@ -2608,6 +2665,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: óleo de soja · FILÉ FRANGO EMPANADO COM FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "óleo de soja",
       "forca": "custo quase exato",
@@ -2671,6 +2729,7 @@
      "perda_percentual": 11.765,
      "quantidade_bruta": 0.17,
      "observacao": "planilha: filé de frango · FILÉ FRANGO FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "filé de frango",
       "forca": "custo quase exato",
@@ -2701,6 +2760,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · FILÉ FRANGO FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -2731,6 +2791,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.15,
      "observacao": "planilha: batata frita · FILÉ FRANGO FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "batata frita",
       "forca": "custo quase exato",
@@ -2761,6 +2822,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · FILÉ FRANGO FRITAS · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -2791,6 +2853,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · FILÉ FRANGO FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -2821,6 +2884,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · FILÉ FRANGO FRITAS · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -2851,6 +2915,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: óleo de soja · FILÉ FRANGO FRITAS",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "óleo de soja",
       "forca": "custo quase exato",
@@ -2914,6 +2979,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.15,
      "observacao": "planilha: filé de frango · FILÉ DE FRANGO COM LEGUMES",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "filé de frango",
       "forca": "custo quase exato",
@@ -2944,6 +3010,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · FILÉ DE FRANGO COM LEGUMES",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -2973,7 +3040,12 @@
      "quantidade": 0.15,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.15,
-     "observacao": "planilha: salada de legumes · FILÉ DE FRANGO COM LEGUMES",
+     "observacao": "planilha: salada de legumes · FILÉ DE FRANGO COM LEGUMES · este preparo leva BRÓCOLIS AMERICANO, VAGEM FRANCESA e SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 51,7% do custo deste prato",
+     "produtos_em_und_abaixo": [
+      "BRÓCOLIS AMERICANO",
+      "VAGEM FRANCESA",
+      "SALSA"
+     ],
      "depara": {
       "grafia": "salada de legumes",
       "forca": "sub-receita",
@@ -3004,6 +3076,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · FILÉ DE FRANGO COM LEGUMES · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -3034,6 +3107,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · FILÉ DE FRANGO COM LEGUMES",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -3064,6 +3138,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · FILÉ DE FRANGO COM LEGUMES · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -3094,6 +3169,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: óleo de soja · FILÉ DE FRANGO COM LEGUMES",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "óleo de soja",
       "forca": "custo quase exato",
@@ -3157,6 +3233,7 @@
      "perda_percentual": 20.0,
      "quantidade_bruta": 0.15,
      "observacao": "planilha: filé de tilápia · FILÉ DE PEIXE COM LEGUMES",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "filé de tilápia",
       "forca": "custo exato",
@@ -3187,6 +3264,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · FILÉ DE PEIXE COM LEGUMES",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -3216,7 +3294,12 @@
      "quantidade": 0.15,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.15,
-     "observacao": "planilha: salada de legumes · FILÉ DE PEIXE COM LEGUMES",
+     "observacao": "planilha: salada de legumes · FILÉ DE PEIXE COM LEGUMES · este preparo leva BRÓCOLIS AMERICANO, VAGEM FRANCESA e SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 32,6% do custo deste prato",
+     "produtos_em_und_abaixo": [
+      "BRÓCOLIS AMERICANO",
+      "VAGEM FRANCESA",
+      "SALSA"
+     ],
      "depara": {
       "grafia": "salada de legumes",
       "forca": "sub-receita",
@@ -3247,6 +3330,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · FILÉ DE PEIXE COM LEGUMES · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -3277,6 +3361,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · FILÉ DE PEIXE COM LEGUMES",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -3307,6 +3392,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · FILÉ DE PEIXE COM LEGUMES · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -3337,6 +3423,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: óleo de soja · FILÉ DE PEIXE COM LEGUMES",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "óleo de soja",
       "forca": "custo quase exato",
@@ -3400,6 +3487,7 @@
      "perda_percentual": 20.0,
      "quantidade_bruta": 0.15,
      "observacao": "planilha: filé de tilápia · FILÉ DE PEIXE COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "filé de tilápia",
       "forca": "custo exato",
@@ -3430,6 +3518,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco de brocolis mp · FILÉ DE PEIXE COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco de brocolis mp",
       "forca": "produto novo sem receita",
@@ -3460,6 +3549,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.15,
      "observacao": "planilha: purê de batata mp · FILÉ DE PEIXE COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "purê de batata mp",
       "forca": "nome",
@@ -3490,6 +3580,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · FILÉ DE PEIXE COM PURÊ · Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -3520,6 +3611,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · FILÉ DE PEIXE COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -3550,6 +3642,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · FILÉ DE PEIXE COM PURÊ · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -3580,6 +3673,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: óleo de soja · FILÉ DE PEIXE COM PURÊ",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "óleo de soja",
       "forca": "custo quase exato",
@@ -3643,6 +3737,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: Pernil MP · PERNIL COM MAIONESE · custo R$ 36,99 vindo da planilha: e pernil assado e a planilha nao da a receita",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Pernil MP",
       "forca": "produto novo sem receita",
@@ -3673,6 +3768,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · PERNIL COM MAIONESE",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -3702,7 +3798,10 @@
      "quantidade": 0.1,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.1,
-     "observacao": "planilha: Salada de Maionese MP · PERNIL COM MAIONESE",
+     "observacao": "planilha: Salada de Maionese MP · PERNIL COM MAIONESE · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 14,0% do custo deste prato",
+     "produtos_em_und_abaixo": [
+      "SALSA"
+     ],
      "depara": {
       "grafia": "Salada de Maionese MP",
       "forca": "sub-receita",
@@ -3733,6 +3832,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · PERNIL COM MAIONESE · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -3763,6 +3863,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.05,
      "observacao": "planilha: farofa de bacon · PERNIL COM MAIONESE",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "farofa de bacon",
       "forca": "escolha forcada",
@@ -3793,6 +3894,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · PERNIL COM MAIONESE · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -3855,11 +3957,12 @@
      "quantidade": 0.1,
      "perda_percentual": 16.667,
      "quantidade_bruta": 0.12,
-     "observacao": "planilha: copalombo · SCHNITZEL COM MAIONESE · mapeado para LOMBO SUÍNO e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta com custo de porcao numa unidade KG",
+     "observacao": "planilha: copalombo · SCHNITZEL COM MAIONESE · mapeado para LOMBO SUÍNO (R$ 18,90/kg contra R$ 16,97 da planilha, +11,4%) e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta com custo de porcao numa unidade KG. O LOMBO SUÍNO SALGADO (R$ 17,65, a +4,0%) estava mais perto no preco e foi recusado por ser carne CURADA, nao por preco — se o copalombo da planilha for curado, troque para ele",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "copalombo",
-      "forca": "custo quase exato",
-      "motivo": "A DECISAO MAIS AGRESSIVA DO DE-PARA, e o argumento esta no preco. R$ 18,90 contra R$ 16,97 = 1,114. O catalogo TEM \"COPA LOMBO\", em duas linhas, mas as duas sao porcao pronta com o custo da porcao gravado numa unidade KG: COPA LOMBO (120G) a R$ 4,30 e COPA LOMBO (250G) a R$ 9,70 — que dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha. Mapear para elas poria R$ 0,52 de carne num schnitzel. O LOMBO SUINO e o corte cru, no preco da planilha. Se eu estiver errado, 1 ficha subestima a carne"
+      "forca": "escolha forcada",
+      "motivo": "A DECISAO MAIS AGRESSIVA DO DE-PARA, e ela NAO e \"custo quase exato\": R$ 18,90 contra R$ 16,97 = 1,114, e 11,4% esta fora da faixa de 3% em que as outras sete grafias desse rotulo cabem (a pior delas e 3,6%). E escolha forcada, e a forca aparece na lista inteira de candidatos: COPA LOMBO (120G) R$ 4,30 e COPA LOMBO (250G) R$ 9,70 sao porcao pronta com o custo da porcao gravado numa unidade KG (dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha, e mapear para elas poria R$ 0,52 de carne num schnitzel); LOMBO SALGADO R$ 29,94 (razao 1,764) e da FEIJOADA; LOMBO SUÍNO SALGADO R$ 17,65 (razao 1,040) e LOMBO SUÍNO SALGADO (SUÍNOS) R$ 18,49 (razao 1,090) estao MAIS PERTO no preco do que o escolhido, e foram recusados por serem carne CURADA, nao por preco: schnitzel se faz com lombo fresco. Sobra o LOMBO SUÍNO, que e o corte cru. A recusa esta registrada aqui e na observacao do item para que a cliente possa discordar do argumento, e nao do numero. Se eu estiver errado, 1 ficha subestima a carne"
      },
      "planilha": {
       "linha": 8,
@@ -3886,6 +3989,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.2,
      "observacao": "planilha: arroz  branco pronto · SCHNITZEL COM MAIONESE",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "arroz  branco pronto",
       "forca": "nome",
@@ -3915,7 +4019,10 @@
      "quantidade": 0.1,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.1,
-     "observacao": "planilha: Salada de maionese MP · SCHNITZEL COM MAIONESE",
+     "observacao": "planilha: Salada de maionese MP · SCHNITZEL COM MAIONESE · este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 17,7% do custo deste prato",
+     "produtos_em_und_abaixo": [
+      "SALSA"
+     ],
      "depara": {
       "grafia": "Salada de maionese MP",
       "forca": "sub-receita",
@@ -3946,6 +4053,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.12,
      "observacao": "planilha: feijão pronto · SCHNITZEL COM MAIONESE · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "feijão pronto",
       "forca": "nome",
@@ -3976,6 +4084,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.05,
      "observacao": "planilha: farinha de trigo · SCHNITZEL COM MAIONESE · uma das cinco linhas de farinha da planilha esta rotulada em L; a unidade gravada e KG, a do nosso cadastro",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "farinha de trigo",
       "forca": "nome",
@@ -4006,6 +4115,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: farinha panko · SCHNITZEL COM MAIONESE",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "farinha panko",
       "forca": "custo exato",
@@ -4036,6 +4146,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: leitosa de empanamento · SCHNITZEL COM MAIONESE · numa das tres linhas a celula Unidade da planilha esta vazia",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "leitosa de empanamento",
       "forca": "produto novo sem receita",
@@ -4066,6 +4177,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
      "observacao": "planilha: sal com pimenta · SCHNITZEL COM MAIONESE · custo R$ 2,72/kg vindo da planilha, que e o mesmo preco do sal puro: na conta dela a pimenta custa zero",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "sal com pimenta",
       "forca": "produto novo sem receita",
@@ -4096,6 +4208,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: alho batido · SCHNITZEL COM MAIONESE",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "alho batido",
       "forca": "custo quase exato",
@@ -4126,6 +4239,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: limão sciciliano · SCHNITZEL COM MAIONESE",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "limão sciciliano",
       "forca": "nome",
@@ -4189,6 +4303,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 1.0,
      "observacao": "planilha: Carne assada 120gr · GNOCCHI COM CARNE ASSADA · o PesoBruto 1 e UMA porcao de 120 g; o nosso cadastro mede em UND e custa R$ 7,97, igual ao Custo compra · a planilha rotula 1 KG e o nome diz 120 g; gravado como 1 UND da porcao de 120 g, que e o que o Custo compra R$ 7,97 precifica",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Carne assada 120gr",
       "forca": "custo exato",
@@ -4219,6 +4334,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.25,
      "observacao": "planilha: Base de gnocchi · GNOCCHI COM CARNE ASSADA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Base de gnocchi",
       "forca": "sub-receita",
@@ -4249,6 +4365,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.05,
      "observacao": "planilha: Molho ao sugo · GNOCCHI COM CARNE ASSADA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Molho ao sugo",
       "forca": "custo quase exato",
@@ -4279,6 +4396,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.02,
      "observacao": "planilha: Parmesão · GNOCCHI COM CARNE ASSADA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Parmesão",
       "forca": "custo exato",
@@ -4309,6 +4427,7 @@
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.05,
      "observacao": "planilha: Caldo de carne · GNOCCHI COM CARNE ASSADA",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Caldo de carne",
       "forca": "nome",
@@ -4338,7 +4457,8 @@
      "quantidade": 0.005,
      "perda_percentual": 0.0,
      "quantidade_bruta": 0.005,
-     "observacao": "planilha: Manjericão · GNOCCHI COM CARNE ASSADA · a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND",
+     "observacao": "planilha: Manjericão · GNOCCHI COM CARNE ASSADA · a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg",
+     "produtos_em_und_abaixo": [],
      "depara": {
       "grafia": "Manjericão",
       "forca": "nome",
@@ -4646,8 +4766,8 @@
   {
    "grafia": "copalombo",
    "produto": "LOMBO SUÍNO",
-   "forca": "custo quase exato",
-   "motivo": "A DECISAO MAIS AGRESSIVA DO DE-PARA, e o argumento esta no preco. R$ 18,90 contra R$ 16,97 = 1,114. O catalogo TEM \"COPA LOMBO\", em duas linhas, mas as duas sao porcao pronta com o custo da porcao gravado numa unidade KG: COPA LOMBO (120G) a R$ 4,30 e COPA LOMBO (250G) a R$ 9,70 — que dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha. Mapear para elas poria R$ 0,52 de carne num schnitzel. O LOMBO SUINO e o corte cru, no preco da planilha. Se eu estiver errado, 1 ficha subestima a carne"
+   "forca": "escolha forcada",
+   "motivo": "A DECISAO MAIS AGRESSIVA DO DE-PARA, e ela NAO e \"custo quase exato\": R$ 18,90 contra R$ 16,97 = 1,114, e 11,4% esta fora da faixa de 3% em que as outras sete grafias desse rotulo cabem (a pior delas e 3,6%). E escolha forcada, e a forca aparece na lista inteira de candidatos: COPA LOMBO (120G) R$ 4,30 e COPA LOMBO (250G) R$ 9,70 sao porcao pronta com o custo da porcao gravado numa unidade KG (dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha, e mapear para elas poria R$ 0,52 de carne num schnitzel); LOMBO SALGADO R$ 29,94 (razao 1,764) e da FEIJOADA; LOMBO SUÍNO SALGADO R$ 17,65 (razao 1,040) e LOMBO SUÍNO SALGADO (SUÍNOS) R$ 18,49 (razao 1,090) estao MAIS PERTO no preco do que o escolhido, e foram recusados por serem carne CURADA, nao por preco: schnitzel se faz com lombo fresco. Sobra o LOMBO SUÍNO, que e o corte cru. A recusa esta registrada aqui e na observacao do item para que a cliente possa discordar do argumento, e nao do numero. Se eu estiver errado, 1 ficha subestima a carne"
   },
   {
    "grafia": "ovo",

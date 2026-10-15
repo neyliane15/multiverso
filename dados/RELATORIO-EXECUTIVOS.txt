@@ -113,6 +113,13 @@ As 31 divergencias por tipo:
   perda = 0 com Peso Liquido MAIOR que o PesoBruto (impossivel) ......... 5
   perda > 0 e diferente de bruto - liquido .............................. 2
 
+E uma impossibilidade de outra natureza, que nao e divergencia de conta:
+a perda declarada MAIOR que o PesoBruto da propria linha — perder mais do que
+entrou. Em 165 linhas da planilha ela acontece em:
+  SALADA DA CASA ( individual) · Rúcula · linha 73: bruto 0,03, perda 0,05 = 1,67x o proprio peso bruto
+  total: 1 de 165. Dinheiro hoje: zero, porque a `Perda manipulacao` nao
+  entra em formula nenhuma — e e mais um argumento para nao usa-la.
+
 ==============================================================================
 4 · perda_percentual, E A PROVA DA VOLTA
 ==============================================================================
@@ -157,11 +164,11 @@ AS 5 LINHAS QUE A VOLTA NAO PODE FECHAR, e o que eu fiz com elas:
     1. perda de limpeza nao cria massa: liquido > bruto e impossivel;
     2. o check do schema recusa o negativo, entao nao ha a opcao de gravar 0,15
        com perda -25%;
-    3. o MESMO ingrediente aparece 0,12 / 0,12 com fator 1 em OITO outros
+    3. o MESMO produto aparece 0,12 / 0,12 com fator 1 em SEIS outros
        blocos da mesma planilha: 0,12 e o padrao da casa, 0,15 e a excecao;
     4. e a razao que fecha a conta: a col10 — a coluna que a Resumo publica e
        que a nossa vista reproduz — ja calcula 0,12 x 3,15 = R$ 0,378, identico
-       aos oito blocos certos. No dinheiro, a planilha ja se comporta como 0,12.
+       aos seis blocos certos. No dinheiro, a planilha ja se comporta como 0,12.
 
   Cada um dos 5 itens leva o aviso na observacao.
 
@@ -444,9 +451,9 @@ Semelhanca automatica so PROPOS; nenhuma linha entrou sem os dois nomes a vista.
       nosso: KG    R$ 1,75       MERCEARIA
       nome identico mais o tamanho
 
-  copalombo                      -> LOMBO SUÍNO                        [custo quase exato]
+  copalombo                      -> LOMBO SUÍNO                        [escolha forcada]
       nosso: KG    R$ 18,9       PROTEÍNAS CLIENTE
-      A DECISAO MAIS AGRESSIVA DO DE-PARA, e o argumento esta no preco. R$ 18,90 contra R$ 16,97 = 1,114. O catalogo TEM "COPA LOMBO", em duas linhas, mas as duas sao porcao pronta com o custo da porcao gravado numa unidade KG: COPA LOMBO (120G) a R$ 4,30 e COPA LOMBO (250G) a R$ 9,70 — que dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha. Mapear para elas poria R$ 0,52 de carne num schnitzel. O LOMBO SUINO e o corte cru, no preco da planilha. Se eu estiver errado, 1 ficha subestima a carne
+      A DECISAO MAIS AGRESSIVA DO DE-PARA, e ela NAO e "custo quase exato": R$ 18,90 contra R$ 16,97 = 1,114, e 11,4% esta fora da faixa de 3% em que as outras sete grafias desse rotulo cabem (a pior delas e 3,6%). E escolha forcada, e a forca aparece na lista inteira de candidatos: COPA LOMBO (120G) R$ 4,30 e COPA LOMBO (250G) R$ 9,70 sao porcao pronta com o custo da porcao gravado numa unidade KG (dao R$ 35,83/kg e R$ 38,80/kg, coerentes entre si e 2,2x a planilha, e mapear para elas poria R$ 0,52 de carne num schnitzel); LOMBO SALGADO R$ 29,94 (razao 1,764) e da FEIJOADA; LOMBO SUÍNO SALGADO R$ 17,65 (razao 1,040) e LOMBO SUÍNO SALGADO (SUÍNOS) R$ 18,49 (razao 1,090) estao MAIS PERTO no preco do que o escolhido, e foram recusados por serem carne CURADA, nao por preco: schnitzel se faz com lombo fresco. Sobra o LOMBO SUÍNO, que e o corte cru. A recusa esta registrada aqui e na observacao do item para que a cliente possa discordar do argumento, e nao do numero. Se eu estiver errado, 1 ficha subestima a carne
 
   ovo                            -> OVO BRANCO                         [nome]
       nosso: UND   R$ 0,67       HORTIFRUTI
@@ -987,7 +994,18 @@ LEITOSA DE EMPANAMENTO       (VAZIA)  KG       gravado KG + aviso na observacao
 CARNE ASSADA SANDUICHE (120g KG       UND      o numero da planilha e contagem
 MANJERICÃO                   KG       UND      gravado UND + aviso na observacao
 
-Os itens que levam aviso de unidade na observacao: 3.
+Os itens que levam aviso de unidade na observacao: 11 — 3 na propria linha e 8 herdados de preparo.
+  direto   SALSA                      salsa picada
+  direto   SALSA                      salsa picada
+  direto   MANJERICÃO                 Manjericão
+  herdado  EMPADÃO DE FRANGO          leva SALSA
+  herdado  SALADA DA CASA (individual leva RÚCULA HIDROPÔNICA
+  herdado  GUARNIÇÃO À FRANCESA       leva SALSA
+  herdado  TUTU DE FEIJÃO PRETO       leva SALSA
+  herdado  SALADA DE LEGUMES MP       leva BRÓCOLIS AMERICANO, VAGEM FRANCESA, SALSA
+  herdado  SALADA DE LEGUMES MP       leva BRÓCOLIS AMERICANO, VAGEM FRANCESA, SALSA
+  herdado  SALADA DE MAIONESE MP      leva SALSA
+  herdado  SALADA DE MAIONESE MP      leva SALSA
 
 ==============================================================================
 13 · AS 13 FICHAS, ITEM A ITEM
@@ -1004,8 +1022,10 @@ EMPADÃO DE FRANGO COM SALADA   [Executivos]
   produto                          un          qtd  perda%     bruta     custo
   EMPADÃO DE FRANGO                KG         0,18       0      0,18      2,04
       planilha: empadão de frango          bruto 0,18     liq 0,18     fator 1          @ R$ 11,6101  ->  col9 R$ 2,09 · col10 R$ 2,28
+      aviso: este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 33,3% do custo deste prato
   SALADA DA CASA (individual)      KG         0,14       0      0,14      3,30
       planilha: salada da casa( individual) bruto 0,14     liq 0,14     fator 1          @ R$ 18,295  ->  col9 R$ 2,56 · col10 R$ 3,97
+      aviso: este preparo leva RÚCULA HIDROPÔNICA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 54,0% do custo deste prato
   ARROZ PRONTO                     KG          0,2       0       0,2      0,35
       planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
   FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
@@ -1025,6 +1045,7 @@ MINI ORELHA EXECUTIVO   [Executivos]
       planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
   GUARNIÇÃO À FRANCESA             KG          0,1       0       0,1      0,90
       planilha: guarnição à francesa       bruto 0,1      liq 0,1      fator 1          @ R$ 11,63  ->  col9 R$ 1,16 · col10 R$ 1,21
+      aviso: este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 9,3% do custo deste prato
   FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
       planilha: feijão pronto              bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
       aviso: nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
@@ -1082,7 +1103,7 @@ CARNE SECA COM TUTU À MINEIRA   [Executivos]
       planilha: tomate picado              bruto 0,2      liq 0,05     fator 4          @ R$ 14,99  ->  col9 R$ 0,75 · col10 R$ 3,00
   SALSA                            UND       0,015       0     0,015      0,36
       planilha: salsa picada               bruto 0,015    liq 0,015    fator 1          @ R$ 25,67  ->  col9 R$ 0,39 · col10 R$ 0,39
-      aviso: a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND
+      aviso: a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg
   BANHA                            KG         0,04       0      0,04      0,04
       planilha: banha                      bruto 0,04     liq 0,04     fator 1          @ R$ 1  ->  col9 R$ 0,04 · col10 R$ 0,04
       aviso: custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha
@@ -1092,6 +1113,7 @@ CARNE SECA COM TUTU À MINEIRA   [Executivos]
       planilha: couve refogada mp          bruto 0,1      liq 0,05     fator 2          @ R$ 33,52  ->  col9 R$ 1,68 · col10 R$ 3,35
   TUTU DE FEIJÃO PRETO             KG         0,12       0      0,12      0,73
       planilha: tutu de feijão mp          bruto 0,12     liq 0,12     fator 1          @ R$ 5,0948  ->  col9 R$ 0,61 · col10 R$ 0,61
+      aviso: este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 4,8% do custo deste prato
   FAROFA PRONTA                    KG         0,05       0      0,05      0,49
       planilha: farofa de bacon            bruto 0,05     liq 0,05     fator 1          @ R$ 8,87  ->  col9 R$ 0,44 · col10 R$ 0,44
   SAL COM PIMENTA                  KG        0,005       0     0,005      0,01
@@ -1116,7 +1138,7 @@ ISCA DE FÍGADO COM PURÊ   [Executivos]
       planilha: cebola branca              bruto 0,07     liq 0,05     fator 1,4        @ R$ 8,7  ->  col9 R$ 0,43 · col10 R$ 0,61
   SALSA                            UND       0,015       0     0,015      0,36
       planilha: salsa picada               bruto 0,015    liq 0,015    fator 1          @ R$ 25,67  ->  col9 R$ 0,39 · col10 R$ 0,39
-      aviso: a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND
+      aviso: a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg
   BANHA                            KG         0,02       0      0,02      0,02
       planilha: banha                      bruto 0,02     liq 0,02     fator 1          @ R$ 1  ->  col9 R$ 0,02 · col10 R$ 0,02
       aviso: custo R$ 1,00/kg vindo da planilha, e R$ 1,00 e implausivel para banha
@@ -1202,6 +1224,7 @@ FILÉ DE FRANGO COM LEGUMES   [Executivos]
       planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
   SALADA DE LEGUMES MP             KG         0,15       0      0,15      3,77
       planilha: salada de legumes          bruto 0,15     liq 0,15     fator 1          @ R$ 16,6986  ->  col9 R$ 2,50 · col10 R$ 3,58
+      aviso: este preparo leva BRÓCOLIS AMERICANO, VAGEM FRANCESA e SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 51,7% do custo deste prato
   FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
       planilha: feijão pronto              bruto 0,12     liq 0,15     fator 0,8        @ R$ 3,15  ->  col9 R$ 0,47 · col10 R$ 0,38
       aviso: Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
@@ -1227,6 +1250,7 @@ FILÉ DE PEIXE COM LEGUMES   [Executivos]
       planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
   SALADA DE LEGUMES MP             KG         0,15       0      0,15      3,77
       planilha: salada de legumes          bruto 0,15     liq 0,15     fator 1          @ R$ 16,6986  ->  col9 R$ 2,50 · col10 R$ 3,58
+      aviso: este preparo leva BRÓCOLIS AMERICANO, VAGEM FRANCESA e SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 32,6% do custo deste prato
   FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
       planilha: feijão pronto              bruto 0,12     liq 0,15     fator 0,8        @ R$ 3,15  ->  col9 R$ 0,47 · col10 R$ 0,38
       aviso: Peso Liquido maior que o PesoBruto (0,15 > 0,12): a quantidade gravada e o PesoBruto · nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
@@ -1278,6 +1302,7 @@ PERNIL COM MAIONESE   [Executivos]
       planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
   SALADA DE MAIONESE MP            KG          0,1       0       0,1      0,93
       planilha: Salada de Maionese MP      bruto 0,1      liq 0,1      fator 1          @ R$ 9,6987  ->  col9 R$ 0,97 · col10 R$ 1,08
+      aviso: este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 14,0% do custo deste prato
   FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
       planilha: feijão pronto              bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
       aviso: nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
@@ -1297,11 +1322,12 @@ SCHNITZEL COM MAIONESE   [Executivos]
   produto                          un          qtd  perda%     bruta     custo
   LOMBO SUÍNO                      KG          0,1  16,667      0,12      2,27
       planilha: copalombo                  bruto 0,12     liq 0,1      fator 1,2        @ R$ 16,97  ->  col9 R$ 1,70 · col10 R$ 2,04
-      aviso: mapeado para LOMBO SUÍNO e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta com custo de porcao numa unidade KG
+      aviso: mapeado para LOMBO SUÍNO (R$ 18,90/kg contra R$ 16,97 da planilha, +11,4%) e nao para COPA LOMBO (120G/250G), que no nosso catalogo sao porcao pronta com custo de porcao numa unidade KG. O LOMBO SUÍNO SALGADO (R$ 17,65, a +4,0%) estava mais perto no preco e foi recusado por ser carne CURADA, nao por preco — se o copalombo da planilha for curado, troque para ele
   ARROZ PRONTO                     KG          0,2       0       0,2      0,35
       planilha: arroz  branco pronto       bruto 0,2      liq 0,2      fator 1          @ R$ 1,98  ->  col9 R$ 0,40 · col10 R$ 0,40
   SALADA DE MAIONESE MP            KG          0,1       0       0,1      0,93
       planilha: Salada de maionese MP      bruto 0,1      liq 0,1      fator 1          @ R$ 9,6987  ->  col9 R$ 0,97 · col10 R$ 1,08
+      aviso: este preparo leva SALSA dentro dele, que a planilha mede em KG e o nosso cadastro conta em UND: o custo deste item supoe 1 UND = 1 kg desses produtos. NAO troque a unidade deles para KG — isso zera o custo e impede a carga de aplicar; preencha conteudo_quantidade e conteudo_unidade com o peso de 1 UND · este preparo e 17,7% do custo deste prato
   FEIJÃO PRONTO                    KG         0,12       0      0,12      0,43
       planilha: feijão pronto              bruto 0,12     liq 0,12     fator 1          @ R$ 3,15  ->  col9 R$ 0,38 · col10 R$ 0,38
       aviso: nas 5 fichas em que a planilha traz Peso Liquido 0,15 maior que o PesoBruto 0,12, a quantidade gravada e 0,12 — ver o relatorio
@@ -1342,7 +1368,7 @@ GNOCCHI COM CARNE ASSADA   [Executivos]
       planilha: Caldo de carne             bruto 0,05     liq 0,05     fator 1          @ R$ 3,04  ->  col9 R$ 0,15 · col10 R$ 0,15
   MANJERICÃO                       UND       0,005       0     0,005      0,23
       planilha: Manjericão                 bruto 0,005    liq 0,005    fator 1          @ R$ 22,67  ->  col9 R$ 0,11 · col10 R$ 0,11
-      aviso: a planilha mede em KG e o nosso cadastro em UND — conferir o peso da UND
+      aviso: a planilha mede em KG e o nosso cadastro em UND. NAO troque a unidade do produto para KG: isso faz o fator de conversao vir nulo, o custo deste item vira nulo e as cargas 0004 e 0005 param de aplicar. O caminho certo e preencher conteudo_quantidade e conteudo_unidade do produto com o peso de 1 UND; o fator passa a converter sozinho, a unidade do produto continua UND para a contagem e o custo nao muda. O custo gravado aqui supoe 1 UND = 1 kg
 
 ==============================================================================
 14 · A `descricao`: os cinco indices, nas duas linhas de preco
@@ -1426,8 +1452,12 @@ acompanha o preco real do estoque; a descricao nao se atualiza sozinha.
      BRÓCOLIS AMERICANO, MANJERICÃO, RÚCULA HIDROPÔNICA, SALSA e VAGEM
      FRANCESA estao em UND no nosso cadastro e em KG na receita. Gravei a
      unidade do cadastro com o aviso na observacao, porque gravar KG
-     derrubaria a carga. Resolver cadastrando em KG ou preenchendo
-     produtos.conteudo_quantidade.
+     derrubaria a carga. RESOLVER PREENCHENDO produtos.conteudo_quantidade e
+     conteudo_unidade com o peso de 1 UND — e NAO trocando a unidade do
+     produto para KG: medido, trocar a unidade de MANJERICÃO e SALSA apaga R$
+     1,4115 de custo em 4 fichas (uma delas o drinque LIMONCELLO SPRITZ) e
+     faz as cargas 0004 e 0005 se recusarem a aplicar. O que falta e um
+     numero: quanto pesa 1 UND de cada um dos cinco.
 
 10 · produtos.conteudo_quantidade esta vazio em todo o catalogo
      Preenchido (5000 ML na lata de azeite, 2800 G no balde de maionese, o
@@ -1436,28 +1466,36 @@ acompanha o preco real do estoque; a descricao nao se atualiza sozinha.
      campo.
 
 11 · As 5 linhas de `feijão pronto` com Peso Liquido 0,15 e PesoBruto 0,12
-     Gravei 0,12. Confirmar, e corrigir na planilha: em oito outros blocos o
-     mesmo ingrediente esta 0,12 / 0,12.
+     Gravei 0,12. Confirmar, e corrigir na planilha: em seis outros blocos o
+     mesmo produto esta 0,12 / 0,12 (das 12 linhas que resolvem para FEIJÃO
+     PRONTO: 6 a 0,12/0,12, 5 a 0,12/0,15 e 1 linha de LOTE a 1/1).
 
-12 · A `Perda manipulacao` nao e usada por nada e esta errada em 31 linhas
+12 · A celula `I8` da aba FILÉ DE FRANGO COM LEGUMES esta `=C8*H8` e deveria ser `=E8*H8`
+     E a unica celula de Valor producao fora do padrao em 165 linhas. Hoje
+     custa ZERO porque C8 e E8 valem 0,15 nessa linha — ela e um defeito
+     latente: no dia em que o file de frango tiver perda, a col9 passa a
+     somar peso BRUTO e as duas colunas de valor viram a mesma coisa. Lido
+     com openpyxl data_only=False.
+
+13 · A `Perda manipulacao` nao e usada por nada e esta errada em 31 linhas
      Ou ela passa a alimentar o Peso Liquido (liquido = bruto - perda) ou sai
      da planilha. Hoje ela e uma terceira versao da verdade que ninguem le.
 
-13 · O nome do prato so existe certo na aba Resumo
+14 · O nome do prato so existe certo na aba Resumo
      Cinco blocos tem nome diferente do que se vende, um deles com erro de
      digitacao (SCHNITIZEL), e uma aba esta truncada em 31 caracteres pelo
      Excel. Vale renomear os blocos para o nome vendido.
 
-14 · MASSA DE GNOCCHI (R$ 3,00/kg) e EMPADA DE FRANGO (R$ 0,00) no catalogo
+15 · MASSA DE GNOCCHI (R$ 3,00/kg) e EMPADA DE FRANGO (R$ 0,00) no catalogo
      Parecem ser o mesmo que a BASE DE GNOCCHI e o EMPADÃO DE FRANGO que eu
      criei. Se forem, ha duplicata; se nao forem, a EMPADA DE FRANGO esta com
      custo zero.
 
-15 · `modo_preparo` e nulo nas 13
+16 · `modo_preparo` e nulo nas 13
      A planilha e de custo e nao traz preparo. A ficha serve ao CMV e nao ao
      cozinheiro enquanto isso nao for digitado.
 
-16 · Precos da planilha que estao longe do nosso estoque
+17 · Precos da planilha que estao longe do nosso estoque
      As piores razoes do de-para, todas com o nome dos dois lados na secao 7:
      tomate 0,46x e 0,51x, cebola 0,51x, batata palha 0,60x, figado 0,65x,
      farinha de trigo 0,70x, vagem 1,76x, bacon 1,57x. Nenhuma e erro de

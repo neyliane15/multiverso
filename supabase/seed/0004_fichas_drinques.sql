@@ -130,6 +130,104 @@ on conflict (id) do nothing;
 -- @fim:arquivo_fichas
 
 -- ---------------------------------------------------------------------------
+-- 0a · A TRAVA DO NOME, antes de qualquer insert
+--
+-- `fichas_nome_unico` e um indice UNIQUE sobre
+-- `(restaurante_id, lower(mv_sem_acento(nome)))`, e o `insert into fichas` desta
+-- carga usa `on conflict (id) do update` — o alvo do `on conflict` e a chave
+-- PRIMARIA, nao este indice. Entao o nome e um recurso compartilhado que nenhuma
+-- clausula da carga absorve.
+--
+-- O caso e a coisa mais natural que a casa pode fazer: apagar um drinque na tela
+-- e digita-lo de novo. A ficha nova nasce com `gen_random_uuid()` e com o mesmo
+-- nome, e a carga morre assim:
+--
+--     ERROR:  duplicate key value violates unique constraint "fichas_nome_unico"
+--
+-- Isso nao diz qual ficha, nao diz por que, e nao diz o que fazer. A trava
+-- abaixo troca o erro cru pela instrucao.
+--
+-- POR QUE NAO `on conflict (nome)`: isso faria a carga CAPTURAR a ficha que a
+-- casa criou, sobrescrevendo o trabalho dela com o do arquivo — exatamente o que
+-- o desenho da posse (`origem_carga`) existe para evitar. Recusar e aplicar e a
+-- resposta certa; a casa decide se renomeia a dela ou se apaga.
+--
+-- `produtos_nome_unico` tem a mesma forma e a mesma exposicao, e por isso a
+-- trava cobre os dois.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_n int;
+  v_quais text;
+begin
+  select count(*), string_agg(format('%L (id %s, origem %s)', f.nome, f.id,
+                                     coalesce(f.origem_carga, 'feita na tela')),
+                              ', ' order by f.nome)
+    into v_n, v_quais
+    from fichas f
+   where f.restaurante_id = 'b0a12eca-0000-4000-8000-000000000001'
+     and f.id not in (select id from arquivo_fichas)
+     and lower(mv_sem_acento(f.nome)) in (
+       lower(mv_sem_acento('43 SPRITZ')), lower(mv_sem_acento('AGORA POR FAVOR')),
+       lower(mv_sem_acento('APEROL SPRITZ')), lower(mv_sem_acento('ATOS OITAVO')),
+       lower(mv_sem_acento('BI-SAMBAS')), lower(mv_sem_acento('BLUE TA DE CAO')),
+       lower(mv_sem_acento('BOSSA SOUR')), lower(mv_sem_acento('BRASILEIRINHO')),
+       lower(mv_sem_acento('BRISANDO')), lower(mv_sem_acento('BRISEEIIII')),
+       lower(mv_sem_acento('CACHACA DO ZECA')), lower(mv_sem_acento('CAIPIRINHA BDZ')),
+       lower(mv_sem_acento('CAIPIRINHA COM MEL')), lower(mv_sem_acento('CAIPIRINHA ESP SAGATIBA')),
+       lower(mv_sem_acento('CAIPIVODKA ABSOLUT BDZ')), lower(mv_sem_acento('CAIPIVODKA SKYY')),
+       lower(mv_sem_acento('CAMISA 10')), lower(mv_sem_acento('CAMPARI TONICA')),
+       lower(mv_sem_acento('CARAJILLO BDZ')), lower(mv_sem_acento('COISA DE MALANDRO')),
+       lower(mv_sem_acento('CORACAO DE SAMBISTA')), lower(mv_sem_acento('DEIXA ARDER')),
+       lower(mv_sem_acento('DOM AMORES EM VERMELHO')), lower(mv_sem_acento('EXPLOSAO DO ZECA')),
+       lower(mv_sem_acento('FOLIA DO DOM')), lower(mv_sem_acento('FULERAGEM')),
+       lower(mv_sem_acento('GIN COM ESPUMA')), lower(mv_sem_acento('GIN PINK')),
+       lower(mv_sem_acento('GIN TROPICAL')), lower(mv_sem_acento('GT ARPO GIN')),
+       lower(mv_sem_acento('GT BOMBAY')), lower(mv_sem_acento('GT TANQUERAY')),
+       lower(mv_sem_acento('HOJE TA CALOR')), lower(mv_sem_acento('JA FOI')),
+       lower(mv_sem_acento('JA SAIU')), lower(mv_sem_acento('LIMONCELLO SPRITZ')),
+       lower(mv_sem_acento('MOSCOW IN ZECA')), lower(mv_sem_acento('NEGRONI BDZ')),
+       lower(mv_sem_acento('NOAH PAGODINHO')), lower(mv_sem_acento('PAREI NO ZECA')),
+       lower(mv_sem_acento('QUE CALOR E ESSE')), lower(mv_sem_acento('SAI AGORA')),
+       lower(mv_sem_acento('SALVE JORGE')), lower(mv_sem_acento('SEGREDO DO ZECA')),
+       lower(mv_sem_acento('SO UM MINUTO')), lower(mv_sem_acento('TAMO JUNTO')),
+       lower(mv_sem_acento('TOMA LIZA')), lower(mv_sem_acento('VAI VIVER')),
+       lower(mv_sem_acento('XEREM')), lower(mv_sem_acento('APEROL SPRITZ HH')),
+       lower(mv_sem_acento('CAIPIRINHA HH')), lower(mv_sem_acento('CAIPIVODKA SKYY HH')),
+       lower(mv_sem_acento('MATE DA CASA SABORES')), lower(mv_sem_acento('MONICA COQUETEL')),
+       lower(mv_sem_acento('SILENCIO')), lower(mv_sem_acento('TO CALMA'))
+     );
+  if v_n <> 0 then
+    raise exception '0004: % ficha(s) com um nome desta carga e outro id: %. O indice fichas_nome_unico recusaria o insert com "duplicate key" e esta carga nao aplicaria. Isso acontece quando a ficha foi apagada e redigitada na tela. O que fazer: renomeie ou apague a ficha listada acima, e reaplique. A carga NAO a sobrescreve de proposito — o trabalho feito na tela nao e dela.',
+      v_n, v_quais;
+  end if;
+
+  select count(*), string_agg(format('%L (id %s)', p.nome, p.id), ', ' order by p.nome)
+    into v_n, v_quais
+    from produtos p
+   where p.restaurante_id = 'b0a12eca-0000-4000-8000-000000000001'
+     and p.id not in (
+    '79e3cc0e-6ea8-5c55-abc1-e336321fe4fb', '9478f048-abef-524c-91e1-4990af1aff8a', '5d2df11c-139e-59f7-9ce1-1341bb618665',
+    'db164cac-2a2d-550e-99c5-ca9d91c657fd', '1604a0db-ce1e-5dc7-99e9-d56ebfb8f4ba', '648ae03e-5952-52f8-994b-0f02fd4cf304',
+    '2281c43f-f891-55ee-ae00-3cb22272d9fa', '8d0ce4e2-f036-561a-9c7e-369ee1a1a36e', '07a63dbb-8f8a-5183-9d29-66e11e43c72a',
+    '0de840f4-066f-57d5-8f75-3ff10f33c74c', 'cfe5fcc2-1632-5764-817d-e63458f01a24', '37f58d0a-2f23-590b-9d6c-b9ed25a91bb7'
+     )
+     and lower(mv_sem_acento(p.nome)) in (
+       lower(mv_sem_acento('ESPUMA DE GENGIBRE')), lower(mv_sem_acento('ESPUMA DE HIBISCO')),
+       lower(mv_sem_acento('MIX DE PINA')), lower(mv_sem_acento('SUCO NATURAL')),
+       lower(mv_sem_acento('XAROPE DE ACUCAR')), lower(mv_sem_acento('XAROPE DE CANELA E MEL')),
+       lower(mv_sem_acento('XAROPE DE GENGIBRE')), lower(mv_sem_acento('XAROPE DE HIBISCO')),
+       lower(mv_sem_acento('XAROPE DE MARACUJA')), lower(mv_sem_acento('XAROPE DE MEL')),
+       lower(mv_sem_acento('XAROPE DE MORANGO')), lower(mv_sem_acento('XAROPE DE UVA'))
+     );
+  if v_n <> 0 then
+    raise exception '0004: % produto(s) com um nome desta carga e outro id: %. O indice produtos_nome_unico recusaria o insert. O que fazer: RENOMEIE o produto listado (ou apague-o, se ele for mesmo duplicata do desta carga) e reaplique. DESATIVAR NAO RESOLVE: o indice nao olha a coluna ativo, medido — com o produto desativado a carga recusa igual.',
+      v_n, v_quais;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
 -- 1 · Os 12 preparos da casa, como produto do catalogo
 --
 -- No PDF o xarope e a espuma SAO ficha, com ingredientes proprios. No nosso
@@ -222,83 +320,103 @@ on conflict (produto_id, setor_id) do update set
 -- ---------------------------------------------------------------------------
 
 -- @bloco:fichas
-insert into fichas (id, restaurante_id, nome, grupo, descricao, modo_preparo, rendimento, unidade_rendimento, preco_venda, cmv_alvo, ativo, ordem) values
-  ('b9ffcc60-77ab-57f1-b5a4-ccca52aca995', 'b0a12eca-0000-4000-8000-000000000001', '43 SPRITZ', 'Drinques', 'Ficha do PDV BDZ50153 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 1),
-  ('997f6893-7b76-5934-8f2d-0249274b41c4', 'b0a12eca-0000-4000-8000-000000000001', 'AGORA POR FAVOR', 'Drinques', 'Ficha do PDV BDZ50191 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 2),
-  ('99f242e7-d548-5e7d-9932-9f4a9cbe54d6', 'b0a12eca-0000-4000-8000-000000000001', 'APEROL SPRITZ', 'Drinques', 'Ficha do PDV BDZ15312 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 3),
-  ('6fb2af9c-73b7-5b32-a329-8f876c27eb2f', 'b0a12eca-0000-4000-8000-000000000001', 'ATOS OITAVO', 'Drinques', 'Ficha do PDV BDZ50197 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 4),
-  ('020bf257-9cbd-54a2-9e62-9154679f603d', 'b0a12eca-0000-4000-8000-000000000001', 'BI-SAMBAS', 'Drinques', 'Ficha do PDV BDZ156 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 5),
-  ('0ab46e4a-d7af-5d9b-9e96-6bd6e8b3662a', 'b0a12eca-0000-4000-8000-000000000001', 'BLUE TA DE CAO', 'Drinques', 'Ficha do PDV BDZ790 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 6),
-  ('c69d7374-3ba7-55bd-ace4-8f912f546610', 'b0a12eca-0000-4000-8000-000000000001', 'BOSSA SOUR', 'Drinques', 'Ficha do PDV BDZ501901 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 7),
-  ('cdfbc635-3523-54fd-a0d2-13c9a3ae9d6e', 'b0a12eca-0000-4000-8000-000000000001', 'BRASILEIRINHO', 'Drinques', 'Ficha do PDV BDZ710 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 8),
-  ('a78043db-4a76-5d64-9973-20eedfeca10d', 'b0a12eca-0000-4000-8000-000000000001', 'BRISANDO', 'Drinques', 'Ficha do PDV BDZ1793 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 9),
-  ('c6483741-e661-56dc-a3a0-52f14aba1b1e', 'b0a12eca-0000-4000-8000-000000000001', 'BRISEEIIII', 'Drinques', 'Ficha do PDV BDZ5017 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 10),
-  ('a176a479-44b0-582b-b83a-3760e1790457', 'b0a12eca-0000-4000-8000-000000000001', 'CACHACA DO ZECA', 'Drinques', 'Ficha do PDV BDZ36 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 11),
-  ('21e5da96-fd2d-5d2e-804c-b431790429e7', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIRINHA BDZ', 'Drinques', 'Ficha do PDV BDZ161 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 12),
-  ('42655c6d-ef62-5ed2-a09e-a0fc05321206', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIRINHA COM MEL', 'Drinques', 'Ficha do PDV BDZ162 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 13),
-  ('816545ff-4f9d-5aca-bc28-f7d27606dcad', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIRINHA ESP SAGATIBA', 'Drinques', 'Ficha do PDV BDZ727 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 14),
-  ('4a9ac3f1-b661-5352-815f-130ca7e2ef99', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIVODKA ABSOLUT BDZ', 'Drinques', 'Ficha do PDV BDZ3403 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 15),
-  ('455ff383-da0d-56ad-8903-3f176f79ac00', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIVODKA SKYY', 'Drinques', 'Ficha do PDV BDZ3811 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 16),
-  ('93d3728a-fdbf-57c9-af90-facaeb93c654', 'b0a12eca-0000-4000-8000-000000000001', 'CAMISA 10', 'Drinques', 'Ficha do PDV BDZ761 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 17),
-  ('4e8468df-d206-5e95-b519-965dccf84921', 'b0a12eca-0000-4000-8000-000000000001', 'CAMPARI TONICA', 'Drinques', 'Ficha do PDV BDZ153 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 18),
-  ('ef0689c3-1ce9-5863-841c-8727995acacc', 'b0a12eca-0000-4000-8000-000000000001', 'CARAJILLO BDZ', 'Drinques', 'Ficha do PDV BDZ5015 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 19),
-  ('643aa1de-242f-59d5-8235-3eb624580d03', 'b0a12eca-0000-4000-8000-000000000001', 'COISA DE MALANDRO', 'Drinques', 'Ficha do PDV BDZ166 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 20),
-  ('6000c57a-cd7d-5b9d-b47b-7e524a0660f2', 'b0a12eca-0000-4000-8000-000000000001', 'CORACAO DE SAMBISTA', 'Drinques', 'Ficha do PDV BDZ5022 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 21),
-  ('924b6ffb-7838-5e18-9610-4305eeb9769e', 'b0a12eca-0000-4000-8000-000000000001', 'DEIXA ARDER', 'Drinques', 'Ficha do PDV BDZ50193 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 22),
-  ('5a5ce539-33f1-5bfa-ad46-86c41f1ed3cd', 'b0a12eca-0000-4000-8000-000000000001', 'DOM AMORES EM VERMELHO', 'Drinques', 'Ficha do PDV BDZ172 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 23),
-  ('461e3985-95b2-51cb-8ccf-d94057c95189', 'b0a12eca-0000-4000-8000-000000000001', 'EXPLOSAO DO ZECA', 'Drinques', 'Ficha do PDV BDZ178 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 24),
-  ('dc67c60f-fbba-5396-9baf-1f75f4bd9be1', 'b0a12eca-0000-4000-8000-000000000001', 'FOLIA DO DOM', 'Drinques', 'Ficha do PDV BDZ179 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 25),
-  ('9b145afd-22e6-5e73-b05f-a0e20df65dab', 'b0a12eca-0000-4000-8000-000000000001', 'FULERAGEM', 'Drinques', 'Ficha do PDV BDZ50198 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 26),
-  ('57d67512-8f2a-5d2d-a198-aeefa95773cb', 'b0a12eca-0000-4000-8000-000000000001', 'GIN COM ESPUMA', 'Drinques', 'Ficha do PDV BDZ276 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 27),
-  ('65745fd4-d0a0-5b24-bb9b-3efe01385351', 'b0a12eca-0000-4000-8000-000000000001', 'GIN PINK', 'Drinques', 'Ficha do PDV BDZ181 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 28),
-  ('b4fa78df-2d85-5223-84aa-9e0f21fbede0', 'b0a12eca-0000-4000-8000-000000000001', 'GIN TROPICAL', 'Drinques', 'Ficha do PDV BDZ304 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 29),
-  ('1dec1681-d161-5ad4-a3a7-1b4b3a9118da', 'b0a12eca-0000-4000-8000-000000000001', 'GT ARPO GIN', 'Drinques', 'Ficha do PDV BDZ2885 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 30),
-  ('08467c7b-f626-5662-b1cb-806591f671e5', 'b0a12eca-0000-4000-8000-000000000001', 'GT BOMBAY', 'Drinques', 'Ficha do PDV BDZ282 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 31),
-  ('3a95d358-da0f-5265-845d-0c511175aee5', 'b0a12eca-0000-4000-8000-000000000001', 'GT TANQUERAY', 'Drinques', 'Ficha do PDV BDZ291 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 32),
-  ('c930e0d8-8da1-5c29-bdc4-c70e1c8949a0', 'b0a12eca-0000-4000-8000-000000000001', 'HOJE TA CALOR', 'Drinques', 'Ficha do PDV BDZ50196 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 33),
-  ('6152f477-5d2c-57e6-a71c-c99ba1803c12', 'b0a12eca-0000-4000-8000-000000000001', 'JA FOI', 'Drinques', 'Ficha do PDV BDZ764 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 34),
-  ('2180fbc3-69c8-5f6b-bc29-f102fc8a2a1e', 'b0a12eca-0000-4000-8000-000000000001', 'JA SAIU', 'Drinques', 'Ficha do PDV BDZ504 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 35),
-  ('75ac6e85-33ca-5069-860b-2c23e0d567ac', 'b0a12eca-0000-4000-8000-000000000001', 'LIMONCELLO SPRITZ', 'Drinques', 'Ficha do PDV BDZ2034 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 36),
-  ('82a53d37-21a6-5ac9-a7cf-2cee49206fda', 'b0a12eca-0000-4000-8000-000000000001', 'MOSCOW IN ZECA', 'Drinques', 'Ficha do PDV BDZ189 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 37),
-  ('e2bdb7c1-aeae-545a-b070-fe46f89573d1', 'b0a12eca-0000-4000-8000-000000000001', 'NEGRONI BDZ', 'Drinques', 'Ficha do PDV BDZ192 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 38),
-  ('4446da09-6756-5e3a-9a01-c0ebbe5716a2', 'b0a12eca-0000-4000-8000-000000000001', 'NOAH PAGODINHO', 'Drinques', 'Ficha do PDV BDZ750 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 39),
-  ('48542889-8f6e-50e2-8ef9-e8b4f280813c', 'b0a12eca-0000-4000-8000-000000000001', 'PAREI NO ZECA', 'Drinques', 'Ficha do PDV BDZ725 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 40),
-  ('169d6e22-6f78-5e64-95d6-7bd20fadfc4c', 'b0a12eca-0000-4000-8000-000000000001', 'QUE CALOR E ESSE', 'Drinques', 'Ficha do PDV BDZ50195 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 41),
-  ('7eb02966-30f4-5632-a533-270e1074795d', 'b0a12eca-0000-4000-8000-000000000001', 'SAI AGORA', 'Drinques', 'Ficha do PDV BDZ50192 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 42),
-  ('fd64761b-abf4-5e74-8637-adce2a336fda', 'b0a12eca-0000-4000-8000-000000000001', 'SALVE JORGE', 'Drinques', 'Ficha do PDV BDZ5011 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 43),
-  ('13c818c5-b902-5132-8837-195d59dd20d0', 'b0a12eca-0000-4000-8000-000000000001', 'SEGREDO DO ZECA', 'Drinques', 'Ficha do PDV BDZ202 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 44),
-  ('4525e832-01b9-5c14-98d4-da3e1113a4d1', 'b0a12eca-0000-4000-8000-000000000001', 'SO UM MINUTO', 'Drinques', 'Ficha do PDV BDZ763 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 45),
-  ('ab8e6403-dc95-5a53-bc3b-20db8cf1b7e8', 'b0a12eca-0000-4000-8000-000000000001', 'TAMO JUNTO', 'Drinques', 'Ficha do PDV BDZ762 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 46),
-  ('7c0c701d-8262-5506-99ec-3089b31965eb', 'b0a12eca-0000-4000-8000-000000000001', 'TOMA LIZA', 'Drinques', 'Ficha do PDV BDZ765 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 47),
-  ('57823137-ab4b-5450-a8f9-e56af27f11b4', 'b0a12eca-0000-4000-8000-000000000001', 'VAI VIVER', 'Drinques', 'Ficha do PDV BDZ50199 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 48),
-  ('1fd1c668-fa04-5cd8-9a97-056f89e499ae', 'b0a12eca-0000-4000-8000-000000000001', 'XEREM', 'Drinques', 'Ficha do PDV BDZ10000 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 49),
-  ('0d5cb47d-5dba-5fb8-95f6-5ea397b530fa', 'b0a12eca-0000-4000-8000-000000000001', 'APEROL SPRITZ HH', 'Drinques · Happy Hour', 'Ficha do PDV BDZ1532 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 1),
-  ('a6776e26-08d1-50cf-b746-509536923cc3', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIRINHA HH', 'Drinques · Happy Hour', 'Ficha do PDV BDZ729 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 2),
-  ('0f881b17-934c-5c88-ae9e-571e75740f06', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIVODKA SKYY HH', 'Drinques · Happy Hour', 'Ficha do PDV BDZ3812 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 3),
-  ('152bb216-c36a-5c3e-98d9-5961987b8c4e', 'b0a12eca-0000-4000-8000-000000000001', 'MATE DA CASA SABORES', 'Drinques · Sem Álcool', 'Ficha do PDV BDZ800 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 1),
-  ('edc42641-fa54-5bf0-9c47-b1f552e00fed', 'b0a12eca-0000-4000-8000-000000000001', 'MONICA COQUETEL', 'Drinques · Sem Álcool', 'Ficha do PDV BDZ1797 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 2),
-  ('45574e1d-b121-5266-9513-c8d62ac08d3e', 'b0a12eca-0000-4000-8000-000000000001', 'SILENCIO', 'Drinques · Sem Álcool', 'Ficha do PDV BDZ751 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 3),
-  ('e5645b37-fdba-557d-8ed4-4f5d6d94566c', 'b0a12eca-0000-4000-8000-000000000001', 'TO CALMA', 'Drinques · Sem Álcool', 'Ficha do PDV BDZ50194 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 4)
+insert into fichas (id, restaurante_id, nome, grupo, descricao, modo_preparo, rendimento, unidade_rendimento, preco_venda, cmv_alvo, ativo, ordem, origem_carga) values
+  ('b9ffcc60-77ab-57f1-b5a4-ccca52aca995', 'b0a12eca-0000-4000-8000-000000000001', '43 SPRITZ', 'Drinques', 'Ficha do PDV BDZ50153 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 1, '0004'),
+  ('997f6893-7b76-5934-8f2d-0249274b41c4', 'b0a12eca-0000-4000-8000-000000000001', 'AGORA POR FAVOR', 'Drinques', 'Ficha do PDV BDZ50191 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 2, '0004'),
+  ('99f242e7-d548-5e7d-9932-9f4a9cbe54d6', 'b0a12eca-0000-4000-8000-000000000001', 'APEROL SPRITZ', 'Drinques', 'Ficha do PDV BDZ15312 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 3, '0004'),
+  ('6fb2af9c-73b7-5b32-a329-8f876c27eb2f', 'b0a12eca-0000-4000-8000-000000000001', 'ATOS OITAVO', 'Drinques', 'Ficha do PDV BDZ50197 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 4, '0004'),
+  ('020bf257-9cbd-54a2-9e62-9154679f603d', 'b0a12eca-0000-4000-8000-000000000001', 'BI-SAMBAS', 'Drinques', 'Ficha do PDV BDZ156 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 5, '0004'),
+  ('0ab46e4a-d7af-5d9b-9e96-6bd6e8b3662a', 'b0a12eca-0000-4000-8000-000000000001', 'BLUE TA DE CAO', 'Drinques', 'Ficha do PDV BDZ790 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 6, '0004'),
+  ('c69d7374-3ba7-55bd-ace4-8f912f546610', 'b0a12eca-0000-4000-8000-000000000001', 'BOSSA SOUR', 'Drinques', 'Ficha do PDV BDZ501901 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 7, '0004'),
+  ('cdfbc635-3523-54fd-a0d2-13c9a3ae9d6e', 'b0a12eca-0000-4000-8000-000000000001', 'BRASILEIRINHO', 'Drinques', 'Ficha do PDV BDZ710 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 8, '0004'),
+  ('a78043db-4a76-5d64-9973-20eedfeca10d', 'b0a12eca-0000-4000-8000-000000000001', 'BRISANDO', 'Drinques', 'Ficha do PDV BDZ1793 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 9, '0004'),
+  ('c6483741-e661-56dc-a3a0-52f14aba1b1e', 'b0a12eca-0000-4000-8000-000000000001', 'BRISEEIIII', 'Drinques', 'Ficha do PDV BDZ5017 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 10, '0004'),
+  ('a176a479-44b0-582b-b83a-3760e1790457', 'b0a12eca-0000-4000-8000-000000000001', 'CACHACA DO ZECA', 'Drinques', 'Ficha do PDV BDZ36 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 11, '0004'),
+  ('21e5da96-fd2d-5d2e-804c-b431790429e7', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIRINHA BDZ', 'Drinques', 'Ficha do PDV BDZ161 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 12, '0004'),
+  ('42655c6d-ef62-5ed2-a09e-a0fc05321206', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIRINHA COM MEL', 'Drinques', 'Ficha do PDV BDZ162 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 13, '0004'),
+  ('816545ff-4f9d-5aca-bc28-f7d27606dcad', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIRINHA ESP SAGATIBA', 'Drinques', 'Ficha do PDV BDZ727 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 14, '0004'),
+  ('4a9ac3f1-b661-5352-815f-130ca7e2ef99', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIVODKA ABSOLUT BDZ', 'Drinques', 'Ficha do PDV BDZ3403 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 15, '0004'),
+  ('455ff383-da0d-56ad-8903-3f176f79ac00', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIVODKA SKYY', 'Drinques', 'Ficha do PDV BDZ3811 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 16, '0004'),
+  ('93d3728a-fdbf-57c9-af90-facaeb93c654', 'b0a12eca-0000-4000-8000-000000000001', 'CAMISA 10', 'Drinques', 'Ficha do PDV BDZ761 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 17, '0004'),
+  ('4e8468df-d206-5e95-b519-965dccf84921', 'b0a12eca-0000-4000-8000-000000000001', 'CAMPARI TONICA', 'Drinques', 'Ficha do PDV BDZ153 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 18, '0004'),
+  ('ef0689c3-1ce9-5863-841c-8727995acacc', 'b0a12eca-0000-4000-8000-000000000001', 'CARAJILLO BDZ', 'Drinques', 'Ficha do PDV BDZ5015 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 19, '0004'),
+  ('643aa1de-242f-59d5-8235-3eb624580d03', 'b0a12eca-0000-4000-8000-000000000001', 'COISA DE MALANDRO', 'Drinques', 'Ficha do PDV BDZ166 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 20, '0004'),
+  ('6000c57a-cd7d-5b9d-b47b-7e524a0660f2', 'b0a12eca-0000-4000-8000-000000000001', 'CORACAO DE SAMBISTA', 'Drinques', 'Ficha do PDV BDZ5022 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 21, '0004'),
+  ('924b6ffb-7838-5e18-9610-4305eeb9769e', 'b0a12eca-0000-4000-8000-000000000001', 'DEIXA ARDER', 'Drinques', 'Ficha do PDV BDZ50193 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 22, '0004'),
+  ('5a5ce539-33f1-5bfa-ad46-86c41f1ed3cd', 'b0a12eca-0000-4000-8000-000000000001', 'DOM AMORES EM VERMELHO', 'Drinques', 'Ficha do PDV BDZ172 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 23, '0004'),
+  ('461e3985-95b2-51cb-8ccf-d94057c95189', 'b0a12eca-0000-4000-8000-000000000001', 'EXPLOSAO DO ZECA', 'Drinques', 'Ficha do PDV BDZ178 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 24, '0004'),
+  ('dc67c60f-fbba-5396-9baf-1f75f4bd9be1', 'b0a12eca-0000-4000-8000-000000000001', 'FOLIA DO DOM', 'Drinques', 'Ficha do PDV BDZ179 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 25, '0004'),
+  ('9b145afd-22e6-5e73-b05f-a0e20df65dab', 'b0a12eca-0000-4000-8000-000000000001', 'FULERAGEM', 'Drinques', 'Ficha do PDV BDZ50198 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 26, '0004'),
+  ('57d67512-8f2a-5d2d-a198-aeefa95773cb', 'b0a12eca-0000-4000-8000-000000000001', 'GIN COM ESPUMA', 'Drinques', 'Ficha do PDV BDZ276 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 27, '0004'),
+  ('65745fd4-d0a0-5b24-bb9b-3efe01385351', 'b0a12eca-0000-4000-8000-000000000001', 'GIN PINK', 'Drinques', 'Ficha do PDV BDZ181 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 28, '0004'),
+  ('b4fa78df-2d85-5223-84aa-9e0f21fbede0', 'b0a12eca-0000-4000-8000-000000000001', 'GIN TROPICAL', 'Drinques', 'Ficha do PDV BDZ304 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 29, '0004'),
+  ('1dec1681-d161-5ad4-a3a7-1b4b3a9118da', 'b0a12eca-0000-4000-8000-000000000001', 'GT ARPO GIN', 'Drinques', 'Ficha do PDV BDZ2885 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 30, '0004'),
+  ('08467c7b-f626-5662-b1cb-806591f671e5', 'b0a12eca-0000-4000-8000-000000000001', 'GT BOMBAY', 'Drinques', 'Ficha do PDV BDZ282 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 31, '0004'),
+  ('3a95d358-da0f-5265-845d-0c511175aee5', 'b0a12eca-0000-4000-8000-000000000001', 'GT TANQUERAY', 'Drinques', 'Ficha do PDV BDZ291 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 32, '0004'),
+  ('c930e0d8-8da1-5c29-bdc4-c70e1c8949a0', 'b0a12eca-0000-4000-8000-000000000001', 'HOJE TA CALOR', 'Drinques', 'Ficha do PDV BDZ50196 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 33, '0004'),
+  ('6152f477-5d2c-57e6-a71c-c99ba1803c12', 'b0a12eca-0000-4000-8000-000000000001', 'JA FOI', 'Drinques', 'Ficha do PDV BDZ764 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 34, '0004'),
+  ('2180fbc3-69c8-5f6b-bc29-f102fc8a2a1e', 'b0a12eca-0000-4000-8000-000000000001', 'JA SAIU', 'Drinques', 'Ficha do PDV BDZ504 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 35, '0004'),
+  ('75ac6e85-33ca-5069-860b-2c23e0d567ac', 'b0a12eca-0000-4000-8000-000000000001', 'LIMONCELLO SPRITZ', 'Drinques', 'Ficha do PDV BDZ2034 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 36, '0004'),
+  ('82a53d37-21a6-5ac9-a7cf-2cee49206fda', 'b0a12eca-0000-4000-8000-000000000001', 'MOSCOW IN ZECA', 'Drinques', 'Ficha do PDV BDZ189 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 37, '0004'),
+  ('e2bdb7c1-aeae-545a-b070-fe46f89573d1', 'b0a12eca-0000-4000-8000-000000000001', 'NEGRONI BDZ', 'Drinques', 'Ficha do PDV BDZ192 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 38, '0004'),
+  ('4446da09-6756-5e3a-9a01-c0ebbe5716a2', 'b0a12eca-0000-4000-8000-000000000001', 'NOAH PAGODINHO', 'Drinques', 'Ficha do PDV BDZ750 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 39, '0004'),
+  ('48542889-8f6e-50e2-8ef9-e8b4f280813c', 'b0a12eca-0000-4000-8000-000000000001', 'PAREI NO ZECA', 'Drinques', 'Ficha do PDV BDZ725 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 40, '0004'),
+  ('169d6e22-6f78-5e64-95d6-7bd20fadfc4c', 'b0a12eca-0000-4000-8000-000000000001', 'QUE CALOR E ESSE', 'Drinques', 'Ficha do PDV BDZ50195 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 41, '0004'),
+  ('7eb02966-30f4-5632-a533-270e1074795d', 'b0a12eca-0000-4000-8000-000000000001', 'SAI AGORA', 'Drinques', 'Ficha do PDV BDZ50192 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 42, '0004'),
+  ('fd64761b-abf4-5e74-8637-adce2a336fda', 'b0a12eca-0000-4000-8000-000000000001', 'SALVE JORGE', 'Drinques', 'Ficha do PDV BDZ5011 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 43, '0004'),
+  ('13c818c5-b902-5132-8837-195d59dd20d0', 'b0a12eca-0000-4000-8000-000000000001', 'SEGREDO DO ZECA', 'Drinques', 'Ficha do PDV BDZ202 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 44, '0004'),
+  ('4525e832-01b9-5c14-98d4-da3e1113a4d1', 'b0a12eca-0000-4000-8000-000000000001', 'SO UM MINUTO', 'Drinques', 'Ficha do PDV BDZ763 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 45, '0004'),
+  ('ab8e6403-dc95-5a53-bc3b-20db8cf1b7e8', 'b0a12eca-0000-4000-8000-000000000001', 'TAMO JUNTO', 'Drinques', 'Ficha do PDV BDZ762 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 46, '0004'),
+  ('7c0c701d-8262-5506-99ec-3089b31965eb', 'b0a12eca-0000-4000-8000-000000000001', 'TOMA LIZA', 'Drinques', 'Ficha do PDV BDZ765 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 47, '0004'),
+  ('57823137-ab4b-5450-a8f9-e56af27f11b4', 'b0a12eca-0000-4000-8000-000000000001', 'VAI VIVER', 'Drinques', 'Ficha do PDV BDZ50199 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 48, '0004'),
+  ('1fd1c668-fa04-5cd8-9a97-056f89e499ae', 'b0a12eca-0000-4000-8000-000000000001', 'XEREM', 'Drinques', 'Ficha do PDV BDZ10000 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 49, '0004'),
+  ('0d5cb47d-5dba-5fb8-95f6-5ea397b530fa', 'b0a12eca-0000-4000-8000-000000000001', 'APEROL SPRITZ HH', 'Drinques · Happy Hour', 'Ficha do PDV BDZ1532 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 1, '0004'),
+  ('a6776e26-08d1-50cf-b746-509536923cc3', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIRINHA HH', 'Drinques · Happy Hour', 'Ficha do PDV BDZ729 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 2, '0004'),
+  ('0f881b17-934c-5c88-ae9e-571e75740f06', 'b0a12eca-0000-4000-8000-000000000001', 'CAIPIVODKA SKYY HH', 'Drinques · Happy Hour', 'Ficha do PDV BDZ3812 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 3, '0004'),
+  ('152bb216-c36a-5c3e-98d9-5961987b8c4e', 'b0a12eca-0000-4000-8000-000000000001', 'MATE DA CASA SABORES', 'Drinques · Sem Álcool', 'Ficha do PDV BDZ800 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 1, '0004'),
+  ('edc42641-fa54-5bf0-9c47-b1f552e00fed', 'b0a12eca-0000-4000-8000-000000000001', 'MONICA COQUETEL', 'Drinques · Sem Álcool', 'Ficha do PDV BDZ1797 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 2, '0004'),
+  ('45574e1d-b121-5266-9513-c8d62ac08d3e', 'b0a12eca-0000-4000-8000-000000000001', 'SILENCIO', 'Drinques · Sem Álcool', 'Ficha do PDV BDZ751 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 3, '0004'),
+  ('e5645b37-fdba-557d-8ed4-4f5d6d94566c', 'b0a12eca-0000-4000-8000-000000000001', 'TO CALMA', 'Drinques · Sem Álcool', 'Ficha do PDV BDZ50194 · Relatorio de Estrutura de Produto, Bar do Zeca Norte Shopping', null, 1, 'PORCAO', 0, 20, true, 4, '0004')
 on conflict (id) do update set
      nome = excluded.nome,
      grupo = excluded.grupo,
      descricao = excluded.descricao,
      rendimento = excluded.rendimento,
      unidade_rendimento = excluded.unidade_rendimento,
-     cmv_alvo = excluded.cmv_alvo,
-     ordem = excluded.ordem;
+     ordem = excluded.ordem,
+     origem_carga = excluded.origem_carga;
 
 -- @fim:fichas
 
--- preco_venda E `ativo` de proposito FORA do `do update`: se a cliente
--- preencher o preco pela tela, reaplicar esta carga nao pode zerar o trabalho
--- dela. O arquivo manda no que veio do PDF; o preco e dela.
+-- O carimbo da posse, para a ficha que ESTA no arquivo de hoje mas nasceu
+-- antes da migracao 0021 (e por isso teria `origem_carga` nula). O `do update`
+-- acima ja resolve isso; este `update` existe porque ele casa por **id** contra
+-- `arquivo_fichas`, o que alcanca tambem a ficha que a casa RENOMEOU — o nome
+-- mudou, o id nao.
+update fichas set origem_carga = '0004'
+ where id in (select id from arquivo_fichas)
+   and (origem_carga is null or origem_carga = '0004');
+
+
+-- TRES colunas de proposito FORA do `do update`. O criterio e um so: campo em
+-- que a casa DECIDE algo a carga nao sobrescreve; campo que descreve o que veio
+-- do PDF, sim.
+--
+-- `preco_venda`: se a cliente preencher o preco pela tela, reaplicar esta carga
+-- nao pode zerar o trabalho dela. O arquivo manda no que veio do PDF; o preco e
+-- dela.
 --
 -- `ativo` entrou nessa lista por medicao, nao por simetria: com `ativo = true`
 -- no `do update`, uma ficha que a cliente DESATIVOU pela tela voltava ativa na
 -- proxima reaplicacao. Desativar e a forma que o modulo tem de dizer "este
 -- drinque saiu do cardapio", e a carga nao tem autoridade para discordar. A
 -- ficha nasce `true` no insert; depois disso, quem manda e ela.
+--
+-- `cmv_alvo` entrou depois, pelo mesmo raciocinio e tambem por medicao: ele e a
+-- META de CMV que a casa escolhe para o item, e com ele no `do update` um
+-- ajuste feito na tela era desfeito na reaplicacao. O valor que a carga grava na
+-- primeira vez (20 em coquetel, 30 em revenda, 100 em cortesia) e ponto de
+-- partida, nao palavra final.
 
 -- ---------------------------------------------------------------------------
 -- 3 · Os 196 itens
@@ -676,43 +794,32 @@ delete from ficha_itens i
 -- apagaria a ficha que a cliente criou na tela; apagar por `grupo` tambem,
 -- porque o grupo e texto livre e ela pode digitar "Cortesias".
 --
--- A POSSE E DEMONSTRAVEL PELO DADO, e e isso que resolve. Toda ficha desta
--- carga nasce com `id = UUIDv5(restaurante_id, 'ficha:' || nome)` — e o que
--- `idDe('ficha', nome)` calcula no gerador. Ficha criada pela tela nasce de
--- `gen_random_uuid()` e nao satisfaz essa igualdade nem por acidente (seria
--- preciso acertar 122 bits). Entao o delete abaixo recalcula o UUIDv5 em SQL, a
--- partir do `nome` que esta na propria linha, e so apaga a ficha em que o
--- recalculo CASA com o id gravado.
+-- A POSSE E GRAVADA, em `fichas.origem_carga` — a coluna que a migracao 0021
+-- criou. Esta carga escreve `'0004'` nela (secao 2), ficha feita na tela fica
+-- com a coluna NULA, e a 0005 escreve `'0005'`. Entao o delete abaixo alcanca
+-- exatamente as fichas que uma versao ANTERIOR desta mesma carga criou e que a
+-- versao de hoje nao tem mais.
 --
--- Em outras palavras: ele alcanca exatamente as fichas que uma versao ANTERIOR
--- desta mesma carga criou e que a versao de hoje nao tem mais. Nunca a ficha
--- da cliente, sem coluna nova, sem migracao e sem lista de nomes.
+-- ATE A 0021 ISSO ERA CALCULADO: a carga reconhecia as suas fichas refazendo em
+-- SQL a conta de `UUIDv5(restaurante_id, 'ficha:' || nome)` — 20 linhas de
+-- sha1, set_byte e substring — e comparando com o id gravado. Funcionava, e
+-- tinha dois defeitos que o rotulo resolve:
 --
--- A aritmetica do UUIDv5 (RFC 4122) em SQL, com o `pgcrypto` que o banco ja
--- tem: sha1(namespace_em_bytes || nome), 16 primeiros bytes, versao 5 no byte 6
--- e variante RFC no byte 8. E a mesma conta do `uuid5()` do gerar-seed.mjs.
+--  · **a chave era mutavel.** `nome` e coluna que a casa edita na tela. Ficha
+--    renomeada deixava de ser reconhecida pela propria carga que a criou, e se
+--    depois saisse da lista ficava no cardapio PARA SEMPRE — fora do alcance de
+--    qualquer versao futura desta carga. O rotulo nao muda quando o nome muda;
+--  · **a separacao entre cargas virava convencao.** Era o prefixo que separava
+--    esta carga da 0005, e uma 0006 copiada de uma das duas sem trocar o
+--    prefixo apagaria as fichas da outra em silencio.
+--
+-- Os ids continuam UUIDv5 do nome: eles so deixam de CARREGAR a posse.
 -- ---------------------------------------------------------------------------
 
-with posse as (
-  select f.id, f.nome,
-         substring(digest(decode(replace(f.restaurante_id::text, '-', ''), 'hex')
-                          || convert_to('ficha:' || f.nome, 'UTF8'), 'sha1')
-                   from 1 for 16) as h
-    from fichas f
-   where f.restaurante_id = 'b0a12eca-0000-4000-8000-000000000001'
-     and f.id not in (select id from arquivo_fichas)
-), v5 as (
-  select id,
-         encode(set_byte(set_byte(h, 6, (get_byte(h, 6) & 15) | 80),
-                         8, (get_byte(h, 8) & 63) | 128), 'hex') as hex
-    from posse
-)
 delete from fichas f
- using v5
- where f.id = v5.id
-   and f.id::text = substring(v5.hex, 1, 8) || '-' || substring(v5.hex, 9, 4) || '-'
-                 || substring(v5.hex, 13, 4) || '-' || substring(v5.hex, 17, 4) || '-'
-                 || substring(v5.hex, 21, 12);
+ where f.restaurante_id = 'b0a12eca-0000-4000-8000-000000000001'
+   and f.origem_carga = '0004'
+   and f.id not in (select id from arquivo_fichas);
 
 -- ---------------------------------------------------------------------------
 -- 5 · Verificacao. Se a conta nao fechar, a transacao cai aqui e nao na
