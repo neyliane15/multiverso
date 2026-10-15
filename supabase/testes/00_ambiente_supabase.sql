@@ -24,6 +24,26 @@ grant anon, authenticated, service_role to postgres;
 create schema if not exists auth;
 create schema if not exists storage;
 
+-- O schema `extensions`, e por que ele esta aqui.
+--
+-- No Supabase as extensoes nao moram em `public`: ha um schema `extensions`,
+-- criado antes de qualquer migracao, e pgcrypto ja vem instalado nele. Entao
+-- `create extension if not exists "pgcrypto"` numa migracao nossa NAO FAZ NADA
+-- la, e `digest()` nao fica no search_path.
+--
+-- Num banco de desenvolvimento nascido vazio acontecia o contrario: o
+-- `create extension` instalava em `public` e tudo resolvia. O resultado e que
+-- uma migracao podia passar aqui, passar na suite, passar na segunda passada —
+-- e morrer na producao da cliente com `function digest(bytea, unknown) does
+-- not exist`. Foi exatamente o que a 0021 fez.
+--
+-- Este ambiente existe para imitar o Supabase, entao ele passa a imitar isto
+-- tambem: o schema vem antes, e o pgcrypto nasce dentro dele. Migracao que
+-- dependa de funcao de extensao sem qualificar o schema agora falha AQUI.
+create schema if not exists extensions;
+grant usage on schema extensions to public;
+create extension if not exists "pgcrypto" with schema extensions;
+
 create table auth.users (
   id                 uuid primary key default gen_random_uuid(),
   email              text unique,

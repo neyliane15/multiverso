@@ -97,12 +97,35 @@ do $$
 declare
   v_0004 int;
   v_0005 int;
+  v_schema text;
 begin
-  -- `pgcrypto` vem da 0001, mas a migracao nao assume: sem a extensao, ela
-  -- avisa e segue. A coluna e o indice ja existem, e e o carimbo das cargas que
-  -- faz o trabalho dai em diante.
-  if not exists (select 1 from pg_extension where extname = 'pgcrypto') then
-    raise warning '0021: sem pgcrypto, o backfill de origem_carga nao foi feito. A coluna existe e as cargas carimbam sozinhas.';
+  -- O backfill usa `digest()`, do pgcrypto, e aqui mora uma diferenca entre o
+  -- Postgres de desenvolvimento e o Supabase que esta migracao ja pagou uma vez
+  -- em producao, com `function digest(bytea, unknown) does not exist`:
+  --
+  --   a 0001 faz `create extension if not exists "pgcrypto"` sem dizer o
+  --   schema. Num banco nosso, nascido vazio, isso instala em `public` e
+  --   `digest()` fica visivel. No Supabase a extensao JA vem instalada no
+  --   schema `extensions`, entao o `create extension` nao faz nada e a funcao
+  --   nao esta no search_path da migracao.
+  --
+  -- A guarda antiga perguntava se a EXTENSAO existe. A pergunta certa e se a
+  -- FUNCAO e alcancavel — no Supabase a primeira responde sim e a segunda nao.
+  -- Entao: descobre onde o pgcrypto mora e poe aquele schema no search_path.
+  select n.nspname into v_schema
+    from pg_extension e join pg_namespace n on n.oid = e.extnamespace
+   where e.extname = 'pgcrypto';
+  if v_schema is not null then
+    execute format('set local search_path = public, %I', v_schema);
+  end if;
+
+  -- E mesmo assim nao assume: se `digest` continuar inalcancavel, avisa e
+  -- segue. A coluna e o indice ja existem, e e o carimbo que cada carga faz
+  -- por `id` que leva o trabalho dai em diante — o backfill cobre so o caso
+  -- de ficha que ja saiu do arquivo, que num banco sem fichas nem existe.
+  if to_regprocedure('digest(bytea, text)') is null then
+    raise warning '0021: digest() inalcancavel (pgcrypto em %), backfill de origem_carga nao feito. A coluna existe e as cargas carimbam sozinhas.',
+      coalesce(v_schema, 'extensao ausente');
     return;
   end if;
 
