@@ -167,6 +167,16 @@ export interface Ficha {
   preco_venda: number
   /** A meta de CMV DESTE prato, em percentual. É da casa, não do manual. */
   cmv_alvo: number
+  /**
+   * Preparação da casa, que entra DENTRO de outra ficha em vez de ser vendida.
+   *
+   * A coluna existe desde a migração 0022 e a vista sempre a devolveu; o tipo
+   * só não a conhecia, então a tela de vendas estava a um `any` de aceitar
+   * lançar "massa do empadão" como item de cardápio. O banco recusa por
+   * gatilho de qualquer jeito — mas descobrir isso pelo erro do servidor é
+   * descobrir tarde.
+   */
+  producao: boolean
   ativo: boolean
   ordem: number
   criado_em: string
@@ -206,6 +216,8 @@ export interface FichaCompleta extends Ficha {
   cmv_percentual: number | null
   margem: number | null
   markup: number | null
+  /** Em quantas fichas esta produção entra. Zero numa ficha de venda. */
+  usada_em: number
   itens_da_ficha: ItemDaFicha[]
 }
 

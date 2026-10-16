@@ -113,6 +113,14 @@ export type OrdemDoRelatorio = 'nome' | 'diferenca' | 'sugestao' | 'consumo'
 
 export interface FiltroDoRelatorio {
   busca?: string
+  /**
+   * Três estados, e eles não são dois.
+   *
+   * `undefined` (ou ausente) = todas as categorias. `null` = o balde **Sem
+   * categoria**, que tem linhas de verdade num catálogo de 900 itens. Uma
+   * string = aquela categoria. Usar `null` para "todas" tornaria o balde
+   * inalcançável pelo filtro, que é o defeito que isto tranca.
+   */
   categoriaId?: string | null
   soPrecisaComprar?: boolean
   soComPendencia?: boolean
@@ -131,7 +139,7 @@ export function filtrarRelatorio(
     // justamente o que precisa de olho humano antes do pedido sair.
     if (filtro.soPrecisaComprar && l.precisa_comprar === false) return false
     if (filtro.soComPendencia && l.pendencia === null) return false
-    if (filtro.categoriaId != null && l.categoria_id !== filtro.categoriaId) return false
+    if (filtro.categoriaId !== undefined && l.categoria_id !== filtro.categoriaId) return false
     if (termos.length === 0) return true
     const nome = chaveBusca(l.produto_nome)
     const categoria = chaveBusca(l.categoria_nome ?? '')

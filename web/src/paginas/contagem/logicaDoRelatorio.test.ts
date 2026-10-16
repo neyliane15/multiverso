@@ -297,3 +297,26 @@ describe('categoriasDoRelatorio', () => {
     ).toEqual([{ id: null, nome: 'Sem categoria', linhas: 1 }])
   })
 })
+
+describe('filtrarRelatorio · o balde "Sem categoria" é alcançável', () => {
+  const comBalde = [
+    ...RELATORIO,
+    linha({ produto_nome: 'Guardanapo', categoria_id: null, categoria_nome: null }),
+  ]
+
+  it('sem o campo, traz tudo', () => {
+    expect(filtrarRelatorio(comBalde)).toHaveLength(5)
+  })
+
+  it('`null` filtra o balde, e não desliga o filtro', () => {
+    expect(filtrarRelatorio(comBalde, { categoriaId: null }).map((l) => l.produto_nome)).toEqual([
+      'Guardanapo',
+    ])
+  })
+
+  it('uma categoria de verdade continua filtrando ela', () => {
+    expect(filtrarRelatorio(comBalde, { categoriaId: 'c-bar' }).map((l) => l.produto_nome)).toEqual(
+      ['Limão', 'Vodka'],
+    )
+  })
+})

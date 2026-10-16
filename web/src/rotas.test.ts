@@ -77,3 +77,47 @@ describe('o mapa dos modulos', () => {
     expect(new Set(todos).size).toBe(todos.length)
   })
 })
+
+/**
+ * O guarda do operador de setor, agora que `/contagem` tem páginas nomeadas.
+ *
+ * Antes ele liberava o prefixo `/contagem/` inteiro, porque a única coisa
+ * depois da barra era um uuid. Bastou nascer `/contagem/dashboard` para o
+ * operador do bar poder ler o estoque, o consumo e a venda da casa inteira
+ * digitando o endereço — e a RLS não salvaria a tela disso: ela entregaria o
+ * total de um setor só, com cara de total da casa.
+ */
+describe('o guarda do operador e as paginas nomeadas da contagem', () => {
+  it('barra o dashboard, o relatorio e as vendas', () => {
+    for (const rota of ['/contagem/dashboard', '/contagem/relatorio', '/contagem/vendas']) {
+      expect(rotaPermitidaNoSetor(rota)).toBe(false)
+    }
+  })
+
+  it('continua deixando passar a folha de UMA contagem, pelo id', () => {
+    expect(rotaPermitidaNoSetor('/contagem/8f2c1a94-0000-4000-8000-000000000001')).toBe(true)
+  })
+
+  it('e o historico, que esta na lista dele', () => {
+    expect(rotaPermitidaNoSetor('/contagem/historico')).toBe(true)
+  })
+
+  it('nao deixa passar caminho de dois niveis', () => {
+    expect(rotaPermitidaNoSetor('/contagem/abc/def')).toBe(false)
+    expect(rotaPermitidaNoSetor('/contagem/')).toBe(false)
+  })
+
+  it('as tres paginas novas tambem nao aparecem no menu do operador de setor', () => {
+    const caminhos = menuVisivel('operador', true, true).flatMap((m) =>
+      m.itens.map((i) => i.caminho),
+    )
+    expect(caminhos).toEqual(['/contagem', '/contagem/historico'])
+  })
+
+  it('mas aparecem para o operador comum', () => {
+    const caminhos = menuVisivel('operador', true).flatMap((m) => m.itens.map((i) => i.caminho))
+    expect(caminhos).toContain('/contagem/dashboard')
+    expect(caminhos).toContain('/contagem/relatorio')
+    expect(caminhos).toContain('/contagem/vendas')
+  })
+})

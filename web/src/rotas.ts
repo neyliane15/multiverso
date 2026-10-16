@@ -92,6 +92,29 @@ export const MODULOS: Modulo[] = [
         exigeRestaurante: true,
       },
       {
+        caminho: '/contagem/dashboard',
+        rotulo: 'Leitura da contagem',
+        icone: 'ChartColumnBig',
+        descricao:
+          'Uma contagem lida de ponta a ponta: valor por categoria, onde está o capital parado e quem zerou.',
+        exigeRestaurante: true,
+      },
+      {
+        caminho: '/contagem/relatorio',
+        rotulo: 'Relatório de contagem',
+        icone: 'Scale',
+        descricao:
+          'Contagem anterior + compras − vendas: o consumo real contra o ideal, e a sugestão de compra.',
+        exigeRestaurante: true,
+      },
+      {
+        caminho: '/contagem/vendas',
+        rotulo: 'Vendas',
+        icone: 'Receipt',
+        descricao: 'O que foi vendido no período, ficha por ficha. É o que o relatório enxerga.',
+        exigeRestaurante: true,
+      },
+      {
         caminho: '/contagem/historico',
         rotulo: 'Histórico',
         icone: 'History',
@@ -192,6 +215,23 @@ export const MODULOS: Modulo[] = [
  */
 export const ROTAS_DO_OPERADOR_DE_SETOR = ['/contagem', '/contagem/historico']
 
+/**
+ * As páginas NOMEADAS que penduram em `/contagem`.
+ *
+ * Esta lista existe por causa de uma ambiguidade do endereço: `/contagem/algo`
+ * pode ser o id de uma contagem — que o operador de setor abre, porque é a
+ * folha dele — ou o nome de uma página da casa inteira, que não é assunto
+ * dele. O guarda liberava o prefixo todo, e isso bastava enquanto a única
+ * coisa depois de `/contagem/` era um uuid.
+ *
+ * Bastou nascerem `/contagem/dashboard`, `/contagem/relatorio` e
+ * `/contagem/vendas` para o operador do bar poder ler o estoque, o consumo e a
+ * venda da casa inteira digitando o endereço. A RLS continuaria recortando o
+ * que ele enxerga — e é justamente esse o problema: ele veria um dashboard com
+ * o total de um setor só, com cara de total da casa.
+ */
+const PAGINAS_DE_CONTAGEM = ['historico', 'dashboard', 'relatorio', 'vendas']
+
 export function menuVisivel(
   papel: PapelUsuario | null,
   temRestaurante: boolean,
@@ -211,9 +251,14 @@ export function menuVisivel(
 
 /** Este endereço é permitido para quem só conta um setor? */
 export function rotaPermitidaNoSetor(caminho: string): boolean {
-  return ROTAS_DO_OPERADOR_DE_SETOR.some(
-    (raiz) => caminho === raiz || caminho.startsWith(`${raiz}/`),
-  )
+  if (ROTAS_DO_OPERADOR_DE_SETOR.includes(caminho)) return true
+  // Sobra um caso: `/contagem/<id>`, a folha de uma contagem específica. Ela
+  // passa — mas só quando o que vem depois da barra é um id, e não o nome de
+  // uma das páginas da casa.
+  if (!caminho.startsWith('/contagem/')) return false
+  const resto = caminho.slice('/contagem/'.length)
+  if (resto === '' || resto.includes('/')) return false
+  return !PAGINAS_DE_CONTAGEM.includes(resto)
 }
 
 /** Todos os caminhos, para o guarda de rota e a busca por comando. */

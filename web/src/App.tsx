@@ -23,6 +23,9 @@ import { Setores } from '@/paginas/cadastros/Setores'
 import { Estoques } from '@/paginas/cadastros/Estoques'
 import { Contagem } from '@/paginas/contagem/Contagem'
 import { HistoricoDeContagens } from '@/paginas/contagem/Historico'
+import { DashboardDaContagem } from '@/paginas/contagem/Dashboard'
+import { RelatorioDeContagem } from '@/paginas/contagem/Relatorio'
+import { Vendas } from '@/paginas/contagem/Vendas'
 import { Notas } from '@/paginas/compras/Notas'
 import { ListaDeCompras } from '@/paginas/compras/Lista'
 import { HistoricoDeCompras } from '@/paginas/compras/Historico'
@@ -117,8 +120,14 @@ export function App() {
           <Route path="cadastros/estoques" element={<Estoques />} />
 
           <Route path="contagem" element={<Contagem />} />
-          <Route path="contagem/:contagemId" element={<Contagem />} />
+          {/* As paginas nomeadas vem ANTES de `:contagemId`: o React Router
+              casa na ordem, e `/contagem/dashboard` bateria na rota do id,
+              que tentaria abrir uma contagem chamada "dashboard". */}
+          <Route path="contagem/dashboard" element={<DashboardDaContagem />} />
+          <Route path="contagem/relatorio" element={<RelatorioDeContagem />} />
+          <Route path="contagem/vendas" element={<Vendas />} />
           <Route path="contagem/historico" element={<HistoricoDeContagens />} />
+          <Route path="contagem/:contagemId" element={<Contagem />} />
 
           <Route path="compras/notas" element={<Notas />} />
           <Route path="compras/notas/:notaId" element={<Notas />} />

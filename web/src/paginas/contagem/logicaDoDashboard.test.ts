@@ -4,7 +4,10 @@ import {
   alertaDeReposicao,
   capitalParado,
   filtrarEOrdenar,
+  contagemEmFoco,
+  contagemPadrao,
   kpisDaContagem,
+  opcoesDeContagem,
   paginar,
   valorPorCategoria,
   zeradosPorCategoria,
@@ -408,5 +411,76 @@ describe('paginar', () => {
   it('lista vazia tem uma página e nenhum rótulo', () => {
     const pagina = paginar([], 1, 25)
     expect([pagina.paginas, pagina.de, pagina.ate, pagina.total]).toEqual([1, 0, 0, 0])
+  })
+})
+
+/* ────────────────────────────────── qual contagem a tela está lendo ─────── */
+
+describe('contagemPadrao / opcoesDeContagem / contagemEmFoco', () => {
+  const contagens = [
+    { id: 'c-aberta', referencia: '2026-08-15', status: 'aberta', titulo: null, total: 10 },
+    { id: 'c-nova', referencia: '2026-08-08', status: 'fechada', titulo: null, total: 1400 },
+    { id: 'c-cancel', referencia: '2026-08-07', status: 'cancelada', titulo: null, total: 0 },
+    { id: 'c-velha', referencia: '2026-08-01', status: 'fechada', titulo: null, total: 1200 },
+  ]
+
+  it('o padrão é a mais recente FECHADA, nunca a aberta que vem depois dela', () => {
+    expect(contagemPadrao(contagens)?.id).toBe('c-nova')
+  })
+
+  it('sem nenhuma fechada, o padrão é nulo — e não a folha aberta', () => {
+    expect(contagemPadrao([contagens[0]!])).toBeNull()
+  })
+
+  it('o seletor oferece a aberta e esconde a cancelada', () => {
+    expect(opcoesDeContagem(contagens).map((c) => c.id)).toEqual([
+      'c-aberta',
+      'c-nova',
+      'c-velha',
+    ])
+  })
+
+  it('a escolha da pessoa vence o padrão', () => {
+    expect(contagemEmFoco(contagens, 'c-velha')?.id).toBe('c-velha')
+  })
+
+  it('escolha que não existe mais cai no padrão, não em tela branca', () => {
+    expect(contagemEmFoco(contagens, 'c-que-foi-apagada')?.id).toBe('c-nova')
+  })
+
+  it('lista vazia não tem foco nenhum', () => {
+    expect(contagemEmFoco([], null)).toBeNull()
+  })
+})
+
+describe('filtrarEOrdenar · o balde "Sem categoria" é alcançável', () => {
+  const comBalde = agruparPorProduto(
+    [
+      ...FOLHA,
+      item({
+        produto_id: 'p-guardanapo',
+        quantidade: 4,
+        custo_unitario: 3,
+        unidade: 'UND',
+        produto: { nome: 'Guardanapo', categoria_id: null },
+      }),
+    ],
+    CATEGORIAS,
+  )
+
+  it('sem o campo, traz tudo', () => {
+    expect(filtrarEOrdenar(comBalde)).toHaveLength(7)
+  })
+
+  it('`null` filtra o balde, e não desliga o filtro', () => {
+    expect(filtrarEOrdenar(comBalde, { categoriaId: null }).map((p) => p.nome)).toEqual([
+      'Guardanapo',
+    ])
+  })
+
+  it('uma categoria de verdade continua filtrando ela', () => {
+    expect(
+      filtrarEOrdenar(comBalde, { categoriaId: 'c-limp', ordem: 'nome' }).map((p) => p.nome),
+    ).toEqual(['Sabão'])
   })
 })

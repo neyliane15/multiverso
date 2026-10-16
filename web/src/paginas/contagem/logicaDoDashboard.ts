@@ -312,6 +312,12 @@ export type OrdemDaTabela = 'valor' | 'estoque' | 'nome'
 
 export interface FiltroDaTabela {
   busca?: string
+  /**
+   * `undefined` = todas; `null` = o balde **Sem categoria**; string = aquela.
+   * O balde existe de verdade — insumo sem categoria aparece na folha — então
+   * ele precisa ser alcançável pelo filtro, e não pode dividir o mesmo valor
+   * com "todas".
+   */
   categoriaId?: string | null
   soZerados?: boolean
   ordem?: OrdemDaTabela
@@ -333,7 +339,7 @@ export function filtrarEOrdenar(
 
   const filtrados = produtos.filter((p) => {
     if (filtro.soZerados && !p.zerado) return false
-    if (filtro.categoriaId != null && p.categoriaId !== filtro.categoriaId) return false
+    if (filtro.categoriaId !== undefined && p.categoriaId !== filtro.categoriaId) return false
     if (termos.length === 0) return true
     const nome = chaveBusca(p.nome)
     const categoria = chaveBusca(p.categoriaNome)
@@ -387,4 +393,69 @@ export function paginar<T>(lista: readonly T[], pagina: number, porPagina = 25):
     ate: inicio + linhas.length,
     total,
   }
+}
+
+/* ──────────────────────────────────── qual contagem a tela está lendo ───── */
+
+export interface ContagemEscolhivel {
+  id: string
+  referencia: string
+  status: string
+  titulo: string | null
+  total: number
+}
+
+/**
+ * A contagem que as duas telas novas abrem sozinhas: **a mais recente
+ * fechada**.
+ *
+ * Fechada, e não "a mais recente": uma contagem aberta é meia leitura, e a
+ * tela que abrisse nela mostraria metade do estoque com cara de total. Quando
+ * não há nenhuma fechada, devolve nulo — e nulo aqui é o estado vazio honesto,
+ * nunca uma folha aberta disfarçada de foto.
+ *
+ * Mora neste arquivo porque foi o dashboard que trouxe o seletor; o relatório
+ * lê daqui em vez de ter a sua própria regra, para que as duas telas nunca
+ * discordem sobre qual contagem está em foco.
+ */
+export function contagemPadrao<T extends ContagemEscolhivel>(
+  contagens: readonly T[],
+): T | null {
+  const fechadas = contagens
+    .filter((c) => c.status === 'fechada')
+    .sort((a, b) => b.referencia.localeCompare(a.referencia))
+  return fechadas[0] ?? null
+}
+
+/**
+ * As contagens que o seletor oferece, da mais nova para a mais velha.
+ *
+ * Cancelada fica fora: ela não entra em cálculo nenhum no resto do sistema
+ * (ver o diálogo de exclusão do histórico), então oferecê-la aqui seria
+ * oferecer uma leitura que o CMV ignora.
+ *
+ * A aberta FICA, com o aviso: quem está no meio da contagem quer conferir o
+ * que já lançou, e esconder a folha em andamento mandaria a pessoa fechar a
+ * contagem só para olhar.
+ */
+export function opcoesDeContagem<T extends ContagemEscolhivel>(
+  contagens: readonly T[],
+): T[] {
+  return contagens
+    .filter((c) => c.status !== 'cancelada')
+    .sort((a, b) => b.referencia.localeCompare(a.referencia))
+}
+
+/** A contagem em foco: a escolhida, ou a padrão quando ninguém escolheu. */
+export function contagemEmFoco<T extends ContagemEscolhivel>(
+  contagens: readonly T[],
+  escolhida: string | null,
+): T | null {
+  if (escolhida !== null) {
+    const achada = contagens.find((c) => c.id === escolhida)
+    // Cai no padrão quando o id escolhido não existe mais — contagem apagada
+    // em outra aba, ou link antigo colado.
+    if (achada) return achada
+  }
+  return contagemPadrao(contagens)
 }
