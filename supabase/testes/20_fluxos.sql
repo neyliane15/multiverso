@@ -1029,4 +1029,584 @@ begin
     not exists (select 1 from contagem_itens where contagem_id = c));
 end $$;
 
+-- ============================================================================
+-- Vendas, a explosao pela arvore das fichas, e o relatorio da contagem
+-- ----------------------------------------------------------------------------
+-- Os numeros deste arquivo sao escolhidos para serem conferiveis a mao, e a
+-- arvore e de proposito de TRES niveis de producao, porque e onde a conta de
+-- quantidade podia divergir da de custo sem ninguem ver:
+--
+--   EMPADAO (venda, rende 1 porcao)
+--     └─ EMPADAO CRU (producao, rende 4 UND)
+--          ├─ MASSA   (producao, rende 1 KG)  ── FARINHA 800 G
+--          └─ RECHEIO (producao, rende 2 KG)  ── CEBOLA 500 G, perda 20%
+--
+--   Por porcao de EMPADAO:
+--     MASSA   → 0,25 KG × (800 G ÷ 1 KG = 0,8) ÷ 4 = 0,05       KG de farinha
+--     RECHEIO → 0,50 KG × (625 G ÷ 2 KG = 0,3125) ÷ 4 = 0,0390625 KG de cebola
+--
+--   CAIPIRINHA (venda, rende 1) ── VODKA 60 ML + LIMAO 50 G
+--     VODKA: UND nao converte para ML, mas a garrafa tem 1000 ML cadastrados,
+--            entao 60 ML = 0,06 garrafa. (`mv_fator_para_produto`, 0017)
+--     LIMAO: UND, sem conteudo cadastrado. 50 G nao converte para nada — e
+--            esta linha tem de voltar MARCADA, nunca como zero limao.
+-- ============================================================================
+do $$
+declare
+  r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a1';
+  c_secos uuid; c_bar uuid; s_coz uuid; s_bar uuid;
+  p_farinha uuid; p_cebola uuid; p_vodka uuid; p_limao uuid; p_azeite uuid;
+  f_massa uuid; f_recheio uuid; f_cru uuid; f_empadao uuid; f_caipira uuid; f_salada uuid;
+begin
+  insert into restaurantes (nome, slug) values ('Prova de Vendas', 'prova-vendas') returning id into r;
+  insert into convites (email, nome, papel, restaurante_id)
+  values ('admin@prova-vendas.com', 'Admin da Prova', 'admin', r);
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (u, 'admin@prova-vendas.com', jsonb_build_object('nome','Admin da Prova'));
+
+  insert into categorias (restaurante_id, nome, ordem) values (r, 'Secos', 1) returning id into c_secos;
+  insert into categorias (restaurante_id, nome, ordem) values (r, 'Bar', 2)   returning id into c_bar;
+  insert into setores (restaurante_id, nome, ordem) values (r, 'Cozinha', 1) returning id into s_coz;
+  insert into setores (restaurante_id, nome, ordem) values (r, 'Bar', 2)     returning id into s_bar;
+
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r, 'Farinha', 'KG', 5, c_secos) returning id into p_farinha;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r, 'Cebola', 'KG', 10, c_secos) returning id into p_cebola;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id,
+                        conteudo_quantidade, conteudo_unidade)
+  values (r, 'Vodka', 'UND', 60, c_bar, 1000, 'ML') returning id into p_vodka;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r, 'Limao', 'UND', 1, c_bar) returning id into p_limao;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r, 'Azeite', 'L', 20, c_secos) returning id into p_azeite;
+
+  insert into produto_setores (produto_id, setor_id, unidade) values
+    (p_farinha, s_coz, 'KG'), (p_cebola, s_coz, 'KG'), (p_azeite, s_coz, 'L'),
+    (p_vodka, s_bar, 'UND'), (p_limao, s_bar, 'UND');
+
+  -- a arvore de producao
+  insert into fichas (restaurante_id, nome, producao, rendimento, unidade_rendimento)
+  values (r, 'Massa do empadao', true, 1, 'KG') returning id into f_massa;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade)
+  values (f_massa, p_farinha, 800, 'G');
+
+  insert into fichas (restaurante_id, nome, producao, rendimento, unidade_rendimento)
+  values (r, 'Recheio do empadao', true, 2, 'KG') returning id into f_recheio;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade, perda_percentual)
+  values (f_recheio, p_cebola, 500, 'G', 20);
+
+  insert into fichas (restaurante_id, nome, producao, rendimento, unidade_rendimento)
+  values (r, 'Empadao cru', true, 4, 'UND') returning id into f_cru;
+  insert into ficha_itens (ficha_id, producao_id, quantidade, unidade) values
+    (f_cru, f_massa, 0.25, 'KG'),
+    (f_cru, f_recheio, 0.5, 'KG');
+
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r, 'Empadao de frango', 1, 'PORCAO', 30) returning id into f_empadao;
+  insert into ficha_itens (ficha_id, producao_id, quantidade, unidade)
+  values (f_empadao, f_cru, 1, 'UND');
+
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r, 'Caipirinha', 1, 'PORCAO', 20) returning id into f_caipira;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade) values
+    (f_caipira, p_vodka, 60, 'ML'),
+    (f_caipira, p_limao, 50, 'G');
+
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r, 'Salada', 1, 'PORCAO', 15) returning id into f_salada;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade)
+  values (f_salada, p_azeite, 100, 'ML');
+end $$;
+
+-- ------------------------------------------- a explosao de UMA ficha --------
+do $$
+declare r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a1'; v numeric; b boolean; t text;
+        f_empadao uuid; f_caipira uuid; n integer;
+begin
+  select id into r from restaurantes where slug = 'prova-vendas';
+  select id into f_empadao from fichas where restaurante_id = r and nome = 'Empadao de frango';
+  select id into f_caipira from fichas where restaurante_id = r and nome = 'Caipirinha';
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+
+  select x.quantidade into v from mv_produtos_da_ficha(f_empadao) x
+    join produtos p on p.id = x.produto_id where p.nome = 'Farinha';
+  perform conferir('tres niveis de producao: 0,05 KG de farinha por porcao de empadao', v = 0.05);
+
+  select x.quantidade into v from mv_produtos_da_ficha(f_empadao) x
+    join produtos p on p.id = x.produto_id where p.nome = 'Cebola';
+  perform conferir('e a perda de 20% sobe a arvore inteira: 0,0390625 KG de cebola',
+                   v = 0.0390625);
+
+  select x.quantidade into v from mv_produtos_da_ficha(f_caipira) x
+    join produtos p on p.id = x.produto_id where p.nome = 'Vodka';
+  perform conferir('a embalagem converte 60 ML em 0,06 garrafa', v = 0.06);
+
+  select x.quantidade, x.fator_ausente, x.motivo into v, b, t
+    from mv_produtos_da_ficha(f_caipira) x
+    join produtos p on p.id = x.produto_id where p.nome = 'Limao';
+  perform conferir('unidade incompativel nao vira zero: a quantidade volta nula', v is null);
+  perform conferir('e a linha volta marcada como sem fator', b);
+  perform conferir('com o motivo dizendo qual insumo e em que unidade',
+                   t like '%Limao%' and t like '%G%');
+  reset role;
+end $$;
+
+-- ------------------------------------------- os lancamentos de venda -------
+do $$
+declare
+  r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a1';
+  f_empadao uuid; f_caipira uuid; f_salada uuid; f_massa uuid;
+  v1 uuid; v2 uuid; v3 uuid; v_linha vendas; v_erro text; v numeric; b boolean;
+begin
+  select id into r from restaurantes where slug = 'prova-vendas';
+  select id into f_empadao from fichas where restaurante_id = r and nome = 'Empadao de frango';
+  select id into f_caipira from fichas where restaurante_id = r and nome = 'Caipirinha';
+  select id into f_salada  from fichas where restaurante_id = r and nome = 'Salada';
+  select id into f_massa   from fichas where restaurante_id = r and nome = 'Massa do empadao';
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+
+  insert into vendas (restaurante_id, referencia, inicio, titulo, criado_por)
+  values (r, date '2026-07-25', date '2026-07-19', 'Semana 1', u) returning id into v1;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values
+    (v1, f_empadao, 100, 30), (v1, f_caipira, 50, 20), (v1, f_salada, 10, 15);
+
+  insert into vendas (restaurante_id, referencia, inicio, titulo, criado_por)
+  values (r, date '2026-08-01', date '2026-07-26', 'Semana 2', u) returning id into v2;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values
+    (v2, f_empadao, 200, 30), (v2, f_caipira, 100, 20), (v2, f_salada, 20, 15);
+
+  insert into vendas (restaurante_id, referencia, inicio, titulo, criado_por)
+  values (r, date '2026-08-08', date '2026-08-02', 'Semana 3', u) returning id into v3;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values
+    (v3, f_empadao, 300, 30), (v3, f_caipira, 150, 20), (v3, f_salada, 30, 15);
+
+  -- Producao e insumo interno: ela entra dentro de ficha, nunca no cardapio.
+  begin
+    insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario)
+    values (v3, f_massa, 1, 0);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('ficha de producao nao se vende', v_erro like '%producao%nao se vende%');
+
+  -- O total do item e quantidade x preco congelado.
+  perform conferir('o total do item e a coluna gerada (300 x 30)',
+    (select total from venda_itens where venda_id = v3 and ficha_id = f_empadao) = 9000);
+
+  v_linha := mv_fechar_venda(v1);
+  perform conferir('fechar a venda carimba a data', v_linha.fechada_em is not null);
+  perform conferir('e congela o total do lancamento (100x30 + 50x20 + 10x15 = 4150)',
+                   v_linha.total_valor = 4150);
+  perform conferir('e conta as linhas', v_linha.total_itens = 3);
+
+  begin
+    update venda_itens set quantidade = 999 where venda_id = v1;
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('venda fechada recusa alteracao de item', v_erro like '%ja fechada%');
+
+  perform mv_fechar_venda(v2);
+  perform mv_fechar_venda(v3);
+
+  -- Duas vendas para a mesma referencia seriam a planilha duplicada.
+  begin
+    insert into vendas (restaurante_id, referencia, criado_por)
+    values (r, date '2026-08-08', u);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('duas vendas na mesma referencia sao recusadas', v_erro <> 'passou');
+
+  -- A explosao de um lancamento inteiro: 300 empadoes x 0,05 = 15 KG.
+  select x.quantidade into v from mv_vendas_por_produto(v3) x
+    join produtos p on p.id = x.produto_id where p.nome = 'Farinha';
+  perform conferir('a venda da semana 3 consumiu 15 KG de farinha', v = 15);
+
+  select x.quantidade into v from mv_vendas_por_produto(v3) x
+    join produtos p on p.id = x.produto_id where p.nome = 'Vodka';
+  perform conferir('e 9 garrafas de vodka (150 x 0,06)', v = 9);
+
+  select x.quantidade, x.fator_ausente into v, b from mv_vendas_por_produto(v3) x
+    join produtos p on p.id = x.produto_id where p.nome = 'Limao';
+  perform conferir('o limao sem conversao continua nulo e marcado na venda inteira',
+                   v is null and b);
+  reset role;
+end $$;
+
+-- ------------------------------------------- as duas fotos e as compras ----
+do $$
+declare
+  r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a1';
+  c1 uuid; c2 uuid; nota uuid; forn uuid; p_farinha uuid;
+begin
+  select id into r from restaurantes where slug = 'prova-vendas';
+  select id into p_farinha from produtos where restaurante_id = r and nome = 'Farinha';
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+
+  c1 := mv_abrir_contagem(r, date '2026-08-01', 'semanal', 'Foto 1');
+  update contagem_itens i set quantidade = 20 from produtos p
+   where p.id = i.produto_id and i.contagem_id = c1 and p.nome = 'Farinha';
+  update contagem_itens i set quantidade = 5 from produtos p
+   where p.id = i.produto_id and i.contagem_id = c1 and p.nome = 'Cebola';
+  update contagem_itens i set quantidade = 10 from produtos p
+   where p.id = i.produto_id and i.contagem_id = c1 and p.nome = 'Vodka';
+  update contagem_itens i set quantidade = 5 from produtos p
+   where p.id = i.produto_id and i.contagem_id = c1 and p.nome = 'Azeite';
+
+  -- A nota do DIA da contagem anterior fica FORA do periodo: aquele estoque ja
+  -- esta dentro da foto. O intervalo e (anterior, atual].
+  insert into fornecedores (restaurante_id, nome) values (r, 'Moinho') returning id into forn;
+  insert into notas_fiscais (restaurante_id, fornecedor_id, origem, numero, emitida_em,
+                             valor_produtos, valor_total, status)
+  values (r, forn, 'manual', '900', date '2026-08-01', 495, 495, 'lancada') returning id into nota;
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total)
+  values (nota, p_farinha, 'FARINHA DE TRIGO', 'KG', 99, 5, 495);
+
+  -- A nota de dentro do periodo: 10 KG de farinha.
+  insert into notas_fiscais (restaurante_id, fornecedor_id, origem, numero, emitida_em,
+                             valor_produtos, valor_total, status)
+  values (r, forn, 'manual', '901', date '2026-08-05', 50, 50, 'lancada') returning id into nota;
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total)
+  values (nota, p_farinha, 'FARINHA DE TRIGO', 'KG', 10, 5, 50);
+
+  -- E uma nota que nunca foi lancada: nao e compra.
+  insert into notas_fiscais (restaurante_id, fornecedor_id, origem, numero, emitida_em,
+                             valor_produtos, valor_total, status)
+  values (r, forn, 'manual', '902', date '2026-08-06', 1000, 1000, 'importada') returning id into nota;
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total)
+  values (nota, p_farinha, 'FARINHA DE TRIGO', 'KG', 200, 5, 1000);
+  reset role;
+end $$;
+
+-- --------------------------------- relatorio SEM contagem anterior ---------
+-- A primeira contagem do restaurante nao tem com o que se comparar, e o
+-- arquivo inteiro gira em torno de nao inventar o "anterior = 0".
+do $$
+declare
+  r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a1'; c1 uuid; l record;
+begin
+  select id into r from restaurantes where slug = 'prova-vendas';
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+  select id into c1 from contagens where restaurante_id = r and referencia = date '2026-08-01';
+  perform mv_fechar_contagem(c1);
+
+  select * into l from mv_relatorio_de_contagem(c1) where produto_nome = 'Farinha';
+  perform conferir('primeira contagem: o estoque atual e afirmado', l.contagem_atual = 20);
+  perform conferir('primeira contagem: contagem anterior volta NULA', l.contagem_anterior is null);
+  perform conferir('primeira contagem: compras volta NULA', l.compras is null);
+  perform conferir('primeira contagem: vendas volta NULA', l.vendas is null);
+  perform conferir('primeira contagem: consumo volta NULO', l.consumo is null);
+  perform conferir('primeira contagem: ideal volta NULO', l.ideal is null);
+  perform conferir('primeira contagem: diferenca volta NULA', l.diferenca is null);
+  perform conferir('primeira contagem: a pendencia diz o que falta',
+                   l.pendencia like '%sem contagem anterior fechada%');
+
+  -- A media nao depende da contagem anterior: ela olha as vendas fechadas ate
+  -- a data da foto. Ate 01/08 ha duas (25/07 e 01/08), e a media e das duas.
+  perform conferir('a media usa as duas vendas que existem ate a data', l.vendas_consideradas = 2);
+  perform conferir('media de farinha = (5 + 10) / 2 = 7,5', l.media_3_vendas = 7.5);
+  perform conferir('20 KG em estoque contra 7,5 de media: nao precisa comprar',
+                   l.precisa_comprar = false);
+  perform conferir('e a sugestao e zero', l.sugestao = 0);
+  reset role;
+end $$;
+
+-- --------------------------------- o relatorio com as duas pontas ----------
+do $$
+declare
+  r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a1'; c2 uuid; l record; n integer;
+begin
+  select id into r from restaurantes where slug = 'prova-vendas';
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+
+  c2 := mv_abrir_contagem(r, date '2026-08-08', 'semanal', 'Foto 2');
+  update contagem_itens i set quantidade = 12 from produtos p
+   where p.id = i.produto_id and i.contagem_id = c2 and p.nome = 'Farinha';
+  update contagem_itens i set quantidade = 2 from produtos p
+   where p.id = i.produto_id and i.contagem_id = c2 and p.nome = 'Cebola';
+  update contagem_itens i set quantidade = 8 from produtos p
+   where p.id = i.produto_id and i.contagem_id = c2 and p.nome = 'Vodka';
+  update contagem_itens i set quantidade = 2 from produtos p
+   where p.id = i.produto_id and i.contagem_id = c2 and p.nome = 'Azeite';
+
+  -- Com a contagem ainda ABERTA o relatorio responde, mas avisa que o numero
+  -- desta coluna e parcial. Mentir por omissao aqui seria pior que o aviso.
+  select * into l from mv_relatorio_de_contagem(c2) where produto_nome = 'Farinha';
+  perform conferir('contagem aberta: o relatorio avisa que a coluna e parcial',
+                   l.pendencia like '%ainda esta aberta%');
+
+  perform mv_fechar_contagem(c2);
+
+  -- ---------------------------------------------------------------- FARINHA --
+  -- anterior 20 · compras 10 (so a nota de 05/08) · vendas 15 · atual 12
+  select * into l from mv_relatorio_de_contagem(c2) where produto_nome = 'Farinha';
+  perform conferir('farinha: contagem anterior = 20', l.contagem_anterior = 20);
+  perform conferir('farinha: compras = 10 (a nota de 01/08 ficou fora do intervalo)',
+                   l.compras = 10);
+  perform conferir('farinha: a nota nao lancada nao entra', l.compras = 10);
+  perform conferir('farinha: vendas = 15 (300 empadoes x 0,05)', l.vendas = 15);
+  perform conferir('farinha: contagem atual = 12', l.contagem_atual = 12);
+  perform conferir('farinha: consumo = 20 + 10 - 12 = 18', l.consumo = 18);
+  perform conferir('farinha: ideal = 20 + 10 - 15 = 15', l.ideal = 15);
+  perform conferir('farinha: diferenca = 12 - 15 = -3', l.diferenca = -3);
+  perform conferir('farinha: a media usa as tres vendas', l.vendas_consideradas = 3);
+  perform conferir('farinha: media = (15 + 10 + 5) / 3 = 10', l.media_3_vendas = 10);
+  perform conferir('farinha: 12 em estoque contra 10 de media -> nao precisa comprar',
+                   l.precisa_comprar = false and l.sugestao = 0);
+  perform conferir('farinha: o custo vem congelado da foto', l.custo_unitario = 5);
+  perform conferir('farinha: sem pendencia nenhuma', l.pendencia is null);
+
+  -- ----------------------------------------------------------------- CEBOLA --
+  -- anterior 5 · compras 0 · vendas 11,71875 · atual 2
+  select * into l from mv_relatorio_de_contagem(c2) where produto_nome = 'Cebola';
+  perform conferir('cebola: vendas = 300 x 0,0390625 = 11,71875', l.vendas = 11.71875);
+  perform conferir('cebola: consumo = 5 + 0 - 2 = 3', l.consumo = 3);
+  perform conferir('cebola: ideal = 5 - 11,71875 = -6,71875', l.ideal = -6.71875);
+  perform conferir('cebola: diferenca = 2 - (-6,71875) = 8,71875', l.diferenca = 8.71875);
+  perform conferir('cebola: media = 23,4375 / 3 = 7,8125', l.media_3_vendas = 7.8125);
+  perform conferir('cebola: 2 contra 7,8125 -> precisa comprar 5,8125',
+                   l.precisa_comprar = true and l.sugestao = 5.8125);
+
+  -- ------------------------------------------------------------------ VODKA --
+  select * into l from mv_relatorio_de_contagem(c2) where produto_nome = 'Vodka';
+  perform conferir('vodka: vendas = 150 x 0,06 = 9', l.vendas = 9);
+  perform conferir('vodka: consumo = 10 + 0 - 8 = 2', l.consumo = 2);
+  perform conferir('vodka: ideal = 10 - 9 = 1', l.ideal = 1);
+  perform conferir('vodka: diferenca = 8 - 1 = 7', l.diferenca = 7);
+  perform conferir('vodka: media = (9 + 6 + 3) / 3 = 6', l.media_3_vendas = 6);
+
+  -- ------------------------------------------------- a BORDA da igualdade --
+  -- Azeite: media (3 + 2 + 1) / 3 = 2 L, e a contagem atual tambem 2 L.
+  -- A regra da cliente e "se a contagem atual for MAIOR que a media, nao
+  -- precisa comprar". No empate ela NAO e maior, logo precisa comprar — e a
+  -- quantidade sugerida e zero. Esta borda esta decidida de proposito.
+  select * into l from mv_relatorio_de_contagem(c2) where produto_nome = 'Azeite';
+  perform conferir('azeite: media = (3 + 2 + 1) / 3 = 2 L', l.media_3_vendas = 2);
+  perform conferir('azeite: a contagem atual empata com a media', l.contagem_atual = 2);
+  perform conferir('azeite: EMPATE conta como precisa comprar', l.precisa_comprar = true);
+  perform conferir('azeite: e a sugestao e exatamente zero', l.sugestao = 0);
+  perform conferir('azeite: consumo = 5 + 0 - 2 = 3', l.consumo = 3);
+  perform conferir('azeite: ideal = 5 - 3 = 2, e a diferenca fecha em zero',
+                   l.ideal = 2 and l.diferenca = 0);
+
+  -- ------------------------------------------------------------------ LIMAO --
+  -- 50 G de limao vendido por UND nao converte. A linha nao pode virar zero:
+  -- zero limao vendido faria a diferenca aparecer como furto.
+  select * into l from mv_relatorio_de_contagem(c2) where produto_nome = 'Limao';
+  perform conferir('limao: vendas volta NULA, nao zero', l.vendas is null);
+  perform conferir('limao: ideal volta NULO', l.ideal is null);
+  perform conferir('limao: diferenca volta NULA', l.diferenca is null);
+  perform conferir('limao: a media tambem volta nula', l.media_3_vendas is null);
+  perform conferir('limao: e a sugestao nao e chutada', l.sugestao is null and l.precisa_comprar is null);
+  perform conferir('limao: a pendencia nomeia o insumo sem conversao',
+                   l.pendencia like '%Limao%');
+  -- O consumo nao depende da venda: ele e so estoque e nota.
+  perform conferir('limao: o consumo continua afirmado (0 + 0 - 0)', l.consumo = 0);
+
+  -- O relatorio so traz quem apareceu em alguma ponta.
+  select count(*) into n from mv_relatorio_de_contagem(c2);
+  perform conferir('o relatorio traz as cinco linhas que tiveram ponta', n = 5);
+  reset role;
+end $$;
+
+-- --------------------------------- um produto que entrou agora -------------
+-- Ele nao estava na folha da contagem anterior. O anterior e lido como ZERO —
+-- que e o que a foto registra — e a pendencia diz justamente isso.
+do $$
+declare
+  r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a1';
+  c2 uuid; p_novo uuid; forn uuid; nota uuid; l record;
+begin
+  select id into r from restaurantes where slug = 'prova-vendas';
+  select id into c2 from contagens where restaurante_id = r and referencia = date '2026-08-08';
+  select id into forn from fornecedores where restaurante_id = r limit 1;
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+
+  insert into produtos (restaurante_id, nome, unidade, custo_medio)
+  values (r, 'Sal', 'KG', 2) returning id into p_novo;
+  insert into notas_fiscais (restaurante_id, fornecedor_id, origem, numero, emitida_em,
+                             valor_produtos, valor_total, status)
+  values (r, forn, 'manual', '903', date '2026-08-04', 8, 8, 'lancada') returning id into nota;
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total)
+  values (nota, p_novo, 'SAL REFINADO', 'KG', 4, 2, 8);
+
+  select * into l from mv_relatorio_de_contagem(c2) where produto_nome = 'Sal';
+  perform conferir('o insumo novo aparece no relatorio pela compra', l.compras = 4);
+  perform conferir('o anterior dele e lido como zero, nao como nulo', l.contagem_anterior = 0);
+  perform conferir('e a pendencia diz que foi lido como zero',
+                   l.pendencia like '%nao estava na folha da contagem anterior%');
+  perform conferir('ele tambem nao esta na folha de agora, e isso tambem e dito',
+                   l.pendencia like '%nao esta na folha desta contagem%');
+  perform conferir('consumo = 0 + 4 - 0 = 4', l.consumo = 4);
+  reset role;
+end $$;
+
+-- ============================================================================
+-- Dois restaurantes na rede: cada um ve o seu, e so o seu
+-- ----------------------------------------------------------------------------
+-- A prova e com identidade de verdade, DENTRO de uma transacao: `set local
+-- role authenticated` + `request.jwt.claim.sub`. Fora disso o teste rodaria
+-- como superusuario, a RLS seria ignorada e o teste mentiria "passou".
+-- ============================================================================
+do $$
+declare
+  r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a2';
+  cat uuid; s uuid; p uuid; f uuid; v uuid; c uuid;
+begin
+  insert into restaurantes (nome, slug) values ('Maia de Mentira', 'maia-mentira') returning id into r;
+  insert into convites (email, nome, papel, restaurante_id)
+  values ('admin@maia-mentira.com', 'Admin da Maia', 'admin', r);
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (u, 'admin@maia-mentira.com', jsonb_build_object('nome','Admin da Maia'));
+
+  insert into categorias (restaurante_id, nome) values (r, 'Graos') returning id into cat;
+  insert into setores (restaurante_id, nome) values (r, 'Deposito') returning id into s;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r, 'Arroz da Maia', 'KG', 8, cat) returning id into p;
+  insert into produto_setores (produto_id, setor_id, unidade) values (p, s, 'KG');
+
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r, 'Arroz de forno', 1, 'PORCAO', 25) returning id into f;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade) values (f, p, 200, 'G');
+
+  insert into vendas (restaurante_id, referencia, titulo) values (r, date '2026-08-08', 'Maia S3')
+  returning id into v;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values (v, f, 10, 25);
+end $$;
+
+do $$
+declare
+  r_maia uuid; r_prova uuid;
+  u_maia  uuid := '00000000-0000-0000-0000-00000000d0a2';
+  u_prova uuid := '00000000-0000-0000-0000-00000000d0a1';
+  c_maia uuid; c_prova uuid; v_maia uuid; v_prova uuid;
+  f_prova uuid; n integer; v_erro text; l record;
+begin
+  select id into r_maia  from restaurantes where slug = 'maia-mentira';
+  select id into r_prova from restaurantes where slug = 'prova-vendas';
+  select id into v_maia  from vendas where restaurante_id = r_maia  limit 1;
+  select id into v_prova from vendas where restaurante_id = r_prova and referencia = date '2026-08-08';
+  select id into c_prova from contagens where restaurante_id = r_prova and referencia = date '2026-08-08';
+  select id into f_prova from fichas where restaurante_id = r_prova and nome = 'Caipirinha';
+
+  -- A Maia fecha a venda e abre a contagem dela, como ela mesma.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_maia::text, true);
+  perform mv_fechar_venda(v_maia);
+  c_maia := mv_abrir_contagem(r_maia, date '2026-08-09', 'semanal', 'Foto da Maia');
+  update contagem_itens set quantidade = 30 where contagem_id = c_maia;
+  perform mv_fechar_contagem(c_maia);
+
+  -- Ficha de outro restaurante nao entra numa venda da Maia.
+  begin
+    insert into vendas (restaurante_id, referencia, titulo) values (r_maia, date '2026-08-15', 'x');
+    insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario)
+    values ((select id from vendas where restaurante_id = r_maia and referencia = date '2026-08-15'),
+            f_prova, 1, 10);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('ficha de outro restaurante nao entra na venda',
+                   v_erro like '%restaurantes diferentes%');
+
+  -- Primeira contagem da Maia: sem anterior, e com UMA venda fechada.
+  select * into l from mv_relatorio_de_contagem(c_maia) where produto_nome = 'Arroz da Maia';
+  perform conferir('a Maia ve o relatorio dela', l.contagem_atual = 30);
+  perform conferir('com a unica venda fechada que ela tem', l.vendas_consideradas = 1);
+  perform conferir('media = 10 porcoes x 0,2 KG / 1 venda = 2', l.media_3_vendas = 2);
+  perform conferir('30 KG contra 2 de media: nao precisa comprar', l.precisa_comprar = false);
+  reset role;
+
+  -- ------------------------------------------------- agora o isolamento ----
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_prova::text, true);
+
+  select count(*) into n from vendas where restaurante_id = r_maia;
+  perform conferir('o admin da Prova nao ve as vendas da Maia', n = 0);
+
+  select count(*) into n from venda_itens vi
+    join vendas v on v.id = vi.venda_id where v.restaurante_id = r_maia;
+  perform conferir('nem os itens delas', n = 0);
+
+  select count(*) into n from mv_vendas_por_produto(v_maia);
+  perform conferir('a explosao da venda da Maia volta vazia para a Prova', n = 0);
+
+  select count(*) into n from vw_contagem_procedencia where restaurante_id = r_maia;
+  perform conferir('a procedencia da contagem da Maia nao aparece para a Prova', n = 0);
+
+  begin
+    perform count(*) from mv_relatorio_de_contagem(c_maia);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('o relatorio da contagem da Maia e recusado para a Prova',
+                   v_erro like '%nao encontrada%');
+
+  -- E a Prova continua vendo o que e dela, para que o teste acima prove
+  -- isolamento e nao uma sessao quebrada.
+  select count(*) into n from mv_relatorio_de_contagem(c_prova);
+  perform conferir('e a Prova continua lendo o relatorio dela', n = 6);
+  reset role;
+
+  -- O caminho inverso, que e o que mata a suspeita de ordem.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_maia::text, true);
+  select count(*) into n from mv_vendas_por_produto(v_prova);
+  perform conferir('a explosao da venda da Prova volta vazia para a Maia', n = 0);
+  begin
+    perform count(*) from mv_relatorio_de_contagem(c_prova);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('e o relatorio da Prova e recusado para a Maia',
+                   v_erro like '%nao encontrada%');
+  reset role;
+end $$;
+
+-- --------------------------------- sem venda nenhuma, sem media ------------
+do $$
+declare
+  r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a3'; cat uuid; s uuid; p uuid;
+  c uuid; l record;
+begin
+  insert into restaurantes (nome, slug) values ('Casa Sem Venda', 'sem-venda') returning id into r;
+  insert into convites (email, nome, papel, restaurante_id)
+  values ('admin@sem-venda.com', 'Admin', 'admin', r);
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (u, 'admin@sem-venda.com', jsonb_build_object('nome','Admin'));
+  insert into setores (restaurante_id, nome) values (r, 'Deposito') returning id into s;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio) values (r, 'Acucar', 'KG', 4)
+  returning id into p;
+  insert into produto_setores (produto_id, setor_id, unidade) values (p, s, 'KG');
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u::text, true);
+  c := mv_abrir_contagem(r, date '2026-08-08', 'semanal', 'Foto unica');
+  update contagem_itens set quantidade = 7 where contagem_id = c;
+  perform mv_fechar_contagem(c);
+
+  select * into l from mv_relatorio_de_contagem(c) where produto_nome = 'Acucar';
+  perform conferir('sem venda fechada: nenhuma venda considerada', l.vendas_consideradas = 0);
+  perform conferir('sem venda fechada: a media volta NULA', l.media_3_vendas is null);
+  perform conferir('sem venda fechada: a sugestao nao e chutada', l.sugestao is null);
+  perform conferir('sem venda fechada: nem o "nao precisa comprar"', l.precisa_comprar is null);
+  perform conferir('sem venda fechada: a pendencia diz por que',
+                   l.pendencia like '%nenhuma venda fechada%');
+  perform conferir('mas o estoque contado continua afirmado', l.contagem_atual = 7);
+  reset role;
+end $$;
+
 \echo '  --- Fluxos: todos os casos passaram'
