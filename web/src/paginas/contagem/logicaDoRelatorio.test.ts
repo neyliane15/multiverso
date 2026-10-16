@@ -108,6 +108,38 @@ describe('julgarSugestao · os três estados da regra', () => {
     expect(julgado.motivo).toBe('Algum insumo desta venda está sem conversão de unidade.')
   })
 
+  /**
+   * A terceira causa de "não se sabe", e a mais comum na carga real.
+   *
+   * O banco anula `precisa_comprar` tambem quando a CONTAGEM ATUAL e nula —
+   * ou seja, quando a folha lancou o item numa unidade que nao converte para
+   * a de compra. Nesse caso a venda esta certa e a ficha esta certa; o que
+   * precisa de conserto e a folha. Medido no relatorio de 01/10 do Bar do
+   * Zeca: as 5 linhas "Nao se sabe" eram TODAS deste caso (APERITIVO DE
+   * CARNE contado em UND com produto cadastrado em KG, NHOQUE 150gr contado
+   * em KG com produto em UND), e o motivo mandava olhar a ficha.
+   */
+  it('CONTAGEM ATUAL nula: o motivo aponta a FOLHA, nao a venda', () => {
+    const julgado = julgarSugestao(
+      linha({
+        produto_nome: 'APERITIVO DE CARNE (ALCATRA)',
+        contagem_atual: null,
+        vendas: 0,
+        media_3_vendas: 0,
+        precisa_comprar: null,
+        sugestao: null,
+        vendas_consideradas: 3,
+        pendencia: 'a contagem lancou este item em UND, que nao converte para KG',
+      }),
+    )
+    expect(julgado.veredito).toBe('sem_base')
+    expect(julgado.rotulo).toBe('Não se sabe')
+    expect(julgado.quantidade).toBeNull()
+    expect(julgado.motivo).toBe(
+      'A contagem lançou este item em unidade que não converte para a de compra.',
+    )
+  })
+
   it('média zero NÃO é média nula: nada vendido é resposta, e a resposta é não comprar', () => {
     const julgado = julgarSugestao(
       linha({ produto_nome: 'Vela', contagem_atual: 5, media_3_vendas: 0, precisa_comprar: false, sugestao: 0 }),

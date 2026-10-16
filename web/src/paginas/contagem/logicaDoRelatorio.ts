@@ -80,15 +80,30 @@ export interface SugestaoJulgada {
  */
 export function julgarSugestao(linha: LinhaDoRelatorio): SugestaoJulgada {
   if (linha.precisa_comprar === null || linha.media_3_vendas === null) {
-    return {
-      veredito: 'sem_base',
-      rotulo: 'Não se sabe',
-      quantidade: null,
-      motivo:
-        linha.vendas_consideradas === 0
+    /*
+     * TRÊS causas, e cada uma manda a pessoa a um lugar diferente.
+     *
+     * O banco anula `precisa_comprar` quando falta a média OU falta a
+     * contagem atual, e as duas faltas têm culpados distintos:
+     *
+     *   · nenhuma venda fechada      → falta LANÇAR venda
+     *   · venda sem conversão        → falta arrumar a UNIDADE DA FICHA
+     *   · contagem sem conversão     → falta arrumar a UNIDADE DA CONTAGEM
+     *
+     * A primeira versão tinha só duas e caía na segunda por omissão. Medido
+     * na carga real do Bar do Zeca: das 5 linhas "Não se sabe" do relatório
+     * de 01/10, **todas as 5** eram do terceiro caso (APERITIVO DE CARNE
+     * contado em UND com produto em KG, NHOQUE em KG com produto em UND...) e
+     * todas as 5 liam "Algum insumo desta venda está sem conversão" — ou
+     * seja, mandavam olhar a ficha quando o que estava errado era a folha.
+     */
+    const motivo =
+      linha.contagem_atual === null
+        ? 'A contagem lançou este item em unidade que não converte para a de compra.'
+        : linha.vendas_consideradas === 0
           ? 'Nenhuma venda fechada até a data desta contagem.'
-          : 'Algum insumo desta venda está sem conversão de unidade.',
-    }
+          : 'Algum insumo desta venda está sem conversão de unidade.'
+    return { veredito: 'sem_base', rotulo: 'Não se sabe', quantidade: null, motivo }
   }
   if (!linha.precisa_comprar) {
     return {
