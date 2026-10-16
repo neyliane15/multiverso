@@ -1609,4 +1609,84 @@ begin
   reset role;
 end $$;
 
+-- ------------------ 0024: a venda e o relatorio nao sao do operador de setor --
+-- A 0023 fechou o furo do GUARDA DE ROTA e deixou o do BANCO aberto. Medido
+-- com identidade de verdade, um operador preso ao setor "Bar" lia as vendas da
+-- casa, LANCAVA venda, e lia `mv_relatorio_de_contagem` por inteiro — com a
+-- contagem atual recortada pela RLS de `contagem_itens` e nenhuma pendencia
+-- dizendo que faltava aba. Numero errado e pior que numero ausente (0005).
+do $$
+declare
+  r uuid; adm uuid := '00000000-0000-0000-0000-00000000e0a1';
+  op  uuid := '00000000-0000-0000-0000-00000000e0a2';
+  bar uuid; coz uuid; p uuid; f uuid; c0 uuid; c1 uuid; v uuid;
+  v_erro text; n numeric;
+begin
+  insert into restaurantes (nome, slug) values ('Casa de Duas Abas', 'duas-abas') returning id into r;
+  insert into convites (email, nome, papel, restaurante_id) values ('adm@duas-abas.com','Adm','admin',r);
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (adm, 'adm@duas-abas.com', jsonb_build_object('nome','Adm'));
+  insert into convites (email, nome, papel, restaurante_id) values ('op@duas-abas.com','Op','operador',r);
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (op, 'op@duas-abas.com', jsonb_build_object('nome','Op'));
+
+  insert into setores (restaurante_id, nome) values (r,'Bar') returning id into bar;
+  insert into setores (restaurante_id, nome) values (r,'Cozinha') returning id into coz;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio) values (r,'Gim','UND',40) returning id into p;
+  insert into produto_setores (produto_id, setor_id, unidade) values (p,bar,'UND'), (p,coz,'UND');
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r,'Gim Tonica',1,'PORCAO',30) returning id into f;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade) values (f,p,1,'UND');
+  -- O operador fica preso ao Bar. A Cozinha e a aba que ele nao enxerga.
+  insert into perfil_setores (perfil_id, setor_id) values (op, bar);
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', adm::text, true);
+  c0 := mv_abrir_contagem(r, date '2026-08-01', 'mensal', 'Anterior');
+  update contagem_itens set quantidade = 10 where contagem_id = c0;
+  perform mv_fechar_contagem(c0);
+  c1 := mv_abrir_contagem(r, date '2026-09-01', 'mensal', 'Atual');
+  update contagem_itens set quantidade = 2    where contagem_id = c1 and setor_id = bar;
+  update contagem_itens set quantidade = 1000 where contagem_id = c1 and setor_id = coz;
+  perform mv_fechar_contagem(c1);
+  insert into vendas (restaurante_id, referencia, titulo) values (r, date '2026-08-20','Agosto')
+  returning id into v;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values (v, f, 5, 30);
+  perform mv_fechar_venda(v);
+
+  select contagem_atual into n from mv_relatorio_de_contagem(c1) where produto_nome = 'Gim';
+  perform conferir('o admin le as duas abas somadas (2 + 1000)', n = 1002);
+
+  -- Agora o operador preso ao Bar, com identidade de verdade.
+  perform set_config('request.jwt.claim.sub', op::text, true);
+  perform conferir('o operador preso esta mesmo preso', mv_restrito_a_setores());
+  perform conferir('e continua lendo a folha do SETOR dele',
+                   (select count(*) from contagem_itens where contagem_id = c1) = 1);
+  perform conferir('mas NAO le venda nenhuma da casa', (select count(*) from vendas) = 0);
+  perform conferir('nem item de venda', (select count(*) from venda_itens) = 0);
+
+  begin
+    perform count(*) from mv_relatorio_de_contagem(c1);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('e o relatorio RECUSA em vez de somar meia folha',
+                   v_erro like '%acesso e de setor%');
+
+  begin
+    insert into vendas (restaurante_id, referencia, titulo) values (r, date '2026-10-01','Invasao');
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('e nao lanca venda da casa inteira', v_erro like '%row-level security%');
+
+  -- E o caso bom nao quebrou: o admin continua lendo e lancando.
+  perform set_config('request.jwt.claim.sub', adm::text, true);
+  perform conferir('o admin segue lendo o relatorio',
+                   (select count(*) from mv_relatorio_de_contagem(c1)) >= 1);
+  perform conferir('e segue lendo as vendas',
+                   (select count(*) from vendas where restaurante_id = r) = 1);
+  reset role;
+end $$;
+
 \echo '  --- Fluxos: todos os casos passaram'
