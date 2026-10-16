@@ -216,21 +216,38 @@ export const MODULOS: Modulo[] = [
 export const ROTAS_DO_OPERADOR_DE_SETOR = ['/contagem', '/contagem/historico']
 
 /**
- * As páginas NOMEADAS que penduram em `/contagem`.
+ * O que, depois de `/contagem/`, é um id de contagem — e nada mais.
  *
- * Esta lista existe por causa de uma ambiguidade do endereço: `/contagem/algo`
- * pode ser o id de uma contagem — que o operador de setor abre, porque é a
- * folha dele — ou o nome de uma página da casa inteira, que não é assunto
- * dele. O guarda liberava o prefixo todo, e isso bastava enquanto a única
- * coisa depois de `/contagem/` era um uuid.
+ * Esta pergunta existe por causa de uma ambiguidade do endereço:
+ * `/contagem/algo` pode ser o id de uma contagem — que o operador de setor
+ * abre, porque é a folha dele — ou o nome de uma página da casa inteira, que
+ * não é assunto dele. O guarda liberava o prefixo todo, e isso bastava
+ * enquanto a única coisa depois de `/contagem/` era um uuid.
  *
  * Bastou nascerem `/contagem/dashboard`, `/contagem/relatorio` e
  * `/contagem/vendas` para o operador do bar poder ler o estoque, o consumo e a
  * venda da casa inteira digitando o endereço. A RLS continuaria recortando o
  * que ele enxerga — e é justamente esse o problema: ele veria um dashboard com
  * o total de um setor só, com cara de total da casa.
+ *
+ * A primeira versão deste guarda era uma lista NEGRA dos nomes das páginas, e
+ * ela tinha dois furos de forma, não de conteúdo:
+ *
+ *   1. O React Router casa rota sem olhar maiúscula (`caseSensitive` é falso
+ *      por omissão). `/contagem/Dashboard` abre a MESMA tela que
+ *      `/contagem/dashboard` — e a lista negra, comparando texto cru, dizia
+ *      "este não é o nome de nenhuma página, deve ser um id" e liberava.
+ *      Medido com `matchRoutes` de verdade: `/contagem/Dashboard` casa
+ *      `/contagem/dashboard` e a lista negra respondia `true`.
+ *   2. Página nova nasce liberada. Quem acrescentar `/contagem/compras` amanhã
+ *      precisa lembrar de vir aqui, e esquecer não dá erro nenhum.
+ *
+ * Lista BRANCA resolve os dois: o que passa é o que tem CARA DE ID, e todo o
+ * resto é negado por não ser id. Todos os links da casa para a folha de uma
+ * contagem usam `contagens.id`, que é uuid — então a forma é conhecida.
  */
-const PAGINAS_DE_CONTAGEM = ['historico', 'dashboard', 'relatorio', 'vendas']
+const PARECE_ID_DE_CONTAGEM =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export function menuVisivel(
   papel: PapelUsuario | null,
@@ -258,7 +275,7 @@ export function rotaPermitidaNoSetor(caminho: string): boolean {
   if (!caminho.startsWith('/contagem/')) return false
   const resto = caminho.slice('/contagem/'.length)
   if (resto === '' || resto.includes('/')) return false
-  return !PAGINAS_DE_CONTAGEM.includes(resto)
+  return PARECE_ID_DE_CONTAGEM.test(resto)
 }
 
 /** Todos os caminhos, para o guarda de rota e a busca por comando. */

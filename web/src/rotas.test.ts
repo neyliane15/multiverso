@@ -42,7 +42,7 @@ describe('o menu de cada papel', () => {
 describe('o guarda de rota do operador de setor', () => {
   it('deixa passar a contagem e o que pendura nela', () => {
     expect(rotaPermitidaNoSetor('/contagem')).toBe(true)
-    expect(rotaPermitidaNoSetor('/contagem/abc-123')).toBe(true)
+    expect(rotaPermitidaNoSetor('/contagem/8f2c1a94-0000-4000-8000-000000000001')).toBe(true)
   })
 
   it('deixa passar o historico da contagem', () => {
@@ -105,6 +105,48 @@ describe('o guarda do operador e as paginas nomeadas da contagem', () => {
   it('nao deixa passar caminho de dois niveis', () => {
     expect(rotaPermitidaNoSetor('/contagem/abc/def')).toBe(false)
     expect(rotaPermitidaNoSetor('/contagem/')).toBe(false)
+  })
+
+  /**
+   * O furo que a lista negra deixava aberto.
+   *
+   * O React Router casa rota SEM olhar maiuscula — `caseSensitive` e falso por
+   * omissao. Medido com `matchRoutes` de verdade, `/contagem/Dashboard` casa a
+   * rota `/contagem/dashboard` e monta o DashboardDaContagem; a lista negra,
+   * comparando texto cru, respondia `true` para o mesmo endereco. Ou seja: o
+   * furo que a pagina nomeada abriu continuava aberto, bastava uma letra
+   * maiuscula no endereco digitado na mao.
+   */
+  it('barra as paginas nomeadas tambem com maiuscula, que e como o roteador casa', () => {
+    for (const rota of [
+      '/contagem/Dashboard',
+      '/contagem/DASHBOARD',
+      '/contagem/Relatorio',
+      '/contagem/RELATORIO',
+      '/contagem/Vendas',
+      '/contagem/VENDAS',
+    ]) {
+      expect(rotaPermitidaNoSetor(rota)).toBe(false)
+    }
+  })
+
+  /**
+   * Lista BRANCA, e nao negra: pagina nova nasce BARRADA.
+   *
+   * Com lista negra, quem criasse `/contagem/compras` amanha precisaria
+   * lembrar de voltar no guarda — e esquecer nao dava erro nenhum, so abria a
+   * casa inteira para quem conta um setor.
+   */
+  it('qualquer nome que nao seja um id de contagem e barrado, inclusive nome que ainda nao existe', () => {
+    for (const rota of [
+      '/contagem/compras',
+      '/contagem/cmv',
+      '/contagem/pagina-que-nao-existe-ainda',
+      '/contagem/..',
+      '/contagem/8f2c1a94-0000-4000-8000-00000000000',
+    ]) {
+      expect(rotaPermitidaNoSetor(rota)).toBe(false)
+    }
   })
 
   it('as tres paginas novas tambem nao aparecem no menu do operador de setor', () => {
