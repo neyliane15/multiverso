@@ -115,12 +115,20 @@ describe('julgarSugestao · os três estados da regra', () => {
     expect(julgado.veredito).toBe('tem_de_sobra')
   })
 
-  it('estoque zerado com média zero empata, e o empate manda olhar', () => {
+  /**
+   * Estoque zero contra média zero também é empate, e o banco o marca como
+   * `precisa_comprar = true` — mas a tela não o chama de compra. Ver o bloco
+   * "o empate em zero é um sub-caso com nome", mais abaixo: a sugestão
+   * continua zero, a linha continua inteira, e o que muda é só o nome do
+   * estado, para que quinhentas linhas de nada parem de parecer decisão
+   * pendente.
+   */
+  it('estoque zerado com média zero não vira compra: vira "sem movimento"', () => {
     const julgado = julgarSugestao(
       linha({ produto_nome: 'Vela', contagem_atual: 0, media_3_vendas: 0, precisa_comprar: true, sugestao: 0 }),
     )
-    expect(julgado.veredito).toBe('comprar')
-    expect(julgado.rotulo).toBe('No limite da média')
+    expect(julgado.veredito).toBe('sem_movimento')
+    expect(julgado.quantidade).toBeNull()
   })
 })
 
@@ -318,5 +326,81 @@ describe('filtrarRelatorio · o balde "Sem categoria" é alcançável', () => {
     expect(filtrarRelatorio(comBalde, { categoriaId: 'c-bar' }).map((l) => l.produto_nome)).toEqual(
       ['Limão', 'Vodka'],
     )
+  })
+})
+
+/**
+ * O empate em ZERO.
+ *
+ * A regra da cliente é literal e o banco a aplica ao pé da letra: estoque 0
+ * contra média 0 é `precisa_comprar = true` com sugestão 0. Tecnicamente
+ * certo, e inútil na tela — medido na carga real do Bar do Zeca, 882 linhas
+ * viravam 538 "precisa comprar", quase todas de insumo que não foi vendido e
+ * não está em estoque. A tela nomeia o sub-caso sem mudar número nenhum.
+ */
+describe('julgarSugestao · o empate em zero é um sub-caso com nome', () => {
+  const parado = linha({
+    produto_nome: 'Abacate',
+    contagem_anterior: 0,
+    compras: 0,
+    vendas: 0,
+    contagem_atual: 0,
+    consumo: 0,
+    ideal: 0,
+    diferenca: 0,
+    media_3_vendas: 0,
+    precisa_comprar: true,
+    sugestao: 0,
+  })
+
+  it('não foi vendido e não está em estoque: sem movimento', () => {
+    const julgado = julgarSugestao(parado)
+    expect(julgado.veredito).toBe('sem_movimento')
+    expect(julgado.rotulo).toBe('Sem movimento')
+    expect(julgado.quantidade).toBeNull()
+    expect(julgado.motivo).toBe('Não foi vendido e não está em estoque.')
+  })
+
+  it('o empate em número continua sendo "no limite da média"', () => {
+    expect(
+      julgarSugestao(
+        linha({
+          produto_nome: 'Azeite',
+          contagem_atual: 2,
+          media_3_vendas: 2,
+          precisa_comprar: true,
+          sugestao: 0,
+        }),
+      ).veredito,
+    ).toBe('comprar')
+  })
+
+  it('estoque sem venda nenhuma NÃO é sem movimento — tem o que sobrar', () => {
+    expect(
+      julgarSugestao(
+        linha({
+          produto_nome: 'Vela',
+          contagem_atual: 5,
+          media_3_vendas: 0,
+          precisa_comprar: false,
+          sugestao: 0,
+        }),
+      ).veredito,
+    ).toBe('tem_de_sobra')
+  })
+
+  it('o resumo conta o sem movimento à parte, e ele não infla a compra', () => {
+    const resumo = resumoDoRelatorio([...RELATORIO, parado])
+    expect(resumo.semMovimento).toBe(1)
+    expect(resumo.precisamComprar).toBe(1)
+    expect(resumo.insumos).toBe(5)
+  })
+
+  it('"só o que comprar" não traz o sem movimento', () => {
+    expect(
+      filtrarRelatorio([...RELATORIO, parado], { soPrecisaComprar: true }).map(
+        (l) => l.produto_nome,
+      ),
+    ).toEqual(['Cebola', 'Limão'])
   })
 })

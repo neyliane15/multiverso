@@ -270,7 +270,9 @@ function LinhaDeMetadados({ procedencia }: { procedencia: ContagemProcedencia })
       <span className="mv-numero">{procedencia.setores}</span>{' '}
       {plural(procedencia.setores, 'setor', 'setores')} ·{' '}
       {procedencia.status === 'fechada'
-        ? `fechada por ${procedencia.fechado_por_nome ?? 'alguém que saiu do sistema'}`
+        ? procedencia.fechado_por_nome === null
+          ? 'fechada'
+          : `fechada por ${procedencia.fechado_por_nome}`
         : 'folha em andamento'}
     </>
   )
@@ -769,13 +771,18 @@ function Procedencia({ procedencia }: { procedencia: ContagemProcedencia }) {
         <span className="mv-numero text-texto-suave">
           {formatarData(procedencia.referencia)}
         </span>
-        {procedencia.titulo && <> — “{procedencia.titulo}”</>}, aberta por{' '}
-        {procedencia.criado_por_nome ?? 'alguém que saiu do sistema'} em{' '}
+        {procedencia.titulo && <> — “{procedencia.titulo}”</>}, aberta
+        {/* Autor nulo não é "alguém que saiu do sistema": a folha carregada de
+            planilha nunca teve autor, e inventar um ex-funcionário para ela
+            seria procedência falsa. Quando não há nome, a frase simplesmente
+            não o menciona. */}
+        {procedencia.criado_por_nome !== null && <> por {procedencia.criado_por_nome}</>} em{' '}
         <span className="mv-numero">{dataHora(procedencia.criado_em)}</span>
         {procedencia.status === 'fechada' ? (
           <>
             {' '}
-            e fechada por {procedencia.fechado_por_nome ?? 'alguém que saiu do sistema'} em{' '}
+            e fechada
+            {procedencia.fechado_por_nome !== null && <> por {procedencia.fechado_por_nome}</>} em{' '}
             <span className="mv-numero">{dataHora(procedencia.fechada_em)}</span>. O valor e o
             custo de cada linha foram congelados nesse momento.
           </>
@@ -786,6 +793,9 @@ function Procedencia({ procedencia }: { procedencia: ContagemProcedencia }) {
             custo ainda não está congelado.
           </>
         )}
+        {procedencia.criado_por_nome === null && procedencia.fechado_por_nome === null && (
+          <> Esta folha entrou por carga de arquivo, sem autor registrado no sistema.</>
+        )}
       </p>
       <p className="mt-1.5">
         <span className="mv-numero">{procedencia.itens_na_folha}</span>{' '}
@@ -795,12 +805,12 @@ function Procedencia({ procedencia }: { procedencia: ContagemProcedencia }) {
         <span className="mv-numero">{procedencia.setores}</span>{' '}
         {plural(procedencia.setores, 'setor', 'setores')}.{' '}
         {semResposta === 0 ? (
-          'Todas as linhas foram respondidas.'
+          'Toda linha da folha tem resposta.'
         ) : (
           <span className="text-alerta-texto">
             <TriangleAlert className="mr-1 inline size-3.5" aria-hidden />
-            {semResposta} {plural(semResposta, 'linha', 'linhas')} sem resposta nenhuma — elas
-            entram nesta leitura como zero.
+            {semResposta} {plural(semResposta, 'linha', 'linhas')} sem resposta nenhuma — nem
+            quantidade, nem carimbo de quem passou por ela. {plural(semResposta, 'Ela entra', 'Elas entram')} nesta leitura como zero.
           </span>
         )}
       </p>

@@ -626,7 +626,14 @@ select
   (select pc.nome from perfis pc where pc.id = c.criado_por)  as criado_por_nome,
   (select pf.nome from perfis pf where pf.id = c.fechado_por) as fechado_por_nome,
   (select count(*) from contagem_itens i where i.contagem_id = c.id)                      as itens_na_folha,
-  (select count(*) from contagem_itens i where i.contagem_id = c.id and i.contado_em is not null) as itens_respondidos,
+  -- "Respondido" e carimbo OU quantidade, nao so carimbo. A folha preenchida
+  -- por carga de planilha (0003) grava quantidade sem `contado_em`, e contar
+  -- so o carimbo fazia o rodape do dashboard dizer "868 linhas sem resposta —
+  -- elas entram nesta leitura como zero" numa contagem com 342 linhas
+  -- preenchidas. A frase era falsa para 342 delas, que e exatamente o tipo de
+  -- afirmacao que este rodape existe para nao fazer.
+  (select count(*) from contagem_itens i
+    where i.contagem_id = c.id and (i.contado_em is not null or i.quantidade > 0)) as itens_respondidos,
   (select count(distinct i.setor_id) from contagem_itens i where i.contagem_id = c.id)    as setores,
   (select count(distinct coalesce(i.estoque_id::text, i.setor_id::text))
      from contagem_itens i where i.contagem_id = c.id)                                    as abas,

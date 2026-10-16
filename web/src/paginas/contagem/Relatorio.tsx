@@ -319,7 +319,15 @@ function Corpo({
   const [categoriaId, setCategoriaId] = useState<string | null | undefined>(undefined)
   const [soPrecisaComprar, setSoPrecisaComprar] = useState(false)
   const [soComPendencia, setSoComPendencia] = useState(false)
-  const [ordem, setOrdem] = useState<OrdemDoRelatorio>('nome')
+  /*
+   * A ordem padrão é "maior sugestão", e não alfabética.
+   *
+   * A tela existe para fechar o pedido da semana. Na carga real do Bar do
+   * Zeca são 882 linhas, e em ordem alfabética as três primeiras são ABACATE,
+   * ABACAXI e ABÓBORA — nenhuma delas com nada a decidir. Alfabético é a ordem
+   * de um catálogo; esta aqui é uma lista de decisões.
+   */
+  const [ordem, setOrdem] = useState<OrdemDoRelatorio>('sugestao')
 
   const categorias = useMemo(() => categoriasDoRelatorio(linhas), [linhas])
   const resumo = useMemo(() => resumoDoRelatorio(linhas), [linhas])
@@ -377,7 +385,7 @@ function Corpo({
         <Indicador
           rotulo="Insumos no relatório"
           valor={formatarQuantidade(resumo.insumos)}
-          apoio={`${resumo.temDeSobra} ${plural(resumo.temDeSobra, 'não precisa', 'não precisam')} de compra`}
+          apoio={`${resumo.temDeSobra} com estoque de sobra · ${resumo.semMovimento} sem movimento nenhum`}
         />
         <Indicador
           rotulo="Precisam de compra"
@@ -478,7 +486,13 @@ function Corpo({
             </ul>
 
             <div className="hidden xl:block">
-              <Tabela>
+              {/* Onze colunas. A calha de 20px do design system é a largura de
+                  leitura de uma tabela de cinco colunas; aqui ela sozinha come
+                  220px e empurra a sugestão de compra para fora da tela. 12px
+                  mantém as colunas separadas e cabe num monitor de 1440 com a
+                  barra lateral aberta. A rolagem horizontal continua existindo
+                  para quem tem menos, e é da `Tabela`. */}
+              <Tabela className="[&_td]:px-3 [&_th]:px-3">
                 <thead>
                   <tr>
                     <Th>Insumo</Th>
@@ -564,6 +578,11 @@ function Sugestao({ linha }: { linha: LinhaDoRelatorio }) {
   if (julgado.veredito === 'tem_de_sobra') {
     return <Selo tom="sucesso">Não precisa comprar</Selo>
   }
+  // Sem movimento não ganha selo: um selo cinza repetido em quinhentas linhas
+  // é ruído que ensina a não olhar os outros quinhentos.
+  if (julgado.veredito === 'sem_movimento') {
+    return <span className="text-micro text-texto-fraco">{julgado.motivo}</span>
+  }
   if (julgado.veredito === 'sem_base') {
     return (
       <span className="inline-flex flex-col items-start gap-1">
@@ -597,7 +616,7 @@ function Sugestao({ linha }: { linha: LinhaDoRelatorio }) {
 }
 
 function LinhaDaTabela({ linha }: { linha: LinhaDoRelatorio }) {
-  const semResposta = linha.precisa_comprar === null
+  const semResposta = julgarSugestao(linha).veredito === 'sem_base'
   return (
     <tr className={clsx(semResposta && 'bg-alerta-suave/30')}>
       <Td>
@@ -648,7 +667,7 @@ function LinhaDaTabela({ linha }: { linha: LinhaDoRelatorio }) {
  * atrás de hover é uma explicação que não existe.
  */
 function CartaoDaLinha({ linha }: { linha: LinhaDoRelatorio }) {
-  const semResposta = linha.precisa_comprar === null
+  const semResposta = julgarSugestao(linha).veredito === 'sem_base'
   return (
     <li className={clsx('px-5 py-4', semResposta && 'bg-alerta-suave/30')}>
       <div className="flex items-start justify-between gap-3">

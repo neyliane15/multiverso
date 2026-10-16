@@ -56,7 +56,7 @@ export const EXPLICACOES = {
 
 /* ────────────────────────────────────────────────── o julgamento ────────── */
 
-export type Veredito = 'comprar' | 'tem_de_sobra' | 'sem_base'
+export type Veredito = 'comprar' | 'tem_de_sobra' | 'sem_movimento' | 'sem_base'
 
 export interface SugestaoJulgada {
   veredito: Veredito
@@ -99,6 +99,31 @@ export function julgarSugestao(linha: LinhaDoRelatorio): SugestaoJulgada {
     }
   }
   const quantidade = linha.sugestao ?? 0
+
+  /*
+   * O empate em ZERO não é o mesmo empate.
+   *
+   * A regra da cliente é literal e o banco a aplica ao pé da letra: estoque 0
+   * contra média 0 é `precisa_comprar = true`, sugestão 0. Tecnicamente certo,
+   * e inútil na tela: medido na carga real do Bar do Zeca, 882 linhas no
+   * relatório viravam **538 "precisa comprar"**, das quais a esmagadora
+   * maioria era insumo que não foi vendido e não está em estoque — um pedido
+   * de compra com quinhentas linhas de nada.
+   *
+   * Então a tela nomeia o sub-caso em vez de escondê-lo. Nada muda de número:
+   * a sugestão continua zero e a linha continua ali, com todas as colunas. O
+   * que muda é que o resumo e o filtro "só o que comprar" param de contar como
+   * decisão pendente aquilo sobre o que não há decisão nenhuma a tomar.
+   */
+  if (quantidade === 0 && linha.media_3_vendas === 0 && linha.contagem_atual === 0) {
+    return {
+      veredito: 'sem_movimento',
+      rotulo: 'Sem movimento',
+      quantidade: null,
+      motivo: 'Não foi vendido e não está em estoque.',
+    }
+  }
+
   return {
     veredito: 'comprar',
     rotulo: quantidade === 0 ? 'No limite da média' : 'Comprar',
@@ -134,10 +159,15 @@ export function filtrarRelatorio(
   const termos = alvo === '' ? [] : alvo.split(' ')
 
   return linhas.filter((l) => {
-    // "Só o que precisa comprar" inclui o que NÃO SE SABE, de propósito: a
-    // lista existe para fechar o pedido da semana, e item sem resposta é
-    // justamente o que precisa de olho humano antes do pedido sair.
-    if (filtro.soPrecisaComprar && l.precisa_comprar === false) return false
+    // "Só o que precisa comprar" guarda o que comprar E o que NÃO SE SABE, de
+    // propósito: a lista existe para fechar o pedido da semana, e item sem
+    // resposta é justamente o que precisa de olho humano antes do pedido sair.
+    // O que sai são as duas respostas prontas — "tem de sobra" e "sem
+    // movimento".
+    if (filtro.soPrecisaComprar) {
+      const veredito = julgarSugestao(l).veredito
+      if (veredito === 'tem_de_sobra' || veredito === 'sem_movimento') return false
+    }
     if (filtro.soComPendencia && l.pendencia === null) return false
     if (filtro.categoriaId !== undefined && l.categoria_id !== filtro.categoriaId) return false
     if (termos.length === 0) return true
@@ -192,6 +222,8 @@ export interface ResumoDoRelatorio {
   insumos: number
   precisamComprar: number
   temDeSobra: number
+  /** Nem vendido nem em estoque: não há decisão a tomar sobre eles. */
+  semMovimento: number
   semBase: number
   comPendencia: number
   /** Valor da compra sugerida, ao custo congelado da própria foto. */
@@ -210,6 +242,7 @@ export interface ResumoDoRelatorio {
 export function resumoDoRelatorio(linhas: readonly LinhaDoRelatorio[]): ResumoDoRelatorio {
   let precisamComprar = 0
   let temDeSobra = 0
+  let semMovimento = 0
   let semBase = 0
   let comPendencia = 0
   let valorSugerido = 0
@@ -221,6 +254,7 @@ export function resumoDoRelatorio(linhas: readonly LinhaDoRelatorio[]): ResumoDo
       precisamComprar += 1
       valorSugerido += (julgado.quantidade ?? 0) * l.custo_unitario
     } else if (julgado.veredito === 'tem_de_sobra') temDeSobra += 1
+    else if (julgado.veredito === 'sem_movimento') semMovimento += 1
     else semBase += 1
 
     if (l.pendencia !== null) comPendencia += 1
@@ -233,6 +267,7 @@ export function resumoDoRelatorio(linhas: readonly LinhaDoRelatorio[]): ResumoDo
     insumos: linhas.length,
     precisamComprar,
     temDeSobra,
+    semMovimento,
     semBase,
     comPendencia,
     valorSugerido,
