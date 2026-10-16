@@ -122,10 +122,20 @@ escrito na 0005.
   atravessa setores por construção.
 
 Medido depois: operador preso lê 0 vendas, 0 itens, leva recusa
-`%acesso e de setor%` no relatório e `%row-level security%` no insert — e
-**continua lendo a folha do setor dele** (14 linhas de `contagem_itens`). O caso
-bom não quebrou: admin e operador livre seguem lendo e lançando. Oito casos
-novos em `20_fluxos.sql`. A migração aguenta segunda e terceira passada.
+`%acesso e de setor%` no relatório e `%row-level security%` no insert, e o
+`delete` afeta 0 linhas — e ele **continua lendo a folha do setor dele**
+(14 linhas de `contagem_itens`). O caso bom não quebrou: admin e operador livre
+seguem lendo e lançando. Oito casos novos em `20_fluxos.sql`, inclusive o par
+"2 + 1000 = 1002 para o admin / recusa para o operador preso", que é a tabela
+acima reproduzida dentro da suíte. A migração aguenta segunda e terceira
+passada.
+
+Uma sobra de mensagem, que não consertei: quando o operador preso tenta inserir
+um **item** numa venda aberta, o erro que chega é `venda e ficha de
+restaurantes diferentes`, do gatilho `mv_valida_venda_item` — porque ele não vê
+a venda, a subconsulta do gatilho volta nula, e o gatilho roda antes da
+política. O bloqueio acontece; a frase manda procurar no lugar errado. É o
+mesmo tipo de desencontro do achado 4, num caminho que a tela não oferece.
 
 ## 3. GRAVE — o zero inventado tem duas pontas, e a que ele não documentou é pior
 
