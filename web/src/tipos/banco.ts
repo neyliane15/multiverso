@@ -9,6 +9,8 @@ export type StatusContagem = 'aberta' | 'fechada' | 'cancelada'
 export type OrigemNota = 'xml' | 'pdf' | 'manual'
 export type StatusNota = 'importada' | 'conferida' | 'lancada' | 'cancelada'
 export type StatusLista = 'rascunho' | 'enviada' | 'concluida' | 'cancelada'
+export type StatusVenda = 'aberta' | 'fechada' | 'cancelada'
+export type OrigemVenda = 'manual' | 'pdv'
 
 /** Identidade visual que o admin configura por restaurante. */
 export interface Marca {
@@ -447,6 +449,120 @@ export interface CmvCategoria {
   estoque_final: number | null
   /** Nulo faltando qualquer uma das duas contagens. */
   cmv: number | null
+}
+
+/* ───────────────────────────────────────── módulo 2 · vendas e relatório ── */
+
+/**
+ * Um lançamento de vendas de um período.
+ *
+ * `referencia` é o **fim** do período, para casar com `contagens.referencia`:
+ * é assim que o relatório pega as vendas que caem entre duas fotos sem ter de
+ * adivinhar de que lado a semana fecha.
+ */
+export interface Venda {
+  id: string
+  restaurante_id: string
+  referencia: string
+  /** Pode faltar: o período que vale para a conta é o que há entre duas fotos. */
+  inicio: string | null
+  titulo: string | null
+  status: StatusVenda
+  /** `manual` hoje. A coluna existe para a importação de PDV não precisar de migração. */
+  origem: OrigemVenda
+  origem_arquivo: string | null
+  total_itens: number
+  total_valor: number
+  criado_por: string | null
+  fechado_por: string | null
+  fechada_em: string | null
+  criado_em: string
+  atualizado_em: string
+}
+
+/** Uma ficha vendida dentro de um lançamento. */
+export interface VendaItem {
+  id: string
+  venda_id: string
+  ficha_id: string
+  quantidade: number
+  /** Congelado do preço da ficha no lançamento, como o custo da contagem. */
+  preco_unitario: number
+  total: number
+  /** Texto cru do PDV, guardado para o de-para da importação futura. */
+  descricao_origem: string | null
+  criado_em: string
+}
+
+/**
+ * Uma linha de `mv_relatorio_de_contagem`.
+ *
+ *     CONSUMO   = contagem anterior + compras − contagem atual
+ *     IDEAL     = contagem anterior + compras − vendas
+ *     DIFERENÇA = contagem atual − ideal
+ *
+ * Toda coluna numérica é anulável porque toda uma delas pode faltar, e a casa
+ * prefere a coluna vazia com a `pendencia` escrita a um número plausível e
+ * errado. `precisa_comprar` é nulo quando não há venda fechada nenhuma: a
+ * pergunta não tem resposta, e responder "não precisa" mandaria a casa para a
+ * semana seguinte sem estoque.
+ */
+export interface LinhaDoRelatorio {
+  produto_id: string
+  produto_nome: string
+  categoria_id: string | null
+  categoria_nome: string | null
+  unidade: string
+  /** Nulo quando não existe contagem fechada anterior. */
+  contagem_anterior: number | null
+  compras: number | null
+  /** Nulo quando algum insumo da venda está sem conversão de unidade. */
+  vendas: number | null
+  contagem_atual: number | null
+  consumo: number | null
+  ideal: number | null
+  diferenca: number | null
+  media_3_vendas: number | null
+  /** 1, 2 ou 3 — quantas vendas fechadas entraram na média. */
+  vendas_consideradas: number
+  sugestao: number | null
+  precisa_comprar: boolean | null
+  custo_unitario: number
+  pendencia: string | null
+}
+
+/** Uma linha de `mv_vendas_por_produto`: o que um lançamento tirou do estoque. */
+export interface VendaPorProduto {
+  produto_id: string
+  /** Nulo quando o insumo está sem conversão — nunca zero fingindo leitura. */
+  quantidade: number | null
+  fator_ausente: boolean
+  motivo: string | null
+}
+
+/**
+ * Procedência de uma contagem: só o que o banco sabe de fato.
+ *
+ * `fichas.origem_carga` não se aplica aqui — contagem nasce da folha e é
+ * preenchida à mão, não de arquivo. Então o rodapé do dashboard afirma o que
+ * dá para afirmar: aberta ou fechada, quem fechou, quando, quantas abas.
+ */
+export interface ContagemProcedencia {
+  contagem_id: string
+  restaurante_id: string
+  referencia: string
+  tipo: TipoContagem
+  status: StatusContagem
+  titulo: string | null
+  criado_em: string
+  fechada_em: string | null
+  criado_por_nome: string | null
+  fechado_por_nome: string | null
+  itens_na_folha: number
+  itens_respondidos: number
+  setores: number
+  abas: number
+  categorias: number
 }
 
 export interface PanoramaRestaurante {

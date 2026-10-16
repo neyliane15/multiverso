@@ -43,8 +43,12 @@ import type {
   ProdutoCompleto,
   Restaurante,
   Setor,
+  ContagemProcedencia,
+  LinhaDoRelatorio,
   StatusLista,
   TipoContagem,
+  Venda,
+  VendaItem,
 } from '@/tipos/banco'
 
 /** Erro do PostgREST vira mensagem legível em português. */
@@ -119,6 +123,12 @@ export const chaves = {
   // 'cmv-cat' era uma chave irma que nunca era atingida — a tabela por
   // categoria ficava velha ao lado dos indicadores recem-atualizados.
   cmvCategorias: (r: string, i: string, f: string) => ['cmv', 'categorias', r, i, f] as const,
+  vendas: (r: string) => ['vendas', r] as const,
+  vendaItens: (id: string) => ['venda-itens', id] as const,
+  // Sob o prefixo 'relatorio' para que fechar uma venda possa derrubar os
+  // relatorios de uma vez, sem conhecer qual contagem cada um le.
+  relatorio: (contagemId: string) => ['relatorio', contagemId] as const,
+  procedencia: (contagemId: string) => ['procedencia', contagemId] as const,
 }
 
 // ─────────────────────────────────────────────────────── administração ─────
@@ -1450,5 +1460,202 @@ export function useCmvPorCategoria(restauranteId: string, inicio: string, fim: s
           p_fim: fim,
         }),
       ),
+  })
+}
+
+
+/* ──────────────────────────────────── módulo 2 · vendas e relatório ─────── */
+
+/**
+ * Os lançamentos de venda do restaurante, mais recentes primeiro.
+ *
+ * Sem `buscarTudo` aqui de propósito: é uma linha por período lançado, não uma
+ * por item. Mesmo uma casa que lance toda semana por cinco anos fica em 260
+ * linhas — longe do teto calado de 1000 do PostgREST.
+ */
+export function useVendas(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.vendas(restauranteId),
+    queryFn: () =>
+      buscar<Venda[]>(
+        supabase
+          .from('vendas')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .order('referencia', { ascending: false }),
+      ),
+  })
+}
+
+export interface ItemDeVenda extends VendaItem {
+  ficha: { nome: string; preco_venda: number; grupo: string | null } | null
+}
+
+export function useItensDaVenda(vendaId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.vendaItens(vendaId ?? ''),
+    enabled: Boolean(vendaId),
+    queryFn: () =>
+      buscar<ItemDeVenda[]>(
+        supabase
+          .from('venda_itens')
+          .select('*, ficha:fichas(nome, preco_venda, grupo)')
+          .eq('venda_id', vendaId!)
+          .order('criado_em'),
+      ),
+  })
+}
+
+export function useSalvarVenda(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: Partial<Venda> & { id?: string }) => {
+      const { id, ...resto } = dados
+      return buscar<Venda>(
+        id
+          ? supabase.from('vendas').update(resto).eq('id', id).select().single()
+          : supabase
+              .from('vendas')
+              .insert({ ...resto, restaurante_id: restauranteId })
+              .select()
+              .single(),
+      )
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) }),
+  })
+}
+
+/** Uma ficha vendida, como o formulário a edita antes de virar linha. */
+export interface ItemDeVendaParaGravar {
+  ficha_id: string
+  quantidade: number
+  preco_unitario: number
+  descricao_origem?: string | null
+}
+
+/**
+ * Grava as fichas de UM lançamento, por diferença.
+ *
+ * Mesma decisão de `useSalvarItensDaFicha`, e pelo mesmo motivo: apagar tudo e
+ * reinserir seria uma linha menos de código e um `id` novo a cada salvamento —
+ * e `descricao_origem` existe justamente para a importação de PDV um dia
+ * casar a linha crua com a linha gravada. Perder o id é perder esse rastro.
+ */
+export function useSalvarItensDaVenda(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      vendaId,
+      itens,
+    }: {
+      vendaId: string
+      itens: ItemDeVendaParaGravar[]
+    }) => {
+      const atuais = await buscar<{ id: string; ficha_id: string }[]>(
+        supabase.from('venda_itens').select('id, ficha_id').eq('venda_id', vendaId),
+      )
+      const querida = new Set(itens.map((i) => i.ficha_id))
+      const sair = atuais.filter((a) => !querida.has(a.ficha_id)).map((a) => a.id)
+
+      if (sair.length > 0) {
+        await buscar(supabase.from('venda_itens').delete().in('id', sair).select('id'))
+      }
+      if (itens.length > 0) {
+        await buscar(
+          supabase
+            .from('venda_itens')
+            .upsert(
+              itens.map((i) => ({ ...i, venda_id: vendaId })),
+              { onConflict: 'venda_id,ficha_id' },
+            )
+            .select('id'),
+        )
+      }
+      return { entraram: itens.length, sairam: sair.length }
+    },
+    onSuccess: (_resultado, entrada) => {
+      void qc.invalidateQueries({ queryKey: chaves.vendaItens(entrada.vendaId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+    },
+  })
+}
+
+/**
+ * Fechar o lançamento é o que o relatório enxerga.
+ *
+ * Por isso — e só por isso — esta mutação derruba os relatórios: enquanto a
+ * venda está aberta ela não entra em conta nenhuma, então salvar um item não
+ * precisa invalidar nada além do próprio lançamento.
+ */
+export function useFecharVenda(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vendaId: string) =>
+      buscar<Venda>(supabase.rpc('mv_fechar_venda', { p_venda: vendaId })),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+      void qc.invalidateQueries({ queryKey: ['relatorio'] })
+    },
+  })
+}
+
+export function useReabrirVenda(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vendaId: string) =>
+      buscar<Venda>(supabase.rpc('mv_reabrir_venda', { p_venda: vendaId })),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+      void qc.invalidateQueries({ queryKey: ['relatorio'] })
+    },
+  })
+}
+
+export function useApagarVenda(restauranteId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (vendaId: string) =>
+      buscar<null>(supabase.from('vendas').delete().eq('id', vendaId).select().maybeSingle()),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+      void qc.invalidateQueries({ queryKey: ['relatorio'] })
+    },
+  })
+}
+
+/**
+ * O relatório de uma contagem: uma linha por insumo que apareceu em alguma
+ * ponta do período.
+ *
+ * É a consulta mais cara do módulo — ela explode a árvore de cada ficha de
+ * cada venda do período e da janela da média. Medido no Postgres local, com a
+ * árvore de três níveis da suíte: 14 ms para 6 insumos, e o tempo cresce com
+ * o número de fichas vendidas, não com o catálogo. Por isso ela só sai do
+ * lugar quando a contagem escolhida muda, e `staleTime` de cinco minutos
+ * segura o ida-e-volta de quem alterna entre as duas telas do módulo.
+ */
+export function useRelatorioDeContagem(contagemId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.relatorio(contagemId ?? ''),
+    enabled: Boolean(contagemId),
+    staleTime: 5 * 60_000,
+    queryFn: () =>
+      buscar<LinhaDoRelatorio[]>(
+        supabase.rpc('mv_relatorio_de_contagem', { p_contagem: contagemId }),
+      ),
+  })
+}
+
+/** A procedência que o rodapé do dashboard afirma. Uma linha, barata. */
+export function useProcedenciaDaContagem(contagemId: string | undefined) {
+  return useQuery({
+    queryKey: chaves.procedencia(contagemId ?? ''),
+    enabled: Boolean(contagemId),
+    queryFn: async () => {
+      const linhas = await buscar<ContagemProcedencia[]>(
+        supabase.from('vw_contagem_procedencia').select('*').eq('contagem_id', contagemId!),
+      )
+      return linhas[0] ?? null
+    },
   })
 }

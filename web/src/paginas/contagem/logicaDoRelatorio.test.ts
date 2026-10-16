@@ -1,0 +1,299 @@
+import { describe, expect, it } from 'vitest'
+import type { LinhaDoRelatorio } from '@/tipos/banco'
+import {
+  categoriasDoRelatorio,
+  filtrarRelatorio,
+  julgarSugestao,
+  ordenarRelatorio,
+  resumoDoRelatorio,
+} from './logicaDoRelatorio'
+
+function linha(parcial: Partial<LinhaDoRelatorio> & { produto_nome: string }): LinhaDoRelatorio {
+  return {
+    produto_id: `p-${parcial.produto_nome}`,
+    categoria_id: 'c-secos',
+    categoria_nome: 'Secos',
+    unidade: 'KG',
+    contagem_anterior: 20,
+    compras: 10,
+    vendas: 15,
+    contagem_atual: 12,
+    consumo: 18,
+    ideal: 15,
+    diferenca: -3,
+    media_3_vendas: 10,
+    vendas_consideradas: 3,
+    sugestao: 0,
+    precisa_comprar: false,
+    custo_unitario: 5,
+    pendencia: null,
+    ...parcial,
+  }
+}
+
+describe('julgarSugestao · os três estados da regra', () => {
+  it('contagem atual MAIOR que a média: não precisa comprar', () => {
+    const julgado = julgarSugestao(
+      linha({ produto_nome: 'Farinha', contagem_atual: 12, media_3_vendas: 10, precisa_comprar: false, sugestao: 0 }),
+    )
+    expect(julgado.veredito).toBe('tem_de_sobra')
+    expect(julgado.rotulo).toBe('Não precisa comprar')
+    expect(julgado.quantidade).toBeNull()
+  })
+
+  it('contagem atual MENOR que a média: sugere a diferença', () => {
+    const julgado = julgarSugestao(
+      linha({ produto_nome: 'Cebola', contagem_atual: 2, media_3_vendas: 7.8125, precisa_comprar: true, sugestao: 5.8125 }),
+    )
+    expect(julgado.veredito).toBe('comprar')
+    expect(julgado.rotulo).toBe('Comprar')
+    expect(julgado.quantidade).toBe(5.8125)
+  })
+
+  /**
+   * A borda que a cliente pediu para ver decidida.
+   *
+   * A regra dela é "se a contagem atual for MAIOR que a média, não precisa
+   * comprar". No empate ela NÃO é maior, então cai no outro lado: precisa
+   * comprar — e a quantidade a comprar é exatamente zero. A tela diz "no
+   * limite da média" em vez de "Comprar 0", porque mandar comprar zero é
+   * ruído, e dizer que está de sobra seria falso.
+   */
+  it('EMPATE: precisa comprar, mas a quantidade é zero e a tela explica', () => {
+    const julgado = julgarSugestao(
+      linha({ produto_nome: 'Azeite', contagem_atual: 2, media_3_vendas: 2, precisa_comprar: true, sugestao: 0 }),
+    )
+    expect(julgado.veredito).toBe('comprar')
+    expect(julgado.quantidade).toBe(0)
+    expect(julgado.rotulo).toBe('No limite da média')
+    expect(julgado.motivo).toBe('O estoque empata com a média: não sobra folga.')
+  })
+
+  /**
+   * A segunda borda: média inexistente.
+   *
+   * Sem venda fechada nenhuma não há média, e as duas respostas possíveis de
+   * um `if/else` seriam erradas. "Não precisa comprar" manda a casa para a
+   * semana seguinte sem estoque; "comprar a média" inventaria um número a
+   * partir de nada. O estado é um terceiro, e ele tem nome.
+   */
+  it('MÉDIA NULA por falta de venda: não se sabe, e o motivo diz por quê', () => {
+    const julgado = julgarSugestao(
+      linha({
+        produto_nome: 'Açúcar',
+        media_3_vendas: null,
+        precisa_comprar: null,
+        sugestao: null,
+        vendas_consideradas: 0,
+      }),
+    )
+    expect(julgado.veredito).toBe('sem_base')
+    expect(julgado.rotulo).toBe('Não se sabe')
+    expect(julgado.quantidade).toBeNull()
+    expect(julgado.motivo).toBe('Nenhuma venda fechada até a data desta contagem.')
+  })
+
+  it('MÉDIA NULA por unidade sem conversão: outro motivo, mesmo estado', () => {
+    const julgado = julgarSugestao(
+      linha({
+        produto_nome: 'Limão',
+        media_3_vendas: null,
+        precisa_comprar: null,
+        sugestao: null,
+        vendas_consideradas: 3,
+        pendencia: 'Limao entra em Caipirinha em G, que nao converte',
+      }),
+    )
+    expect(julgado.veredito).toBe('sem_base')
+    expect(julgado.motivo).toBe('Algum insumo desta venda está sem conversão de unidade.')
+  })
+
+  it('média zero NÃO é média nula: nada vendido é resposta, e a resposta é não comprar', () => {
+    const julgado = julgarSugestao(
+      linha({ produto_nome: 'Vela', contagem_atual: 5, media_3_vendas: 0, precisa_comprar: false, sugestao: 0 }),
+    )
+    expect(julgado.veredito).toBe('tem_de_sobra')
+  })
+
+  it('estoque zerado com média zero empata, e o empate manda olhar', () => {
+    const julgado = julgarSugestao(
+      linha({ produto_nome: 'Vela', contagem_atual: 0, media_3_vendas: 0, precisa_comprar: true, sugestao: 0 }),
+    )
+    expect(julgado.veredito).toBe('comprar')
+    expect(julgado.rotulo).toBe('No limite da média')
+  })
+})
+
+/* ──────────────────────────────────────────────────── filtro e ordem ───── */
+
+const RELATORIO: LinhaDoRelatorio[] = [
+  linha({ produto_nome: 'Farinha', precisa_comprar: false, sugestao: 0, diferenca: -3, consumo: 18 }),
+  linha({
+    produto_nome: 'Cebola',
+    precisa_comprar: true,
+    sugestao: 5.8125,
+    media_3_vendas: 7.8125,
+    contagem_atual: 2,
+    diferenca: 8.71875,
+    consumo: 3,
+    custo_unitario: 10,
+  }),
+  linha({
+    produto_nome: 'Limão',
+    categoria_id: 'c-bar',
+    categoria_nome: 'Bar',
+    precisa_comprar: null,
+    sugestao: null,
+    media_3_vendas: null,
+    vendas: null,
+    ideal: null,
+    diferenca: null,
+    consumo: 0,
+    pendencia: 'Limao entra em Caipirinha em G, que nao converte',
+  }),
+  linha({
+    produto_nome: 'Vodka',
+    categoria_id: 'c-bar',
+    categoria_nome: 'Bar',
+    precisa_comprar: false,
+    sugestao: 0,
+    diferenca: 7,
+    consumo: 2,
+    unidade: 'UND',
+    custo_unitario: 60,
+  }),
+]
+
+describe('filtrarRelatorio', () => {
+  it('busca sem acento, no insumo e na categoria', () => {
+    expect(filtrarRelatorio(RELATORIO, { busca: 'limao' }).map((l) => l.produto_nome)).toEqual([
+      'Limão',
+    ])
+    expect(filtrarRelatorio(RELATORIO, { busca: 'bar' }).map((l) => l.produto_nome)).toEqual([
+      'Limão',
+      'Vodka',
+    ])
+  })
+
+  it('filtra por categoria', () => {
+    expect(
+      filtrarRelatorio(RELATORIO, { categoriaId: 'c-secos' }).map((l) => l.produto_nome),
+    ).toEqual(['Farinha', 'Cebola'])
+  })
+
+  /**
+   * "Só o que precisa comprar" inclui o NÃO SE SABE de propósito: a lista
+   * existe para fechar o pedido da semana, e a linha sem resposta é a que mais
+   * precisa de olho humano antes de o pedido sair.
+   */
+  it('"só precisa comprar" guarda também as linhas sem resposta', () => {
+    expect(
+      filtrarRelatorio(RELATORIO, { soPrecisaComprar: true }).map((l) => l.produto_nome),
+    ).toEqual(['Cebola', 'Limão'])
+  })
+
+  it('"só com pendência" deixa apenas as linhas que têm algo a dizer', () => {
+    expect(
+      filtrarRelatorio(RELATORIO, { soComPendencia: true }).map((l) => l.produto_nome),
+    ).toEqual(['Limão'])
+  })
+
+  it('os filtros se somam', () => {
+    expect(
+      filtrarRelatorio(RELATORIO, { categoriaId: 'c-bar', soPrecisaComprar: true }).map(
+        (l) => l.produto_nome,
+      ),
+    ).toEqual(['Limão'])
+  })
+})
+
+describe('ordenarRelatorio', () => {
+  it('por nome, em pt-BR', () => {
+    expect(ordenarRelatorio(RELATORIO, 'nome').map((l) => l.produto_nome)).toEqual([
+      'Cebola',
+      'Farinha',
+      'Limão',
+      'Vodka',
+    ])
+  })
+
+  it('por diferença, pela MAGNITUDE: −8 pesa tanto quanto +8', () => {
+    expect(ordenarRelatorio(RELATORIO, 'diferenca').map((l) => l.produto_nome)).toEqual([
+      'Cebola',
+      'Vodka',
+      'Farinha',
+      'Limão',
+    ])
+  })
+
+  it('nulo desce para o fim, nunca para o meio como se fosse zero', () => {
+    const ordenado = ordenarRelatorio(RELATORIO, 'sugestao')
+    expect(ordenado[0]!.produto_nome).toBe('Cebola')
+    expect(ordenado[ordenado.length - 1]!.produto_nome).toBe('Limão')
+  })
+
+  it('por consumo, do maior para o menor', () => {
+    expect(ordenarRelatorio(RELATORIO, 'consumo').map((l) => l.produto_nome)).toEqual([
+      'Farinha',
+      'Cebola',
+      'Vodka',
+      'Limão',
+    ])
+  })
+
+  it('não altera o array que recebeu', () => {
+    const antes = RELATORIO.map((l) => l.produto_nome)
+    ordenarRelatorio(RELATORIO, 'diferenca')
+    expect(RELATORIO.map((l) => l.produto_nome)).toEqual(antes)
+  })
+})
+
+describe('resumoDoRelatorio', () => {
+  it('conta os três vereditos', () => {
+    const resumo = resumoDoRelatorio(RELATORIO)
+    expect([resumo.insumos, resumo.precisamComprar, resumo.temDeSobra, resumo.semBase]).toEqual([
+      4, 1, 2, 1,
+    ])
+  })
+
+  it('o valor sugerido usa o custo congelado da foto', () => {
+    // Só a cebola sugere compra: 5,8125 KG × R$ 10 = R$ 58,125.
+    expect(resumoDoRelatorio(RELATORIO).valorSugerido).toBeCloseTo(58.125, 10)
+  })
+
+  /**
+   * A falta soma só as diferenças NEGATIVAS. Somar as duas direções daria um
+   * número que se anula, e a sobra de cebola não paga a falta de farinha: são
+   * dois problemas diferentes, e só um deles custa dinheiro hoje.
+   */
+  it('a falta soma só o que faltou, e não se anula com a sobra', () => {
+    // Farinha: |−3| × R$ 5 = R$ 15. A cebola (+8,71875) e a vodka (+7) não entram.
+    expect(resumoDoRelatorio(RELATORIO).valorDaFalta).toBeCloseTo(15, 10)
+  })
+
+  it('conta as pendências', () => {
+    expect(resumoDoRelatorio(RELATORIO).comPendencia).toBe(1)
+  })
+
+  it('relatório vazio não quebra', () => {
+    const resumo = resumoDoRelatorio([])
+    expect([resumo.insumos, resumo.valorSugerido, resumo.valorDaFalta]).toEqual([0, 0, 0])
+  })
+})
+
+describe('categoriasDoRelatorio', () => {
+  it('sai do próprio relatório, com a contagem de linhas', () => {
+    expect(categoriasDoRelatorio(RELATORIO)).toEqual([
+      { id: 'c-bar', nome: 'Bar', linhas: 2 },
+      { id: 'c-secos', nome: 'Secos', linhas: 2 },
+    ])
+  })
+
+  it('insumo sem categoria ganha o balde próprio', () => {
+    expect(
+      categoriasDoRelatorio([
+        linha({ produto_nome: 'Guardanapo', categoria_id: null, categoria_nome: null }),
+      ]),
+    ).toEqual([{ id: null, nome: 'Sem categoria', linhas: 1 }])
+  })
+})
