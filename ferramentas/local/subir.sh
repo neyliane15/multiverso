@@ -18,8 +18,10 @@ TMP="${TMPDIR:-/tmp}/multiverso-local"
 mkdir -p "$TMP"
 
 command -v postgrest >/dev/null 2>&1 || {
-  echo "postgrest não está no PATH. Baixe o binário estático de" >&2
-  echo "https://github.com/PostgREST/postgrest/releases e ponha em /usr/local/bin." >&2
+  echo "postgrest não está no PATH. Em máquina limpa:" >&2
+  echo "  curl -sSL -o /tmp/postgrest.tar.xz https://github.com/PostgREST/postgrest/releases/download/v12.2.12/postgrest-v12.2.12-linux-static-x86-64.tar.xz" >&2
+  echo "  tar -xf /tmp/postgrest.tar.xz -C /usr/local/bin/ && chmod +x /usr/local/bin/postgrest" >&2
+  echo "(a lista de releases fica em https://github.com/PostgREST/postgrest/releases)" >&2
   exit 1
 }
 

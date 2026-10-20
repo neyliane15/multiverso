@@ -72,7 +72,18 @@ cliente e continua testado por unidade (103 testes).
 
 - Postgres 16 no sistema (o script cria o cluster sozinho)
 - [PostgREST](https://github.com/PostgREST/postgrest/releases) no `PATH` —
-  binário estático, sem dependência
+  binário estático, sem dependência. Em máquina limpa (ou contêiner recriado):
+
+  ```bash
+  curl -sSL -o /tmp/postgrest.tar.xz \
+    https://github.com/PostgREST/postgrest/releases/download/v12.2.12/postgrest-v12.2.12-linux-static-x86-64.tar.xz
+  tar -xf /tmp/postgrest.tar.xz -C /usr/local/bin/ && chmod +x /usr/local/bin/postgrest
+  ```
+
+  A versão está no comando de propósito. O projeto já perdeu tempo com um
+  `404`: as releases antigas saem do ar, e "baixe o binário" não diz qual
+  arquivo entre os dez da página. Se esta também sair, pegue a mais nova da
+  lista e atualize esta linha.
 - Node 20+
 
 ## Como parar
