@@ -1519,8 +1519,12 @@ begin
     v_erro := 'passou';
   exception when others then v_erro := sqlerrm;
   end;
+  -- A mensagem aqui e a da 0025, e nao mais 'restaurantes diferentes': sob RLS
+  -- a Maia nem ENXERGA a ficha da Prova, entao o gatilho nao tem como comparar
+  -- restaurante nenhum. Dizer 'restaurantes diferentes' era afirmar uma causa
+  -- que o gatilho nao mediu — e mandar procurar defeito num cadastro correto.
   perform conferir('ficha de outro restaurante nao entra na venda',
-                   v_erro like '%restaurantes diferentes%');
+                   v_erro like '%ficha%nao encontrada, ou fora do seu acesso%');
 
   -- Primeira contagem da Maia: sem anterior, e com UMA venda fechada.
   select * into l from mv_relatorio_de_contagem(c_maia) where produto_nome = 'Arroz da Maia';
@@ -1690,3 +1694,85 @@ begin
 end $$;
 
 \echo '  --- Fluxos: todos os casos passaram'
+
+-- ============================================================================
+-- Venda fechada: o cabecalho tambem fecha (0025)
+-- ----------------------------------------------------------------------------
+-- O gatilho da 0023 protege `venda_itens`. O cabecalho de `vendas` nao tinha
+-- gatilho nenhum — e e nele que mora `referencia`, a coluna que decide em que
+-- relatorio aquela venda cai.
+-- ============================================================================
+do $$
+declare
+  r uuid; cat uuid; s uuid; p uuid; f uuid; v uuid; v_erro text;
+begin
+  insert into restaurantes (nome, slug) values ('Casa do Cabecalho','casa-cabecalho') returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Geral') returning id into cat;
+  insert into setores (restaurante_id, nome) values (r,'Deposito') returning id into s;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Cachaca','UND',30,cat) returning id into p;
+  insert into produto_setores (produto_id, setor_id, unidade) values (p, s, 'UND');
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r,'Dose',1,'PORCAO',12) returning id into f;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade) values (f, p, 1, 'UND');
+
+  insert into vendas (restaurante_id, referencia, titulo) values (r, date '2026-10-01','Semana 1')
+  returning id into v;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values (v, f, 10, 12);
+
+  -- Com a venda ABERTA, mudar o cabecalho continua sendo o caminho normal.
+  update vendas set referencia = date '2026-10-02' where id = v;
+  perform conferir('venda aberta: o cabecalho se edita normalmente',
+                   (select referencia from vendas where id=v) = date '2026-10-02');
+  perform mv_fechar_venda(v);
+
+  begin
+    update vendas set referencia = date '2026-07-20' where id = v;
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('venda FECHADA: mudar a referencia e recusado', v_erro like '%reabra o lancamento%');
+  perform conferir('e a referencia nao mudou',
+                   (select referencia from vendas where id=v) = date '2026-10-02');
+
+  begin
+    update vendas set total_valor = 1 where id = v;
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('venda FECHADA: mexer no total congelado e recusado', v_erro like '%reabra o lancamento%');
+  perform conferir('o total continua o que o fechamento congelou',
+                   (select total_valor from vendas where id=v) = 120);
+
+  begin
+    update vendas set titulo = 'outro nome' where id = v;
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('venda FECHADA: ate o titulo e recusado', v_erro like '%reabra o lancamento%');
+
+  -- O que CONTINUA passando: reabrir, e mudar o cabecalho depois de reaberta.
+  perform mv_reabrir_venda(v);
+  perform conferir('reabrir uma venda fechada continua funcionando',
+                   (select status from vendas where id=v) = 'aberta');
+  update vendas set referencia = date '2026-07-20' where id = v;
+  perform conferir('e com ela reaberta o cabecalho se edita de novo',
+                   (select referencia from vendas where id=v) = date '2026-07-20');
+
+  -- Cancelar uma venda fechada tambem continua possivel: e mudanca de status.
+  perform mv_fechar_venda(v);
+  update vendas set status = 'cancelada' where id = v;
+  perform conferir('cancelar uma venda fechada continua possivel',
+                   (select status from vendas where id=v) = 'cancelada');
+
+  -- A mensagem do gatilho de item, quando a venda nao esta ao alcance de quem
+  -- pergunta (o desencontro que o laudo do revisor registrou e nao consertou).
+  begin
+    insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario)
+    values ('00000000-0000-4000-8000-000000000999', f, 1, 1);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('item de venda inexistente diz que a VENDA nao foi achada, nao que a ficha e de outro restaurante',
+                   v_erro like '%lancamento de venda%nao encontrado%');
+end $$;
