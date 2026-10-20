@@ -741,6 +741,40 @@ function Folha({ restauranteId, contagemId }: { restauranteId: string; contagemI
       </>
     )
   }
+  /*
+   * Contagem que não é desta casa: o endereço se digita na mão.
+   *
+   * `/contagem/<id>` é a única rota que o guarda do operador de setor libera
+   * por forma (id é id), e ela também se cola de um e-mail. Com um id de outro
+   * restaurante, a RLS faz o certo e devolve zero linha — mas o `.single()` do
+   * PostgREST vira "JSON object requested, multiple (or no) rows returned", e
+   * era ISSO que aparecia na tela de quem conta estoque. A recusa estava certa
+   * e a frase era de outra profissão.
+   */
+  const naoEDaCasa =
+    contagem.isError && /multiple \(or no\) rows/i.test(String(contagem.error?.message ?? ''))
+  if (naoEDaCasa) {
+    return (
+      <>
+        <CabecalhoDePagina titulo="Contagem" />
+        <Cartao>
+          <EstadoVazio
+            icone={<ClipboardList />}
+            titulo="Esta contagem não existe neste restaurante"
+            acao={
+              <Botao tom="secundario" onClick={() => navegar('/contagem')}>
+                Ir para a contagem
+              </Botao>
+            }
+          >
+            O endereço aponta para uma folha que não é desta casa — ou que foi apagada. Nada foi
+            perdido: a contagem deste restaurante continua onde estava.
+          </EstadoVazio>
+        </Cartao>
+      </>
+    )
+  }
+
   if (contagem.isError || itens.isError || porSetor.isError) {
     const erro = contagem.error ?? itens.error ?? porSetor.error
     return (

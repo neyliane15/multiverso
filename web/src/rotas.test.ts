@@ -104,7 +104,12 @@ describe('o guarda do operador e as paginas nomeadas da contagem', () => {
 
   it('nao deixa passar caminho de dois niveis', () => {
     expect(rotaPermitidaNoSetor('/contagem/abc/def')).toBe(false)
-    expect(rotaPermitidaNoSetor('/contagem/')).toBe(false)
+    // `/contagem/` era barrado aqui. O roteador monta a tela de CONTAGEM para
+    // ele — é a mesma rota, com uma barra sobrando —, então barrá-lo era o
+    // guarda e o roteador lendo o mesmo endereço de dois jeitos. Hoje passa,
+    // porque é a porta do próprio operador. Ver 'o guarda le o endereco como
+    // o roteador le', abaixo.
+    expect(rotaPermitidaNoSetor('/contagem/')).toBe(true)
   })
 
   /**
@@ -161,5 +166,46 @@ describe('o guarda do operador e as paginas nomeadas da contagem', () => {
     expect(caminhos).toContain('/contagem/dashboard')
     expect(caminhos).toContain('/contagem/relatorio')
     expect(caminhos).toContain('/contagem/vendas')
+  })
+})
+
+/**
+ * O outro lado do mesmo desencontro.
+ *
+ * A lista branca fechou o lado perigoso (`/contagem/Dashboard` deixou de
+ * passar). Faltava o lado inofensivo e irritante: o roteador ignora barra no
+ * fim e não olha maiúscula, então ele ABRE `/contagem/historico/` e
+ * `/contagem/<uuid>/` — e o guarda, comparando texto cru, mandava o operador
+ * de volta para `/contagem`. Um link colado com barra no fim fechava a porta
+ * do próprio dono dela.
+ */
+describe('o guarda le o endereco como o roteador le', () => {
+  it('barra no fim nao fecha a porta do operador', () => {
+    expect(rotaPermitidaNoSetor('/contagem/')).toBe(true)
+    expect(rotaPermitidaNoSetor('/contagem/historico/')).toBe(true)
+    expect(rotaPermitidaNoSetor('/contagem/8f2c1a94-0000-4000-8000-000000000001/')).toBe(true)
+  })
+
+  it('maiuscula tambem nao, nas rotas que sao dele', () => {
+    expect(rotaPermitidaNoSetor('/contagem/Historico')).toBe(true)
+    expect(rotaPermitidaNoSetor('/contagem/HISTORICO')).toBe(true)
+    expect(rotaPermitidaNoSetor('/Contagem')).toBe(true)
+  })
+
+  it('e nada disso abre o que nao e dele — a lista continua BRANCA', () => {
+    for (const rota of [
+      '/contagem/dashboard/',
+      '/contagem/Dashboard/',
+      '/contagem/RELATORIO/',
+      '/contagem/vendas//',
+      '/CMV/',
+      '/cadastros/insumos/',
+      // o roteador decodifica antes de casar: `%64` é `d`, e isto monta o
+      // Dashboard. A lista negra comparava texto cru e deixaria passar.
+      '/contagem/%64ashboard',
+      '/contagem/d%61shboard',
+    ]) {
+      expect(rotaPermitidaNoSetor(rota)).toBe(false)
+    }
   })
 })

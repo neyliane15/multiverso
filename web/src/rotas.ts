@@ -249,6 +249,29 @@ export const ROTAS_DO_OPERADOR_DE_SETOR = ['/contagem', '/contagem/historico']
 const PARECE_ID_DE_CONTAGEM =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+/**
+ * O endereço como o ROTEADOR o lê, e não como ele foi digitado.
+ *
+ * O furo da lista negra era este desencontro: o React Router casa rota sem
+ * olhar maiúscula, e o guarda comparava texto cru. A lista branca fechou o
+ * lado perigoso — `/contagem/Dashboard` passou a ser barrado — mas deixou o
+ * outro lado torto, e ele também é desencontro. Medido com `matchRoutes` de
+ * verdade, nesta árvore, em 35 formas de endereço:
+ *
+ *   /contagem/historico/   → o roteador abre o HISTÓRICO, o guarda barrava
+ *   /contagem/Historico    → o roteador abre o HISTÓRICO, o guarda barrava
+ *   /contagem/<uuid>/      → o roteador abre a FOLHA dele, o guarda barrava
+ *
+ * Nenhum deles é furo — todos erram para o lado de negar —, mas são a porta
+ * do próprio operador batendo na cara dele por causa de uma barra no fim de
+ * um link colado. Normalizar aqui é seguro justamente porque a lista é
+ * BRANCA: tirar barra e caixa não transforma nome de página em id.
+ */
+function comoORoteadorLe(caminho: string): string {
+  const semBarraNoFim = caminho.replace(/\/+$/, '')
+  return (semBarraNoFim === '' ? '/' : semBarraNoFim).toLowerCase()
+}
+
 export function menuVisivel(
   papel: PapelUsuario | null,
   temRestaurante: boolean,
@@ -268,12 +291,13 @@ export function menuVisivel(
 
 /** Este endereço é permitido para quem só conta um setor? */
 export function rotaPermitidaNoSetor(caminho: string): boolean {
-  if (ROTAS_DO_OPERADOR_DE_SETOR.includes(caminho)) return true
+  const endereco = comoORoteadorLe(caminho)
+  if (ROTAS_DO_OPERADOR_DE_SETOR.includes(endereco)) return true
   // Sobra um caso: `/contagem/<id>`, a folha de uma contagem específica. Ela
   // passa — mas só quando o que vem depois da barra é um id, e não o nome de
   // uma das páginas da casa.
-  if (!caminho.startsWith('/contagem/')) return false
-  const resto = caminho.slice('/contagem/'.length)
+  if (!endereco.startsWith('/contagem/')) return false
+  const resto = endereco.slice('/contagem/'.length)
   if (resto === '' || resto.includes('/')) return false
   return PARECE_ID_DE_CONTAGEM.test(resto)
 }
