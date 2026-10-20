@@ -70,6 +70,27 @@ function comPrazo<T>(promessa: Promise<T>, ms: number): Promise<T> {
   })
 }
 
+/**
+ * O token venceu — e isso não é "oscilação de rede".
+ *
+ * O PostgREST responde `PGRST301` com "JWT expired" quando o token de acesso
+ * passou da validade. Isso caía no mesmo balde das falhas de rede, e a tela
+ * dizia à pessoa que ela "continua conectada" e que "passa numa segunda
+ * tentativa" — as duas coisas falsas. Pior: o botão "Tentar de novo" repetia
+ * a consulta com o MESMO token vencido, então não podia funcionar nunca. A
+ * única saída era Sair, que a tela oferecia como opção secundária.
+ *
+ * O supabase-js renova sozinho por um temporizador, mas o temporizador não
+ * roda com o computador suspenso nem com a aba dormindo. Voltar do almoço com
+ * a aba aberta é exatamente o caso em que ele chega atrasado.
+ */
+export function ehTokenVencido(e: { message?: string; code?: string } | null): boolean {
+  if (!e) return false
+  if (e.code === 'PGRST301') return true
+  const m = (e.message ?? '').toLowerCase()
+  return m.includes('jwt expired') || m.includes('jwt is expired')
+}
+
 export function ProvedorDeSessao({ children }: { children: ReactNode }) {
   const [carregando, setCarregando] = useState(true)
   const [sessao, setSessao] = useState<Session | null>(null)
@@ -88,7 +109,7 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
   /** Mensagem de quando a consulta do perfil falhou — diferente de não ter perfil. */
   const [falhaAoCarregar, setFalhaAoCarregar] = useState<string | null>(null)
 
-  const carregarPerfil = useCallback(async (s: Session | null) => {
+  const carregarPerfil = useCallback(async (s: Session | null, jaRenovou = false) => {
     if (!s) {
       setPerfil(null)
       setRestaurantes([])
@@ -122,7 +143,21 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
         PRAZO_DO_PERFIL,
       )
     } catch (falha) {
-      setFalhaAoCarregar(falha instanceof Error ? falha.message : String(falha))
+      const dito = falha instanceof Error ? falha.message : String(falha)
+      // `maybeSingle()` lanca em resposta que nao e 2xx — e 401 nao e 2xx.
+      // Sem este ramo, o token vencido voltaria a cair na tela que diz
+      // "voce continua conectada", so que pelo caminho da excecao.
+      if (ehTokenVencido({ message: dito }) && !jaRenovou) {
+        const { data: renovada, error: falhaDaRenovacao } = await supabase.auth.refreshSession()
+        if (!falhaDaRenovacao && renovada.session) {
+          setSessao(renovada.session)
+          return carregarPerfil(renovada.session, true)
+        }
+        setFalhaAoCarregar(null)
+        await supabase.auth.signOut().catch(() => undefined)
+        return
+      }
+      setFalhaAoCarregar(dito)
       return
     }
 
@@ -136,6 +171,25 @@ export function ProvedorDeSessao({ children }: { children: ReactNode }) {
      * convite que existe, enquanto o problema era outro e passaria sozinho.
      */
     if (perfilDito.error) {
+      /**
+       * Token vencido tem conserto, e o conserto é renovar — não insistir.
+       * Uma tentativa só, e marcada com `jaRenovou`: se a renovação não
+       * resolver, repetir vira laço infinito contra o mesmo 401.
+       */
+      if (ehTokenVencido(perfilDito.error) && !jaRenovou) {
+        const { data: renovada, error: falhaDaRenovacao } = await supabase.auth.refreshSession()
+        if (!falhaDaRenovacao && renovada.session) {
+          setSessao(renovada.session)
+          return carregarPerfil(renovada.session, true)
+        }
+        // A renovação também falhou: o refresh token morreu de vez. Aqui não
+        // há o que tentar, e deixar a pessoa num botão que não funciona é
+        // pior que mandá-la entrar de novo. Sair limpa o token podre e cai
+        // na tela de entrada.
+        setFalhaAoCarregar(null)
+        await supabase.auth.signOut().catch(() => undefined)
+        return
+      }
       setFalhaAoCarregar(perfilDito.error.message)
       return
     }
