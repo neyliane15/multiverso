@@ -156,8 +156,17 @@ O print `zeca-2-relatorio.png` mostrava três linhas de texto vermelho por
 produto, e era só isso que separava um zero medido de um zero inventado. Agora
 a marca vai **no próprio número** (`0 lido`, com o motivo no `title` e no texto
 só-leitor, e legenda abaixo da lista). Com as duas frases fora da `pendencia`,
-as linhas com pendência escrita caem de **46 para 7** — a parede some porque
-deixou de existir, não porque foi escondida.
+as linhas com texto vermelho embaixo do nome do insumo caem de **68 para 7** —
+as outras 61 viraram marca de uma palavra em cima do próprio número. A parede
+some porque deixou de existir, não porque foi escondida.
+
+```sql
+select count(*) filter (where pendencia is not null)                      as com_pendencia_agora,
+       count(*) filter (where pendencia is not null
+                          or anterior_lido_como_zero or atual_lido_como_zero) as como_era_antes
+  from mv_relatorio_de_contagem('<contagem de 01/10>');
+-- com_pendencia_agora = 7 · como_era_antes = 68
+```
 
 ---
 
