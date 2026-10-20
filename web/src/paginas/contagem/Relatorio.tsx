@@ -569,10 +569,18 @@ function Corpo({
             Limpe a busca, a categoria ou os dois alternadores.
           </EstadoVazio>
         ) : (
+          /* `tabIndex` explícito, e não o padrão do navegador: o Chrome de
+             hoje dá foco a contêiner rolável sozinho (foi assim que medi a
+             rolagem por teclado funcionando), mas isso é recente e não vale
+             em todo navegador. Sem foco, a lista inteira fica inalcançável
+             para quem não usa ponteiro. */
           <div
             ref={medirCaixa}
             onScroll={aoRolar}
-            className="max-h-[min(68vh,720px)] overflow-auto"
+            tabIndex={0}
+            role="group"
+            aria-label={`Relatório de ${visiveis.length} ${plural(visiveis.length, 'insumo', 'insumos')}`}
+            className="max-h-[min(68vh,720px)] overflow-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primaria"
             style={{ height: Math.min(visiveis.length * alturaDaLinha + 48, 720) }}
           >
             {telaLarga ? (
