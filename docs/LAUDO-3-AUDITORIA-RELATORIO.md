@@ -203,10 +203,17 @@ Medido nesta árvore, viewport 390 px, CPU 4× freada, mesmo dado (904 linhas),
 | nós no DOM | 64.679 | **746** |
 | `<tr>` + cartões desenhados | 904 + 921 | 0 + 8 |
 | altura da página | 344.896 px | **2.600 px** |
-| filtrar "limao" | 1.604 ms | **166 ms** |
-| limpar a busca | 11.086 ms | **144 ms** |
-| "Só o que comprar" | 2.311 ms | **535 ms** |
+| filtrar "limao" | 1.604 ms | **166 / 251 / 225 ms** |
+| limpar a busca | 11.086 ms | **144 / 178 / 136 ms** |
+| "Só o que comprar" | 2.311 ms | **535 / 1.060 / 1.087 ms** |
 | erros de console | nenhum | nenhum |
+
+O "antes" é uma execução — ele deixou de existir no instante em que o
+conserto entrou, e não dá para repeti-lo sem desfazer o commit. O "depois"
+são três execuções, feitas **depois do último commit de código**, para que a
+variação do contêiner apareça em vez de ser escondida. Mesmo no pior caso das
+três, limpar a busca ficou **62× mais rápido** e a contagem de nós no DOM e a
+altura da página se repetiram idênticas (746 nós, 2.600 px) nas três.
 
 A peça é a da tela de insumos (`janelaDeLinhas` + dois espaçadores), e
 `useTelaLarga` passa a decidir **no JavaScript** qual das duas árvores existe —
