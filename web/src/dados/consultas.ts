@@ -51,9 +51,41 @@ import type {
   VendaItem,
 } from '@/tipos/banco'
 
-/** Erro do PostgREST vira mensagem legível em português. */
-function erro(e: { message: string; code?: string } | null): never | void {
+/**
+ * Erro do PostgREST vira mensagem legível em português.
+ *
+ * Os dois códigos de schema (PGRST202/PGRST205) estão aqui por um dia de
+ * trabalho perdido: o Vercel publicou as telas novas e o Supabase não recebeu
+ * as migrações — são dois passos separados, e só o primeiro é automático. A
+ * tela então mostrou, em caixa vermelha, para quem administra um restaurante:
+ *
+ *   Could not find the function public.mv_relatorio_de_contagem(p_contagem)
+ *   in the schema cache
+ *
+ * Isso não é mensagem de erro, é despejo de diagnóstico. Quem lê não tem como
+ * saber que a resposta é rodar uma migração, nem qual. O texto abaixo diz o
+ * que falta e o que fazer, e guarda o original para quem for investigar.
+ */
+// Exportada para teste: a tradução de erro é o que a cliente lê quando algo
+// dá errado, e já saiu errada uma vez. Texto que a pessoa lê merece teste.
+export function erro(e: { message: string; code?: string } | null): never | void {
   if (!e) return
+
+  // PostgREST não acha a tabela ou a função: o banco está atrás do código.
+  // O nome vem no texto original entre aspas simples ou depois de `public.`.
+  if (e.code === 'PGRST202' || e.code === 'PGRST205') {
+    const alvo = e.message.match(/public\.([a-z0-9_]+)/i)?.[1]
+             ?? e.message.match(/'public\.([a-z0-9_]+)'/i)?.[1]
+    const oQue = e.code === 'PGRST205' ? 'A tabela' : 'A função'
+    throw new Error(
+      `${oQue} ${alvo ? `"${alvo}" ` : ''}não existe neste banco. ` +
+        'Esta tela veio de uma versão mais nova do sistema: o site já foi ' +
+        'publicado, mas as migrações ainda não foram aplicadas no Supabase. ' +
+        'São dois passos separados. Aplique as migrações de supabase/migrations/ ' +
+        'que ainda faltam (npm run carga -- <arquivo>) e recarregue a página.',
+    )
+  }
+
   const traducao: Record<string, string> = {
     '23505': 'Já existe um registro com esse nome ou código.',
     '23503': 'Este registro está em uso e não pode ser removido.',
