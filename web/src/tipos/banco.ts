@@ -541,6 +541,29 @@ export interface LinhaDoRelatorio {
   precisa_comprar: boolean | null
   custo_unitario: number
   pendencia: string | null
+  /**
+   * Este zero é LEITURA, não medida: o produto não estava na folha anterior.
+   *
+   * A coluna existe porque o número 0 não distinguia "contei e deu zero" de
+   * "esta linha não existe na folha", e as duas coisas mandam o gerente para
+   * lugares opostos.
+   */
+  anterior_lido_como_zero: boolean
+  /**
+   * O mesmo, na folha de AGORA — e aqui não há o álibi "o produto é novo".
+   * Quando é verdade, `sugestao` e `precisa_comprar` voltam nulos: recomendar
+   * compra em cima de estoque não medido é gastar dinheiro num chute.
+   */
+  atual_lido_como_zero: boolean
+  /**
+   * Em quantos dos `vendas_consideradas` lançamentos este insumo de fato saiu.
+   *
+   * `vendas_consideradas` sozinho dizia "3" tanto para o insumo que saiu nos
+   * três quanto para o que saiu em um, e a tela não tinha como mostrar a
+   * diferença — que é justamente o que separa "item parado" de "item que
+   * acabou de entrar no cardápio".
+   */
+  vendas_com_saida: number
 }
 
 /** Uma linha de `mv_vendas_por_produto`: o que um lançamento tirou do estoque. */
@@ -571,7 +594,13 @@ export interface ContagemProcedencia {
   criado_por_nome: string | null
   fechado_por_nome: string | null
   itens_na_folha: number
+  /** Carimbo OU quantidade. Mantido como estava, para quem já o lê. */
   itens_respondidos: number
+  /** Linhas com `contado_em`. Numa folha vinda de carga, é zero — inclusive
+   *  nas linhas preenchidas. */
+  itens_com_carimbo: number
+  /** Linhas com quantidade maior que zero. */
+  itens_com_quantidade: number
   setores: number
   abas: number
   categorias: number

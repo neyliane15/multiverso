@@ -762,6 +762,28 @@ function Leitura({
  * curta.
  */
 function Procedencia({ procedencia }: { procedencia: ContagemProcedencia }) {
+  /*
+   * O que esta folha tem, separado — e é por isso que a frase abaixo tem dois
+   * caminhos.
+   *
+   * A versão anterior dizia, para as 526 linhas zeradas da carga de outubro:
+   * "526 linhas sem resposta nenhuma — nem quantidade, nem carimbo de quem
+   * passou por ela". Medido na carga (`supabase/seed/0003_contagem_outubro.sql`):
+   * as 526 vêm com `quantidade = 0` escrito, 464 delas com custo preenchido.
+   * A quantidade ESTÁ lá. E o carimbo não está em nenhuma das 868 linhas —
+   * nem nas 342 que a mesma frase chamava de respondidas.
+   *
+   * Pior: a mesma tela, no topo, chama essas 526 de "itens zerados" e manda
+   * começar a reposição por elas. As duas frases não podem ser verdade ao
+   * mesmo tempo. A que estava errada é esta — e ela estava errada no único
+   * lugar da tela que existe para não afirmar o que não se sabe.
+   *
+   * O banco não consegue distinguir "contei e deu zero" de "ninguém respondeu",
+   * porque a carga grava zero sem carimbo. Então a frase para de escolher: ela
+   * diz o que a folha tem.
+   */
+  const zeradas = procedencia.itens_na_folha - procedencia.itens_com_quantidade
+  const semCarimboNenhum = procedencia.itens_com_carimbo === 0 && procedencia.itens_na_folha > 0
   const semResposta = procedencia.itens_na_folha - procedencia.itens_respondidos
   return (
     <footer className="rounded-marca border border-borda bg-superficie-1 px-5 py-4 text-apoio leading-relaxed text-texto-fraco">
@@ -804,7 +826,16 @@ function Procedencia({ procedencia }: { procedencia: ContagemProcedencia }) {
         {plural(procedencia.abas, 'aba', 'abas')} de{' '}
         <span className="mv-numero">{procedencia.setores}</span>{' '}
         {plural(procedencia.setores, 'setor', 'setores')}.{' '}
-        {semResposta === 0 ? (
+        {semCarimboNenhum ? (
+          <span className="text-alerta-texto">
+            <TriangleAlert className="mr-1 inline size-3.5" aria-hidden />
+            Nenhuma linha desta folha tem carimbo de quem a preencheu — ela entrou por carga de
+            arquivo, e a carga grava a quantidade sem registrar quem contou. Por isso o sistema não
+            sabe dizer se as <span className="mv-numero">{zeradas}</span>{' '}
+            {plural(zeradas, 'linha zerada foi contada e deu zero, ou se ficou', 'linhas zeradas foram contadas e deram zero, ou se ficaram')}{' '}
+            sem resposta. {plural(zeradas, 'Ela entra', 'Elas entram')} nesta leitura como zero.
+          </span>
+        ) : semResposta === 0 ? (
           'Toda linha da folha tem resposta.'
         ) : (
           <span className="text-alerta-texto">

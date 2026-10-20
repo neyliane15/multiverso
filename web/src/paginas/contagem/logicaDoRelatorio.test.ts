@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 import type { LinhaDoRelatorio } from '@/tipos/banco'
 import {
   categoriasDoRelatorio,
+  explicacaoDoZeroLido,
   filtrarRelatorio,
   julgarSugestao,
   ordenarRelatorio,
   resumoDoRelatorio,
+  temPendencia,
 } from './logicaDoRelatorio'
 
 function linha(parcial: Partial<LinhaDoRelatorio> & { produto_nome: string }): LinhaDoRelatorio {
@@ -27,6 +29,9 @@ function linha(parcial: Partial<LinhaDoRelatorio> & { produto_nome: string }): L
     precisa_comprar: false,
     custo_unitario: 5,
     pendencia: null,
+    anterior_lido_como_zero: false,
+    atual_lido_como_zero: false,
+    vendas_com_saida: 3,
     ...parcial,
   }
 }
@@ -434,5 +439,88 @@ describe('julgarSugestao · o empate em zero é um sub-caso com nome', () => {
         (l) => l.produto_nome,
       ),
     ).toEqual(['Cebola', 'Limão'])
+  })
+})
+
+/**
+ * O zero que ninguém contou (0026).
+ *
+ * O banco devolve `contagem_atual = 0` quando o insumo não está na folha de
+ * hoje, e passou a marcar isso em coluna. Medido na carga real do Bar do Zeca:
+ * 36 linhas assim, TODAS as 36 marcadas "precisa comprar", com R$ 309,97 de
+ * compra sugerida — 73% de tudo que a tela mandava comprar — em cima de um
+ * estoque que ninguém mediu.
+ */
+describe('o zero lido por ausência na folha', () => {
+  it('o estoque de hoje não medido não vira "comprar": vira "não se sabe"', () => {
+    const julgado = julgarSugestao(
+      linha({
+        produto_nome: 'Xarope de maracujá',
+        contagem_atual: 0,
+        atual_lido_como_zero: true,
+        media_3_vendas: 1.32,
+        // o banco já devolve os dois nulos; a tela não pode inventá-los de volta
+        sugestao: null,
+        precisa_comprar: null,
+      }),
+    )
+    expect(julgado.veredito).toBe('sem_base')
+    expect(julgado.motivo).toMatch(/não está na folha desta contagem/i)
+    expect(julgado.quantidade).toBeNull()
+  })
+
+  it('o motivo aponta para CONTAR o insumo, e não para a ficha nem para a venda', () => {
+    // É a mesma armadilha que o terceiro caso já tinha: o encadeamento de
+    // `if` cai no motivo errado quando a causa nova não vem primeiro.
+    const julgado = julgarSugestao(
+      linha({
+        produto_nome: 'Espuma de gengibre',
+        atual_lido_como_zero: true,
+        contagem_atual: 0,
+        vendas_consideradas: 3,
+        sugestao: null,
+        precisa_comprar: null,
+      }),
+    )
+    expect(julgado.motivo).not.toMatch(/ficha|venda/i)
+    expect(julgado.motivo).toMatch(/estoque de hoje não foi medido/i)
+  })
+
+  it('zero CONTADO continua respondendo a regra da cliente, sem marca nenhuma', () => {
+    const julgado = julgarSugestao(
+      linha({
+        produto_nome: 'Sal',
+        contagem_atual: 0,
+        atual_lido_como_zero: false,
+        media_3_vendas: 2,
+        sugestao: 2,
+        precisa_comprar: true,
+      }),
+    )
+    expect(julgado.veredito).toBe('comprar')
+    expect(julgado.quantidade).toBe(2)
+  })
+
+  it('a marca conta como pendência — no filtro e no resumo', () => {
+    const marcada = linha({
+      produto_nome: 'Xarope de uva',
+      pendencia: null,
+      atual_lido_como_zero: true,
+      sugestao: null,
+      precisa_comprar: null,
+    })
+    const limpa = linha({ produto_nome: 'Arroz' })
+    expect(temPendencia(marcada)).toBe(true)
+    expect(temPendencia(limpa)).toBe(false)
+    expect(filtrarRelatorio([marcada, limpa], { soComPendencia: true })).toHaveLength(1)
+    expect(resumoDoRelatorio([marcada, limpa]).comPendencia).toBe(1)
+  })
+
+  it('a explicação da marca nomeia a ponta certa', () => {
+    expect(explicacaoDoZeroLido('anterior')).toMatch(/contagem anterior/i)
+    expect(explicacaoDoZeroLido('atual')).toMatch(/desta contagem/i)
+    for (const ponta of ['anterior', 'atual'] as const) {
+      expect(explicacaoDoZeroLido(ponta)).toMatch(/não é uma medida/i)
+    }
   })
 })

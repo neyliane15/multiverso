@@ -89,6 +89,14 @@ export function julgarSugestao(linha: LinhaDoRelatorio): SugestaoJulgada {
      *   · nenhuma venda fechada      → falta LANÇAR venda
      *   · venda sem conversão        → falta arrumar a UNIDADE DA FICHA
      *   · contagem sem conversão     → falta arrumar a UNIDADE DA CONTAGEM
+     *   · item fora da folha de hoje → falta CONTAR o insumo
+     *
+     * A quarta entrou com a 0026, e vem PRIMEIRO no encadeamento porque é a
+     * única em que o banco devolve um número (`contagem_atual = 0`) que não é
+     * medida nenhuma: as outras três chegam aqui com a coluna já vazia. Medido
+     * na carga real do Bar do Zeca: 36 linhas, todas as 36 marcadas "precisa
+     * comprar" antes da 0026, com R$ 309,97 de compra sugerida sobre um
+     * estoque que ninguém contou.
      *
      * A primeira versão tinha só duas e caía na segunda por omissão. Medido
      * na carga real do Bar do Zeca: das 5 linhas "Não se sabe" do relatório
@@ -97,8 +105,9 @@ export function julgarSugestao(linha: LinhaDoRelatorio): SugestaoJulgada {
      * todas as 5 liam "Algum insumo desta venda está sem conversão" — ou
      * seja, mandavam olhar a ficha quando o que estava errado era a folha.
      */
-    const motivo =
-      linha.contagem_atual === null
+    const motivo = linha.atual_lido_como_zero
+      ? 'Este insumo não está na folha desta contagem: o estoque de hoje não foi medido.'
+      : linha.contagem_atual === null
         ? 'A contagem lançou este item em unidade que não converte para a de compra.'
         : linha.vendas_consideradas === 0
           ? 'Nenhuma venda fechada até a data desta contagem.'
@@ -147,6 +156,27 @@ export function julgarSugestao(linha: LinhaDoRelatorio): SugestaoJulgada {
   }
 }
 
+/**
+ * Esta linha tem algo que a pessoa precisa saber antes de confiar no número?
+ *
+ * São duas fontes, e as duas contam: a `pendencia` escrita pelo banco e as
+ * duas marcas de zero lido. Elas estavam juntas no mesmo texto até a 0026, e
+ * foram separadas porque em texto corrido custavam três linhas de vermelho por
+ * produto — mas separar não pode significar sumir do filtro e do resumo.
+ */
+export function temPendencia(linha: LinhaDoRelatorio): boolean {
+  return (
+    linha.pendencia !== null || linha.anterior_lido_como_zero || linha.atual_lido_como_zero
+  )
+}
+
+/** O texto da marca de zero lido, para o `title` e para o leitor de tela. */
+export function explicacaoDoZeroLido(ponta: 'anterior' | 'atual'): string {
+  return ponta === 'anterior'
+    ? 'Lido como zero: este insumo não estava na folha da contagem anterior. Não é uma medida.'
+    : 'Lido como zero: este insumo não está na folha desta contagem. Não é uma medida.'
+}
+
 /* ────────────────────────────────────────────────────── filtro e ordem ─── */
 
 export type OrdemDoRelatorio = 'nome' | 'diferenca' | 'sugestao' | 'consumo'
@@ -183,7 +213,7 @@ export function filtrarRelatorio(
       const veredito = julgarSugestao(l).veredito
       if (veredito === 'tem_de_sobra' || veredito === 'sem_movimento') return false
     }
-    if (filtro.soComPendencia && l.pendencia === null) return false
+    if (filtro.soComPendencia && !temPendencia(l)) return false
     if (filtro.categoriaId !== undefined && l.categoria_id !== filtro.categoriaId) return false
     if (termos.length === 0) return true
     const nome = chaveBusca(l.produto_nome)
@@ -272,7 +302,7 @@ export function resumoDoRelatorio(linhas: readonly LinhaDoRelatorio[]): ResumoDo
     else if (julgado.veredito === 'sem_movimento') semMovimento += 1
     else semBase += 1
 
-    if (l.pendencia !== null) comPendencia += 1
+    if (temPendencia(l)) comPendencia += 1
     if (l.diferenca !== null && l.diferenca < 0) {
       valorDaFalta += Math.abs(l.diferenca) * l.custo_unitario
     }

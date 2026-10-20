@@ -1421,8 +1421,10 @@ begin
 end $$;
 
 -- --------------------------------- um produto que entrou agora -------------
--- Ele nao estava na folha da contagem anterior. O anterior e lido como ZERO —
--- que e o que a foto registra — e a pendencia diz justamente isso.
+-- Ele nao estava na folha da contagem anterior. O anterior e lido como ZERO, e
+-- a 0026 passou a dizer isso em COLUNA (`anterior_lido_como_zero`) em vez de
+-- em texto dentro da pendencia: a tela precisa marcar o proprio numero, e nao
+-- escrever tres linhas de aviso por produto embaixo do nome do insumo.
 do $$
 declare
   r uuid; u uuid := '00000000-0000-0000-0000-00000000d0a1';
@@ -1446,11 +1448,12 @@ begin
   select * into l from mv_relatorio_de_contagem(c2) where produto_nome = 'Sal';
   perform conferir('o insumo novo aparece no relatorio pela compra', l.compras = 4);
   perform conferir('o anterior dele e lido como zero, nao como nulo', l.contagem_anterior = 0);
-  perform conferir('e a pendencia diz que foi lido como zero',
-                   l.pendencia like '%nao estava na folha da contagem anterior%');
+  perform conferir('e a coluna diz que foi lido como zero', l.anterior_lido_como_zero);
   perform conferir('ele tambem nao esta na folha de agora, e isso tambem e dito',
-                   l.pendencia like '%nao esta na folha desta contagem%');
+                   l.atual_lido_como_zero);
   perform conferir('consumo = 0 + 4 - 0 = 4', l.consumo = 4);
+  perform conferir('e, com o estoque de hoje nao medido, ele nao manda comprar',
+                   l.sugestao is null and l.precisa_comprar is null);
   reset role;
 end $$;
 
@@ -1775,4 +1778,111 @@ begin
   end;
   perform conferir('item de venda inexistente diz que a VENDA nao foi achada, nao que a ficha e de outro restaurante',
                    v_erro like '%lancamento de venda%nao encontrado%');
+end $$;
+
+-- ============================================================================
+-- O zero lido, a sugestao que para em pe e a saida por lancamento (0026)
+-- ----------------------------------------------------------------------------
+-- Tres produtos: um so na folha anterior, um so na folha de agora, e um
+-- contado zero nas duas. Os dois primeiros recebem um zero que ninguem mediu;
+-- o terceiro e um zero de verdade. O relatorio tem de distinguir os tres.
+-- ============================================================================
+do $$
+declare
+  r uuid; cat uuid; s uuid;
+  p_so_antes uuid; p_so_agora uuid; p_zero uuid; p_normal uuid;
+  f_normal uuid; f_so_agora uuid;
+  c_ant uuid; c_atu uuid; v uuid;
+  l record;
+begin
+  insert into restaurantes (nome, slug) values ('Casa do Zero Lido','casa-zero-lido') returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Geral') returning id into cat;
+  insert into setores (restaurante_id, nome) values (r,'Deposito') returning id into s;
+
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id) values
+    (r,'SO ANTES','UND',10,cat) returning id into p_so_antes;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id) values
+    (r,'SO AGORA','UND',10,cat) returning id into p_so_agora;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id) values
+    (r,'ZERO CONTADO','UND',10,cat) returning id into p_zero;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id) values
+    (r,'NORMAL','UND',10,cat) returning id into p_normal;
+  insert into produto_setores (produto_id, setor_id, unidade)
+    select id, s, 'UND' from produtos where restaurante_id = r;
+
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r,'F NORMAL',1,'PORCAO',20) returning id into f_normal;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade) values (f_normal, p_normal, 1, 'UND');
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r,'F SO AGORA',1,'PORCAO',20) returning id into f_so_agora;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade) values (f_so_agora, p_so_agora, 1, 'UND');
+
+  -- Folha anterior: SO ANTES, ZERO CONTADO e NORMAL (SO AGORA fica de fora).
+  insert into contagens (restaurante_id, referencia, tipo) values (r, date '2026-07-01','mensal')
+  returning id into c_ant;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario, contado_em)
+  values (c_ant, p_so_antes, s, 9, 'UND', 10, now()),
+         (c_ant, p_zero,     s, 0, 'UND', 10, now()),
+         (c_ant, p_normal,   s, 50,'UND', 10, now());
+  update contagens set status='fechada', fechada_em=now() where id=c_ant;
+
+  -- Folha de agora: SO AGORA, ZERO CONTADO e NORMAL (SO ANTES fica de fora).
+  insert into contagens (restaurante_id, referencia, tipo) values (r, date '2026-08-01','mensal')
+  returning id into c_atu;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario, contado_em)
+  values (c_atu, p_so_agora, s, 4, 'UND', 10, now()),
+         (c_atu, p_zero,     s, 0, 'UND', 10, now()),
+         (c_atu, p_normal,   s, 1, 'UND', 10, now());
+  update contagens set status='fechada', fechada_em=now() where id=c_atu;
+
+  -- Tres lancamentos fechados: NORMAL sai nos tres (3+3+3), SO AGORA so no
+  -- ultimo (12). Media de NORMAL = 3; media de SO AGORA = 4, com saida em 1.
+  insert into vendas (restaurante_id, referencia) values (r, date '2026-07-10') returning id into v;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values (v, f_normal, 3, 20);
+  perform mv_fechar_venda(v);
+  insert into vendas (restaurante_id, referencia) values (r, date '2026-07-20') returning id into v;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values (v, f_normal, 3, 20);
+  perform mv_fechar_venda(v);
+  insert into vendas (restaurante_id, referencia) values (r, date '2026-07-30') returning id into v;
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values (v, f_normal, 3, 20);
+  insert into venda_itens (venda_id, ficha_id, quantidade, preco_unitario) values (v, f_so_agora, 12, 20);
+  perform mv_fechar_venda(v);
+
+  select * into l from mv_relatorio_de_contagem(c_atu) where produto_nome = 'SO ANTES';
+  perform conferir('ausente da folha de agora: o atual vem marcado como lido', l.atual_lido_como_zero);
+  perform conferir('e o anterior dele e medida de verdade', not l.anterior_lido_como_zero);
+  perform conferir('o numero continua la, para consumo e diferenca', l.contagem_atual = 0);
+  perform conferir('mas a sugestao de compra NAO se apoia nele', l.sugestao is null);
+  perform conferir('nem o veredito', l.precisa_comprar is null);
+  perform conferir('o consumo continua afirmavel (9 + 0 - 0)', l.consumo = 9);
+
+  select * into l from mv_relatorio_de_contagem(c_atu) where produto_nome = 'SO AGORA';
+  perform conferir('ausente da folha anterior: o anterior vem marcado como lido', l.anterior_lido_como_zero);
+  perform conferir('e o atual dele e medida de verdade', not l.atual_lido_como_zero);
+  perform conferir('com media de 3 lancamentos, a sugestao existe', l.sugestao is not null);
+  perform conferir('a media divide pelos 3 lancamentos: 12/3 = 4', l.media_3_vendas = 4);
+  perform conferir('e a coluna diz que ele saiu em 1 deles', l.vendas_com_saida = 1);
+  perform conferir('o anterior lido como zero poe o consumo em -4, que e o sintoma',
+                   l.consumo = -4);
+
+  select * into l from mv_relatorio_de_contagem(c_atu) where produto_nome = 'ZERO CONTADO';
+  perform conferir('zero contado nas duas folhas nao recebe marca nenhuma',
+                   not l.atual_lido_como_zero and not l.anterior_lido_como_zero);
+  perform conferir('e continua respondendo a regra da cliente', l.sugestao = 0 and l.precisa_comprar);
+
+  select * into l from mv_relatorio_de_contagem(c_atu) where produto_nome = 'NORMAL';
+  perform conferir('o insumo que saiu nos tres lancamentos diz 3 de 3',
+                   l.vendas_com_saida = 3 and l.vendas_consideradas = 3);
+  perform conferir('media (3+3+3)/3 = 3, atual 1 -> sugestao 2',
+                   l.media_3_vendas = 3 and l.sugestao = 2 and l.precisa_comprar);
+
+  perform conferir('as duas frases de "lido como zero" sairam da pendencia',
+                   (select count(*) from mv_relatorio_de_contagem(c_atu)
+                     where pendencia like '%lido como zero%') = 0);
+
+  -- A procedencia: carimbo e quantidade, separados.
+  perform conferir('a vista conta o carimbo',
+                   (select itens_com_carimbo from vw_contagem_procedencia where contagem_id=c_atu) = 3);
+  perform conferir('e conta a quantidade preenchida, que e outra coisa',
+                   (select itens_com_quantidade from vw_contagem_procedencia where contagem_id=c_atu) = 2);
 end $$;
