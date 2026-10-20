@@ -59,6 +59,25 @@ function erro(e: { message: string; code?: string } | null): never | void {
     '23503': 'Este registro está em uso e não pode ser removido.',
     '42501': 'Você não tem permissão para esta operação.',
   }
+  /*
+   * Quando o banco diz QUAL trava bateu, a frase diz o que fazer.
+   *
+   * "Já existe um registro com esse nome ou código" é a tradução honesta de um
+   * 23505 genérico, e está certa enquanto o sistema não sabe de qual trava se
+   * trata. Mas `vendas_ref_unica` não é nome nem código: é a data de fim do
+   * período, e a saída é cancelar o lançamento que já ocupa o dia. Sem isso, a
+   * pessoa procura um "nome repetido" que não existe — e é esta trava que a
+   * importação de PDV vai encontrar.
+   */
+  const porRestricao: Record<string, string> = {
+    vendas_ref_unica:
+      'Já existe um lançamento de vendas que termina nesta data. Cancele o outro antes, ou escolha outra data de fim.',
+    contagens_ref_unica:
+      'Já existe uma contagem com esta data de referência neste restaurante.',
+  }
+  for (const [restricao, frase] of Object.entries(porRestricao)) {
+    if (e.message.includes(restricao)) throw new Error(frase)
+  }
   throw new Error(traducao[e.code ?? ''] ?? e.message)
 }
 

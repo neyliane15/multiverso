@@ -647,7 +647,10 @@ function Corpo({
         {visiveis.some((l) => l.anterior_lido_como_zero || l.atual_lido_como_zero) && (
           <p className="border-t border-borda px-5 py-3 text-micro leading-snug text-texto-fraco">
             <span className="border-b border-dotted border-alerta-texto/70">0</span>
-            <span className="ml-1 font-medium text-alerta-texto">lido</span> — o insumo não estava
+            <span className="ml-1 rounded-marca-p bg-alerta-suave px-1 py-px font-medium text-alerta-texto">
+              lido
+            </span>{' '}
+            — o insumo não estava
             na folha daquela contagem. O número é leitura, não medida: ninguém contou. Enquanto o
             estoque de hoje não for contado, a tela não sugere compra para ele.
           </p>
@@ -693,7 +696,17 @@ function Numero({
       title={explicacaoDoZeroLido(ponta)}
     >
       {numero}
-      <span aria-hidden className="ml-1 text-micro font-medium text-alerta-texto">
+      {/* A marca é um selo (fundo + texto), e não texto solto, de propósito:
+          `text-alerta-texto` sozinho depende de a superfície acompanhar o
+          tema, e neste sistema ela não acompanha — medido, com o tema escuro
+          escolhido numa marca de cores claras, texto de alerta solto cai para
+          1,53:1 em TODAS as telas da casa, inclusive nas antigas. O par
+          `bg-alerta-suave` + `text-alerta-texto` vira junto: 5,62:1 no claro e
+          9,18:1 no escuro. */}
+      <span
+        aria-hidden
+        className="ml-1 rounded-marca-p bg-alerta-suave px-1 py-px text-micro font-medium text-alerta-texto"
+      >
         lido
       </span>
       <span className="sr-only"> — {explicacaoDoZeroLido(ponta)}</span>
