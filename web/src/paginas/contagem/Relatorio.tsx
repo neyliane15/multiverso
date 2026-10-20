@@ -32,7 +32,7 @@
  * O celular vira cartão, como a tela de insumos: onze colunas numa tabela de
  * 390px ou cortam informação ou viram rolagem horizontal cega.
  */
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Scale, Store, TriangleAlert } from 'lucide-react'
 import clsx from 'clsx'
@@ -51,12 +51,12 @@ import {
   Indicador,
   Selecao,
   Selo,
-  Tabela,
   Td,
   Th,
   plural,
 } from '@/componentes/base'
 import { data as formatarData, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
+import { janelaDeLinhas } from '@/paginas/cadastros/logicaDeProdutos'
 import { SeletorDeContagem } from './SeletorDeContagem'
 import { contagemEmFoco, opcoesDeContagem } from './logicaDoDashboard'
 import {
@@ -64,6 +64,7 @@ import {
   FORMULAS,
   categoriasDoRelatorio,
   filtrarRelatorio,
+  explicacaoDoZeroLido,
   julgarSugestao,
   ordenarRelatorio,
   resumoDoRelatorio,
@@ -78,6 +79,55 @@ import {
  * distinguir "todas" (string vazia) de "as sem categoria".
  */
 const SEM_CATEGORIA = '\u0000sem-categoria'
+
+/* ========================================================================== */
+/* Janela de rolagem                                                          */
+/* ========================================================================== */
+/**
+ * O relatório desenhava as 904 linhas de uma vez — e as desenhava DUAS vezes.
+ *
+ * Medido nesta árvore, viewport de 390 px e CPU 4× mais lenta (aparelho médio),
+ * com os 904 insumos do Bar do Zeca:
+ *
+ *   nós no DOM .......... 64.679   (904 `<tr>` MAIS 921 cartões: `hidden
+ *                                   xl:table` esconde por CSS, mas monta as
+ *                                   duas árvores)
+ *   altura da página .... 344.896 px  (408 telas de rolagem)
+ *   limpar a busca ...... 11.086 ms   — a interface congelada
+ *
+ * A casa já resolveu isto uma vez, na tela de insumos: uma janela de linhas
+ * com dois espaçadores, vinte linhas de conta, sem biblioteca. A mesma
+ * `janelaDeLinhas` serve aqui — ela não sabe nada de produto, só de altura.
+ *
+ * Duas consequências de projeto, e as duas são de propósito:
+ *
+ * 1. **Uma árvore só por vez.** `useTelaLarga` decide no JavaScript qual das
+ *    duas desenhar, em vez de deixar o CSS esconder a outra. Quem está no
+ *    celular para de pagar a tabela de onze colunas, e quem está no desktop
+ *    para de pagar 904 cartões.
+ * 2. **A altura da linha é fixa**, porque a janela conta em pixels. Então o
+ *    que cabia em três linhas de texto passa a caber em duas, com o resto no
+ *    `title` — e o cartão do celular, que é onde não há ponteiro, continua
+ *    mostrando tudo por extenso.
+ */
+const ALTURA_DA_LINHA = 76
+const ALTURA_DO_CARTAO = 376
+/** Linhas extras acima e abaixo da janela: rolagem rápida não mostra buraco. */
+const FOLGA = 6
+
+function useTelaLarga(): boolean {
+  const [larga, setLarga] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches,
+  )
+  useEffect(() => {
+    const consulta = window.matchMedia('(min-width: 1280px)')
+    const aoMudar = () => setLarga(consulta.matches)
+    aoMudar()
+    consulta.addEventListener('change', aoMudar)
+    return () => consulta.removeEventListener('change', aoMudar)
+  }, [])
+  return larga
+}
 
 export function RelatorioDeContagem() {
   const { restaurante } = useSessao()
@@ -345,6 +395,47 @@ function Corpo({
 
   const vendasConsideradas = linhas[0]?.vendas_consideradas ?? 0
 
+  /* ------------------------------------------------------- janela ------- */
+  // Mesma peça da tela de insumos: `janelaDeLinhas` + dois espaçadores. Ver o
+  // bloco de comentário em ALTURA_DA_LINHA.
+  const telaLarga = useTelaLarga()
+  const alturaDaLinha = telaLarga ? ALTURA_DA_LINHA : ALTURA_DO_CARTAO
+  const caixa = useRef<HTMLDivElement | null>(null)
+  const observador = useRef<ResizeObserver | null>(null)
+  const [topo, setTopo] = useState(0)
+  const [altura, setAltura] = useState(640)
+
+  // Ref de callback, e não efeito com []: o contêiner só nasce depois que a
+  // consulta volta, e um efeito rodaria antes dele existir.
+  const medirCaixa = useCallback((elemento: HTMLDivElement | null) => {
+    observador.current?.disconnect()
+    caixa.current = elemento
+    if (!elemento) return
+    const obs = new ResizeObserver(() => setAltura(elemento.clientHeight))
+    obs.observe(elemento)
+    observador.current = obs
+    setAltura(elemento.clientHeight)
+  }, [])
+
+  // Trocar de filtro volta ao topo: senão a janela fica apontando para uma
+  // posição que a lista nova não tem, e a tela abre no meio do nada.
+  useEffect(() => {
+    if (caixa.current) caixa.current.scrollTop = 0
+    setTopo(0)
+  }, [busca, categoriaId, soPrecisaComprar, soComPendencia, ordem])
+
+  const { primeira, ultima, espacoAcima, espacoAbaixo } = janelaDeLinhas(
+    visiveis.length,
+    alturaDaLinha,
+    topo,
+    altura,
+    FOLGA,
+  )
+  const janela = visiveis.slice(primeira, ultima)
+  const aoRolar = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setTopo(e.currentTarget.scrollTop)
+  }, [])
+
   if (linhas.length === 0) {
     return (
       <Cartao>
@@ -478,21 +569,23 @@ function Corpo({
             Limpe a busca, a categoria ou os dois alternadores.
           </EstadoVazio>
         ) : (
-          <>
-            <ul className="divide-y divide-borda/60 xl:hidden">
-              {visiveis.map((l) => (
-                <CartaoDaLinha key={l.produto_id} linha={l} />
-              ))}
-            </ul>
-
-            <div className="hidden xl:block">
-              {/* Onze colunas. A calha de 20px do design system é a largura de
-                  leitura de uma tabela de cinco colunas; aqui ela sozinha come
-                  220px e empurra a sugestão de compra para fora da tela. 12px
-                  mantém as colunas separadas e cabe num monitor de 1440 com a
-                  barra lateral aberta. A rolagem horizontal continua existindo
-                  para quem tem menos, e é da `Tabela`. */}
-              <Tabela className="[&_td]:px-3 [&_th]:px-3">
+          <div
+            ref={medirCaixa}
+            onScroll={aoRolar}
+            className="max-h-[min(68vh,720px)] overflow-auto"
+            style={{ height: Math.min(visiveis.length * alturaDaLinha + 48, 720) }}
+          >
+            {telaLarga ? (
+              /* Onze colunas. A calha de 20px do design system é a largura de
+                 leitura de uma tabela de cinco colunas; aqui ela sozinha come
+                 220px. Com 8px a tabela passou de 1374px para caber na caixa
+                 de 1350px — ou seja, para de rolar na horizontal a partir de
+                 1600px de tela. Abaixo disso a caixa é menor que a tabela e a
+                 rolagem continua, dentro dela: a PÁGINA nunca rola de lado.
+                 O `<table>` é montado aqui, e não pelo componente `Tabela`,
+                 porque o cabeçalho grudado depende de este div ser o único
+                 contêiner de rolagem. */
+              <table className="w-full border-collapse text-corpo [&_td]:px-2 [&_th]:px-2 [&_tbody_tr:last-child>td]:border-b-0">
                 <thead>
                   <tr>
                     <Th>Insumo</Th>
@@ -523,13 +616,41 @@ function Corpo({
                   </tr>
                 </thead>
                 <tbody>
-                  {visiveis.map((l) => (
+                  {espacoAcima > 0 && (
+                    <tr aria-hidden style={{ height: espacoAcima }}>
+                      <td colSpan={11} />
+                    </tr>
+                  )}
+                  {janela.map((l) => (
                     <LinhaDaTabela key={l.produto_id} linha={l} />
                   ))}
+                  {espacoAbaixo > 0 && (
+                    <tr aria-hidden style={{ height: espacoAbaixo }}>
+                      <td colSpan={11} />
+                    </tr>
+                  )}
                 </tbody>
-              </Tabela>
-            </div>
-          </>
+              </table>
+            ) : (
+              <ul className="divide-y divide-borda/60">
+                {espacoAcima > 0 && <li aria-hidden style={{ height: espacoAcima }} />}
+                {janela.map((l) => (
+                  <CartaoDaLinha key={l.produto_id} linha={l} />
+                ))}
+                {espacoAbaixo > 0 && <li aria-hidden style={{ height: espacoAbaixo }} />}
+              </ul>
+            )}
+          </div>
+        )}
+        {/* A legenda da marca. Fica FORA da caixa de rolagem, para não sumir
+            quando a pessoa desce a lista. */}
+        {visiveis.some((l) => l.anterior_lido_como_zero || l.atual_lido_como_zero) && (
+          <p className="border-t border-borda px-5 py-3 text-micro leading-snug text-texto-fraco">
+            <span className="border-b border-dotted border-alerta-texto/70">0</span>
+            <span className="ml-1 font-medium text-alerta-texto">lido</span> — o insumo não estava
+            na folha daquela contagem. O número é leitura, não medida: ninguém contou. Enquanto o
+            estoque de hoje não for contado, a tela não sugere compra para ele.
+          </p>
         )}
       </Cartao>
     </>
@@ -537,13 +658,46 @@ function Corpo({
 }
 
 /** Número que pode não existir. Vazio é vazio — nunca zero fingindo leitura. */
-function Numero({ valor, unidade }: { valor: number | null; unidade?: string }) {
+function Numero({
+  valor,
+  unidade,
+  lidoComoZero,
+  ponta,
+}: {
+  valor: number | null
+  unidade?: string
+  /** Este zero não foi contado: foi lido por ausência na folha. */
+  lidoComoZero?: boolean
+  ponta?: 'anterior' | 'atual'
+}) {
   if (valor === null) return <span className="text-texto-fraco">—</span>
-  return (
+  const numero = (
     <>
       {formatarQuantidade(valor)}
       {unidade && <span className="ml-1 text-micro text-texto-fraco">{unidade}</span>}
     </>
+  )
+  if (!lidoComoZero || !ponta) return numero
+  /*
+   * A marca vai NO NÚMERO, e não numa frase embaixo do nome do insumo.
+   *
+   * Em texto corrido as duas pontas custavam três linhas de vermelho por
+   * produto — e o relatório tem 904 linhas. Uma parede vermelha ensina a não
+   * ler nenhuma delas. Aqui o aviso fica onde o engano aconteceria: em cima do
+   * próprio zero, com o motivo no `title` (ponteiro) e no texto só-leitor
+   * (teclado e leitor de tela), que é como a casa já marca o resto.
+   */
+  return (
+    <span
+      className="border-b border-dotted border-alerta-texto/70 text-texto-suave"
+      title={explicacaoDoZeroLido(ponta)}
+    >
+      {numero}
+      <span aria-hidden className="ml-1 text-micro font-medium text-alerta-texto">
+        lido
+      </span>
+      <span className="sr-only"> — {explicacaoDoZeroLido(ponta)}</span>
+    </span>
   )
 }
 
@@ -573,31 +727,49 @@ function Diferenca({ valor, unidade }: { valor: number | null; unidade: string }
   )
 }
 
-function Sugestao({ linha }: { linha: LinhaDoRelatorio }) {
+/**
+ * A célula do julgamento.
+ *
+ * `compacta` é a versão da tabela, onde a altura da linha é fixa por causa da
+ * janela de rolagem: o motivo sai do corpo e vai para o `title` e para o texto
+ * só-leitor. No cartão do celular, que é onde não existe ponteiro para parar
+ * em cima de nada, ele continua por extenso.
+ */
+function Sugestao({ linha, compacta = false }: { linha: LinhaDoRelatorio; compacta?: boolean }) {
   const julgado = julgarSugestao(linha)
+  const motivo = julgado.motivo
+  const Explicacao = () =>
+    motivo === null ? null : compacta ? (
+      <span className="sr-only">{motivo}</span>
+    ) : (
+      <span className="line-clamp-2 text-micro leading-snug text-texto-fraco">{motivo}</span>
+    )
+
   if (julgado.veredito === 'tem_de_sobra') {
     return <Selo tom="sucesso">Não precisa comprar</Selo>
   }
   // Sem movimento não ganha selo: um selo cinza repetido em quinhentas linhas
   // é ruído que ensina a não olhar os outros quinhentos.
   if (julgado.veredito === 'sem_movimento') {
-    return <span className="text-micro text-texto-fraco">{julgado.motivo}</span>
+    return (
+      <span className="text-micro text-texto-fraco" title={motivo ?? undefined}>
+        {compacta ? 'Sem movimento' : motivo}
+      </span>
+    )
   }
   if (julgado.veredito === 'sem_base') {
     return (
-      <span className="inline-flex flex-col items-start gap-1">
+      <span className="inline-flex flex-col items-start gap-1" title={motivo ?? undefined}>
         <Selo tom="neutro">
           <TriangleAlert className="size-3" aria-hidden />
           Não se sabe
         </Selo>
-        {julgado.motivo && (
-          <span className="text-micro leading-snug text-texto-fraco">{julgado.motivo}</span>
-        )}
+        <Explicacao />
       </span>
     )
   }
   return (
-    <span className="inline-flex flex-col items-start gap-1">
+    <span className="inline-flex flex-col items-start gap-1" title={motivo ?? undefined}>
       <Selo tom="alerta">
         {julgado.quantidade === 0
           ? julgado.rotulo
@@ -608,9 +780,26 @@ function Sugestao({ linha }: { linha: LinhaDoRelatorio }) {
           ≈ {dinheiro(julgado.quantidade * linha.custo_unitario)}
         </span>
       )}
-      {julgado.motivo && (
-        <span className="text-micro leading-snug text-texto-fraco">{julgado.motivo}</span>
-      )}
+      <Explicacao />
+    </span>
+  )
+}
+
+/**
+ * Quantos dos lançamentos considerados tiveram saída deste insumo.
+ *
+ * A média divide pelo número de LANÇAMENTOS, e isso está certo: para prever a
+ * compra da semana, semana sem vender é semana de zero. O que faltava era
+ * dizer que, dos três, em dois o insumo não saiu — porque é essa diferença que
+ * separa "item parado" de "item que acabou de entrar no cardápio", e só quem
+ * conhece a casa sabe qual é qual. Aparece só quando há o que dizer.
+ */
+function SaiuEm({ linha }: { linha: LinhaDoRelatorio }) {
+  if (linha.media_3_vendas === null) return null
+  if (linha.vendas_com_saida >= linha.vendas_consideradas) return null
+  return (
+    <span className="mt-0.5 block text-micro leading-snug text-texto-fraco">
+      saiu em {linha.vendas_com_saida} de {linha.vendas_consideradas}
     </span>
   )
 }
@@ -618,18 +807,35 @@ function Sugestao({ linha }: { linha: LinhaDoRelatorio }) {
 function LinhaDaTabela({ linha }: { linha: LinhaDoRelatorio }) {
   const semResposta = julgarSugestao(linha).veredito === 'sem_base'
   return (
-    <tr className={clsx(semResposta && 'bg-alerta-suave/30')}>
-      <Td>
-        <span className="block truncate font-medium text-texto">{linha.produto_nome}</span>
+    // Altura fixa: a janela de rolagem conta em pixels, e uma linha que cresce
+    // desalinha os espaçadores e faz a lista “pular”. O que não cabe em duas
+    // linhas de texto vai para o `title`.
+    <tr className={clsx(semResposta && 'bg-alerta-suave/30')} style={{ height: ALTURA_DA_LINHA }}>
+      <Td className="max-w-[16rem]">
+        <span className="block truncate font-medium text-texto" title={linha.produto_nome}>
+          {linha.produto_nome}
+        </span>
         {linha.pendencia && (
-          <span className="mt-0.5 block max-w-[22rem] text-micro leading-snug text-alerta-texto">
+          <span
+            className="mt-0.5 line-clamp-1 block text-micro leading-snug text-alerta-texto"
+            title={linha.pendencia}
+          >
             {linha.pendencia}
           </span>
         )}
       </Td>
-      <Td className="text-texto-suave">{linha.categoria_nome ?? '—'}</Td>
+      <Td className="max-w-[8rem] text-texto-suave">
+        <span className="block truncate" title={linha.categoria_nome ?? undefined}>
+          {linha.categoria_nome ?? '—'}
+        </span>
+      </Td>
       <Td numerico>
-        <Numero valor={linha.contagem_anterior} unidade={linha.unidade} />
+        <Numero
+          valor={linha.contagem_anterior}
+          unidade={linha.unidade}
+          lidoComoZero={linha.anterior_lido_como_zero}
+          ponta="anterior"
+        />
       </Td>
       <Td numerico>
         <Numero valor={linha.compras} unidade={linha.unidade} />
@@ -638,7 +844,12 @@ function LinhaDaTabela({ linha }: { linha: LinhaDoRelatorio }) {
         <Numero valor={linha.vendas} unidade={linha.unidade} />
       </Td>
       <Td numerico className="font-semibold">
-        <Numero valor={linha.contagem_atual} unidade={linha.unidade} />
+        <Numero
+          valor={linha.contagem_atual}
+          unidade={linha.unidade}
+          lidoComoZero={linha.atual_lido_como_zero}
+          ponta="atual"
+        />
       </Td>
       <Td numerico>
         <Numero valor={linha.consumo} unidade={linha.unidade} />
@@ -651,9 +862,10 @@ function LinhaDaTabela({ linha }: { linha: LinhaDoRelatorio }) {
       </Td>
       <Td numerico>
         <Numero valor={linha.media_3_vendas} unidade={linha.unidade} />
+        <SaiuEm linha={linha} />
       </Td>
       <Td>
-        <Sugestao linha={linha} />
+        <Sugestao linha={linha} compacta />
       </Td>
     </tr>
   )
@@ -662,14 +874,22 @@ function LinhaDaTabela({ linha }: { linha: LinhaDoRelatorio }) {
 /**
  * O cartão do celular.
  *
- * Aqui a fórmula vai por extenso, e não no `title`: num aparelho de toque não
- * existe parar o ponteiro em cima de nada, então uma explicação escondida
- * atrás de hover é uma explicação que não existe.
+ * A fórmula de cada coluna NÃO se repete aqui. O argumento original era bom —
+ * num aparelho de toque não existe parar o ponteiro em cima de nada, então
+ * explicação atrás de hover é explicação que não existe —, mas a resposta
+ * certa para ele é o cartão “Como esta conta é feita”, que abre esta mesma
+ * tela, no celular inclusive, com as três fórmulas e o que cada uma responde.
+ * Repeti-las em cada um dos 904 cartões custava 84px por cartão: é o que fazia
+ * o cartão precisar de 377px de altura, e altura fixa é o que a janela de
+ * rolagem exige.
  */
 function CartaoDaLinha({ linha }: { linha: LinhaDoRelatorio }) {
   const semResposta = julgarSugestao(linha).veredito === 'sem_base'
   return (
-    <li className={clsx('px-5 py-4', semResposta && 'bg-alerta-suave/30')}>
+    <li
+      className={clsx('overflow-hidden px-5 py-4', semResposta && 'bg-alerta-suave/30')}
+      style={{ height: ALTURA_DO_CARTAO }}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="truncate text-corpo font-medium text-texto">{linha.produto_nome}</div>
@@ -683,38 +903,53 @@ function CartaoDaLinha({ linha }: { linha: LinhaDoRelatorio }) {
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
         {(
           [
-            ['Contagem anterior', linha.contagem_anterior, null],
+            ['Contagem anterior', linha.contagem_anterior, 'anterior'],
             ['Compras', linha.compras, null],
             ['Vendas', linha.vendas, null],
-            ['Contagem atual', linha.contagem_atual, null],
-            ['Consumo', linha.consumo, FORMULAS.consumo],
-            ['Ideal', linha.ideal, FORMULAS.ideal],
+            ['Contagem atual', linha.contagem_atual, 'atual'],
+            ['Consumo', linha.consumo, null],
+            ['Ideal', linha.ideal, null],
             ['Média 3 vendas', linha.media_3_vendas, null],
           ] as const
-        ).map(([rotulo, valor, formula]) => (
+        ).map(([rotulo, valor, ponta]) => (
           <div key={rotulo}>
             <dt className="mv-rotulo">{rotulo}</dt>
             <dd className="mv-numero text-corpo text-texto">
-              <Numero valor={valor} unidade={linha.unidade} />
+              <Numero
+                valor={valor}
+                unidade={linha.unidade}
+                lidoComoZero={
+                  ponta === 'anterior'
+                    ? linha.anterior_lido_como_zero
+                    : ponta === 'atual'
+                      ? linha.atual_lido_como_zero
+                      : false
+                }
+                ponta={ponta ?? undefined}
+              />
             </dd>
-            {formula && (
-              <dd className="mt-0.5 text-micro leading-snug text-texto-fraco">{formula}</dd>
-            )}
+
           </div>
         ))}
+        <div>
+          <dt className="mv-rotulo">Saída no período da média</dt>
+          <dd className="mv-numero text-corpo text-texto">
+            {linha.vendas_com_saida} de {linha.vendas_consideradas}{' '}
+            {plural(linha.vendas_consideradas, 'lançamento', 'lançamentos')}
+          </dd>
+        </div>
         <div>
           <dt className="mv-rotulo">Diferença</dt>
           <dd className="mv-numero text-corpo">
             <Diferenca valor={linha.diferenca} unidade={linha.unidade} />
           </dd>
-          <dd className="mt-0.5 text-micro leading-snug text-texto-fraco">
-            {FORMULAS.diferenca}
-          </dd>
         </div>
       </dl>
 
       {linha.pendencia && (
-        <p className="mt-3 text-micro leading-snug text-alerta-texto">{linha.pendencia}</p>
+        <p className="mt-3 line-clamp-2 text-micro leading-snug text-alerta-texto" title={linha.pendencia}>
+          {linha.pendencia}
+        </p>
       )}
     </li>
   )
