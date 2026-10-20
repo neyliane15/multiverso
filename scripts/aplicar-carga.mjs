@@ -183,15 +183,35 @@ try {
     console.error('  password" no painel (nao apaga dado nenhum) e escolha uma so')
     console.error('  com letras e numeros.')
   }
-  if (['ENETUNREACH', 'ETIMEDOUT', 'EHOSTUNREACH', 'EAI_AGAIN'].includes(erro.code)) {
+  if (
+    ['ENOTFOUND', 'ENETUNREACH', 'ETIMEDOUT', 'EHOSTUNREACH', 'EAI_AGAIN'].includes(erro.code)
+  ) {
     console.error('')
-    console.error('  Isso e a rede, nao o banco. A conexao direta do Supabase')
-    console.error('  (db.<projeto>.supabase.co) so atende por IPv6. Se a sua rede')
-    console.error('  nao tiver IPv6, use a opcao "Session pooler" no mesmo painel:')
-    console.error('  o host muda para aws-0-<regiao>.pooler.supabase.com e o')
-    console.error('  usuario para postgres.<projeto>, na mesma porta 5432.')
-    console.error('  Nao use "Transaction pooler": ela nao mantem a transacao,')
-    console.error('  e e a transacao que garante o tudo-ou-nada desta carga.')
+    console.error('  Isso e a rede, nao o banco: nada chegou a ser enviado.')
+    if (erro.code === 'ENOTFOUND') {
+      console.error('  ENOTFOUND quer dizer que o endereco nem foi encontrado — o')
+      console.error('  Supabase aposentou o DNS da conexao direta para quem nao tem')
+      console.error('  IPv6, entao db.<projeto>.supabase.co deixou de existir para voce.')
+    } else {
+      console.error('  A conexao direta do Supabase (db.<projeto>.supabase.co) so')
+      console.error('  atende por IPv6, e a sua rede nao tem.')
+    }
+    console.error('')
+    console.error('  No painel: Connect > aba "Direct / Connection string" >')
+    console.error('  Connection Method = "Session pooler". De la saem estes valores:')
+    console.error('')
+    console.error('    PGHOST=aws-0-<regiao>.pooler.supabase.com')
+    console.error('    PGPORT=5432')
+    console.error('    PGDATABASE=postgres')
+    console.error('    PGUSER=postgres.<projeto>')
+    console.error('    PGPASSWORD=a senha, sem aspas')
+    console.error('')
+    console.error('  Ponha no .env.local e APAGUE a linha DATABASE_URL antiga: ela')
+    console.error('  tem prioridade sobre estas cinco e as deixaria sem efeito.')
+    console.error('  A forma separada tambem dispensa codificar @ ou # na senha.')
+    console.error('')
+    console.error('  Nao use "Transaction pooler": ela nao mantem a transacao, e e')
+    console.error('  a transacao que garante o tudo-ou-nada desta carga.')
   }
   process.exitCode = 1
 } finally {
