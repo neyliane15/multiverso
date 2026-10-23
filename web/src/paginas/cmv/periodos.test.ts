@@ -242,6 +242,18 @@ describe('conferirFormula', () => {
       cmv: 32_000,
       completo: true,
       pendencia: null,
+      estoque_final_fora_do_periodo: false,
+      faturamento: 0,
+      faturamento_produto: 0,
+      faturamento_servico: 0,
+      faturamento_lancamentos: 0,
+      cmv_percentual: null,
+      cmv_percentual_produto: null,
+      compras_limpeza: 0,
+      estoque_inicial_limpeza: 0,
+      estoque_final_limpeza: 0,
+      cmv_limpeza: 0,
+      cmv_insumo: 32_000,
       ...parcial,
     }
   }

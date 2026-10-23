@@ -434,15 +434,21 @@ function PainelDoLancamento({
   // As linhas chegam do servidor uma vez, quando a consulta volta. Depois disso
   // o formulário é o dono do rascunho: recarregar a cada render apagaria o que
   // a pessoa está digitando.
+  // Só as linhas de FICHA: um lançamento importado do PDV também tem linha de
+  // insumo direto, de serviço e pendente, e este formulário não sabe editá-las.
+  // Elas continuam no banco — `useSalvarItensDaVenda` reconcilia apenas ficha —
+  // e quem as resolve é a tela de conferência da planilha.
   useEffect(() => {
     if (!itens.data) return
     setLinhas(
-      itens.data.map((i) => ({
-        fichaId: i.ficha_id,
-        nome: i.ficha?.nome ?? 'Ficha apagada',
-        quantidade: i.quantidade,
-        precoUnitario: i.preco_unitario,
-      })),
+      itens.data
+        .filter((i) => i.alvo === 'ficha' && i.ficha_id !== null)
+        .map((i) => ({
+          fichaId: i.ficha_id as string,
+          nome: i.ficha?.nome ?? 'Ficha apagada',
+          quantidade: i.quantidade,
+          precoUnitario: i.preco_unitario,
+        })),
     )
   }, [itens.data])
 

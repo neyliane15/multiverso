@@ -466,4 +466,121 @@ begin
     and not has_function_privilege('anon', 'mv_semear_master(text,text)', 'execute'));
 end $$;
 
+-- ============================================================================
+-- 0027 · A importacao de planilha nao atravessa a parede entre restaurantes
+-- ----------------------------------------------------------------------------
+-- A pergunta e a mesma do resto do arquivo, aplicada ao que a 0027 criou:
+-- importar a planilha de um restaurante encosta no outro? Cada bloco veste um
+-- usuario de verdade — `set local role authenticated` + request.jwt.claim.sub —
+-- porque rodar como postgres nao prova nada: superusuario ignora RLS.
+-- ============================================================================
+do $$
+declare
+  r_a uuid; r_b uuid; cat_a uuid; cat_b uuid; s_a uuid; s_b uuid;
+  p_a uuid; p_b uuid; f_a uuid; f_b uuid; v_a uuid; v_b uuid;
+  u_a uuid := '00000000-0000-0000-0000-0000000000a1';
+  u_b uuid := '00000000-0000-0000-0000-0000000000b1';
+  n integer; v_erro text; l record;
+begin
+  select id into r_a from restaurantes where slug = 'casa-a';
+  select id into r_b from restaurantes where slug = 'casa-b';
+  insert into categorias (restaurante_id, nome) values (r_a,'Bebidas A') returning id into cat_a;
+  insert into categorias (restaurante_id, nome) values (r_b,'Bebidas B') returning id into cat_b;
+  insert into setores (restaurante_id, nome) values (r_a,'Bar A') returning id into s_a;
+  insert into setores (restaurante_id, nome) values (r_b,'Bar B') returning id into s_b;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r_a,'Cerveja A','UND',6,cat_a) returning id into p_a;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r_b,'Cerveja B','UND',6,cat_b) returning id into p_b;
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r_a,'Dose A',1,'PORCAO',10) returning id into f_a;
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r_b,'Dose B',1,'PORCAO',10) returning id into f_b;
+  insert into vendas (restaurante_id, referencia, origem, origem_arquivo)
+  values (r_a, date '2026-09-30','pdv','vendas_setembro.xlsx') returning id into v_a;
+  insert into vendas (restaurante_id, referencia, origem, origem_arquivo)
+  values (r_b, date '2026-09-30','pdv','vendas_setembro.xlsx') returning id into v_b;
+
+  -- O admin da Casa A importa: linha de ficha, de insumo direto e de servico.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_a::text, true);
+
+  insert into venda_itens (venda_id, alvo, ficha_id, quantidade, preco_unitario,
+                           valor_total_origem, descricao_origem)
+  values (v_a,'ficha', f_a, 10, 10, 100, 'DOSE A NO PDV');
+  insert into venda_itens (venda_id, alvo, produto_id, quantidade, preco_unitario,
+                           valor_total_origem, descricao_origem)
+  values (v_a,'produto', p_a, 20, 6, 120, 'CERVEJA A NO PDV');
+  insert into venda_itens (venda_id, alvo, quantidade, preco_unitario,
+                           valor_total_origem, descricao_origem)
+  values (v_a,'servico', 5, 20, 100, 'COUVERT ARTISTICO');
+
+  perform conferir('o admin da Casa A ve as tres linhas que ele importou',
+    (select count(*) from venda_itens where venda_id = v_a) = 3);
+  perform conferir('e o de-para aprendeu os tres nomes do PDV dele',
+    (select count(*) from venda_apelidos where restaurante_id = r_a) = 3);
+
+  -- A ficha e o insumo do OUTRO restaurante nao entram, e a mensagem nao
+  -- afirma qual das duas coisas aconteceu (0025).
+  begin
+    insert into venda_itens (venda_id, alvo, ficha_id, quantidade, preco_unitario)
+    values (v_a,'ficha', f_b, 1, 1);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('ficha da Casa B nao entra na venda da Casa A',
+                   v_erro like '%nao encontrada, ou fora do seu acesso%');
+
+  begin
+    insert into venda_itens (venda_id, alvo, produto_id, quantidade, preco_unitario)
+    values (v_a,'produto', p_b, 1, 1);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('insumo da Casa B nao entra na venda da Casa A',
+                   v_erro like '%nao encontrado, ou fora do seu acesso%');
+
+  -- E o lancamento do outro restaurante nao se alcanca nem para escrever.
+  begin
+    insert into venda_itens (venda_id, alvo, ficha_id, quantidade, preco_unitario)
+    values (v_b,'ficha', f_b, 1, 1);
+    v_erro := 'passou';
+  exception when others then v_erro := sqlerrm;
+  end;
+  perform conferir('o admin da Casa A nao lanca linha na venda da Casa B',
+                   v_erro <> 'passou');
+  reset role;
+
+  -- --------------------------------------------- o outro lado da parede ----
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_b::text, true);
+
+  perform conferir('o admin da Casa B nao enxerga nenhuma linha da Casa A',
+    (select count(*) from venda_itens where venda_id = v_a) = 0);
+  perform conferir('nem o de-para da Casa A',
+    (select count(*) from venda_apelidos) = 0);
+
+  select count(*) into n from mv_vendas_por_produto(v_a);
+  perform conferir('a explosao da venda da Casa A volta vazia para a Casa B', n = 0);
+
+  select * into l from mv_faturamento_periodo(r_a, date '2026-09-01', date '2026-09-30');
+  perform conferir('e o faturamento da Casa A volta ZERO para a Casa B',
+                   coalesce(l.total, 0) = 0);
+
+  select * into l from mv_cmv_periodo(r_a, date '2026-09-01', date '2026-09-30');
+  perform conferir('o CMV da Casa A tambem nao vaza pelo faturamento',
+                   coalesce(l.faturamento, 0) = 0 and coalesce(l.compras, 0) = 0);
+  reset role;
+
+  -- --------------------- e a Casa A continua vendo o que e dela ------------
+  -- Sem isto, os blocos acima provariam uma sessao quebrada, nao isolamento.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_a::text, true);
+  perform mv_fechar_venda(v_a);
+  select * into l from mv_faturamento_periodo(r_a, date '2026-09-01', date '2026-09-30');
+  perform conferir('a Casa A ve o proprio faturamento: 320, com 100 de servico',
+                   l.total = 320 and l.servico = 100 and l.produto = 220);
+  reset role;
+end $$;
+
 \echo '  --- RLS: todos os casos passaram'

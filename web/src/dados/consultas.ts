@@ -11,6 +11,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query'
 import { supabase } from './supabase'
+import type { ApelidoConhecido } from './nfe/casarProdutos'
 import { costurarProduto, reconciliarVinculos } from './vinculosDoProduto'
 import type { VinculoSetor } from './vinculosDoProduto'
 // Reexportado: as telas de cadastro importam o tipo daqui desde o começo, e
@@ -48,7 +49,10 @@ import type {
   StatusLista,
   TipoContagem,
   Venda,
+  VendaApelido,
   VendaItem,
+  AlvoDeVenda,
+  FaturamentoPeriodo,
 } from '@/tipos/banco'
 
 /**
@@ -176,6 +180,11 @@ export const chaves = {
   cmvCategorias: (r: string, i: string, f: string) => ['cmv', 'categorias', r, i, f] as const,
   vendas: (r: string) => ['vendas', r] as const,
   vendaItens: (id: string) => ['venda-itens', id] as const,
+  // Os dois de-para, cada um sob o prefixo do modulo que o alimenta: vincular
+  // item de nota derruba 'produto-apelidos', resolver linha de venda derruba
+  // 'venda-apelidos', e nenhum dos dois mexe no outro.
+  produtoApelidos: (r: string) => ['produto-apelidos', r] as const,
+  vendaApelidos: (r: string) => ['venda-apelidos', r] as const,
   // Sob o prefixo 'relatorio' para que fechar uma venda possa derrubar os
   // relatorios de uma vez, sem conhecer qual contagem cada um le.
   relatorio: (contagemId: string) => ['relatorio', contagemId] as const,
@@ -1284,6 +1293,29 @@ export function useCompras(restauranteId: string) {
   })
 }
 
+/**
+ * O de-para aprendido nas notas ja conferidas.
+ *
+ * Existe porque a importacao de planilha precisa dele ANTES de gravar: a
+ * `Conferencia` calcula a sugestao no navegador com o catalogo que ja tem em
+ * cache, mas o importador grava 693 linhas de uma vez e o vinculo que ele
+ * acertar e o que a pessoa nao vai ter de fazer a mao. Sem isto, a segunda
+ * importacao do mesmo ERP comecaria tao pendente quanto a primeira.
+ */
+export function useProdutoApelidos(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.produtoApelidos(restauranteId),
+    queryFn: () =>
+      buscarTudo<ApelidoConhecido>((de, ate) =>
+        supabase
+          .from('produto_apelidos')
+          .select('produto_id, fornecedor_id, apelido, codigo_fornecedor, fator_conversao, unidade')
+          .eq('restaurante_id', restauranteId)
+          .range(de, ate),
+      ),
+  })
+}
+
 export interface ItemDeNota extends NotaItem {
   produto: { nome: string } | null
 }
@@ -1323,6 +1355,9 @@ export function useVincularItemDaNota(notaId: string) {
       // O historico mostra "N itens pendentes" por nota: vincular o ultimo
       // muda o cracha da lista, que fica noutra tela.
       void qc.invalidateQueries({ queryKey: ['compras'] })
+      // O gatilho `mv_aprende_apelido` acabou de gravar um apelido novo, e e
+      // dele que a proxima importacao de planilha vai depender.
+      void qc.invalidateQueries({ queryKey: ['produto-apelidos'] })
     },
   })
 }
@@ -1540,6 +1575,8 @@ export function useVendas(restauranteId: string) {
 
 export interface ItemDeVenda extends VendaItem {
   ficha: { nome: string; preco_venda: number; grupo: string | null } | null
+  /** Preenchido na linha que aponta direto para o insumo (garrafa fechada). */
+  produto: { nome: string; unidade: string } | null
 }
 
 export function useItensDaVenda(vendaId: string | undefined) {
@@ -1550,8 +1587,11 @@ export function useItensDaVenda(vendaId: string | undefined) {
       buscar<ItemDeVenda[]>(
         supabase
           .from('venda_itens')
-          .select('*, ficha:fichas(nome, preco_venda, grupo)')
+          .select('*, ficha:fichas(nome, preco_venda, grupo), produto:produtos(nome, unidade)')
           .eq('venda_id', vendaId!)
+          // Pelo dinheiro, maior primeiro: num lancamento de 136 linhas e a
+          // ordem em que vale a pena resolver o que ficou pendente.
+          .order('valor_total_origem', { ascending: false, nullsFirst: false })
           .order('criado_em'),
       ),
   })
@@ -1602,8 +1642,17 @@ export function useSalvarItensDaVenda(restauranteId: string) {
       vendaId: string
       itens: ItemDeVendaParaGravar[]
     }) => {
+      // `alvo = 'ficha'` no filtro, e nao e detalhe: desde a 0027 um lancamento
+      // importado do PDV tem linha de insumo direto, de servico e pendente, e
+      // todas elas tem `ficha_id` nulo. Sem este filtro, `querida.has(null)` e
+      // falso para todas e o formulario da mao APAGARIA as 100 linhas da
+      // planilha ao salvar uma ficha — sem aviso e sem desfazer.
       const atuais = await buscar<{ id: string; ficha_id: string }[]>(
-        supabase.from('venda_itens').select('id, ficha_id').eq('venda_id', vendaId),
+        supabase
+          .from('venda_itens')
+          .select('id, ficha_id')
+          .eq('venda_id', vendaId)
+          .eq('alvo', 'ficha'),
       )
       const querida = new Set(itens.map((i) => i.ficha_id))
       const sair = atuais.filter((a) => !querida.has(a.ficha_id)).map((a) => a.id)
@@ -1616,7 +1665,7 @@ export function useSalvarItensDaVenda(restauranteId: string) {
           supabase
             .from('venda_itens')
             .upsert(
-              itens.map((i) => ({ ...i, venda_id: vendaId })),
+              itens.map((i) => ({ ...i, venda_id: vendaId, alvo: 'ficha' as const })),
               { onConflict: 'venda_id,ficha_id' },
             )
             .select('id'),
@@ -1627,6 +1676,93 @@ export function useSalvarItensDaVenda(restauranteId: string) {
     onSuccess: (_resultado, entrada) => {
       void qc.invalidateQueries({ queryKey: chaves.vendaItens(entrada.vendaId) })
       void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+    },
+  })
+}
+
+/**
+ * O de-para dos nomes do PDV: o que o vínculo à mão já ensinou.
+ *
+ * Uma linha por nome, não por venda: 136 no primeiro mês do Bar do Zeca, e
+ * depois só os nomes novos. Por isso ela não precisa de `buscarTudo` — mas
+ * usa, porque um cardápio de rede grande passa de 1000 e o PostgREST trunca
+ * calado no teto (ver `buscarTudo`).
+ */
+export function useVendaApelidos(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.vendaApelidos(restauranteId),
+    queryFn: () =>
+      buscarTudo<VendaApelido>((de, ate) =>
+        supabase
+          .from('venda_apelidos')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .range(de, ate),
+      ),
+  })
+}
+
+/**
+ * Resolve UMA linha pendente de venda: ficha, insumo, ou serviço.
+ *
+ * O `alvo` vai junto na mesma gravação de propósito: o `check`
+ * `venda_itens_alvo_unico` da 0027 amarra os três campos, então mandar o
+ * `ficha_id` sem mudar o `alvo` seria uma linha que o banco recusa — e recusar
+ * aqui é melhor que deixar passar meia decisão.
+ *
+ * O aprendizado é do gatilho `mv_aprende_apelido_de_venda`, não desta mutação:
+ * assim ele vale para quem gravar pela API, pelo script ou pela tela.
+ */
+export function useResolverItemDaVenda(restauranteId: string, vendaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: {
+      itemId: string
+      alvo: AlvoDeVenda
+      fichaId?: string | null
+      produtoId?: string | null
+    }) =>
+      buscar<VendaItem>(
+        supabase
+          .from('venda_itens')
+          .update({
+            alvo: entrada.alvo,
+            ficha_id: entrada.alvo === 'ficha' ? entrada.fichaId : null,
+            produto_id: entrada.alvo === 'produto' ? entrada.produtoId : null,
+          })
+          .eq('id', entrada.itemId)
+          .select()
+          .single(),
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.vendaItens(vendaId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendaApelidos(restauranteId) })
+    },
+  })
+}
+
+/**
+ * O faturamento do período, para a tela que precisa só dele.
+ *
+ * `mv_cmv_periodo` já devolve os mesmos números, e é de lá que o dashboard de
+ * CMV lê. Esta existe para a tela de vendas poder conferir o total importado
+ * contra a planilha sem pedir o CMV inteiro — que lê duas contagens e todas as
+ * notas do período.
+ */
+export function useFaturamento(restauranteId: string, inicio: string, fim: string) {
+  return useQuery({
+    queryKey: ['faturamento', restauranteId, inicio, fim] as const,
+    enabled: inicio !== '' && fim !== '',
+    queryFn: async () => {
+      const linhas = await buscar<FaturamentoPeriodo[]>(
+        supabase.rpc('mv_faturamento_periodo', {
+          p_restaurante: restauranteId,
+          p_inicio: inicio,
+          p_fim: fim,
+        }),
+      )
+      return linhas[0] ?? null
     },
   })
 }
@@ -1646,6 +1782,11 @@ export function useFecharVenda(restauranteId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
       void qc.invalidateQueries({ queryKey: ['relatorio'] })
+      // Desde a 0027 o faturamento e o denominador do CMV, e ele so le venda
+      // FECHADA: fechar um lancamento muda o CMV% na hora. Sem isto o dashboard
+      // mostraria "sem faturamento" ao lado de uma venda acabada de fechar.
+      void qc.invalidateQueries({ queryKey: ['cmv'] })
+      void qc.invalidateQueries({ queryKey: ['faturamento'] })
     },
   })
 }
@@ -1658,6 +1799,8 @@ export function useReabrirVenda(restauranteId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
       void qc.invalidateQueries({ queryKey: ['relatorio'] })
+      void qc.invalidateQueries({ queryKey: ['cmv'] })
+      void qc.invalidateQueries({ queryKey: ['faturamento'] })
     },
   })
 }
@@ -1670,6 +1813,8 @@ export function useApagarVenda(restauranteId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
       void qc.invalidateQueries({ queryKey: ['relatorio'] })
+      void qc.invalidateQueries({ queryKey: ['cmv'] })
+      void qc.invalidateQueries({ queryKey: ['faturamento'] })
     },
   })
 }

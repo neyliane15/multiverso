@@ -6,11 +6,13 @@
 export type PapelUsuario = 'master' | 'admin' | 'gerente' | 'operador'
 export type TipoContagem = 'semanal' | 'mensal' | 'avulsa'
 export type StatusContagem = 'aberta' | 'fechada' | 'cancelada'
-export type OrigemNota = 'xml' | 'pdf' | 'manual'
+export type OrigemNota = 'xml' | 'pdf' | 'manual' | 'planilha'
 export type StatusNota = 'importada' | 'conferida' | 'lancada' | 'cancelada'
 export type StatusLista = 'rascunho' | 'enviada' | 'concluida' | 'cancelada'
 export type StatusVenda = 'aberta' | 'fechada' | 'cancelada'
 export type OrigemVenda = 'manual' | 'pdv'
+/** O que uma linha de venda aponta. Ver a migração 0027. */
+export type AlvoDeVenda = 'ficha' | 'produto' | 'servico' | 'pendente'
 
 /** Identidade visual que o admin configura por restaurante. */
 export interface Marca {
@@ -66,11 +68,21 @@ export interface Categoria {
   cor: string
   ordem: number
   ativo: boolean
+  /**
+   * `true` = a categoria não é insumo de prato (limpeza, descartável).
+   *
+   * Ela continua no CMV total e sai do CMV de insumo, que é a decisão que a
+   * cliente tomou. Mora na categoria, e não na nota, porque as três pontas do
+   * CMV — estoque inicial, compras e estoque final — só têm a categoria em
+   * comum: `MATERIAL DE LIMPEZA` e `DESCARTÁVEIS` são contados na folha.
+   */
+  fora_do_insumo: boolean
   criado_em: string
   atualizado_em: string
 }
 
-export interface Setor extends Omit<Categoria, never> {}
+/** Setor é a mesma forma de Categoria, menos o que só a categoria tem. */
+export interface Setor extends Omit<Categoria, 'fora_do_insumo'> {}
 
 /**
  * Estoque de setor: o lugar físico dentro do setor — "Bar / Geladeira 1".
@@ -369,6 +381,8 @@ export interface NotaItem {
   fator_conversao: number
   quantidade_convertida: number
   custo_convertido: number
+  /** Operação do ERP, como veio na planilha. É ela que tira limpeza do CMV de insumo. */
+  operacao: string | null
   ordem: number
 }
 
@@ -432,6 +446,40 @@ export interface CmvPeriodo {
   cmv: number | null
   completo: boolean
   pendencia: string | null
+  /**
+   * `true` quando o estoque final veio da primeira contagem do mês SEGUINTE.
+   *
+   * Regra da cliente: "mesmo que a contagem do final do mês tenha sido feita no
+   * mês seguinte, você irá pegar a primeira contagem do mês seguinte para ser o
+   * estoque final". A tela tem de dizer isso e dizer a data — dias de movimento
+   * entre o fim do período e a contagem mudam o número.
+   */
+  estoque_final_fora_do_periodo: boolean
+  /** Faturamento das vendas FECHADAS do período. Zero sem venda nenhuma. */
+  faturamento: number
+  /** O faturamento sem as linhas de serviço: couvert e taxa não consomem insumo. */
+  faturamento_produto: number
+  faturamento_servico: number
+  faturamento_lancamentos: number
+  /** `cmv / faturamento`. Nulo sem CMV ou sem faturamento — não se divide por zero. */
+  cmv_percentual: number | null
+  /** `cmv / faturamento_produto`: o percentual sobre o que de fato consome insumo. */
+  cmv_percentual_produto: number | null
+  compras_limpeza: number
+  estoque_inicial_limpeza: number | null
+  estoque_final_limpeza: number | null
+  /** `cmv_limpeza + cmv_insumo = cmv`, por construção. */
+  cmv_limpeza: number | null
+  cmv_insumo: number | null
+}
+
+/** Retorno de `mv_faturamento_periodo`. */
+export interface FaturamentoPeriodo {
+  total: number
+  produto: number
+  servico: number
+  lancamentos: number
+  itens: number
 }
 
 /** Retorno de mv_cmv_serie. */
@@ -492,17 +540,51 @@ export interface Venda {
   atualizado_em: string
 }
 
-/** Uma ficha vendida dentro de um lançamento. */
+/**
+ * Uma linha de um lançamento de vendas.
+ *
+ * Ela aponta para UMA das quatro coisas que `alvo` diz (migração 0027): a ficha
+ * do cardápio, o insumo direto (garrafa fechada, vendida inteira), o serviço
+ * que fatura e não consome nada, ou nada ainda — pendente, que é o único estado
+ * que impede fechar o lançamento.
+ */
 export interface VendaItem {
   id: string
   venda_id: string
-  ficha_id: string
+  alvo: AlvoDeVenda
+  ficha_id: string | null
+  produto_id: string | null
   quantidade: number
-  /** Congelado do preço da ficha no lançamento, como o custo da contagem. */
+  /**
+   * No lançamento da mão, o preço da ficha congelado. Na importação de PDV, a
+   * média do período — a verdade do dinheiro é `valor_total_origem`.
+   */
   preco_unitario: number
   total: number
-  /** Texto cru do PDV, guardado para o de-para da importação futura. */
+  /**
+   * O que o PDV faturou nesta linha, como ele faturou.
+   *
+   * Existe porque `total` é coluna gerada (`quantidade × preco_unitario`) e
+   * nenhum preço unitário de quatro casas reproduz a agregação de um mês no
+   * centavo: R$ 16.633,21 em 3.063 unidades volta com onze centavos de erro.
+   */
+  valor_total_origem: number | null
+  /** Quantas linhas de cupom foram somadas nesta. */
+  linhas_de_origem: number | null
+  /** Texto cru do PDV. É a chave do de-para e o rastro de onde a linha veio. */
   descricao_origem: string | null
+  criado_em: string
+}
+
+/** Uma linha de `venda_apelidos`: o de-para que o vínculo à mão ensinou. */
+export interface VendaApelido {
+  id: string
+  restaurante_id: string
+  apelido: string
+  alvo: AlvoDeVenda
+  ficha_id: string | null
+  produto_id: string | null
+  usos: number
   criado_em: string
 }
 

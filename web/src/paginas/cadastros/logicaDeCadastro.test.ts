@@ -19,6 +19,7 @@ function item(parcial: Partial<Categoria> & { id: string; nome: string }): Categ
     cor: '#6B7280',
     ordem: 0,
     ativo: true,
+    fora_do_insumo: false,
     criado_em: '2026-01-01T00:00:00Z',
     atualizado_em: '2026-01-01T00:00:00Z',
     ...parcial,
