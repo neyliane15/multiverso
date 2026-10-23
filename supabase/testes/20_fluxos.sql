@@ -2049,6 +2049,21 @@ begin
   perform conferir('e nao o que a coluna gerada reconstituiria',
                    (select sum(total) from venda_itens where venda_id = v) <> 2000);
 
+  -- Lancamento FECHADO e foto: nem a fusao mexe nele. O gatilho da 0023 pega
+  -- os dois lados da fusao, o update e o delete — conferido aqui porque
+  -- `mv_resolver_item_de_venda` apaga uma linha, e apagar escapa de muita
+  -- trava escrita pensando so em escrita.
+  begin
+    perform mv_resolver_item_de_venda(
+      (select id from venda_itens where venda_id = v and alvo = 'servico'), 'ficha', f_dose);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('venda fechada recusa ate a fusao de linhas',
+                   v_erro like '%venda ja fechada%');
+  perform conferir('e nenhuma linha sumiu na tentativa',
+                   (select count(*) from venda_itens where venda_id = v) = 3);
+
   select * into l from mv_faturamento_periodo(r, date '2026-09-01', date '2026-09-30');
   perform conferir('faturamento total = 2000', l.total = 2000);
   perform conferir('faturamento de produto = 1500 (sem os 500 de couvert)', l.produto = 1500);

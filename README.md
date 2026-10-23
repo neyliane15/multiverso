@@ -22,12 +22,21 @@ depende de ninguém ter arrastado uma célula errada.
 O sistema pega essa mesma estrutura e a torna um cadastro de verdade:
 
 ```
-CMV = Estoque Inicial + Compras − Estoque Final
+CMV  = Estoque Inicial + Compras − Estoque Final
+CMV% = CMV / Faturamento
 ```
 
 Os três números vêm de fontes diferentes e nenhum é chutado. Se faltar a
 contagem que fecha o período, o CMV volta **nulo com o motivo escrito**, em vez
-de um número que parece certo.
+de um número que parece certo. E quando a contagem que fecha o mês foi feita no
+dia 1º do mês seguinte — que é como a casa trabalha — ela conta como o
+fechamento daquele mês, com a tela dizendo de qual data veio o número.
+
+O denominador vem do PDV, e aparece em **dois**: o CMV sobre o faturamento
+total, que é o número do caixa, e o CMV sobre o faturamento de produto, que é o
+número da cozinha. A diferença entre eles é couvert e taxa de serviço —
+R$ 53.049,68 em setembro de 2026, 20,8% do que o primeiro cliente faturou:
+dinheiro que entra sem tirar nada do estoque.
 
 ## Módulos
 
@@ -35,8 +44,8 @@ de um número que parece certo.
 |---|---|---|
 | **1** | **Cadastros** | Produtos, categorias e setores. Um produto tem uma categoria e vive em **vários setores** — e cada setor guarda a própria unidade e o próprio custo |
 | **2** | **Gestão de Contagem** | A folha de contagem montada a partir dos cadastros, setor por setor, com histórico de todas as contagens fechadas |
-| **3** | **Gestão de Compras** | Nota fiscal por XML (lê tudo sozinho), por PDF ou na mão para a compra de rua; lista de compras gerada do catálogo; histórico por período e fornecedor |
-| **4** | **Dashboard CMV** | Estoque inicial, compras e estoque final — semanal e mensal, com abertura por categoria |
+| **3** | **Gestão de Compras** | Nota fiscal por XML (lê tudo sozinho), **pela planilha do ERP** (um mês de entradas de uma vez), por PDF ou na mão para a compra de rua; lista de compras gerada do catálogo; histórico por período e fornecedor |
+| **4** | **Dashboard CMV** | Estoque inicial, compras e estoque final — semanal e mensal, com abertura por categoria. **CMV% sobre o faturamento, dos dois lados**, e limpeza/descartáveis à parte |
 
 Mais módulos entram depois. A base foi desenhada para isso: um módulo novo é
 uma entrada em `web/src/rotas.ts` mais as suas tabelas, e ele já nasce com
