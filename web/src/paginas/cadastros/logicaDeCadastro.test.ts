@@ -8,6 +8,7 @@ import {
   nomeDuplicado,
   ordenarCadastro,
   proximaOrdem,
+  rascunhoDeCadastro,
   validarCadastro,
   type RascunhoDeCadastro,
 } from './logicaDeCadastro'
@@ -95,7 +96,15 @@ describe('nomeDuplicado e validarCadastro', () => {
   })
 
   function rascunho(p: Partial<RascunhoDeCadastro> = {}): RascunhoDeCadastro {
-    return { nome: 'Mercearia', descricao: '', cor: '#1B7F5A', ordem: 3, ativo: true, ...p }
+    return {
+      nome: 'Mercearia',
+      descricao: '',
+      cor: '#1B7F5A',
+      ordem: 3,
+      ativo: true,
+      foraDoInsumo: false,
+      ...p,
+    }
   }
 
   it('aprova um cadastro correto', () => {
@@ -211,5 +220,22 @@ describe('filtrarCadastro', () => {
   it('busca sem acento no nome e na descrição', () => {
     expect(filtrarCadastro(itens, 'proteinas', false).map((i) => i.id)).toEqual(['1'])
     expect(filtrarCadastro(itens, 'peixes', false).map((i) => i.id)).toEqual(['1'])
+  })
+})
+
+describe('rascunhoDeCadastro e o campo que só a categoria tem', () => {
+  /**
+   * `fora_do_insumo` é decisão de cadastro (migração 0027). O rascunho tem de
+   * carregá-la do item que o formulário abriu, senão editar a cor de
+   * `MATERIAL DE LIMPEZA` a devolveria para dentro do CMV de insumo — sem
+   * ninguém tocar na caixa de seleção.
+   */
+  it('carrega fora_do_insumo do item aberto', () => {
+    expect(rascunhoDeCadastro(item({ id: '9', nome: 'Limpeza', fora_do_insumo: true }), 0).foraDoInsumo).toBe(true)
+    expect(rascunhoDeCadastro(item({ id: '9', nome: 'Carnes' }), 0).foraDoInsumo).toBe(false)
+  })
+
+  it('cadastro novo nasce DENTRO do CMV de insumo', () => {
+    expect(rascunhoDeCadastro(null, 0).foraDoInsumo).toBe(false)
   })
 })

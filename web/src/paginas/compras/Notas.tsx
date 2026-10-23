@@ -1,15 +1,19 @@
 /**
  * Módulo 3.1 · entrada de notas fiscais.
  *
- * São três caminhos, e a tela precisa deixar claro qual é qual, porque eles
+ * São quatro caminhos, e a tela precisa deixar claro qual é qual, porque eles
  * dão trabalhos muito diferentes:
  *
  *  1. **XML da NFe** — o único caminho em que o sistema lê tudo sozinho. O XML
  *     é parseado **no cliente**, a prévia aparece antes de qualquer gravação, e
  *     só depois de conferida a nota vai para a edge function.
- *  2. **PDF** — o sistema não lê PDF, e a tela diz isso com todas as letras. O
+ *  2. **Planilha do ERP** — um mês de entradas de uma vez: 693 linhas viram 133
+ *     notas. Lida no cliente, com prévia, como o XML. O que ela NÃO faz é
+ *     adivinhar insumo: nome idêntico e apelido já aprendido casam sozinhos, o
+ *     resto fica pendente para a conferência de sempre.
+ *  3. **PDF** — o sistema não lê PDF, e a tela diz isso com todas as letras. O
  *     arquivo fica anexado à nota; os itens são digitados.
- *  3. **Manual** — a compra de rua, sem documento nenhum.
+ *  4. **Manual** — a compra de rua, sem documento nenhum.
  *
  * Quando existe `:notaId` na rota, a tela vira a conferência de itens, que é a
  * parte séria do módulo (ver `Conferencia.tsx`).
@@ -18,6 +22,7 @@ import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   FileCode2,
+  FileSpreadsheet,
   FileText,
   Loader2,
   PencilLine,
@@ -61,8 +66,9 @@ import {
   type ItemManual,
 } from './gravar'
 import { Conferencia } from './Conferencia'
+import { CaminhoDaPlanilha } from './PlanilhaDeCompras'
 
-type Caminho = 'xml' | 'pdf' | 'manual'
+type Caminho = 'xml' | 'planilha' | 'pdf' | 'manual'
 
 const CAMINHOS: { valor: Caminho; rotulo: string; ajuda: string; icone: typeof FileCode2 }[] = [
   {
@@ -70,6 +76,12 @@ const CAMINHOS: { valor: Caminho; rotulo: string; ajuda: string; icone: typeof F
     rotulo: 'XML da NFe',
     ajuda: 'O sistema lê o arquivo inteiro: fornecedor, itens, impostos e total.',
     icone: FileCode2,
+  },
+  {
+    valor: 'planilha',
+    rotulo: 'Planilha do ERP',
+    ajuda: 'Um mês de entradas de uma vez, agrupadas em notas pelo número e pelo fornecedor.',
+    icone: FileSpreadsheet,
   },
   {
     valor: 'pdf',
@@ -128,7 +140,11 @@ function EntradaDeNotas({ restauranteId }: { restauranteId: string }) {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-3" role="group" aria-label="Como a nota vai entrar">
+      <div
+        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        role="group"
+        aria-label="Como a nota vai entrar"
+      >
         {CAMINHOS.map((opcao) => {
           const ativo = opcao.valor === caminho
           const Icone = opcao.icone
@@ -161,6 +177,7 @@ function EntradaDeNotas({ restauranteId }: { restauranteId: string }) {
       </div>
 
       {caminho === 'xml' && <CaminhoDoXml restauranteId={restauranteId} />}
+      {caminho === 'planilha' && <CaminhoDaPlanilha restauranteId={restauranteId} />}
       {caminho === 'pdf' && <CaminhoDoPdf restauranteId={restauranteId} />}
       {caminho === 'manual' && (
         <FormularioManual restauranteId={restauranteId} origem="manual" arquivo={null} />

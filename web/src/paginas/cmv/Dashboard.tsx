@@ -2,12 +2,21 @@
  * Módulo 4 · dashboard de CMV.
  *
  *        CMV = Estoque Inicial + Compras − Estoque Final
+ *        CMV% = CMV / Faturamento
  *
  * A tela inteira gira em torno de uma regra: **número ausente, nunca número
  * inventado**. Quando `mv_cmv_periodo` devolve `completo = false`, o CMV volta
  * nulo com a pendência escrita — e aqui isso vira um período que continua no
  * eixo, com o motivo em texto e um caminho para resolver. Nada de zero, nada
  * de barra escondida, nada de período sumido da série.
+ *
+ * Desde a 0027 a tela tem denominador, e ele vem em DOIS, lado a lado, porque
+ * foi a decisão da cliente: o CMV% sobre o faturamento TOTAL e o CMV% sobre o
+ * faturamento de PRODUTO. A diferença entre os dois é couvert e taxa de
+ * serviço, que faturam e não consomem insumo — R$ 53.049,68 em setembro de
+ * 2026, 20,8% do faturamento do Bar do Zeca. Mostrar só o primeiro faria o CMV
+ * parecer 20% melhor do que é; mostrar só o segundo esconderia um quinto do
+ * dinheiro que entrou. A tela mostra os dois e escreve a diferença.
  *
  * Decisões de gráfico (skill `dataviz` + IDENTIDADE.md):
  *
@@ -41,12 +50,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { AlertTriangle, ArrowRight, Store, TrendingUp } from 'lucide-react'
+import { AlertTriangle, ArrowRight, CalendarClock, SprayCan, Store, TrendingUp } from 'lucide-react'
 import clsx from 'clsx'
 import { useSessao } from '@/dados/sessao'
 import { useCmv, useCmvPorCategoria, useCmvSerie } from '@/dados/consultas'
 import { useMarca } from '@/tema/ProvedorDeMarca'
-import type { CmvSerie } from '@/tipos/banco'
+import type { CmvPeriodo, CmvSerie } from '@/tipos/banco'
 import {
   Aviso,
   Botao,
@@ -508,10 +517,29 @@ function DetalheDoPeriodo({
                   rotulo="Estoque final"
                   valor={dados.estoque_final === null ? '—' : dinheiro(dados.estoque_final)}
                   icone={<Ponto cor={cores.estoqueFinal} />}
+                  tom={dados.estoque_final_fora_do_periodo ? 'alerta' : 'neutro'}
                   apoio={
-                    dados.estoque_final_data
-                      ? `Contagem de ${formatarData(dados.estoque_final_data)}`
-                      : 'Nenhuma contagem fechada dentro do período.'
+                    dados.estoque_final_data === null ? (
+                      'Nenhuma contagem fechada dentro do período.'
+                    ) : dados.estoque_final_fora_do_periodo ? (
+                      /* A contagem veio de FORA do período, pela regra da casa:
+                         o fechamento do mês contado no dia 1º do mês seguinte é
+                         o fechamento daquele mês. Dizer a data é obrigatório —
+                         dias de movimento entre o fim do período e a contagem
+                         mudam o número, e quem lê precisa saber quantos. */
+                      <span className="flex items-start gap-1.5">
+                        <CalendarClock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                        <span>
+                          Contagem de{' '}
+                          <strong className="mv-numero">
+                            {formatarData(dados.estoque_final_data)}
+                          </strong>
+                          , de <strong>fora deste período</strong>.
+                        </span>
+                      </span>
+                    ) : (
+                      `Contagem de ${formatarData(dados.estoque_final_data)}`
+                    )
                   }
                 />
                 <Indicador
@@ -526,6 +554,29 @@ function DetalheDoPeriodo({
                   }
                 />
               </div>
+
+              {dados.estoque_final_fora_do_periodo && dados.estoque_final_data && (
+                <Aviso tom="alerta" titulo="O estoque final veio de fora do período">
+                  <p className="mt-1">
+                    Não há contagem fechada dentro de{' '}
+                    {formatarData(dados.inicio)} a {formatarData(dados.fim)}, então o fechamento
+                    usado é a <strong>primeira contagem do mês seguinte</strong>, de{' '}
+                    <strong className="mv-numero">
+                      {formatarData(dados.estoque_final_data)}
+                    </strong>
+                    . É a regra da casa: a contagem que fecha o mês costuma ser feita no mês
+                    seguinte, e é ela mesma o fechamento.
+                  </p>
+                  <p className="mt-1">
+                    O que isso custa: o movimento entre {formatarData(dados.fim)} e{' '}
+                    {formatarData(dados.estoque_final_data)} entra neste CMV. Para o fechamento
+                    mensal contado no dia 1º são algumas horas; se a contagem foi muito depois,
+                    são dias de venda e de compra dentro do número.
+                  </p>
+                </Aviso>
+              )}
+
+              <FaturamentoELadoALado dados={dados} />
 
               {explicada && (
                 <Aviso tom="alerta" titulo={explicada.titulo}>
@@ -618,6 +669,175 @@ function DetalheDoPeriodo({
         )}
       </Cartao>
     </>
+  )
+}
+
+/* ────────────────────────────── o CMV%, dos dois lados, e a limpeza ─────── */
+
+/**
+ * Os dois percentuais lado a lado, com a diferença escrita em texto.
+ *
+ * Por que os dois, e não o "certo": porque não existe o certo, existem duas
+ * perguntas diferentes. O CMV sobre o faturamento TOTAL responde "de cada real
+ * que entrou na casa, quanto foi para o estoque" — é o número do caixa. O CMV
+ * sobre o faturamento de PRODUTO responde "de cada real de comida e bebida
+ * vendida, quanto custou o insumo" — é o número da cozinha, e é com ele que se
+ * compara prato contra prato e mês contra mês.
+ *
+ * A diferença entre os dois é couvert e taxa de serviço: dinheiro que entra sem
+ * tirar nada do estoque. Em setembro de 2026 foram R$ 53.049,68 de R$ 255.417,78
+ * — 20,8%. Mostrar só o total faria o CMV parecer 20% melhor do que é.
+ */
+function FaturamentoELadoALado({ dados }: { dados: CmvPeriodo }) {
+  const temFaturamento = dados.faturamento > 0
+  const fatiaDeServico = temFaturamento ? (dados.faturamento_servico / dados.faturamento) * 100 : null
+  const razao =
+    dados.cmv_percentual !== null && dados.cmv_percentual > 0 && dados.cmv_percentual_produto !== null
+      ? dados.cmv_percentual_produto / dados.cmv_percentual
+      : null
+
+  return (
+    <div className="space-y-4 rounded-marca border border-borda bg-superficie-2 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="font-titulo text-secao font-semibold text-texto">CMV sobre o faturamento</h3>
+        <span className="text-apoio text-texto-fraco">
+          {dados.faturamento_lancamentos === 0
+            ? 'Nenhum lançamento de venda fechado neste período.'
+            : `${quantidade(dados.faturamento_lancamentos)} ${plural(dados.faturamento_lancamentos, 'lançamento de venda fechado', 'lançamentos de venda fechados')}.`}
+        </span>
+      </div>
+
+      {!temFaturamento ? (
+        /* Sem faturamento não há percentual, e zero no denominador não é "0%" —
+           é "não dá para dividir". A mesma regra do CMV ausente desde a 0005. */
+        <Aviso tom="info" titulo="Sem venda fechada, não há percentual">
+          O CMV em reais existe (ele vem do estoque e das notas), mas a porcentagem precisa do
+          faturamento. Importe a planilha do PDV em <strong>Vendas</strong> e{' '}
+          <strong>feche</strong> o lançamento: lançamento aberto não entra em conta nenhuma.
+        </Aviso>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-marca-p border border-borda bg-superficie-1 px-5 py-4">
+              <div className="mv-rotulo">Sobre o faturamento total</div>
+              <div
+                aria-live="polite"
+                className="mv-numero mt-2 text-tela leading-none font-semibold text-texto"
+              >
+                {dados.cmv_percentual === null ? 'sem CMV' : porcentagem(dados.cmv_percentual)}
+              </div>
+              <dl className="mt-3 space-y-1 text-apoio text-texto-fraco">
+                <div className="flex justify-between gap-2">
+                  <dt>Faturamento</dt>
+                  <dd className="mv-numero text-texto-suave">{dinheiro(dados.faturamento)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt>CMV</dt>
+                  <dd className="mv-numero text-texto-suave">
+                    {dados.cmv === null ? '—' : dinheiro(dados.cmv)}
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-2 text-micro leading-snug text-texto-fraco">
+                De cada real que entrou na casa, quanto foi para o estoque. É o número do caixa.
+              </p>
+            </div>
+
+            <div className="rounded-marca-p border border-primaria/40 bg-primaria-06 px-5 py-4">
+              <div className="mv-rotulo">Sobre o faturamento de produto</div>
+              <div
+                aria-live="polite"
+                className="mv-numero mt-2 text-tela leading-none font-semibold text-primaria-legivel"
+              >
+                {dados.cmv_percentual_produto === null
+                  ? 'sem CMV'
+                  : porcentagem(dados.cmv_percentual_produto)}
+              </div>
+              <dl className="mt-3 space-y-1 text-apoio text-texto-fraco">
+                <div className="flex justify-between gap-2">
+                  <dt>Faturamento de produto</dt>
+                  <dd className="mv-numero text-texto-suave">
+                    {dinheiro(dados.faturamento_produto)}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt>Serviço que saiu da conta</dt>
+                  <dd className="mv-numero text-texto-suave">
+                    −{dinheiro(dados.faturamento_servico)}
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-2 text-micro leading-snug text-texto-fraco">
+                De cada real de comida e bebida, quanto custou o insumo. É o número da cozinha.
+              </p>
+            </div>
+          </div>
+
+          {/* A diferença explicada em texto, que foi o pedido literal: "os dois
+              lado a lado, com a diferença explicada na tela". */}
+          <p className="text-apoio leading-relaxed text-texto-suave">
+            A diferença entre os dois é <strong>couvert e taxa de serviço</strong>:{' '}
+            <strong className="mv-numero">{dinheiro(dados.faturamento_servico)}</strong>
+            {fatiaDeServico !== null && <> ({porcentagem(fatiaDeServico)} do faturamento)</>} que
+            entraram sem tirar nada do estoque. Como esse dinheiro não consome insumo, ele{' '}
+            <em>empurra o percentual para baixo</em> quando entra no denominador
+            {razao !== null && (
+              <>
+                {' '}
+                — o número da cozinha é{' '}
+                <strong className="mv-numero">{razao.toFixed(2).replace('.', ',')}×</strong> o do
+                caixa
+              </>
+            )}
+            . O do caixa diz se a casa fecha a conta; o da cozinha diz se a ficha está certa.
+          </p>
+        </>
+      )}
+
+      {/* A terceira decisão da cliente: limpeza e descartáveis fora do CMV de
+          insumo, com indicador próprio ao lado. */}
+      <div className="grid gap-3 border-t border-borda pt-4 sm:grid-cols-3">
+        <Indicador
+          rotulo="CMV de insumo"
+          valor={dados.cmv_insumo === null ? '—' : dinheiro(dados.cmv_insumo)}
+          tom="marca"
+          apoio="O que virou prato e copo: sem limpeza e sem descartável."
+        />
+        <Indicador
+          rotulo="Limpeza e descartáveis"
+          valor={dados.cmv_limpeza === null ? '—' : dinheiro(dados.cmv_limpeza)}
+          icone={<SprayCan className="size-4 text-texto-fraco" aria-hidden />}
+          apoio={
+            dados.cmv_limpeza === null
+              ? 'Precisa das duas contagens, como o CMV.'
+              : `${dinheiro(dados.compras_limpeza)} comprados no período.`
+          }
+        />
+        <Indicador
+          rotulo="Soma dos dois"
+          valor={dados.cmv === null ? '—' : dinheiro(dados.cmv)}
+          apoio="É o CMV inteiro: as duas metades fecham, sempre."
+        />
+      </div>
+
+      {dados.compras > 0 && dados.compras_limpeza === 0 && (
+        /* Zero aqui pode ser "não comprou limpeza" ou "ninguém marcou categoria
+           nenhuma como fora do insumo" — coisas muito diferentes, e a tela não
+           escolhe entre elas: diz as duas.
+           Só aparece quando HOUVE compra no período: com `compras` zerado, o
+           zero da limpeza não tem nada a explicar além do próprio zero, e a
+           frase viraria uma suspeita falsa. */
+        <p className="text-micro leading-snug text-texto-fraco">
+          Houve {dinheiro(dados.compras)} de compra no período e nada dela caiu em limpeza. Isso
+          pode querer dizer que a casa não comprou limpeza, ou que nenhuma categoria do cadastro
+          está marcada como fora do CMV de insumo. Confira em{' '}
+          <Link to="/cadastros/categorias" className="text-primaria-legivel underline-offset-2 hover:underline">
+            Categorias
+          </Link>
+          .
+        </p>
+      )}
+    </div>
   )
 }
 

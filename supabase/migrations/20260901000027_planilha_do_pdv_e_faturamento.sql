@@ -547,7 +547,86 @@ $$;
 comment on function mv_faturamento_periodo(uuid, date, date) is
   'Faturamento de vendas FECHADAS do periodo: total, de produto (sem servico) e de servico.';
 
--- 9 -------------------------------------------------- o CMV com denominador --
+-- 9 ------------------------------- as duas fotos de um periodo, num lugar so -
+-- As DUAS funcoes do modulo 4 procuram o mesmo par de contagens: a que abre o
+-- periodo e a que o fecha. Ate aqui cada uma procurava por conta propria, com
+-- o mesmo SQL copiado — e no instante em que esta migracao mudou a regra do
+-- fechamento numa delas, as duas passaram a contar historias diferentes sobre
+-- o mesmo mes. Medido na tela, com a carga do Bar do Zeca dentro:
+--
+--   cartao "Periodo em detalhe" .... CMV de setembro R$ 6.720,01
+--   tabela "Abertura por categoria" ... "sem CMV" em TODAS as 21 categorias
+--
+-- E a mesma doenca que a 0007 curou ao contrario: la a tabela mostrava numero
+-- onde o cartao dizia que nao havia, aqui o cartao mostra numero onde a tabela
+-- diz que nao ha. A cura definitiva nao e copiar a regra nova para o segundo
+-- lugar — e nao haver segundo lugar.
+create or replace function mv_contagens_do_periodo(
+  p_restaurante uuid,
+  p_inicio      date,
+  p_fim         date
+) returns table (
+  inicial_id        uuid,
+  inicial_data      date,
+  inicial_total     numeric,
+  final_id          uuid,
+  final_data        date,
+  final_total       numeric,
+  final_fora_do_periodo boolean
+)
+language plpgsql stable security invoker set search_path = public as $$
+declare c_ini contagens; c_fim contagens;
+begin
+  -- Estoque inicial: a foto mais recente ate a virada do periodo.
+  select * into c_ini from contagens
+   where restaurante_id = p_restaurante and status = 'fechada' and referencia <= p_inicio
+   order by referencia desc, fechada_em desc limit 1;
+
+  -- Estoque final, degrau (a): a foto mais recente dentro do periodo, nunca a
+  -- mesma do inicial.
+  select * into c_fim from contagens
+   where restaurante_id = p_restaurante and status = 'fechada'
+     and referencia <= p_fim and referencia > coalesce(c_ini.referencia, '-infinity'::date)
+   order by referencia desc, fechada_em desc limit 1;
+
+  final_fora_do_periodo := false;
+
+  -- Degrau (b): a PRIMEIRA contagem fechada do mes civil seguinte ao fim do
+  -- periodo. A casa conta no dia 1o e chama aquilo de fechamento do mes que
+  -- passou — e e isso que e. `referencia desc` virou `asc` aqui de proposito:
+  -- a regra dela diz a PRIMEIRA, nao a ultima.
+  --
+  -- E so para periodo que FECHA UM MES. A regra fala do "final do mes", e
+  -- aplica-la a janela semanal fabrica numero: medido na serie semanal de
+  -- setembro do Bar do Zeca, sem esta condicao, QUATRO semanas que terminam no
+  -- meio do mes saiam todas com o mesmo CMV de R$ 6.720,0063 — o CMV do mes
+  -- inteiro, repetido, como se o bar consumisse isso por semana. O grafico
+  -- mostraria quatro barras iguais e cada uma seria o mes. A semana que de fato
+  -- contem a contagem continua fechando pelo degrau (a), que nao mudou.
+  if c_fim.id is null
+     and p_fim = (date_trunc('month', p_fim) + interval '1 month - 1 day')::date then
+    select * into c_fim from contagens
+     where restaurante_id = p_restaurante and status = 'fechada'
+       and referencia >= (date_trunc('month', p_fim) + interval '1 month')::date
+       and referencia <  (date_trunc('month', p_fim) + interval '2 month')::date
+       and referencia >  coalesce(c_ini.referencia, '-infinity'::date)
+     order by referencia asc, fechada_em asc limit 1;
+    final_fora_do_periodo := c_fim.id is not null;
+  end if;
+
+  inicial_id    := c_ini.id;
+  inicial_data  := c_ini.referencia;
+  inicial_total := c_ini.total;
+  final_id      := c_fim.id;
+  final_data    := c_fim.referencia;
+  final_total   := c_fim.total;
+  return next;
+end $$;
+
+comment on function mv_contagens_do_periodo(uuid, date, date) is
+  'As duas contagens fechadas que delimitam um periodo. Fonte unica para mv_cmv_periodo e mv_cmv_por_categoria.';
+
+-- 10 ------------------------------------------------- o CMV com denominador --
 -- A tabela de retorno muda, entao a funcao e redefinida inteira: `create or
 -- replace` recusa mudar retorno. O `drop` tem de vir antes, e `mv_cmv_serie`
 -- continua valendo porque le as colunas pelo NOME — as novas entram no fim.
@@ -587,46 +666,13 @@ create function mv_cmv_periodo(
 )
 language plpgsql stable security invoker set search_path = public as $$
 declare
-  c_ini contagens; c_fim contagens;
+  c record;
   v_compras numeric := 0; v_notas integer := 0;
-  v_fora boolean := false;
   f record;
   v_compras_limpeza numeric := 0;
   v_ini_limpeza numeric; v_fim_limpeza numeric;
 begin
-  -- Estoque inicial: a foto mais recente ate a virada do periodo.
-  select * into c_ini from contagens
-   where restaurante_id = p_restaurante and status = 'fechada' and referencia <= p_inicio
-   order by referencia desc, fechada_em desc limit 1;
-
-  -- Estoque final, degrau (a): a foto mais recente dentro do periodo, nunca a
-  -- mesma do inicial.
-  select * into c_fim from contagens
-   where restaurante_id = p_restaurante and status = 'fechada'
-     and referencia <= p_fim and referencia > coalesce(c_ini.referencia, '-infinity'::date)
-   order by referencia desc, fechada_em desc limit 1;
-
-  -- Degrau (b): a PRIMEIRA contagem fechada do mes civil seguinte ao fim do
-  -- periodo. A casa conta no dia 1o e chama aquilo de fechamento do mes que
-  -- passou — e e isso que e. `referencia desc` virou `asc` aqui de proposito:
-  -- a regra dela diz a PRIMEIRA, nao a ultima.
-  --
-  -- E so para periodo que FECHA UM MES. A regra fala do "final do mes", e
-  -- aplica-la a janela semanal fabrica numero: medido na serie semanal de
-  -- setembro do Bar do Zeca, sem esta condicao, QUATRO semanas que terminam no
-  -- meio do mes saiam todas com o mesmo CMV de R$ 6.720,0063 — o CMV do mes
-  -- inteiro, repetido, como se o bar consumisse isso por semana. O grafico
-  -- mostraria quatro barras iguais e cada uma seria o mes. A semana que de fato
-  -- contem a contagem continua fechando pelo degrau (a), que nao mudou.
-  if c_fim.id is null and p_fim = (date_trunc('month', p_fim) + interval '1 month - 1 day')::date then
-    select * into c_fim from contagens
-     where restaurante_id = p_restaurante and status = 'fechada'
-       and referencia >= (date_trunc('month', p_fim) + interval '1 month')::date
-       and referencia <  (date_trunc('month', p_fim) + interval '2 month')::date
-       and referencia >  coalesce(c_ini.referencia, '-infinity'::date)
-     order by referencia asc, fechada_em asc limit 1;
-    v_fora := c_fim.id is not null;
-  end if;
+  select * into c from mv_contagens_do_periodo(p_restaurante, p_inicio, p_fim);
 
   select coalesce(sum(n.valor_total), 0), count(*) into v_compras, v_notas
     from notas_fiscais n
@@ -653,38 +699,38 @@ begin
     from contagem_itens i
     join produtos p on p.id = i.produto_id
     join categorias cat on cat.id = p.categoria_id
-   where i.contagem_id = c_ini.id and cat.fora_do_insumo;
+   where i.contagem_id = c.inicial_id and cat.fora_do_insumo;
 
   select coalesce(sum(i.total), 0) into v_fim_limpeza
     from contagem_itens i
     join produtos p on p.id = i.produto_id
     join categorias cat on cat.id = p.categoria_id
-   where i.contagem_id = c_fim.id and cat.fora_do_insumo;
+   where i.contagem_id = c.final_id and cat.fora_do_insumo;
 
   select * into f from mv_faturamento_periodo(p_restaurante, p_inicio, p_fim);
 
   inicio := p_inicio;
   fim    := p_fim;
-  estoque_inicial      := c_ini.total;
-  estoque_inicial_data := c_ini.referencia;
-  estoque_inicial_id   := c_ini.id;
+  estoque_inicial      := c.inicial_total;
+  estoque_inicial_data := c.inicial_data;
+  estoque_inicial_id   := c.inicial_id;
   compras              := v_compras;
   compras_notas        := v_notas;
-  estoque_final        := c_fim.total;
-  estoque_final_data   := c_fim.referencia;
-  estoque_final_id     := c_fim.id;
-  estoque_final_fora_do_periodo := v_fora;
+  estoque_final        := c.final_total;
+  estoque_final_data   := c.final_data;
+  estoque_final_id     := c.final_id;
+  estoque_final_fora_do_periodo := c.final_fora_do_periodo;
 
-  if c_ini.id is null and c_fim.id is null then
+  if c.inicial_id is null and c.final_id is null then
     pendencia := 'Nenhuma contagem fechada neste periodo';
-  elsif c_ini.id is null then
+  elsif c.inicial_id is null then
     pendencia := 'Falta a contagem de estoque inicial';
-  elsif c_fim.id is null then
+  elsif c.final_id is null then
     pendencia := 'Falta a contagem de estoque final';
   end if;
 
-  completo := (c_ini.id is not null and c_fim.id is not null);
-  cmv := case when completo then round(c_ini.total + v_compras - c_fim.total, 4) end;
+  completo := (c.inicial_id is not null and c.final_id is not null);
+  cmv := case when completo then round(c.inicial_total + v_compras - c.final_total, 4) end;
 
   faturamento             := f.total;
   faturamento_produto     := f.produto;
@@ -700,8 +746,8 @@ begin
                                  then round(cmv / f.produto * 100, 2) end;
 
   compras_limpeza         := v_compras_limpeza;
-  estoque_inicial_limpeza := case when c_ini.id is not null then coalesce(v_ini_limpeza, 0) end;
-  estoque_final_limpeza   := case when c_fim.id is not null then coalesce(v_fim_limpeza, 0) end;
+  estoque_inicial_limpeza := case when c.inicial_id is not null then coalesce(v_ini_limpeza, 0) end;
+  estoque_final_limpeza   := case when c.final_id is not null then coalesce(v_fim_limpeza, 0) end;
   -- As duas metades somam o CMV inteiro, por construcao. E conferido em teste.
   cmv_limpeza := case when completo
                       then round(coalesce(v_ini_limpeza, 0) + v_compras_limpeza
@@ -714,7 +760,7 @@ end $$;
 comment on function mv_cmv_periodo(uuid, date, date) is
   'CMV do periodo com faturamento, os dois percentuais, e limpeza/descartavel separado.';
 
--- 10 ---------------------------------------------------------------- rls ----
+-- 11 ---------------------------------------------------------------- rls ----
 alter table venda_apelidos enable row level security;
 
 -- Igual a `produto_apelidos` (0006): ler e de quem opera, mexer tambem — o
@@ -736,7 +782,80 @@ drop policy if exists venda_apelidos_apagar on venda_apelidos;
 create policy venda_apelidos_apagar on venda_apelidos for delete to authenticated
   using (mv_pode_administrar(restaurante_id));
 
--- 11 -------------------------------------------------------- permissoes ----
+-- 12 ---------------------------- a abertura por categoria, pela mesma regra --
+-- Corpo da 0009 inteiro — inclusive o eixo que mantem a categoria sem
+-- movimento na tela e a linha "Sem categoria" — com UMA mudanca: as duas
+-- contagens vem de `mv_contagens_do_periodo` em vez de serem procuradas de
+-- novo aqui. A regra do fechamento no mes seguinte passa a valer para a tabela
+-- tambem, e as duas telas voltam a contar a mesma historia.
+create or replace function mv_cmv_por_categoria(
+  p_restaurante uuid,
+  p_inicio      date,
+  p_fim         date
+) returns table (
+  categoria_id    uuid,
+  categoria_nome  text,
+  categoria_cor   text,
+  categoria_ativa boolean,
+  estoque_inicial numeric,
+  compras         numeric,
+  estoque_final   numeric,
+  cmv             numeric
+)
+language plpgsql stable security invoker set search_path = public as $$
+declare v_ini uuid; v_fim uuid;
+begin
+  select c.inicial_id, c.final_id into v_ini, v_fim
+    from mv_contagens_do_periodo(p_restaurante, p_inicio, p_fim) c;
+
+  return query
+  with ei as (
+    select p.categoria_id as cid, sum(i.total) as v
+      from contagem_itens i join produtos p on p.id = i.produto_id
+     where i.contagem_id = v_ini group by p.categoria_id
+  ),
+  ef as (
+    select p.categoria_id as cid, sum(i.total) as v
+      from contagem_itens i join produtos p on p.id = i.produto_id
+     where i.contagem_id = v_fim group by p.categoria_id
+  ),
+  co as (
+    select p.categoria_id as cid, sum(it.valor_total) as v
+      from nota_itens it
+      join notas_fiscais n on n.id = it.nota_id
+      join produtos p on p.id = it.produto_id
+     where n.restaurante_id = p_restaurante and n.status = 'lancada'
+       and n.emitida_em between p_inicio and p_fim
+     group by p.categoria_id
+  ),
+  -- Todo cid que apareceu em qualquer uma das tres pontas, mais as categorias
+  -- ativas sem movimento (que continuam merecendo uma linha zerada na tela).
+  eixo as (
+    select cid from ei union
+    select cid from ef union
+    select cid from co union
+    select c.id from categorias c where c.restaurante_id = p_restaurante and c.ativo
+  )
+  select
+    eixo.cid,
+    coalesce(c.nome, 'Sem categoria'),
+    coalesce(c.cor, '#6B7280'),
+    coalesce(c.ativo, false),
+    case when v_ini is not null then coalesce(ei.v, 0) end,
+    coalesce(co.v, 0),
+    case when v_fim is not null then coalesce(ef.v, 0) end,
+    case when v_ini is not null and v_fim is not null
+         then round(coalesce(ei.v, 0) + coalesce(co.v, 0) - coalesce(ef.v, 0), 4)
+    end
+    from eixo
+    left join categorias c on c.id = eixo.cid and c.restaurante_id = p_restaurante
+    left join ei on ei.cid is not distinct from eixo.cid
+    left join ef on ef.cid is not distinct from eixo.cid
+    left join co on co.cid is not distinct from eixo.cid
+   order by 8 desc nulls last, 2;
+end $$;
+
+-- 13 -------------------------------------------------------- permissoes ----
 -- `drop function` leva o grant junto. Sem re-outorgar aqui, a SEGUNDA passada
 -- desta migracao — que e o que o `supabase db push` faz sempre que o historico
 -- esta atras do banco — deixaria a tela do CMV com "permission denied for
@@ -747,6 +866,8 @@ grant execute on function mv_faturamento_periodo(uuid, date, date) to authentica
 grant execute on function mv_vendas_por_produto(uuid)              to authenticated;
 grant execute on function mv_fechar_venda(uuid)                    to authenticated;
 grant execute on function mv_operacao_fora_do_insumo(text)         to authenticated;
+grant execute on function mv_contagens_do_periodo(uuid, date, date) to authenticated;
+grant execute on function mv_cmv_por_categoria(uuid, date, date)   to authenticated;
 grant execute on function mv_ensina_apelido_de_venda(uuid, text, alvo_de_venda, uuid, uuid)
   to authenticated;
 grant execute on function mv_resolver_item_de_venda(uuid, alvo_de_venda, uuid, uuid)

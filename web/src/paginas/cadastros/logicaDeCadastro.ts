@@ -11,8 +11,14 @@ import type { Categoria, ProdutoCompleto, Setor } from '@/tipos/banco'
 
 export type TipoDeCadastro = 'categoria' | 'setor'
 
-/** Categoria e setor têm a mesma forma — o código trata os dois igual. */
-export type ItemDeCadastro = Categoria | Setor
+/**
+ * Categoria e setor têm quase a mesma forma — o código trata os dois igual.
+ *
+ * O "quase" é `fora_do_insumo`, que só a categoria tem (migração 0027). Por
+ * isso ele entra como opcional aqui: o formulário compartilhado lê o campo e só
+ * o MOSTRA quando o tipo é categoria.
+ */
+export type ItemDeCadastro = (Categoria | Setor) & { fora_do_insumo?: boolean }
 
 export interface RascunhoDeCadastro {
   id?: string
@@ -21,6 +27,14 @@ export interface RascunhoDeCadastro {
   cor: string
   ordem: number
   ativo: boolean
+  /**
+   * Só a CATEGORIA usa: `true` = não é insumo de prato (limpeza, descartável).
+   *
+   * A decisão é de cadastro e não de adivinhação: a migração 0027 carimba uma
+   * vez, pelo nome, as categorias que já existiam, e daqui para frente quem diz
+   * é esta tela. Setor não tem o campo, e o formulário não o mostra lá.
+   */
+  foraDoInsumo: boolean
 }
 
 export interface ProblemaDeCadastro {
@@ -146,6 +160,7 @@ export function rascunhoDeCadastro(item: ItemDeCadastro | null, proximaOrdem: nu
     cor: item?.cor ?? COR_PADRAO,
     ordem: item?.ordem ?? proximaOrdem,
     ativo: item?.ativo ?? true,
+    foraDoInsumo: item?.fora_do_insumo ?? false,
   }
 }
 

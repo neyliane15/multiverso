@@ -23,14 +23,20 @@
  *    vira foto: o relatório do período não muda de número depois de lido, e o
  *    banco recusa alteração de item — a mesma regra da contagem fechada.
  *
- * A importação de PDV **não** está aqui. O encaixe dela está: `vendas.origem`,
- * `vendas.origem_arquivo` e `venda_itens.descricao_origem` já existem no
- * banco, nos mesmos papéis que `notas_fiscais.origem` e `nota_itens.descricao`
- * cumprem nas compras. Esta tela é o caminho da mão.
+ * A importação do PDV entra pelo botão "Importar planilha" desta mesma tela, e
+ * não numa tela nova: é o mesmo lançamento de vendas, por outro caminho — como
+ * o XML e a compra de rua convivem na tela de notas. O que ela traz de novo é
+ * que uma linha pode apontar para o INSUMO direto (a garrafa fechada) ou ser
+ * SERVIÇO (couvert, taxa), e não só para ficha. Ver `PlanilhaDeVendas.tsx`.
+ *
+ * O formulário da mão continua editando só as linhas de FICHA. Um lançamento
+ * importado abre na conferência da planilha, que é onde as outras três formas
+ * de linha se resolvem.
  */
 import { useEffect, useMemo, useState } from 'react'
 import {
   CircleCheck,
+  FileSpreadsheet,
   Lock,
   LockOpen,
   Plus,
@@ -75,6 +81,7 @@ import {
 import { chaveBusca, data as formatarData, dataHora, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
 import { PainelLateral } from '../PainelLateral'
 import { hojeIso } from './logica'
+import { ConferenciaDeVenda, PainelDaPlanilha } from './PlanilhaDeVendas'
 
 const TOM_DO_STATUS = { fechada: 'sucesso', aberta: 'marca', cancelada: 'erro' } as const
 const ROTULO_DO_STATUS = { fechada: 'Fechada', aberta: 'Aberta', cancelada: 'Cancelada' } as const
@@ -105,6 +112,10 @@ function VendasDoRestaurante({ restauranteId }: { restauranteId: string }) {
   const apagar = useApagarVenda(restauranteId)
 
   const [editando, setEditando] = useState<Venda | 'nova' | null>(null)
+  const [importando, setImportando] = useState(false)
+  // O lançamento recém-importado abre na conferência: o id vem da importação,
+  // e a lista pode ainda estar chegando quando ela termina.
+  const [conferindo, setConferindo] = useState<string | null>(null)
   const [fechando, setFechando] = useState<Venda | null>(null)
   const [apagando, setApagando] = useState<Venda | null>(null)
   const [falha, setFalha] = useState<string | null>(null)
@@ -125,9 +136,21 @@ function VendasDoRestaurante({ restauranteId }: { restauranteId: string }) {
       titulo="Vendas"
       descricao="O que saiu pela porta, ficha por ficha. Fechar o lançamento é o que o relatório de contagem enxerga."
       acoes={
-        <Botao tom="primario" icone={<Plus className="size-4" aria-hidden />} onClick={() => setEditando('nova')}>
-          Novo lançamento
-        </Botao>
+        <div className="flex flex-wrap gap-2">
+          <Botao
+            tom="secundario"
+            icone={<FileSpreadsheet className="size-4" aria-hidden />}
+            onClick={() => {
+              setFalha(null)
+              setImportando(true)
+            }}
+          >
+            Importar planilha
+          </Botao>
+          <Botao tom="primario" icone={<Plus className="size-4" aria-hidden />} onClick={() => setEditando('nova')}>
+            Novo lançamento
+          </Botao>
+        </div>
       }
     />
   )
@@ -154,6 +177,7 @@ function VendasDoRestaurante({ restauranteId }: { restauranteId: string }) {
   }
 
   const lista = vendas.data ?? []
+  const conferida = conferindo === null ? null : (lista.find((v) => v.id === conferindo) ?? null)
 
   return (
     <>
@@ -167,9 +191,9 @@ function VendasDoRestaurante({ restauranteId }: { restauranteId: string }) {
 
       {vendaveis.length === 0 && !fichas.isLoading && (
         <Aviso tom="alerta" titulo="Nenhuma ficha de venda cadastrada">
-          A venda é lançada em ficha, não em insumo: é a ficha que sabe quanto de cada produto o
-          prato consome. Cadastre as fichas do cardápio antes de lançar as vendas — produções não
-          contam, elas são insumo interno.
+          A venda de prato e de dose é lançada em ficha: é ela que sabe quanto de cada insumo o
+          prato consome. Sem ficha nenhuma, só a garrafa fechada — que aponta direto para o insumo
+          — e o serviço têm onde entrar. Produções não contam: são insumo interno.
         </Aviso>
       )}
 
@@ -179,9 +203,14 @@ function VendasDoRestaurante({ restauranteId }: { restauranteId: string }) {
             icone={<Receipt />}
             titulo="Nenhum lançamento de venda ainda"
             acao={
-              <Botao tom="primario" onClick={() => setEditando('nova')}>
-                Lançar o primeiro período
-              </Botao>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Botao tom="primario" onClick={() => setImportando(true)}>
+                  Importar a planilha do PDV
+                </Botao>
+                <Botao tom="secundario" onClick={() => setEditando('nova')}>
+                  Lançar à mão
+                </Botao>
+              </div>
             }
           >
             Sem venda lançada, o relatório de contagem calcula o consumo mas não o ideal — e não
@@ -204,7 +233,10 @@ function VendasDoRestaurante({ restauranteId }: { restauranteId: string }) {
             </thead>
             <tbody>
               {lista.map((v) => (
-                <Linha key={v.id} aoClicar={() => setEditando(v)}>
+                <Linha
+                  key={v.id}
+                  aoClicar={() => (v.origem === 'pdv' ? setConferindo(v.id) : setEditando(v))}
+                >
                   <Td>
                     <span className="mv-numero block font-medium text-texto">
                       {v.inicio ? `${formatarData(v.inicio)} – ` : 'até '}
@@ -292,6 +324,26 @@ function VendasDoRestaurante({ restauranteId }: { restauranteId: string }) {
             </tbody>
           </Tabela>
         </Cartao>
+      )}
+
+      {importando && (
+        <PainelDaPlanilha
+          restauranteId={restauranteId}
+          aoFechar={() => setImportando(false)}
+          aoImportar={(vendaId) => {
+            setImportando(false)
+            setConferindo(vendaId)
+          }}
+        />
+      )}
+
+      {conferindo && conferida && (
+        <ConferenciaDeVenda
+          restauranteId={restauranteId}
+          venda={conferida}
+          aoFechar={() => setConferindo(null)}
+          aoFalhar={setFalha}
+        />
       )}
 
       {editando && (

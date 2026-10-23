@@ -353,6 +353,18 @@ function emLotes(linhas, tamanho = 200) {
 
 // Os marcadores @bloco/@fim nao sao enfeite: scripts/conferir-seed.mjs le o SQL
 // por eles para checar o arquivo sem precisar de banco.
+/**
+ * A categoria e insumo de prato, ou e limpeza/descartavel?
+ *
+ * A mesma regra de nome que a migracao 0027 usa no carimbo inicial, para que a
+ * carga e a migracao nao discordem sobre a mesma categoria. Nao ha esperteza
+ * aqui de proposito: e um ponto de partida, e a tela de Categorias manda.
+ */
+function foraDoInsumo(nome) {
+  const chave = nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
+  return /LIMPEZA|DESCARTAV|HIGIENE/.test(chave)
+}
+
 function bloco(nome, tabela, colunas, linhas, conflito) {
   const partes = [`-- @bloco:${nome}`]
   for (const lote of emLotes(linhas)) {
@@ -442,12 +454,22 @@ on conflict (id) do update set
 
   // ------------------------------------------------------------ categorias --
   p.push(`-- Categorias na ordem da planilha. A cor vem de uma varredura de matiz com
--- saturacao e luz presas a uma faixa estreita, para os chips formarem familia.`)
+-- saturacao e luz presas a uma faixa estreita, para os chips formarem familia.
+--
+-- \`fora_do_insumo\` marca limpeza e descartavel, que a cliente tirou do CMV de
+-- insumo (migracao 0027). A marca vem da CARGA e nao so da migracao porque a
+-- migracao carimba as categorias que JA EXISTEM, e numa instalacao nova ela
+-- roda antes de a carga criar qualquer uma — foi medido assim no ambiente
+-- local: zero categorias marcadas, e o indicador de limpeza do dashboard
+-- mostrando R$ 0,00 com cara de medida. Quem muda daqui para frente e a tela
+-- de Categorias; isto e so o ponto de partida do primeiro cliente.`)
   p.push(bloco(
     'categorias',
     'categorias',
-    ['id', 'restaurante_id', 'nome', 'cor', 'ordem'],
-    modelo.categorias.map((c) => [txt(c.id), R, txt(c.nome), txt(c.cor), c.ordem].join(', ')),
+    ['id', 'restaurante_id', 'nome', 'cor', 'ordem', 'fora_do_insumo'],
+    modelo.categorias.map((c) =>
+      [txt(c.id), R, txt(c.nome), txt(c.cor), c.ordem, foraDoInsumo(c.nome)].join(', '),
+    ),
     `on conflict (id) do update set
   nome = excluded.nome, cor = excluded.cor, ordem = excluded.ordem, ativo = true`,
   ))

@@ -2140,6 +2140,24 @@ begin
   perform conferir('e outubro nao usa a mesma foto dos dois lados',
                    l.estoque_final_id is distinct from l.estoque_inicial_id);
 
+  -- -------------------- as DUAS funcoes contam a mesma historia ------------
+  -- O defeito que isto tranca apareceu na tela, com a carga de verdade dentro:
+  -- o cartao "Periodo em detalhe" mostrava o CMV de setembro e a tabela
+  -- "Abertura por categoria" dizia "sem CMV" em TODAS as categorias, porque
+  -- cada funcao procurava as contagens por conta propria e so uma conhecia a
+  -- regra nova. E a mesma doenca da 0007, ao contrario. A cura nao foi copiar
+  -- a regra para o segundo lugar — foi nao haver segundo lugar.
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('a abertura por categoria enxerga o mesmo estoque final',
+    (select sum(c.estoque_final) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30') c)
+    = l.estoque_final);
+  perform conferir('e o mesmo CMV, somado por categoria',
+    (select sum(c.cmv) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30') c)
+    = l.cmv);
+  perform conferir('nenhuma categoria com movimento fica sem CMV enquanto o periodo tem',
+    (select count(*) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30') c
+      where c.cmv is null and c.compras > 0) = 0);
+
   -- ------------------------------------------- a janela que NAO fecha mes --
   -- A regra fala do final do MES. Aplicada a semana, ela fabricaria numero:
   -- toda semana de setembro sairia com o CMV do mes inteiro.
