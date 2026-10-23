@@ -1,0 +1,293 @@
+/**
+ * De-para entre o nome que o PDV (ou o ERP) escreve e o que o sistema conhece.
+ *
+ * Reusa `casarProdutos.ts` — a cascata de apelido, EAN e código já está lá e já
+ * tem teste — e **tranca o último degrau dela**: o degrau da similaridade de
+ * texto, que vincula sozinho a partir de 72% de parecença.
+ *
+ * Por que trancar, medido na planilha de vendas de setembro:
+ *
+ *     AMSTEL 600 ML          R$ 16.633,21
+ *     AMSTEL CHOPP 300 ML
+ *     AMSTEL CHOPP 300 ML HH R$  7.023,92
+ *
+ * São três produtos diferentes. As duas últimas se distinguem por duas letras
+ * — "HH" é happy hour, preço de carta diferente, e nenhuma distância de texto
+ * separa as duas com segurança. A similaridade marcaria 90%+ entre elas e
+ * vincularia a errada sozinha; o estrago sai no CMV e ninguém vê, porque a
+ * linha fica parecendo certa.
+ *
+ * A regra deste arquivo é a mesma que `casarProdutos.ts` já escreveu e que vale
+ * dobrado em importação de 136 itens: **linha pendente é incômodo de dois
+ * cliques; linha errada é um número falso no dashboard**. Então aqui:
+ *
+ * - vincula sozinho quando **alguém já disse à mão** que aquele nome é aquele
+ *   alvo (apelido aprendido), ou quando o nome é **idêntico** ao do cadastro
+ *   depois de normalizado (sem acento, maiúscula, só A-Z0-9);
+ * - em todo o resto devolve PENDENTE, com as melhores sugestões para um
+ *   clique — nunca com o vínculo feito.
+ */
+import { casarItem, similaridadeTexto, type ApelidoConhecido, type ProdutoCandidato } from '@/dados/nfe/casarProdutos'
+import { chaveBusca } from '@/util/formato'
+
+/**
+ * Limiar impossível de alcançar pela similaridade: `similaridadeTexto` devolve
+ * no máximo 1, então `1,01` desliga o degrau 5 sem mexer em `casarProdutos.ts`
+ * — os degraus de cima (apelido, EAN, código) continuam valendo inteiros.
+ */
+const SEM_SIMILARIDADE = 1.01
+
+export type MotivoDoVinculo =
+  | 'apelido'
+  | 'nome_identico'
+  | 'pendente'
+
+export interface SugestaoDeAlvo {
+  tipo: 'ficha' | 'produto'
+  id: string
+  nome: string
+  confianca: number
+}
+
+// ───────────────────────────────────────────────── compras (nota do ERP) ───
+
+export interface CasamentoDeCompra {
+  /** Preenchido só quando dá para vincular sem humano. */
+  produtoId: string | null
+  motivo: MotivoDoVinculo
+  explicacao: string
+  fatorSugerido: number | null
+}
+
+/**
+ * Casa a descrição de uma linha da planilha de compras com um insumo.
+ *
+ * O apelido aprendido nas notas fiscais vale aqui: é o mesmo vocabulário de
+ * fornecedor, e `produto_apelidos` existe exatamente para isso desde a 0004.
+ */
+export function casarCompraDaPlanilha(
+  descricao: string,
+  contexto: { produtos: ProdutoCandidato[]; apelidos?: ApelidoConhecido[] },
+): CasamentoDeCompra {
+  // `casarItem` com o limiar impossível: os degraus de apelido, EAN e código
+  // resolvem; o da similaridade nunca vincula. Sem sugestão aqui de propósito —
+  // ver `sugerirAlvos`.
+  const bruto = casarItem(
+    { descricao },
+    {
+      produtos: contexto.produtos,
+      apelidos: contexto.apelidos ?? [],
+      confiancaMinima: SEM_SIMILARIDADE,
+    },
+  )
+
+  if (bruto.produtoId !== null) {
+    return {
+      produtoId: bruto.produtoId,
+      motivo: 'apelido',
+      explicacao: bruto.explicacao,
+      fatorSugerido: bruto.fatorSugerido,
+    }
+  }
+
+  const identico = porNomeIdentico(descricao, contexto.produtos)
+  if (identico) {
+    return {
+      produtoId: identico.id,
+      motivo: 'nome_identico',
+      explicacao: `O nome é igual ao do insumo "${identico.nome}" no cadastro.`,
+      fatorSugerido: null,
+    }
+  }
+
+  return {
+    produtoId: null,
+    motivo: 'pendente',
+    explicacao: 'Nenhum vínculo garantido para este nome. Escolha o insumo.',
+    fatorSugerido: null,
+  }
+}
+
+// ───────────────────────────────────────────────────── vendas (nome do PDV) ─
+
+/** O que uma linha de venda pode apontar. Ver a migração 0027. */
+export type AlvoDeVenda = 'ficha' | 'produto' | 'servico' | 'pendente'
+
+export interface FichaCandidata {
+  id: string
+  nome: string
+  /** Produção é insumo interno e não se vende: o banco recusa por gatilho. */
+  producao: boolean
+  ativo: boolean
+  preco_venda: number
+}
+
+/** Uma linha de `venda_apelidos` — o aprendizado dos vínculos já feitos à mão. */
+export interface ApelidoDeVenda {
+  apelido: string
+  alvo: AlvoDeVenda
+  ficha_id: string | null
+  produto_id: string | null
+}
+
+export interface CasamentoDeVenda {
+  alvo: AlvoDeVenda
+  fichaId: string | null
+  produtoId: string | null
+  motivo: MotivoDoVinculo | 'servico_sugerido'
+  explicacao: string
+  /** Verdadeiro quando o nome tem cara de serviço, para a tela oferecer o atalho. */
+  pareceServico: boolean
+}
+
+/**
+ * Nomes de linha que não consomem insumo nenhum.
+ *
+ * Couvert artístico e taxa de serviço são **faturamento sem custo de estoque**:
+ * R$ 53.049,68 em setembro, 20,8% do que o bar faturou. Eles têm de entrar no
+ * faturamento (a cliente pediu os dois lados) e não podem entrar no consumo.
+ *
+ * E, ainda assim, esta lista **não vincula sozinha**: ela só acende o atalho na
+ * tela. Marcar uma linha como serviço é afirmar "isto não consome nada" — se
+ * errar, o item sai do CMV calado, que é o pior jeito de errar. Um bar que
+ * batize um prato de "TAXA DO CHEF" não pode perder o custo dele por causa de
+ * uma lista de palavras nossa.
+ */
+const PALAVRAS_DE_SERVICO = [
+  'COUVERT',
+  'TAXA DE SERVICO',
+  'TAXA SERVICO',
+  'TAXA ROLHA',
+  'ROLHA',
+  'GORJETA',
+  'SERVICO 10',
+  'ENTRADA ARTISTICA',
+]
+
+export function pareceServico(nome: string): boolean {
+  const chave = chaveBusca(nome)
+  return PALAVRAS_DE_SERVICO.some((palavra) => chave.includes(palavra))
+}
+
+export function casarVendaDaPlanilha(
+  descricao: string,
+  contexto: {
+    fichas: FichaCandidata[]
+    produtos: ProdutoCandidato[]
+    apelidos?: ApelidoDeVenda[]
+  },
+): CasamentoDeVenda {
+  const chave = chaveBusca(descricao)
+  const vendaveis = contexto.fichas.filter((f) => f.ativo && !f.producao)
+
+  // 1. Alguém já disse, à mão, o que este nome é. Vale mais que tudo.
+  const apelido = (contexto.apelidos ?? []).find((a) => chaveBusca(a.apelido) === chave)
+  if (apelido) {
+    return {
+      alvo: apelido.alvo,
+      fichaId: apelido.ficha_id,
+      produtoId: apelido.produto_id,
+      motivo: 'apelido',
+      explicacao:
+        apelido.alvo === 'servico'
+          ? 'Este nome já foi marcado à mão como serviço: ele fatura e não consome insumo.'
+          : 'Este nome já foi vinculado à mão neste restaurante.',
+      pareceServico: pareceServico(descricao),
+    }
+  }
+
+  // 2. Nome idêntico ao da ficha. A ficha vem antes do produto de propósito:
+  //    ela sabe explodir em vários insumos, e o produto direto é o caso
+  //    especial da garrafa vendida inteira.
+  const fichaIgual = vendaveis.find((f) => chaveBusca(f.nome) === chave)
+  if (fichaIgual) {
+    return {
+      alvo: 'ficha',
+      fichaId: fichaIgual.id,
+      produtoId: null,
+      motivo: 'nome_identico',
+      explicacao: `O nome é igual ao da ficha "${fichaIgual.nome}".`,
+      pareceServico: false,
+    }
+  }
+
+  const produtoIgual = porNomeIdentico(descricao, contexto.produtos)
+  if (produtoIgual) {
+    return {
+      alvo: 'produto',
+      fichaId: null,
+      produtoId: produtoIgual.id,
+      motivo: 'nome_identico',
+      explicacao:
+        `O nome é igual ao do insumo "${produtoIgual.nome}", e não há ficha com este nome: ` +
+        'a venda aponta direto para o insumo, como a garrafa vendida inteira.',
+      pareceServico: false,
+    }
+  }
+
+  const servico = pareceServico(descricao)
+  return {
+    alvo: 'pendente',
+    fichaId: null,
+    produtoId: null,
+    motivo: servico ? 'servico_sugerido' : 'pendente',
+    explicacao: servico
+      ? 'Este nome tem cara de serviço (couvert, taxa). Confirme: serviço fatura e não consome insumo nenhum.'
+      : 'Nenhum vínculo garantido para este nome. Escolha a ficha, o insumo, ou marque como serviço.',
+    pareceServico: servico,
+  }
+}
+
+// ------------------------------------------------------------ auxiliares ---
+
+function porNomeIdentico<T extends { id: string; nome: string }>(
+  descricao: string,
+  candidatos: readonly T[],
+): T | null {
+  const chave = chaveBusca(descricao)
+  if (chave === '') return null
+  const iguais = candidatos.filter((c) => chaveBusca(c.nome) === chave)
+  // Dois cadastros com o mesmo nome normalizado: ninguém decide sozinho qual é.
+  // Não acontece com `fichas_nome_unico`, mas acontece com insumo que difere só
+  // por pontuação ("COCA-COLA" e "COCA COLA").
+  return iguais.length === 1 ? (iguais[0] as T) : null
+}
+
+/**
+ * As melhores parecenças para um nome, do mais parecido ao menos.
+ *
+ * Separada do casamento porque custa caro e quase nunca é precisa: o catálogo
+ * do primeiro cliente tem 906 insumos e 69 fichas, e calcular parecença de
+ * tudo contra tudo são 975 contas por linha. Medido com a planilha de compras
+ * (693 linhas), fazer isso para TODA linha levava mais de 3 segundos de
+ * navegador travado — e 351 daquelas linhas já tinham vínculo certo e não
+ * precisavam de sugestão nenhuma.
+ *
+ * Então a tela chama isto só para a linha pendente que está mostrando, e
+ * guarda o resultado por nome: na planilha de compras são 140 nomes distintos
+ * pendentes, não 342 linhas.
+ */
+export function sugerirAlvos(
+  descricao: string,
+  contexto: { fichas?: readonly FichaCandidata[]; produtos: readonly ProdutoCandidato[] },
+  quantas = 4,
+): SugestaoDeAlvo[] {
+  const fichas = (contexto.fichas ?? []).filter((f) => f.ativo && !f.producao)
+  return [
+    ...fichas.map((f) => ({
+      tipo: 'ficha' as const,
+      id: f.id,
+      nome: f.nome,
+      confianca: similaridadeTexto(descricao, f.nome),
+    })),
+    ...contexto.produtos.map((p) => ({
+      tipo: 'produto' as const,
+      id: p.id,
+      nome: p.nome,
+      confianca: similaridadeTexto(descricao, p.nome),
+    })),
+  ]
+    .filter((s) => s.confianca > 0)
+    .sort((a, b) => b.confianca - a.confianca || a.nome.localeCompare(b.nome, 'pt-BR'))
+    .slice(0, quantas)
+}
