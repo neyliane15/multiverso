@@ -597,7 +597,7 @@ end $$;
 do $$
 declare
   r uuid; s1 uuid; s2 uuid; cat uuid; cat_limpeza uuid;
-  p1 uuid; p2 uuid; c1 uuid; c2 uuid; n uuid;
+  p1 uuid; p2 uuid; c1 uuid; c2 uuid; n uuid; n2 uuid;
   u_admin uuid; u_setor uuid; v_erro text; l record;
 begin
   insert into restaurantes (nome, slug) values ('Casa do Setor Cego','casa-setor-cego')
@@ -674,6 +674,60 @@ begin
   -- O que ele continua podendo: a propria folha, que e o trabalho dele.
   perform conferir('0030: o operador de setor continua vendo os itens do setor dele',
                    (select count(*) from contagem_itens where contagem_id = c1) = 1);
+
+  -- --------- 0033: a compra tambem nao e dele, como a 0018 ja tinha dito ----
+  -- Medido pela API antes: ele LIA as 133 notas e os 693 itens, GRAVAVA nas
+  -- duas (HTTP 201) e conseguia chamar `mv_lancar_nota`, que chama
+  -- `mv_atualiza_custo_medio` e reescreve `produtos.custo_medio` da casa
+  -- inteira — o valor do estoque de todos os setores e o CMV de todo mundo.
+  perform conferir('0033: o operador de setor nao le mais nota nenhuma',
+                   (select count(*) from notas_fiscais where restaurante_id = r) = 0);
+  perform conferir('0033: nem item de nota',
+                   (select count(*) from nota_itens) = 0);
+  perform conferir('0033: nem o historico de compras',
+                   (select count(*) from vw_compras_historico) = 0);
+  perform conferir('0033: nem quem emitiu as notas',
+                   (select count(*) from fornecedores where restaurante_id = r) = 0);
+  perform conferir('0033: nem o vocabulario de cardapio das vendas que ele nao ve',
+                   (select count(*) from venda_apelidos where restaurante_id = r) = 0);
+
+  begin
+    insert into notas_fiscais (restaurante_id, emitida_em, valor_total)
+    values (r, date '2026-09-20', 500);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('0033: e nao grava nota', v_erro <> 'passou');
+
+  begin
+    insert into fornecedores (restaurante_id, nome) values (r, 'FORNECEDOR DO SETOR');
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('0033: nem fornecedor', v_erro <> 'passou');
+
+  begin
+    perform mv_lancar_nota(n);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('0033: e mv_lancar_nota recusa dizendo por que, no topo',
+                   v_erro like '%acesso e de setor%');
+  reset role;
+
+  -- E o admin da casa nao perdeu nada no caminho.
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_admin::text, true);
+  perform conferir('0033: o admin continua lendo a nota e os dois itens dela',
+                   (select count(*) from notas_fiscais where restaurante_id = r) = 1
+                   and (select count(*) from nota_itens where nota_id = n) = 2);
+  insert into notas_fiscais (restaurante_id, emitida_em, valor_total)
+  values (r, date '2026-09-25', 40) returning id into n2;
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total)
+  values (n2, p1, 'CERVEJA', 'UND', 4, 10, 40);
+  perform conferir('0033: e continua lancando compra',
+                   (select status from mv_lancar_nota(n2)) = 'lancada');
   reset role;
 end $$;
 
