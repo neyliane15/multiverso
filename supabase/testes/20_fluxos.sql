@@ -2317,3 +2317,81 @@ begin
     and (select descricao_origem from venda_itens where venda_id = v)
         = 'BATATA FRITA + PORCAO DE BATATA');
 end $$;
+
+-- ============================================================================
+-- 0029 · O degrau do mes seguinte vale para o MES, nao para a semana que
+--        termina no dia 31
+-- ----------------------------------------------------------------------------
+-- Maio de 2026 acaba num DOMINGO. Com `dia_virada_semana = 1` (segunda a
+-- domingo), a serie semanal da tela gera a janela 25/05-31/05 — que termina
+-- exatamente no ultimo dia do mes. Com a condicao da 0027, que olhava so o fim
+-- da janela, essa semana puxava a contagem de junho e mostrava a queda de
+-- estoque do MES como se fosse de sete dias. A cada ano todo restaurante passa
+-- por um ou dois meses assim.
+-- ============================================================================
+do $$
+declare
+  r uuid; cat uuid; s uuid; p uuid; f uuid; n uuid;
+  c_abr uuid; c_jun uuid; l record; v_semana record;
+begin
+  insert into restaurantes (nome, slug, dia_virada_semana)
+  values ('Casa do Domingo 31','casa-domingo-31', 1) returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Cozinha') returning id into cat;
+  insert into setores (restaurante_id, nome) values (r,'Cozinha') returning id into s;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Farinha','KG',10,cat) returning id into p;
+  insert into produto_setores (produto_id, setor_id, unidade) values (p, s, 'KG');
+
+  -- A casa conta no fim de abril e no dia 1o de junho: o fechamento de maio
+  -- aconteceu no mes seguinte, que e a situacao da regra da cliente.
+  -- Os itens entram ANTES de fechar: contagem fechada e foto e nao se mexe (0003).
+  insert into contagens (restaurante_id, referencia, titulo) values (r, date '2026-04-30','Abril')
+  returning id into c_abr;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, unidade, quantidade, custo_unitario)
+  values (c_abr, p, s, 'KG', 100, 10);
+  update contagens set status='fechada', fechada_em=now(), total=1000 where id=c_abr;
+
+  insert into contagens (restaurante_id, referencia, titulo) values (r, date '2026-06-01','Junho')
+  returning id into c_jun;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, unidade, quantidade, custo_unitario)
+  values (c_jun, p, s, 'KG', 40, 10);
+  update contagens set status='fechada', fechada_em=now(), total=400 where id=c_jun;
+
+  -- Uma compra em cada semana de maio, para os numeros nao se confundirem.
+  insert into fornecedores (restaurante_id, nome) values (r,'Moinho') returning id into n;
+  insert into notas_fiscais (restaurante_id, fornecedor_id, origem, status, numero, emitida_em, valor_total)
+  values (r, n, 'planilha','lancada','1', date '2026-05-05', 100),
+         (r, n, 'planilha','lancada','2', date '2026-05-27',  50);
+
+  -- O mes inteiro: a regra da cliente valendo, com a data dita em voz alta.
+  select * into l from mv_cmv_periodo(r, date '2026-05-01', date '2026-05-31');
+  perform conferir('0029: o mes civil continua fechando pela contagem de junho',
+                   l.estoque_final_data = date '2026-06-01' and l.estoque_final_fora_do_periodo);
+  perform conferir('0029: e o CMV do mes e 1000 + 150 - 400 = 750', l.cmv = 750);
+
+  -- A semana que termina no ultimo dia do mes NAO e um mes.
+  select * into l from mv_cmv_periodo(r, date '2026-05-25', date '2026-05-31');
+  perform conferir('0029: a semana que acaba em 31/05 nao puxa a contagem de junho',
+                   l.cmv is null and l.estoque_final_data is null
+                   and l.pendencia = 'Falta a contagem de estoque final');
+
+  -- Nem dez dias, nem um dia.
+  select * into l from mv_cmv_periodo(r, date '2026-05-22', date '2026-05-31');
+  perform conferir('0029: dez dias que acabam em 31/05 tambem nao', l.cmv is null);
+  select * into l from mv_cmv_periodo(r, date '2026-05-31', date '2026-05-31');
+  perform conferir('0029: um dia que acaba em 31/05 tambem nao', l.cmv is null);
+
+  -- E pela serie semanal, que e o caminho pelo qual a tela chega ali.
+  select * into v_semana from mv_cmv_serie(r, 'semanal', 1, date '2026-05-31')
+   where inicio = date '2026-05-25';
+  perform conferir('0029: a serie semanal mostra a semana 25/05 sem CMV, nao com o do mes',
+                   v_semana.cmv is null and v_semana.compras = 50);
+
+  -- A semana que de fato CONTEM a contagem continua fechando pelo degrau (a),
+  -- que nao mudou desde a 0005.
+  select * into l from mv_cmv_periodo(r, date '2026-05-26', date '2026-06-01');
+  perform conferir('0029: a semana que contem a contagem continua fechando por ela',
+                   l.estoque_final_data = date '2026-06-01'
+                   and not l.estoque_final_fora_do_periodo
+                   and l.cmv = 1000 + 50 - 400);
+end $$;
