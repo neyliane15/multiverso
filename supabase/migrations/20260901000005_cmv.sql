@@ -18,6 +18,16 @@ returns date language sql immutable as $$
 $$;
 
 -- ------------------------------------------------- CMV de um periodo -------
+-- O `drop` e para a SEGUNDA passada, e e o mesmo caso que
+-- `mv_cmv_por_categoria` ja tem logo abaixo: a 0027 acrescenta faturamento e os
+-- dois percentuais a esta funcao, e `create or replace function` recusa mudar
+-- retorno. Reaplicar esta migracao num banco ja adiantado — o que o
+-- `supabase db push` faz sempre que o historico de migracoes esta atras do
+-- banco — morria em "cannot change return type of existing function", levando
+-- junto a migracao inteira. Quem depende do formato novo e a 0027, que roda
+-- depois desta na mesma passada.
+drop function if exists mv_cmv_periodo(uuid, date, date);
+
 create or replace function mv_cmv_periodo(
   p_restaurante uuid,
   p_inicio      date,
@@ -154,6 +164,13 @@ end $$;
 
 -- ------------------------------------------ serie semanal / mensal ---------
 -- Alimenta os graficos 4.1 / 4.2 / 4.3 de uma vez so.
+--
+-- O `drop` e para a SEGUNDA passada, mesmo caso de `mv_cmv_periodo` acima: a
+-- 0035 acrescenta as datas das duas contagens a esta funcao, e `create or
+-- replace function` recusa mudar retorno. Quem depende do formato novo e a
+-- 0035, que roda depois desta na mesma passada.
+drop function if exists mv_cmv_serie(uuid, text, integer, date);
+
 create or replace function mv_cmv_serie(
   p_restaurante   uuid,
   p_granularidade text default 'mensal',   -- 'semanal' | 'mensal'

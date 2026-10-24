@@ -11,6 +11,7 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query'
 import { supabase } from './supabase'
+import type { ApelidoConhecido } from './nfe/casarProdutos'
 import { costurarProduto, reconciliarVinculos } from './vinculosDoProduto'
 import type { VinculoSetor } from './vinculosDoProduto'
 // Reexportado: as telas de cadastro importam o tipo daqui desde o começo, e
@@ -48,7 +49,10 @@ import type {
   StatusLista,
   TipoContagem,
   Venda,
+  VendaApelido,
   VendaItem,
+  AlvoDeVenda,
+  FaturamentoPeriodo,
 } from '@/tipos/banco'
 
 /**
@@ -176,6 +180,11 @@ export const chaves = {
   cmvCategorias: (r: string, i: string, f: string) => ['cmv', 'categorias', r, i, f] as const,
   vendas: (r: string) => ['vendas', r] as const,
   vendaItens: (id: string) => ['venda-itens', id] as const,
+  // Os dois de-para, cada um sob o prefixo do modulo que o alimenta: vincular
+  // item de nota derruba 'produto-apelidos', resolver linha de venda derruba
+  // 'venda-apelidos', e nenhum dos dois mexe no outro.
+  produtoApelidos: (r: string) => ['produto-apelidos', r] as const,
+  vendaApelidos: (r: string) => ['venda-apelidos', r] as const,
   // Sob o prefixo 'relatorio' para que fechar uma venda possa derrubar os
   // relatorios de uma vez, sem conhecer qual contagem cada um le.
   relatorio: (contagemId: string) => ['relatorio', contagemId] as const,
@@ -1270,16 +1279,53 @@ export function useFornecedores(restauranteId: string) {
   })
 }
 
+/**
+ * O historico de compras do restaurante, inteiro.
+ *
+ * Com `buscarTudo`, e nao com uma consulta so, porque esta lista virou TRAVA: a
+ * importacao de planilha confere contra ela se a nota ja existe (numero +
+ * fornecedor + emissao), e nota de planilha nao tem chave de acesso para o
+ * indice unico da 0004 pegar. Medido com 1.001 notas no banco e
+ * `db-max-rows = 1000`, que e o que o Supabase hospedado usa: a resposta volta
+ * **200 com 1.000 linhas** e `content-range: 0-999/*`. Nenhum erro, nenhum
+ * aviso — a nota de fora da janela nao existe para a trava, e a mesma planilha
+ * entra duas vezes (medido no navegador: 133 notas gravadas nas DUAS vezes).
+ */
 export function useCompras(restauranteId: string) {
   return useQuery({
     queryKey: chaves.compras(restauranteId),
     queryFn: () =>
-      buscar<CompraHistorico[]>(
+      buscarTudo<CompraHistorico>((de, ate) =>
         supabase
           .from('vw_compras_historico')
           .select('*')
           .eq('restaurante_id', restauranteId)
-          .order('emitida_em', { ascending: false }),
+          .order('emitida_em', { ascending: false })
+          .order('id')
+          .range(de, ate),
+      ),
+  })
+}
+
+/**
+ * O de-para aprendido nas notas ja conferidas.
+ *
+ * Existe porque a importacao de planilha precisa dele ANTES de gravar: a
+ * `Conferencia` calcula a sugestao no navegador com o catalogo que ja tem em
+ * cache, mas o importador grava 693 linhas de uma vez e o vinculo que ele
+ * acertar e o que a pessoa nao vai ter de fazer a mao. Sem isto, a segunda
+ * importacao do mesmo ERP comecaria tao pendente quanto a primeira.
+ */
+export function useProdutoApelidos(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.produtoApelidos(restauranteId),
+    queryFn: () =>
+      buscarTudo<ApelidoConhecido>((de, ate) =>
+        supabase
+          .from('produto_apelidos')
+          .select('produto_id, fornecedor_id, apelido, codigo_fornecedor, fator_conversao, unidade')
+          .eq('restaurante_id', restauranteId)
+          .range(de, ate),
       ),
   })
 }
@@ -1323,6 +1369,9 @@ export function useVincularItemDaNota(notaId: string) {
       // O historico mostra "N itens pendentes" por nota: vincular o ultimo
       // muda o cracha da lista, que fica noutra tela.
       void qc.invalidateQueries({ queryKey: ['compras'] })
+      // O gatilho `mv_aprende_apelido` acabou de gravar um apelido novo, e e
+      // dele que a proxima importacao de planilha vai depender.
+      void qc.invalidateQueries({ queryKey: ['produto-apelidos'] })
     },
   })
 }
@@ -1540,6 +1589,8 @@ export function useVendas(restauranteId: string) {
 
 export interface ItemDeVenda extends VendaItem {
   ficha: { nome: string; preco_venda: number; grupo: string | null } | null
+  /** Preenchido na linha que aponta direto para o insumo (garrafa fechada). */
+  produto: { nome: string; unidade: string } | null
 }
 
 export function useItensDaVenda(vendaId: string | undefined) {
@@ -1550,8 +1601,11 @@ export function useItensDaVenda(vendaId: string | undefined) {
       buscar<ItemDeVenda[]>(
         supabase
           .from('venda_itens')
-          .select('*, ficha:fichas(nome, preco_venda, grupo)')
+          .select('*, ficha:fichas(nome, preco_venda, grupo), produto:produtos(nome, unidade)')
           .eq('venda_id', vendaId!)
+          // Pelo dinheiro, maior primeiro: num lancamento de 136 linhas e a
+          // ordem em que vale a pena resolver o que ficou pendente.
+          .order('valor_total_origem', { ascending: false, nullsFirst: false })
           .order('criado_em'),
       ),
   })
@@ -1585,12 +1639,18 @@ export interface ItemDeVendaParaGravar {
 }
 
 /**
- * Grava as fichas de UM lançamento, por diferença.
+ * Grava as fichas de UM lançamento: insere e atualiza o que a tela mandou, e
+ * apaga só os ids que a tela mandou apagar.
  *
  * Mesma decisão de `useSalvarItensDaFicha`, e pelo mesmo motivo: apagar tudo e
  * reinserir seria uma linha menos de código e um `id` novo a cada salvamento —
  * e `descricao_origem` existe justamente para a importação de PDV um dia
  * casar a linha crua com a linha gravada. Perder o id é perder esse rastro.
+ *
+ * O que ela deixou de fazer: reconciliar por diferença. "Apague tudo o que não
+ * veio na lista" é uma frase que depende de a lista estar completa, e ela não
+ * está quando a consulta ainda não voltou nem quando o PostgREST truncou — ver
+ * o comentário dentro da mutação.
  */
 export function useSalvarItensDaVenda(restauranteId: string) {
   const qc = useQueryClient()
@@ -1598,35 +1658,179 @@ export function useSalvarItensDaVenda(restauranteId: string) {
     mutationFn: async ({
       vendaId,
       itens,
+      remover,
     }: {
       vendaId: string
       itens: ItemDeVendaParaGravar[]
+      /** Os ids que a tela TIROU da lista. Nada mais é apagado. */
+      remover: string[]
     }) => {
-      const atuais = await buscar<{ id: string; ficha_id: string }[]>(
-        supabase.from('venda_itens').select('id, ficha_id').eq('venda_id', vendaId),
-      )
-      const querida = new Set(itens.map((i) => i.ficha_id))
-      const sair = atuais.filter((a) => !querida.has(a.ficha_id)).map((a) => a.id)
-
-      if (sair.length > 0) {
-        await buscar(supabase.from('venda_itens').delete().in('id', sair).select('id'))
+      // Apaga só o que a tela NOMEOU, e não "tudo o que não veio na lista".
+      //
+      // A versão por diferença lia as linhas de ficha do lançamento e apagava
+      // as que não estavam na lista nova. Ela tinha o filtro `alvo = 'ficha'`,
+      // que protege insumo, serviço e pendente — mas continuava podendo apagar
+      // as OUTRAS fichas do mesmo lançamento, e por dois caminhos que não
+      // dependem de ninguém errar:
+      //
+      // · o formulário carrega as linhas num `useEffect` que só roda quando a
+      //   consulta volta. Salvar antes disso mandava lista vazia, e lista vazia
+      //   significava "apague todas";
+      // · `useItensDaVenda` usa `buscar`, não `buscarTudo`: num lançamento com
+      //   mais de 1000 linhas o PostgREST trunca calado (ver `buscarTudo`), o
+      //   formulário carregava 1000 e as demais saíam como "não estão na lista".
+      //
+      // Hoje nenhum dos dois acontece porque `Vendas.tsx` manda lançamento de
+      // PDV para a conferência e nunca para este formulário. Isso é um desvio
+      // numa tela protegendo um hook, e o próximo que reusar o hook não vai
+      // saber. Com a lista explícita, o hook não tem como apagar o que a tela
+      // não viu.
+      if (remover.length > 0) {
+        await buscar(
+          supabase
+            .from('venda_itens')
+            .delete()
+            .in('id', remover)
+            .eq('venda_id', vendaId)
+            // Cinto e suspensório: este hook só mexe em linha de ficha, mesmo
+            // que alguém lhe passe o id de uma linha de serviço por engano.
+            .eq('alvo', 'ficha')
+            .select('id'),
+        )
       }
       if (itens.length > 0) {
         await buscar(
           supabase
             .from('venda_itens')
             .upsert(
-              itens.map((i) => ({ ...i, venda_id: vendaId })),
+              itens.map((i) => ({ ...i, venda_id: vendaId, alvo: 'ficha' as const })),
               { onConflict: 'venda_id,ficha_id' },
             )
             .select('id'),
         )
       }
-      return { entraram: itens.length, sairam: sair.length }
+      return { entraram: itens.length, sairam: remover.length }
     },
     onSuccess: (_resultado, entrada) => {
       void qc.invalidateQueries({ queryKey: chaves.vendaItens(entrada.vendaId) })
       void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+    },
+  })
+}
+
+/**
+ * O de-para dos nomes do PDV: o que o vínculo à mão já ensinou.
+ *
+ * Uma linha por nome, não por venda: 136 no primeiro mês do Bar do Zeca, e
+ * depois só os nomes novos. Por isso ela não precisa de `buscarTudo` — mas
+ * usa, porque um cardápio de rede grande passa de 1000 e o PostgREST trunca
+ * calado no teto (ver `buscarTudo`).
+ */
+export function useVendaApelidos(restauranteId: string) {
+  return useQuery({
+    queryKey: chaves.vendaApelidos(restauranteId),
+    queryFn: () =>
+      buscarTudo<VendaApelido>((de, ate) =>
+        supabase
+          .from('venda_apelidos')
+          .select('*')
+          .eq('restaurante_id', restauranteId)
+          .range(de, ate),
+      ),
+  })
+}
+
+/**
+ * Resolve UMA linha pendente de venda: ficha, insumo, ou serviço.
+ *
+ * Pela função do banco, e não por um `update` daqui, porque o caso que a 0027
+ * chama de rotina na planilha de verdade é justamente o que o `update` não
+ * sabe fazer: o PDV escreve "AMSTEL 600 ML" e "AMSTEL GF 600" para a mesma
+ * garrafa, e vincular a segunda bate no `unique (venda_id, ficha_id)` da 0023.
+ * O `update` devolvia o 23505 traduzido como "já existe um registro com esse
+ * nome ou código" — frase que não quer dizer nada para quem só clicou numa
+ * ficha. `mv_resolver_item_de_venda` FUNDE as duas linhas (soma quantidade,
+ * dinheiro e linhas de cupom, recalcula o preço como média ponderada, guarda os
+ * dois nomes do PDV e ensina o que desaparece ao de-para), e recusa fundir
+ * quando as unidades diferem.
+ *
+ * O `alvo` vai junto na mesma chamada de propósito: o `check`
+ * `venda_itens_alvo_unico` da 0027 amarra os três campos.
+ *
+ * O aprendizado é do gatilho `mv_aprende_apelido_de_venda` e da própria função,
+ * não desta mutação: assim ele vale para quem gravar pela API ou por script.
+ */
+export function useResolverItemDaVenda(restauranteId: string, vendaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entrada: {
+      itemId: string
+      alvo: AlvoDeVenda
+      fichaId?: string | null
+      produtoId?: string | null
+    }) =>
+      buscar<VendaItem>(
+        supabase.rpc('mv_resolver_item_de_venda', {
+          p_item: entrada.itemId,
+          p_alvo: entrada.alvo,
+          p_ficha: entrada.alvo === 'ficha' ? (entrada.fichaId ?? null) : null,
+          p_produto: entrada.alvo === 'produto' ? (entrada.produtoId ?? null) : null,
+        }),
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.vendaItens(vendaId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendaApelidos(restauranteId) })
+    },
+  })
+}
+
+/**
+ * Volta UMA linha de venda para "pendente", desfazendo a fusão se houve uma.
+ *
+ * Função própria no banco, e não `resolver` com `alvo = 'pendente'`: desfazer
+ * não é resolver ao contrário. Ela recria as linhas que a fusão absorveu (pelo
+ * recibo em `venda_itens.fundidas`, da 0036), devolve a linha sobrevivente aos
+ * números dela, e **esquece o apelido de cada nome envolvido** — sem isso,
+ * desfazer valeria uma vez só, porque a importação do mês seguinte refaria o
+ * vínculo errado sozinha e dessa vez sem ninguém clicar.
+ *
+ * Devolve VÁRIAS linhas: uma fusão de seis nomes volta a ser seis.
+ */
+export function useDesfazerItemDaVenda(restauranteId: string, vendaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (itemId: string) =>
+      buscar<VendaItem[]>(supabase.rpc('mv_desfazer_item_de_venda', { p_item: itemId })),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.vendaItens(vendaId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendaApelidos(restauranteId) })
+    },
+  })
+}
+
+/**
+ * O faturamento do período, para a tela que precisa só dele.
+ *
+ * `mv_cmv_periodo` já devolve os mesmos números, e é de lá que o dashboard de
+ * CMV lê. Esta existe para a tela de vendas poder conferir o total importado
+ * contra a planilha sem pedir o CMV inteiro — que lê duas contagens e todas as
+ * notas do período.
+ */
+export function useFaturamento(restauranteId: string, inicio: string, fim: string) {
+  return useQuery({
+    queryKey: ['faturamento', restauranteId, inicio, fim] as const,
+    enabled: inicio !== '' && fim !== '',
+    queryFn: async () => {
+      const linhas = await buscar<FaturamentoPeriodo[]>(
+        supabase.rpc('mv_faturamento_periodo', {
+          p_restaurante: restauranteId,
+          p_inicio: inicio,
+          p_fim: fim,
+        }),
+      )
+      return linhas[0] ?? null
     },
   })
 }
@@ -1646,6 +1850,11 @@ export function useFecharVenda(restauranteId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
       void qc.invalidateQueries({ queryKey: ['relatorio'] })
+      // Desde a 0027 o faturamento e o denominador do CMV, e ele so le venda
+      // FECHADA: fechar um lancamento muda o CMV% na hora. Sem isto o dashboard
+      // mostraria "sem faturamento" ao lado de uma venda acabada de fechar.
+      void qc.invalidateQueries({ queryKey: ['cmv'] })
+      void qc.invalidateQueries({ queryKey: ['faturamento'] })
     },
   })
 }
@@ -1658,6 +1867,8 @@ export function useReabrirVenda(restauranteId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
       void qc.invalidateQueries({ queryKey: ['relatorio'] })
+      void qc.invalidateQueries({ queryKey: ['cmv'] })
+      void qc.invalidateQueries({ queryKey: ['faturamento'] })
     },
   })
 }
@@ -1670,6 +1881,8 @@ export function useApagarVenda(restauranteId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
       void qc.invalidateQueries({ queryKey: ['relatorio'] })
+      void qc.invalidateQueries({ queryKey: ['cmv'] })
+      void qc.invalidateQueries({ queryKey: ['faturamento'] })
     },
   })
 }

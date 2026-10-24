@@ -45,6 +45,22 @@ export interface ContextoCasamento {
   fornecedorId?: string | null
   /** Padrão: CONFIANCA_MINIMA. Serve para afrouxar/apertar em teste ou tela. */
   confiancaMinima?: number
+  /**
+   * Não calcular as três parecenças de cortesia. Elas custam uma comparação de
+   * texto por produto do catálogo — 906 no primeiro cliente — e são calculadas
+   * SEMPRE, antes de qualquer degrau, inclusive quando o item vai casar por
+   * apelido na linha seguinte.
+   *
+   * Medido na importação de compras a 390 px com a CPU freada 4x: a prévia das
+   * 693 linhas levava 29,3 s com a interface congelada 28,1 s em bloco. São
+   * 693 × 906 = 628 mil comparações de texto que `casarCompraDaPlanilha` joga
+   * fora — ele nunca lê `sugestoes`. Com esta opção a mesma prévia sai em 3,4 s
+   * e a maior pausa cai para 2,4 s.
+   *
+   * Quem quer sugestão na tela de planilha usa `sugerirAlvos`, que calcula para
+   * UMA linha, sob demanda, como o comentário dele já explicava.
+   */
+  semSugestoes?: boolean
 }
 
 export type MotivoCasamento =
@@ -188,7 +204,7 @@ export function casarItem(item: ItemParaCasar, contexto: ContextoCasamento): Cas
   const produtos = contexto.produtos ?? []
   const apelidos = contexto.apelidos ?? []
   const limiar = contexto.confiancaMinima ?? CONFIANCA_MINIMA
-  const sugestoes = melhoresSugestoes(item.descricao, produtos)
+  const sugestoes = contexto.semSugestoes ? [] : melhoresSugestoes(item.descricao, produtos)
   const descricaoNormal = chaveBusca(item.descricao)
 
   // 1 e 2. Apelido: alguém já disse, à mão, que essa descrição é esse produto.

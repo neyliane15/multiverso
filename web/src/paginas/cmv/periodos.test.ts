@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { CmvPeriodo, CmvSerie } from '@/tipos/banco'
 import {
   conferirFormula,
+  estoqueCobreOutroIntervalo,
   explicarPendencia,
   ordenarCategorias,
   periodoSugerido,
@@ -20,6 +21,8 @@ function periodo(parcial: Partial<CmvSerie> & { rotulo: string }): CmvSerie {
     cmv: 32_000,
     completo: true,
     pendencia: null,
+    estoque_inicial_data: '2026-08-31',
+    estoque_final_data: '2026-09-30',
     ...parcial,
   }
 }
@@ -242,6 +245,21 @@ describe('conferirFormula', () => {
       cmv: 32_000,
       completo: true,
       pendencia: null,
+      estoque_final_fora_do_periodo: false,
+      faturamento: 0,
+      faturamento_produto: 0,
+      faturamento_servico: 0,
+      faturamento_lancamentos: 0,
+      cmv_percentual: null,
+      cmv_percentual_produto: null,
+      compras_limpeza: 0,
+      estoque_inicial_limpeza: 0,
+      estoque_final_limpeza: 0,
+      cmv_limpeza: 0,
+      cmv_insumo: 32_000,
+      compras_divergencia_operacao: 0,
+      compras_sem_classificacao: 0,
+      compras_entrada_mais_recente: null,
       ...parcial,
     }
   }
@@ -260,5 +278,63 @@ describe('conferirFormula', () => {
 
   it('período incompleto não confere coisa nenhuma', () => {
     expect(conferirFormula(completo({ completo: false, cmv: null }))).toBe(false)
+  })
+})
+
+describe('estoqueCobreOutroIntervalo', () => {
+  const base = {
+    inicio: '2026-09-01',
+    fim: '2026-09-30',
+    estoque_inicial_data: '2026-08-31',
+    estoque_final_data: '2026-09-30',
+    cmv: 89_137.82,
+  }
+
+  it('mês fechado pelas duas contagens certas: os intervalos casam', () => {
+    expect(estoqueCobreOutroIntervalo(base)).toBe(false)
+  })
+
+  it('a semana que contém a contagem mistura um mês de estoque com uma semana de compra', () => {
+    // O caso medido: Sem 28/09 a 04/10, estoque de 31/08 a 01/10, compras de
+    // 7 dias, CMV R$ 11.758,02 rotulado "CMV da semana".
+    expect(
+      estoqueCobreOutroIntervalo({
+        inicio: '2026-09-28',
+        fim: '2026-10-04',
+        estoque_inicial_data: '2026-08-31',
+        estoque_final_data: '2026-10-01',
+        cmv: 11_758.02,
+      }),
+    ).toBe(true)
+  })
+
+  it('setembro do Bar do Zeca, fechado pela contagem de 01/10, também não casa', () => {
+    // E está certo que não case: a queda de estoque vai até 01/10 e a compra
+    // para em 30/09. Quem já avisa disso é `estoque_final_fora_do_periodo`.
+    expect(estoqueCobreOutroIntervalo({ ...base, estoque_final_data: '2026-10-01' })).toBe(true)
+  })
+
+  it('sem CMV não há número para desmentir', () => {
+    expect(
+      estoqueCobreOutroIntervalo({
+        inicio: '2026-09-07',
+        fim: '2026-09-13',
+        estoque_inicial_data: '2026-08-31',
+        estoque_final_data: null,
+        cmv: null,
+      }),
+    ).toBe(false)
+  })
+
+  it('atravessa a virada do mês sem errar o dia anterior', () => {
+    expect(
+      estoqueCobreOutroIntervalo({
+        inicio: '2026-03-01',
+        fim: '2026-03-31',
+        estoque_inicial_data: '2026-02-28',
+        estoque_final_data: '2026-03-31',
+        cmv: 100,
+      }),
+    ).toBe(false)
   })
 })

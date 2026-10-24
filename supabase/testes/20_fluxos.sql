@@ -1886,3 +1886,674 @@ begin
   perform conferir('e conta a quantidade preenchida, que e outra coisa',
                    (select itens_com_quantidade from vw_contagem_procedencia where contagem_id=c_atu) = 2);
 end $$;
+
+-- ============================================================================
+-- 0027 · A venda com tres alvos, o faturamento, e o CMV que fecha
+-- ----------------------------------------------------------------------------
+-- O cenario e desenhado em cima da planilha de setembro, com numeros pequenos
+-- e redondos para a conta poder ser conferida de cabeca — mas com as MESMAS
+-- formas: uma ficha, uma garrafa vendida inteira, um couvert que nao consome
+-- nada, uma linha pendente, e uma compra de limpeza.
+-- ============================================================================
+do $$
+declare
+  r uuid; cat uuid; cat_limpeza uuid; s uuid;
+  p_cachaca uuid; p_cerveja uuid; p_detergente uuid;
+  f_dose uuid; f_producao uuid;
+  v uuid; n uuid; i_pendente uuid;
+  l record; v_erro text;
+begin
+  insert into restaurantes (nome, slug) values ('Casa do Faturamento','casa-faturamento')
+  returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Bebidas') returning id into cat;
+  -- `fora_do_insumo` e DECISAO de cadastro, nao adivinhacao: a 0027 carimba uma
+  -- vez, pelo nome, as categorias que ja existiam, e daqui para frente quem diz
+  -- e a tela. Categoria nova nasce dentro do CMV de insumo — e a tela do CMV diz
+  -- em voz alta quando nenhuma categoria esta marcada, em vez de mostrar
+  -- R$ 0,00 de limpeza com cara de medida.
+  insert into categorias (restaurante_id, nome, fora_do_insumo)
+  values (r,'MATERIAL DE LIMPEZA', true) returning id into cat_limpeza;
+  insert into setores (restaurante_id, nome) values (r,'Bar') returning id into s;
+
+  perform conferir('0027: categoria nova nasce DENTRO do insumo se ninguem disser',
+    not (select fora_do_insumo from categorias where restaurante_id = r and nome = 'Bebidas'));
+
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Cachaca','UND',30,cat) returning id into p_cachaca;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Cerveja 600','UND',6,cat) returning id into p_cerveja;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Detergente','UND',5,cat_limpeza) returning id into p_detergente;
+  insert into produto_setores (produto_id, setor_id, unidade) values
+    (p_cachaca, s, 'UND'), (p_cerveja, s, 'UND'), (p_detergente, s, 'UND');
+
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r,'Caipirinha',1,'PORCAO',20) returning id into f_dose;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade)
+  values (f_dose, p_cachaca, 1, 'UND');
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda, producao)
+  values (r,'Xarope',1,'L',0,true) returning id into f_producao;
+
+  -- ---------------------------------------------------- os quatro alvos ----
+  insert into vendas (restaurante_id, referencia, inicio, origem, origem_arquivo)
+  values (r, date '2026-09-30', date '2026-09-01', 'pdv', 'vendas_setembro.xlsx')
+  returning id into v;
+
+  insert into venda_itens (venda_id, alvo, ficha_id, quantidade, preco_unitario,
+                           valor_total_origem, linhas_de_origem, descricao_origem)
+  values (v, 'ficha', f_dose, 10, 20, 200, 7, 'CAIPIRINHA DE LIMAO');
+
+  -- A garrafa: produto fechado, vendido inteiro, sem ficha no meio.
+  insert into venda_itens (venda_id, alvo, produto_id, quantidade, preco_unitario,
+                           valor_total_origem, linhas_de_origem, descricao_origem)
+  values (v, 'produto', p_cerveja, 100, 11, 1100, 63, 'ANTARTICA ORIG600 ML');
+
+  -- O servico: fatura e nao consome nada.
+  insert into venda_itens (venda_id, alvo, quantidade, preco_unitario,
+                           valor_total_origem, linhas_de_origem, descricao_origem)
+  values (v, 'servico', 25, 20, 500, 25, 'COUVERT ARTISTICO 20 REAIS');
+
+  -- E a linha que ninguem resolveu ainda.
+  insert into venda_itens (venda_id, alvo, quantidade, preco_unitario,
+                           valor_total_origem, linhas_de_origem, descricao_origem)
+  values (v, 'pendente', 5, 40, 200, 3, 'BUFFET DE FEIJOADA')
+  returning id into i_pendente;
+
+  -- ------------------------------------------------- o que o banco recusa --
+  begin
+    insert into venda_itens (venda_id, alvo, ficha_id, produto_id, quantidade, preco_unitario)
+    values (v, 'ficha', f_dose, p_cerveja, 1, 1);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('alvo unico: a linha nao aponta para ficha E insumo ao mesmo tempo',
+                   v_erro like '%venda_itens_alvo_unico%');
+
+  begin
+    insert into venda_itens (venda_id, alvo, quantidade, preco_unitario)
+    values (v, 'servico', 1, 1);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('servico sem nome de origem e recusado: faturamento anonimo nao se confere',
+                   v_erro like '%nome de origem%');
+
+  begin
+    insert into venda_itens (venda_id, alvo, ficha_id, quantidade, preco_unitario)
+    values (v, 'ficha', f_producao, 1, 1);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('producao continua sem poder ser vendida (regra da 0023)',
+                   v_erro like '%producao e insumo interno%');
+
+  -- ----------------------------------------- fechar recusa com pendente ----
+  begin
+    perform mv_fechar_venda(v);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('fechar recusa lancamento com linha pendente (espelho de mv_lancar_nota)',
+                   v_erro like '%sem alvo%');
+  perform conferir('e o lancamento continua aberto',
+                   (select status from vendas where id = v) = 'aberta');
+
+  -- -------------------------------------- resolver a mao ENSINA o de-para --
+  perform conferir('o couvert resolvido ja virou apelido',
+    (select alvo from venda_apelidos
+      where restaurante_id = r and apelido = 'COUVERT ARTISTICO 20 REAIS') = 'servico');
+  perform conferir('e a garrafa tambem, apontando para o insumo',
+    (select produto_id from venda_apelidos
+      where restaurante_id = r and apelido = 'ANTARTICA ORIG600 ML') = p_cerveja);
+  perform conferir('pendente NAO vira apelido: ausencia de decisao nao se aprende',
+    (select count(*) from venda_apelidos where apelido = 'BUFFET DE FEIJOADA') = 0);
+
+  -- A pendente aponta para uma ficha que JA esta no lancamento. O
+  -- `unique (venda_id, ficha_id)` da 0023 recusa a segunda linha, e esta certo:
+  -- duas linhas da mesma ficha dobrariam o consumo dela. `mv_resolver_item_de_venda`
+  -- e quem diz o que fazer — somar.
+  perform mv_resolver_item_de_venda(i_pendente, 'ficha', f_dose);
+  perform conferir('resolver a pendente ensina o nome do PDV',
+    (select ficha_id from venda_apelidos
+      where restaurante_id = r and apelido = 'BUFFET DE FEIJOADA') = f_dose);
+  perform conferir('e a linha pendente desapareceu na fusao',
+    (select count(*) from venda_itens where id = i_pendente) = 0);
+  perform conferir('a fusao somou as quantidades: 10 caipirinhas + 5 buffets',
+    (select quantidade from venda_itens where venda_id = v and ficha_id = f_dose) = 15);
+  perform conferir('e somou o dinheiro: 200 + 200',
+    (select valor_total_origem from venda_itens where venda_id = v and ficha_id = f_dose) = 400);
+  perform conferir('o preco unitario virou media ponderada: 400/15',
+    (select preco_unitario from venda_itens where venda_id = v and ficha_id = f_dose)
+    = round(400::numeric / 15, 4));
+  perform conferir('as linhas de cupom somaram: 7 + 3',
+    (select linhas_de_origem from venda_itens where venda_id = v and ficha_id = f_dose) = 10);
+  perform conferir('e os dois nomes do PDV ficaram na linha que sobrou',
+    (select descricao_origem from venda_itens where venda_id = v and ficha_id = f_dose)
+    = 'CAIPIRINHA DE LIMAO + BUFFET DE FEIJOADA');
+
+  begin
+    perform mv_resolver_item_de_venda(
+      (select id from venda_itens where venda_id = v and alvo = 'servico'), 'pendente');
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('resolver para "pendente" e recusado: pendente nao e resposta',
+                   v_erro like '%ausencia de resposta%');
+
+  -- ----------------------------------------------- o dinheiro que fecha ----
+  perform mv_fechar_venda(v);
+  perform conferir('o total congelado soma valor_total_origem, nao quantidade x preco',
+                   (select total_valor from vendas where id = v) = 2000);
+  perform conferir('tres linhas depois da fusao, nao quatro',
+                   (select total_itens from vendas where id = v) = 3);
+  perform conferir('e nao o que a coluna gerada reconstituiria',
+                   (select sum(total) from venda_itens where venda_id = v) <> 2000);
+
+  -- Lancamento FECHADO e foto: nem a fusao mexe nele. O gatilho da 0023 pega
+  -- os dois lados da fusao, o update e o delete — conferido aqui porque
+  -- `mv_resolver_item_de_venda` apaga uma linha, e apagar escapa de muita
+  -- trava escrita pensando so em escrita.
+  begin
+    perform mv_resolver_item_de_venda(
+      (select id from venda_itens where venda_id = v and alvo = 'servico'), 'ficha', f_dose);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('venda fechada recusa ate a fusao de linhas',
+                   v_erro like '%venda ja fechada%');
+  perform conferir('e nenhuma linha sumiu na tentativa',
+                   (select count(*) from venda_itens where venda_id = v) = 3);
+
+  select * into l from mv_faturamento_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('faturamento total = 2000', l.total = 2000);
+  perform conferir('faturamento de produto = 1500 (sem os 500 de couvert)', l.produto = 1500);
+  perform conferir('faturamento de servico = 500', l.servico = 500);
+  perform conferir('um lancamento, tres linhas (a quarta fundiu)',
+                   l.lancamentos = 1 and l.itens = 3);
+
+  -- ------------------------------------------- a venda explodida em insumo -
+  perform conferir('a ficha explode: a linha fundida vale 15 cachacas',
+    (select quantidade from mv_vendas_por_produto(v) where produto_id = p_cachaca) = 15);
+  perform conferir('a garrafa entra direto, sem ficha: 100 cervejas',
+    (select quantidade from mv_vendas_por_produto(v) where produto_id = p_cerveja) = 100);
+  perform conferir('o servico nao explode em nada',
+    (select count(*) from mv_vendas_por_produto(v)) = 2);
+end $$;
+
+-- ============================================================================
+-- 0027 · O CMV com denominador, limpeza separada, e o fechamento do mes que
+--        acontece no mes seguinte
+-- ----------------------------------------------------------------------------
+-- As datas sao as do Bar do Zeca de verdade: contagens em 31/08 e 01/10, e o
+-- periodo 01/09 a 30/09. Ate a 0026 esse mes voltava NULO — a 0005 exigia
+-- `referencia <= p_fim` para o estoque final e nenhuma contagem servia.
+-- ============================================================================
+do $$
+declare
+  r uuid; cat uuid; cat_limpeza uuid; s uuid;
+  p_cerveja uuid; p_detergente uuid;
+  c_ago uuid; c_out uuid; n uuid; v uuid; f uuid;
+  l record;
+begin
+  insert into restaurantes (nome, slug) values ('Casa do Mes Seguinte','casa-mes-seguinte')
+  returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Bebidas') returning id into cat;
+  insert into categorias (restaurante_id, nome, fora_do_insumo)
+  values (r,'DESCARTAVEIS', true) returning id into cat_limpeza;
+  insert into setores (restaurante_id, nome) values (r,'Bar') returning id into s;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Cerveja','UND',10,cat) returning id into p_cerveja;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Copo plastico','UND',1,cat_limpeza) returning id into p_detergente;
+  insert into produto_setores (produto_id, setor_id, unidade) values
+    (p_cerveja, s, 'UND'), (p_detergente, s, 'UND');
+
+  -- Foto de 31/08: 100 cervejas (1000) + 200 copos (200) = 1200. Os itens
+  -- entram ANTES de fechar, porque contagem fechada e foto e nao se mexe (0003).
+  insert into contagens (restaurante_id, referencia, tipo) values (r, date '2026-08-31','mensal')
+  returning id into c_ago;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario)
+  values (c_ago, p_cerveja, s, 100, 'UND', 10), (c_ago, p_detergente, s, 200, 'UND', 1);
+  update contagens set status='fechada', fechada_em=now(), total=1200 where id=c_ago;
+
+  -- A compra de setembro: 50 cervejas (500) e 100 copos (100).
+  insert into notas_fiscais (restaurante_id, emitida_em, status, valor_total)
+  values (r, date '2026-09-15','lancada', 600) returning id into n;
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total, operacao)
+  values (n, p_cerveja, 'CERVEJA','UND', 50, 10, 500, '01 - COMPRAS INSUMOS'),
+         (n, p_detergente,'COPO','UND', 100, 1, 100, '01 - COMPRAS DE LIMPEZAS E DESCARTAVEIS');
+
+  -- ------------------------------------------- sem a foto de fechamento ----
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('sem contagem no mes seguinte, setembro continua sem CMV',
+                   l.cmv is null and l.pendencia = 'Falta a contagem de estoque final');
+  perform conferir('e as compras valem assim mesmo: nota lancada e fato consumado',
+                   l.compras = 600);
+
+  -- ------------------------------ a contagem de 01/10 fecha setembro -------
+  -- Foto de 01/10: 80 cervejas (800) + 150 copos (150) = 950.
+  insert into contagens (restaurante_id, referencia, tipo) values (r, date '2026-10-01','mensal')
+  returning id into c_out;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario)
+  values (c_out, p_cerveja, s, 80, 'UND', 10), (c_out, p_detergente, s, 150, 'UND', 1);
+  update contagens set status='fechada', fechada_em=now(), total=950 where id=c_out;
+
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('a primeira contagem do mes seguinte vira o estoque final de setembro',
+                   l.estoque_final_data = date '2026-10-01');
+  perform conferir('e a funcao DIZ que ela veio de fora do periodo',
+                   l.estoque_final_fora_do_periodo);
+  perform conferir('o inicial continua sendo o de 31/08',
+                   l.estoque_inicial_data = date '2026-08-31');
+  perform conferir('CMV = 1200 + 600 - 950 = 850', l.cmv = 850);
+
+  -- A MESMA contagem e o estoque INICIAL de outubro, e isso e o desejado.
+  select * into l from mv_cmv_periodo(r, date '2026-10-01', date '2026-10-31');
+  perform conferir('a mesma foto abre outubro como estoque inicial',
+                   l.estoque_inicial_data = date '2026-10-01');
+  perform conferir('e outubro nao usa a mesma foto dos dois lados',
+                   l.estoque_final_id is distinct from l.estoque_inicial_id);
+
+  -- -------------------- as DUAS funcoes contam a mesma historia ------------
+  -- O defeito que isto tranca apareceu na tela, com a carga de verdade dentro:
+  -- o cartao "Periodo em detalhe" mostrava o CMV de setembro e a tabela
+  -- "Abertura por categoria" dizia "sem CMV" em TODAS as categorias, porque
+  -- cada funcao procurava as contagens por conta propria e so uma conhecia a
+  -- regra nova. E a mesma doenca da 0007, ao contrario. A cura nao foi copiar
+  -- a regra para o segundo lugar — foi nao haver segundo lugar.
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('a abertura por categoria enxerga o mesmo estoque final',
+    (select sum(c.estoque_final) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30') c)
+    = l.estoque_final);
+  perform conferir('e o mesmo CMV, somado por categoria',
+    (select sum(c.cmv) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30') c)
+    = l.cmv);
+  perform conferir('nenhuma categoria com movimento fica sem CMV enquanto o periodo tem',
+    (select count(*) from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30') c
+      where c.cmv is null and c.compras > 0) = 0);
+
+  -- ------------------------------------------- a janela que NAO fecha mes --
+  -- A regra fala do final do MES. Aplicada a semana, ela fabricaria numero:
+  -- toda semana de setembro sairia com o CMV do mes inteiro.
+  select * into l from mv_cmv_periodo(r, date '2026-09-07', date '2026-09-13');
+  perform conferir('semana no meio do mes NAO puxa a contagem de outubro',
+                   l.cmv is null and not l.estoque_final_fora_do_periodo);
+
+  -- ---------------------------------------------- limpeza separada --------
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('o estoque de limpeza sai separado nas duas pontas',
+                   l.estoque_inicial_limpeza = 200 and l.estoque_final_limpeza = 150);
+  perform conferir('a compra de limpeza sai pela CATEGORIA do insumo vinculado',
+                   l.compras_limpeza = 100);
+  perform conferir('CMV de limpeza = 200 + 100 - 150 = 150', l.cmv_limpeza = 150);
+  perform conferir('CMV de insumo = 850 - 150 = 700', l.cmv_insumo = 700);
+  perform conferir('as duas metades somam o CMV inteiro, sempre',
+                   l.cmv_limpeza + l.cmv_insumo = l.cmv);
+  perform conferir('as tres pontas do insumo fecham o CMV de insumo',
+                   (l.estoque_inicial - l.estoque_inicial_limpeza)
+                   + (l.compras - l.compras_limpeza)
+                   - (l.estoque_final - l.estoque_final_limpeza) = l.cmv_insumo);
+
+  -- ------------------------- a operacao do ERP NAO classifica dinheiro ----
+  -- O defeito da 0031: o estoque saia pela categoria e a compra pela categoria
+  -- OU pela operacao. Duas bases nas duas pontas da mesma conta. Na planilha de
+  -- setembro da cliente o GUARDANAPO chega com as DUAS operacoes no mesmo mes
+  -- (R$ 217,98 como limpeza, R$ 110,36 como insumo), e e o mesmo insumo do
+  -- catalogo: a operacao nao e nem funcao do produto. Aqui o inverso, que e o
+  -- caso em que o `or` de antes movia dinheiro: cerveja faturada como limpeza.
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total, operacao)
+  values (n, p_cerveja, 'CERVEJA QUE O ERP FATUROU COMO LIMPEZA','UND', 7, 10, 70,
+          '01 - COMPRAS DE LIMPEZAS E DESCARTAVEIS');
+  update notas_fiscais set valor_total = 670 where id = n;
+
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('a operacao do ERP nao move a cerveja para a limpeza',
+                   l.compras_limpeza = 100);
+  perform conferir('ela entra no insumo, como manda a categoria do cadastro',
+                   l.compras = 670 and l.cmv_insumo = 770);
+  perform conferir('e a funcao DIZ onde as duas classificacoes discordam',
+                   l.compras_divergencia_operacao = 70);
+
+  -- ----------------- o que nao tem insumo vinculado nao tem categoria -----
+  -- Nota lancada com item pendente nao deveria existir (`mv_lancar_nota`
+  -- recusa, e a 0032 fecha o desvio pelo update). Enquanto houver qualquer
+  -- caminho, a resposta honesta e dizer o tamanho do que a conta nao
+  -- classifica, em vez de empurra-lo calado para uma das metades.
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total, operacao)
+  values (n, p_cerveja, 'ITEM QUE PERDEU O INSUMO','UND', 1, 30, 30,
+          '01 - COMPRAS DE LIMPEZAS E DESCARTAVEIS');
+  -- `on delete set null` da 0004: apagar o insumo do cadastro esvazia o vinculo
+  -- da nota lancada. E o caminho que a 0032 NAO tranca, de proposito, e e por
+  -- ele que `compras_sem_classificacao` tem razao de existir.
+  update nota_itens set produto_id = null
+   where nota_id = n and descricao = 'ITEM QUE PERDEU O INSUMO';
+
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('item sem insumo vinculado nao vira limpeza pelo rotulo da nota',
+                   l.compras_limpeza = 100);
+  perform conferir('e a funcao DIZ quanto a divisao em duas metades nao alcanca',
+                   l.compras_sem_classificacao = 30);
+
+  delete from nota_itens where nota_id = n and produto_id is null;
+  delete from nota_itens where nota_id = n
+     and descricao = 'CERVEJA QUE O ERP FATUROU COMO LIMPEZA';
+  update notas_fiscais set valor_total = 600 where id = n;
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('desfeito o cenario, setembro volta ao CMV de 850', l.cmv = 850);
+
+  -- ---- 0034: o mes ja lido que muda de numero tem de ter como ser notado ---
+  -- Medido com a contagem de 31/07 no banco: o CMV de agosto de 2026 vai de
+  -- R$ 0,00 para R$ 1.365,48 so porque a planilha de SETEMBRO foi importada —
+  -- cinco notas emitidas entre 26/08 e 31/08 vieram dentro dela. O numero esta
+  -- certo (compra e do mes da EMISSAO); o silencio e que nao estava.
+  perform conferir('0034: a funcao diz quando a compra mais recente ENTROU',
+                   l.compras_entrada_mais_recente = current_date);
+  perform conferir('0034: e e depois do fim do periodo, que e o que a tela avisa',
+                   l.compras_entrada_mais_recente > l.fim);
+  perform conferir('0034: sem compra lancada no periodo, a data e nula',
+                   (select c.compras_entrada_mais_recente
+                      from mv_cmv_periodo(r, date '2026-07-01', date '2026-07-31') c) is null);
+
+  -- ------------- 0032: a trava do item pendente vale fora de mv_lancar_nota --
+  -- Medido pela API antes do gatilho: `PATCH {"status":"lancada"}` numa nota
+  -- com item pendente voltava HTTP 204, e os R$ 1.000 do item entravam no CMV.
+  declare
+    n2 uuid; i2 uuid; houve boolean;
+  begin
+    insert into notas_fiscais (restaurante_id, emitida_em, status, valor_total)
+    values (r, date '2026-09-20', 'importada', 1000) returning id into n2;
+    insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                            valor_unitario, valor_total)
+    values (n2, null, 'DETERGENTE QUE NINGUEM VINCULOU', 'UND', 10, 100, 1000);
+
+    houve := false;
+    begin update notas_fiscais set status = 'lancada' where id = n2;
+    exception when others then houve := true; end;
+    perform conferir('0032: update direto no status nao lanca nota com item pendente', houve);
+
+    update nota_itens set produto_id = p_cerveja where nota_id = n2;
+    update notas_fiscais set status = 'lancada' where id = n2;
+    perform conferir('0032: vinculado o insumo, o mesmo update passa',
+                     (select status from notas_fiscais where id = n2) = 'lancada');
+
+    houve := false;
+    begin
+      insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                              valor_unitario, valor_total)
+      values (n2, null, 'ITEM PENDURADO DEPOIS', 'UND', 1, 500, 500);
+    exception when others then houve := true; end;
+    perform conferir('0032: item pendente nao se pendura em nota ja lancada', houve);
+
+    -- E o caminho que fica aberto por desenho, com a conta dizendo o tamanho:
+    -- apagar o insumo do cadastro esvazia o vinculo (`on delete set null`), e
+    -- trancar isso trancaria apagar insumo com historico de compra.
+    select id into i2 from nota_itens where nota_id = n2 limit 1;
+    update nota_itens set produto_id = null where id = i2;
+    perform conferir('0032: desvincular continua possivel, e a conta diz quanto',
+      (select c.compras_sem_classificacao
+         from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30') c) = 1000);
+
+    perform conferir('0032: e a nota continua inteira depois das duas recusas',
+                     (select count(*) from nota_itens where nota_id = n2) = 1);
+    delete from notas_fiscais where id = n2;
+  end;
+
+  -- --------------------------------------------- os dois percentuais ------
+  perform conferir('sem venda fechada nao ha percentual: nao se divide por zero',
+                   l.faturamento = 0 and l.cmv_percentual is null
+                   and l.cmv_percentual_produto is null);
+
+  insert into fichas (restaurante_id, nome, rendimento, unidade_rendimento, preco_venda)
+  values (r,'Cerveja na mesa',1,'PORCAO',12) returning id into f;
+  insert into ficha_itens (ficha_id, produto_id, quantidade, unidade) values (f, p_cerveja, 1, 'UND');
+  insert into vendas (restaurante_id, referencia, inicio, origem)
+  values (r, date '2026-09-30', date '2026-09-01','pdv') returning id into v;
+  insert into venda_itens (venda_id, alvo, ficha_id, quantidade, preco_unitario,
+                           valor_total_origem, descricao_origem)
+  values (v, 'ficha', f, 100, 12, 4000, 'CERVEJA NA MESA');
+  insert into venda_itens (venda_id, alvo, quantidade, preco_unitario,
+                           valor_total_origem, descricao_origem)
+  values (v, 'servico', 50, 20, 1000, 'COUVERT ARTISTICO');
+
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('venda ABERTA nao entra no faturamento', l.faturamento = 0);
+
+  perform mv_fechar_venda(v);
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('faturamento total = 5000', l.faturamento = 5000);
+  perform conferir('faturamento de produto = 4000 (o couvert nao consome insumo)',
+                   l.faturamento_produto = 4000);
+  perform conferir('CMV% sobre o total = 850/5000 = 17,00', l.cmv_percentual = 17.00);
+  perform conferir('CMV% sobre produto = 850/4000 = 21,25', l.cmv_percentual_produto = 21.25);
+  -- A prova cruzada que o gabarito pede: a razao entre os dois percentuais e a
+  -- razao entre os dois faturamentos.
+  perform conferir('a diferenca entre os dois percentuais e a fatia do servico',
+    round(l.cmv_percentual_produto / l.cmv_percentual, 4)
+    = round(l.faturamento / l.faturamento_produto, 4));
+end $$;
+
+-- ============================================================================
+-- 0028 · A venda que aponta para o insumo converte a unidade
+-- ----------------------------------------------------------------------------
+-- O caso vem da planilha de setembro: 11.144 linhas em UN e 54 em KG — a
+-- BATATA FRITA, 59 KG. A 0027 somava a quantidade do PDV direto na do insumo,
+-- entao 59 KG vendidos entravam como 59 UNIDADES consumidas, e a caixa
+-- DIFERENCA do relatorio (vendas - consumo) mentia na mesma proporcao.
+-- ============================================================================
+do $$
+declare
+  r uuid; cat uuid; s uuid;
+  p_und uuid; p_saco uuid; p_kg uuid;
+  v uuid; i_kg uuid; i_outro uuid; v_erro text; l record;
+begin
+  insert into restaurantes (nome, slug) values ('Casa da Unidade','casa-unidade')
+  returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Cozinha') returning id into cat;
+  insert into setores (restaurante_id, nome) values (r,'Cozinha') returning id into s;
+
+  -- Tres cadastros do mesmo mundo real: o que se conta por unidade, o que se
+  -- conta por unidade MAS tem peso na embalagem, e o que se conta por quilo.
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Batata porcionada','UND',8,cat) returning id into p_und;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id,
+                        conteudo_quantidade, conteudo_unidade)
+  values (r,'Batata saco de 5 kg','UND',40,cat,5,'KG') returning id into p_saco;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Batata a granel','KG',9,cat) returning id into p_kg;
+
+  insert into vendas (restaurante_id, referencia, inicio, origem, origem_arquivo)
+  values (r, date '2026-09-30', date '2026-09-01','pdv','vendas_setembro.xlsx')
+  returning id into v;
+
+  -- A linha como o PDV manda: 59 KG de BATATA FRITA.
+  insert into venda_itens (venda_id, alvo, produto_id, quantidade, unidade,
+                           preco_unitario, valor_total_origem, linhas_de_origem,
+                           descricao_origem)
+  values (v,'produto',p_kg,59,'KG',41.76,2463.67,54,'BATATA FRITA')
+  returning id into i_kg;
+
+  perform conferir('0028: KG para KG continua 1 por 1',
+    (select quantidade from mv_vendas_por_produto(v) where produto_id = p_kg) = 59);
+
+  -- O mesmo KG apontando para o insumo contado em UNIDADE: nao converte, e a
+  -- linha sai MARCADA em vez de valer 59 unidades.
+  update venda_itens set produto_id = p_und where id = i_kg;
+  select * into l from mv_vendas_por_produto(v) where produto_id = p_und;
+  perform conferir('0028: KG contra UND nao converte, e a quantidade volta NULA',
+                   l.fator_ausente and l.quantidade is null);
+  perform conferir('0028: e o motivo diz as duas unidades e o nome do PDV',
+                   l.motivo like '%BATATA FRITA%' and l.motivo like '%KG%'
+                   and l.motivo like '%UND%');
+
+  -- E o caso que a 0017 resolveu para a ficha, valendo agora para a venda: o
+  -- saco de 5 kg. 59 KG sao 11,8 sacos.
+  update venda_itens set produto_id = p_saco where id = i_kg;
+  select * into l from mv_vendas_por_produto(v) where produto_id = p_saco;
+  perform conferir('0028: KG vira saco pela embalagem — 59 / 5 = 11,8',
+                   l.quantidade = 11.8 and not l.fator_ausente);
+
+  -- Lancamento da mao: sem unidade dita, a quantidade ja esta na unidade do
+  -- insumo. E o que "sem unidade" sempre quis dizer, e tem de continuar valendo.
+  update venda_itens set unidade = null, produto_id = p_und where id = i_kg;
+  perform conferir('0028: linha sem unidade (lancamento da mao) continua 1 por 1',
+    (select quantidade from mv_vendas_por_produto(v) where produto_id = p_und) = 59);
+
+  -- -------------------------------------- a fusao nao soma KG com unidade ---
+  update venda_itens set unidade = 'KG', produto_id = p_kg where id = i_kg;
+  insert into venda_itens (venda_id, alvo, quantidade, unidade, preco_unitario,
+                           valor_total_origem, descricao_origem)
+  values (v,'pendente',10,'UN',12,120,'PORCAO DE BATATA')
+  returning id into i_outro;
+  begin
+    perform mv_resolver_item_de_venda(i_outro, 'produto', null, p_kg);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('0028: a fusao recusa somar quantidade de unidades diferentes',
+                   v_erro like '%unidades diferentes%');
+  perform conferir('0028: e nenhuma das duas linhas se perdeu na recusa',
+                   (select count(*) from venda_itens where venda_id = v) = 2);
+
+  -- Com a mesma unidade, funde como a 0027 desenhou.
+  update venda_itens set unidade = 'KG' where id = i_outro;
+  perform mv_resolver_item_de_venda(i_outro, 'produto', null, p_kg);
+  perform conferir('0028: com a mesma unidade a fusao soma as quantidades',
+    (select quantidade from venda_itens where venda_id = v and produto_id = p_kg) = 69);
+  perform conferir('0028: e sobra uma linha so, com os dois nomes do PDV',
+    (select count(*) from venda_itens where venda_id = v) = 1
+    and (select descricao_origem from venda_itens where venda_id = v)
+        = 'BATATA FRITA + PORCAO DE BATATA');
+
+  -- --------------------- 0036: desfazer, inclusive a fusao ----------------
+  -- Antes, a fusao era de mao unica: ela apaga a linha clicada e a 0028 nao
+  -- guardava o que apagou. No cenario do revisor, seis nomes do PDV viraram
+  -- uma linha de R$ 37.124,58 sem como voltar atras pela tela.
+  declare
+    sobrou uuid; houve boolean; v_antes numeric;
+  begin
+    select id, coalesce(valor_total_origem, total) into sobrou, v_antes
+      from venda_itens where venda_id = v;
+    perform conferir('0036: a fusao deixou recibo das duas fotos',
+      (select jsonb_array_length(fundidas) from venda_itens where id = sobrou) = 2);
+    perform conferir('0036: e os dois nomes ficaram aprendidos no de-para',
+      (select count(*) from venda_apelidos
+        where restaurante_id = r
+          and apelido in ('BATATA FRITA', 'PORCAO DE BATATA')) = 2);
+
+    perform mv_desfazer_item_de_venda(sobrou);
+
+    perform conferir('0036: desfazer separa a fusao em duas linhas de novo',
+      (select count(*) from venda_itens where venda_id = v) = 2);
+    perform conferir('0036: as duas voltam PENDENTES, sem alvo',
+      (select count(*) from venda_itens
+        where venda_id = v and alvo = 'pendente'
+          and ficha_id is null and produto_id is null) = 2);
+    perform conferir('0036: cada uma com o nome e a quantidade que tinha',
+      (select quantidade from venda_itens where venda_id = v and descricao_origem = 'BATATA FRITA') = 59
+      and (select quantidade from venda_itens where venda_id = v and descricao_origem = 'PORCAO DE BATATA') = 10);
+    perform conferir('0036: e o dinheiro nao se perdeu nem dobrou na volta',
+      (select sum(coalesce(valor_total_origem, total)) from venda_itens where venda_id = v)
+      = v_antes);
+    -- O que fazia desfazer valer uma vez so: o apelido continuava ensinado, e a
+    -- importacao do mes seguinte refazia o vinculo errado sozinha.
+    perform conferir('0036: desfazer ESQUECE o apelido dos dois nomes',
+      (select count(*) from venda_apelidos
+        where restaurante_id = r
+          and apelido in ('BATATA FRITA', 'PORCAO DE BATATA')) = 0);
+
+    houve := false;
+    begin perform mv_desfazer_item_de_venda(
+            (select id from venda_itens where venda_id = v limit 1));
+    exception when others then houve := true; end;
+    perform conferir('0036: desfazer o que ja esta pendente recusa, em vez de nao fazer nada',
+      houve);
+
+    houve := false;
+    begin perform mv_resolver_item_de_venda(
+            (select id from venda_itens where venda_id = v limit 1), 'pendente');
+    exception when others then houve := true; end;
+    perform conferir('0036: e resolver continua recusando "pendente", como a 0028 decidiu',
+      houve);
+  end;
+end $$;
+
+-- ============================================================================
+-- 0029 · O degrau do mes seguinte vale para o MES, nao para a semana que
+--        termina no dia 31
+-- ----------------------------------------------------------------------------
+-- Maio de 2026 acaba num DOMINGO. Com `dia_virada_semana = 1` (segunda a
+-- domingo), a serie semanal da tela gera a janela 25/05-31/05 — que termina
+-- exatamente no ultimo dia do mes. Com a condicao da 0027, que olhava so o fim
+-- da janela, essa semana puxava a contagem de junho e mostrava a queda de
+-- estoque do MES como se fosse de sete dias. A cada ano todo restaurante passa
+-- por um ou dois meses assim.
+-- ============================================================================
+do $$
+declare
+  r uuid; cat uuid; s uuid; p uuid; f uuid; n uuid;
+  c_abr uuid; c_jun uuid; l record; v_semana record;
+begin
+  insert into restaurantes (nome, slug, dia_virada_semana)
+  values ('Casa do Domingo 31','casa-domingo-31', 1) returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Cozinha') returning id into cat;
+  insert into setores (restaurante_id, nome) values (r,'Cozinha') returning id into s;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Farinha','KG',10,cat) returning id into p;
+  insert into produto_setores (produto_id, setor_id, unidade) values (p, s, 'KG');
+
+  -- A casa conta no fim de abril e no dia 1o de junho: o fechamento de maio
+  -- aconteceu no mes seguinte, que e a situacao da regra da cliente.
+  -- Os itens entram ANTES de fechar: contagem fechada e foto e nao se mexe (0003).
+  insert into contagens (restaurante_id, referencia, titulo) values (r, date '2026-04-30','Abril')
+  returning id into c_abr;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, unidade, quantidade, custo_unitario)
+  values (c_abr, p, s, 'KG', 100, 10);
+  update contagens set status='fechada', fechada_em=now(), total=1000 where id=c_abr;
+
+  insert into contagens (restaurante_id, referencia, titulo) values (r, date '2026-06-01','Junho')
+  returning id into c_jun;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, unidade, quantidade, custo_unitario)
+  values (c_jun, p, s, 'KG', 40, 10);
+  update contagens set status='fechada', fechada_em=now(), total=400 where id=c_jun;
+
+  -- Uma compra em cada semana de maio, para os numeros nao se confundirem.
+  insert into fornecedores (restaurante_id, nome) values (r,'Moinho') returning id into n;
+  insert into notas_fiscais (restaurante_id, fornecedor_id, origem, status, numero, emitida_em, valor_total)
+  values (r, n, 'planilha','lancada','1', date '2026-05-05', 100),
+         (r, n, 'planilha','lancada','2', date '2026-05-27',  50);
+
+  -- O mes inteiro: a regra da cliente valendo, com a data dita em voz alta.
+  select * into l from mv_cmv_periodo(r, date '2026-05-01', date '2026-05-31');
+  perform conferir('0029: o mes civil continua fechando pela contagem de junho',
+                   l.estoque_final_data = date '2026-06-01' and l.estoque_final_fora_do_periodo);
+  perform conferir('0029: e o CMV do mes e 1000 + 150 - 400 = 750', l.cmv = 750);
+
+  -- A semana que termina no ultimo dia do mes NAO e um mes.
+  select * into l from mv_cmv_periodo(r, date '2026-05-25', date '2026-05-31');
+  perform conferir('0029: a semana que acaba em 31/05 nao puxa a contagem de junho',
+                   l.cmv is null and l.estoque_final_data is null
+                   and l.pendencia = 'Falta a contagem de estoque final');
+
+  -- Nem dez dias, nem um dia.
+  select * into l from mv_cmv_periodo(r, date '2026-05-22', date '2026-05-31');
+  perform conferir('0029: dez dias que acabam em 31/05 tambem nao', l.cmv is null);
+  select * into l from mv_cmv_periodo(r, date '2026-05-31', date '2026-05-31');
+  perform conferir('0029: um dia que acaba em 31/05 tambem nao', l.cmv is null);
+
+  -- E pela serie semanal, que e o caminho pelo qual a tela chega ali.
+  select * into v_semana from mv_cmv_serie(r, 'semanal', 1, date '2026-05-31')
+   where inicio = date '2026-05-25';
+  perform conferir('0029: a serie semanal mostra a semana 25/05 sem CMV, nao com o do mes',
+                   v_semana.cmv is null and v_semana.compras = 50);
+
+  -- A semana que de fato CONTEM a contagem continua fechando pelo degrau (a),
+  -- que nao mudou desde a 0005.
+  select * into l from mv_cmv_periodo(r, date '2026-05-26', date '2026-06-01');
+  perform conferir('0029: a semana que contem a contagem continua fechando por ela',
+                   l.estoque_final_data = date '2026-06-01'
+                   and not l.estoque_final_fora_do_periodo
+                   and l.cmv = 1000 + 50 - 400);
+end $$;

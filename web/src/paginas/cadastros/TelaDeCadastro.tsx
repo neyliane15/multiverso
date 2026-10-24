@@ -363,6 +363,9 @@ function FormularioDeCadastro({
       cor: rascunho.cor.toUpperCase(),
       ordem: rascunho.ordem,
       ativo: rascunho.ativo,
+      // Só a categoria tem a coluna. Mandá-la do formulário de setor faria o
+      // PostgREST recusar a gravação inteira por coluna inexistente.
+      ...(tipo === 'categoria' ? { fora_do_insumo: rascunho.foraDoInsumo } : {}),
     })
   }
 
@@ -492,6 +495,38 @@ function FormularioDeCadastro({
             <span className="text-corpo text-texto">Ativo</span>
           </label>
         </div>
+
+        {/*
+          A terceira decisão da cliente sobre o CMV mora aqui, e é uma caixa de
+          seleção e não uma lista de nomes no código: "limpeza e descartáveis
+          ficam fora do CMV de insumo". A migração 0027 carimba uma vez as
+          categorias que já existiam cujo nome diz isso; a partir daí, quem
+          decide é esta tela — porque é decisão da casa, e muda de casa para
+          casa (um bar que vende copo de brinde conta o descartável como
+          insumo).
+        */}
+        {tipo === 'categoria' && (
+          <div className="rounded-marca-p border border-borda bg-superficie-2 p-4">
+            <label className="flex min-h-toque items-start gap-3">
+              <input
+                type="checkbox"
+                className="mt-1 size-4 accent-[var(--mv-primaria)]"
+                checked={rascunho.foraDoInsumo}
+                onChange={(e) => setRascunho((r) => ({ ...r, foraDoInsumo: e.target.checked }))}
+              />
+              <span>
+                <span className="block text-corpo text-texto">
+                  Fora do CMV de insumo
+                </span>
+                <span className="mt-0.5 block text-apoio leading-snug text-texto-fraco">
+                  Para limpeza e descartáveis. O que está aqui continua no CMV total e aparece
+                  com indicador próprio no dashboard — ele sai só do CMV de insumo, que é o que
+                  se compara com a ficha técnica.
+                </span>
+              </span>
+            </label>
+          </div>
+        )}
 
         {vaiDesativar && (
           <Aviso tom="alerta" titulo={`Você está desativando ${rotulos.artigo} ${rotulos.singular}`}>

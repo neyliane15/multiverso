@@ -708,3 +708,29 @@ export function ondeFica(
   if (!lugar) return null
   return lugar.estoque_nome === null ? lugar.setor_nome : `${lugar.setor_nome} › ${lugar.estoque_nome}`
 }
+
+/**
+ * Quais linhas de ficha o salvamento do lançamento de vendas deve APAGAR.
+ *
+ * Existe como função separada porque a resposta errada aqui apaga dinheiro, e a
+ * versão antiga era "tudo o que não está na lista nova" — uma frase que só vale
+ * se a lista nova estiver completa. Ela não está em dois casos que não dependem
+ * de ninguém errar: o formulário carrega as linhas num `useEffect` e salvar
+ * antes disso mandava lista vazia (= apague todas); e `useItensDaVenda` usa
+ * `buscar`, que o PostgREST trunca calado em 1000 linhas.
+ *
+ * Então a conta é por ID, entre o que ESTE formulário carregou e o que ele
+ * ainda tem na mão. Linha que ele nunca viu não entra na subtração.
+ *
+ * Quantidade zero é a forma de tirar uma linha neste formulário, então a linha
+ * zerada sai junto. Linha nova (sem id) não tem o que apagar.
+ */
+export function linhasDeVendaParaApagar(
+  carregadas: readonly string[],
+  naTela: readonly { id: string | null; quantidade: number }[],
+): string[] {
+  const ficam = new Set(
+    naTela.filter((l) => l.id !== null && l.quantidade > 0).map((l) => l.id as string),
+  )
+  return carregadas.filter((id) => !ficam.has(id))
+}

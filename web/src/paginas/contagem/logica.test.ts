@@ -10,6 +10,7 @@ import {
   estoqueDaSelecao,
   gruposDaParada,
   itensDaParada,
+  linhasDeVendaParaApagar,
   montarAbas,
   montarArvoreDeSetores,
   montarParadas,
@@ -676,5 +677,56 @@ describe('a arvore da contagem · setor por fora, estoque de setor por dentro', 
       }
     }
     expect(vistos.sort()).toEqual(['cerveja', 'gin', 'picanha', 'vinho'])
+  })
+})
+
+describe('linhasDeVendaParaApagar', () => {
+  it('apaga só a linha que a pessoa tirou da lista', () => {
+    expect(
+      linhasDeVendaParaApagar(
+        ['a', 'b', 'c'],
+        [
+          { id: 'a', quantidade: 2 },
+          { id: 'c', quantidade: 1 },
+        ],
+      ),
+    ).toEqual(['b'])
+  })
+
+  it('trata quantidade zero como "tirei esta linha"', () => {
+    expect(
+      linhasDeVendaParaApagar(
+        ['a', 'b'],
+        [
+          { id: 'a', quantidade: 0 },
+          { id: 'b', quantidade: 3 },
+        ],
+      ),
+    ).toEqual(['a'])
+  })
+
+  it('não apaga NADA quando o formulário ainda não carregou', () => {
+    // O caso que o `useEffect` abre: salvar antes de a consulta voltar. Na
+    // versão por diferença isto significava "apague as 54 fichas do mês".
+    expect(linhasDeVendaParaApagar([], [])).toEqual([])
+  })
+
+  it('não apaga a linha que o formulário nunca carregou', () => {
+    // O caso do truncamento: `useItensDaVenda` usa `buscar`, e o PostgREST
+    // corta em 1000 linhas sem dizer. As linhas 1001+ não estão em
+    // `carregadas`, então não há como elas entrarem na conta do que sai.
+    expect(linhasDeVendaParaApagar(['a'], [{ id: 'a', quantidade: 1 }])).toEqual([])
+  })
+
+  it('linha nova, ainda sem id, não apaga nem é apagada', () => {
+    expect(
+      linhasDeVendaParaApagar(
+        ['a'],
+        [
+          { id: 'a', quantidade: 1 },
+          { id: null, quantidade: 5 },
+        ],
+      ),
+    ).toEqual([])
   })
 })

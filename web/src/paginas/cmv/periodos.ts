@@ -247,3 +247,43 @@ export function conferirFormula(periodo: CmvPeriodo, tolerancia = 0.01): boolean
     (periodo.estoque_inicial ?? 0) + periodo.compras - (periodo.estoque_final ?? 0)
   return Math.abs(esperado - periodo.cmv) <= tolerancia
 }
+
+/**
+ * O intervalo que o CMV desta janela de fato cobre é o da janela?
+ *
+ * `CMV = estoque inicial + compras − estoque final` só é consumo quando a
+ * compra cobre o MESMO intervalo que as duas fotos de estoque delimitam. Na
+ * série semanal isso deixa de valer sozinho: a janela é de sete dias e as
+ * contagens que respondem são as que existem. Medido no Bar do Zeca:
+ *
+ *     Sem 28/09 a 04/10 · estoque de 31/08 a 01/10 · compras de 7 dias
+ *                       · CMV R$ 11.758,02
+ *
+ * É a queda de estoque de 32 dias menos as compras de 7. Não é o consumo da
+ * semana nem do mês: faltam 25 dias de compra dentro de uma queda de estoque
+ * que os inclui. A tela não pode chamar isso de "CMV da semana".
+ *
+ * A conta é só de datas: as duas pontas casam quando a contagem inicial é do
+ * dia anterior ao início da janela e a final é do último dia dela. A ponta
+ * final já tem aviso próprio (`estoque_final_fora_do_periodo`, da 0027); esta
+ * função existe pela ponta INICIAL, que é onde a semana quebra.
+ */
+export function estoqueCobreOutroIntervalo(p: {
+  inicio: string
+  fim: string
+  estoque_inicial_data: string | null
+  estoque_final_data: string | null
+  cmv: number | null
+}): boolean {
+  // Sem CMV não há número para desmentir: a pendência já diz o que falta.
+  if (p.cmv === null) return false
+  if (p.estoque_inicial_data === null || p.estoque_final_data === null) return false
+  return p.estoque_inicial_data !== diaAnterior(p.inicio) || p.estoque_final_data !== p.fim
+}
+
+/** `2026-09-28` -> `2026-09-27`. Em ISO, sem fuso: `Date.UTC` não desloca. */
+function diaAnterior(iso: string): string {
+  const [a, m, d] = iso.split('-')
+  const t = new Date(Date.UTC(Number(a), Number(m) - 1, Number(d) - 1))
+  return t.toISOString().slice(0, 10)
+}

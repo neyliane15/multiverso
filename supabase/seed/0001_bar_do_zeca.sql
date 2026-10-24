@@ -66,29 +66,37 @@ on conflict (id) do update set
 
 -- Categorias na ordem da planilha. A cor vem de uma varredura de matiz com
 -- saturacao e luz presas a uma faixa estreita, para os chips formarem familia.
+--
+-- `fora_do_insumo` marca limpeza e descartavel, que a cliente tirou do CMV de
+-- insumo (migracao 0027). A marca vem da CARGA e nao so da migracao porque a
+-- migracao carimba as categorias que JA EXISTEM, e numa instalacao nova ela
+-- roda antes de a carga criar qualquer uma — foi medido assim no ambiente
+-- local: zero categorias marcadas, e o indicador de limpeza do dashboard
+-- mostrando R$ 0,00 com cara de medida. Quem muda daqui para frente e a tela
+-- de Categorias; isto e so o ponto de partida do primeiro cliente.
 -- @bloco:categorias
-insert into categorias (id, restaurante_id, nome, cor, ordem) values
-  ('9c99ff22-f45b-5d8a-8b68-ec4ea4fbcd87', 'b0a12eca-0000-4000-8000-000000000001', 'APARAS', '#8c6521', 1),
-  ('2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'b0a12eca-0000-4000-8000-000000000001', 'BEBIDAS ALCOÓLICAS', '#565010', 2),
-  ('01c47b56-4321-5597-b73a-43efbc951b15', 'b0a12eca-0000-4000-8000-000000000001', 'BEBIDAS NÃO ALCOÓLICAS', '#586a10', 3),
-  ('b60937b9-20ba-5cc3-9055-b2362fd781ad', 'b0a12eca-0000-4000-8000-000000000001', 'CARNES', '#345313', 4),
-  ('ea5eae2d-7e65-5f55-9fae-9de473c5ffc0', 'b0a12eca-0000-4000-8000-000000000001', 'CONGELADOS', '#266714', 5),
-  ('82bef36a-513d-59a8-91f2-780ed1f1ae38', 'b0a12eca-0000-4000-8000-000000000001', 'DESCARTÁVEIS', '#0d5912', 6),
-  ('16c07953-035f-5109-8de5-ddd72ed79b54', 'b0a12eca-0000-4000-8000-000000000001', 'EMBUTIDOS', '#176332', 7),
-  ('e2f207b6-578f-5826-84f4-26b367a9ddf1', 'b0a12eca-0000-4000-8000-000000000001', 'FEIJOADA', '#10563c', 8),
-  ('3a614052-826e-58a0-856b-bbfe118fe9f8', 'b0a12eca-0000-4000-8000-000000000001', 'HORTIFRUTI', '#106a63', 9),
-  ('c4bab142-35c9-5833-b378-808f3b4f5035', 'b0a12eca-0000-4000-8000-000000000001', 'LATICÍNIOS', '#134653', 10),
-  ('3290fd5a-65e0-5322-a040-9961052eb7f3', 'b0a12eca-0000-4000-8000-000000000001', 'MASSAS', '#1f62a3', 11),
-  ('2c58bf88-d1a5-5462-98a0-b658fb5f1492', 'b0a12eca-0000-4000-8000-000000000001', 'MATERIAL DE LIMPEZA', '#173397', 12),
-  ('156b289f-4bb4-5914-8190-08695ef3e83c', 'b0a12eca-0000-4000-8000-000000000001', 'MERCEARIA', '#2c259d', 13),
-  ('5d3fdd64-e6e6-56f1-91f6-7c4f96dbf811', 'b0a12eca-0000-4000-8000-000000000001', 'MOLHOS', '#451c92', 14),
-  ('cd858e96-acbd-5202-b034-29678b4466c4', 'b0a12eca-0000-4000-8000-000000000001', 'PEIXES E FRUTOS DO MAR', '#7419a9', 15),
-  ('b778785a-3e46-5329-a237-ba003d8522a3', 'b0a12eca-0000-4000-8000-000000000001', 'PROCESSADOS', '#84218c', 16),
-  ('a384c88a-08b3-516a-9336-b08527a69b48', 'b0a12eca-0000-4000-8000-000000000001', 'PROTEÍNAS CLIENTE', '#921c7a', 17),
-  ('6092e2e5-88a9-5120-ac04-0caf7797bcf0', 'b0a12eca-0000-4000-8000-000000000001', 'PROTEÍNAS FUNCIONÁRIO', '#85144e', 18),
-  ('b1bec079-cca8-5e3a-8560-afd4f6add349', 'b0a12eca-0000-4000-8000-000000000001', 'SORVETES', '#8c2139', 19),
-  ('93d69735-36bd-572d-88d7-5c014cd81a02', 'b0a12eca-0000-4000-8000-000000000001', 'SUÍNOS', '#811f18', 20),
-  ('9618a2f7-9060-53c6-bedb-7bd318fad75a', 'b0a12eca-0000-4000-8000-000000000001', 'TEMPEROS E AFINS', '#974317', 21)
+insert into categorias (id, restaurante_id, nome, cor, ordem, fora_do_insumo) values
+  ('9c99ff22-f45b-5d8a-8b68-ec4ea4fbcd87', 'b0a12eca-0000-4000-8000-000000000001', 'APARAS', '#8c6521', 1, false),
+  ('2a5026f9-2f1a-5080-8127-6b2e90b9ae94', 'b0a12eca-0000-4000-8000-000000000001', 'BEBIDAS ALCOÓLICAS', '#565010', 2, false),
+  ('01c47b56-4321-5597-b73a-43efbc951b15', 'b0a12eca-0000-4000-8000-000000000001', 'BEBIDAS NÃO ALCOÓLICAS', '#586a10', 3, false),
+  ('b60937b9-20ba-5cc3-9055-b2362fd781ad', 'b0a12eca-0000-4000-8000-000000000001', 'CARNES', '#345313', 4, false),
+  ('ea5eae2d-7e65-5f55-9fae-9de473c5ffc0', 'b0a12eca-0000-4000-8000-000000000001', 'CONGELADOS', '#266714', 5, false),
+  ('82bef36a-513d-59a8-91f2-780ed1f1ae38', 'b0a12eca-0000-4000-8000-000000000001', 'DESCARTÁVEIS', '#0d5912', 6, true),
+  ('16c07953-035f-5109-8de5-ddd72ed79b54', 'b0a12eca-0000-4000-8000-000000000001', 'EMBUTIDOS', '#176332', 7, false),
+  ('e2f207b6-578f-5826-84f4-26b367a9ddf1', 'b0a12eca-0000-4000-8000-000000000001', 'FEIJOADA', '#10563c', 8, false),
+  ('3a614052-826e-58a0-856b-bbfe118fe9f8', 'b0a12eca-0000-4000-8000-000000000001', 'HORTIFRUTI', '#106a63', 9, false),
+  ('c4bab142-35c9-5833-b378-808f3b4f5035', 'b0a12eca-0000-4000-8000-000000000001', 'LATICÍNIOS', '#134653', 10, false),
+  ('3290fd5a-65e0-5322-a040-9961052eb7f3', 'b0a12eca-0000-4000-8000-000000000001', 'MASSAS', '#1f62a3', 11, false),
+  ('2c58bf88-d1a5-5462-98a0-b658fb5f1492', 'b0a12eca-0000-4000-8000-000000000001', 'MATERIAL DE LIMPEZA', '#173397', 12, true),
+  ('156b289f-4bb4-5914-8190-08695ef3e83c', 'b0a12eca-0000-4000-8000-000000000001', 'MERCEARIA', '#2c259d', 13, false),
+  ('5d3fdd64-e6e6-56f1-91f6-7c4f96dbf811', 'b0a12eca-0000-4000-8000-000000000001', 'MOLHOS', '#451c92', 14, false),
+  ('cd858e96-acbd-5202-b034-29678b4466c4', 'b0a12eca-0000-4000-8000-000000000001', 'PEIXES E FRUTOS DO MAR', '#7419a9', 15, false),
+  ('b778785a-3e46-5329-a237-ba003d8522a3', 'b0a12eca-0000-4000-8000-000000000001', 'PROCESSADOS', '#84218c', 16, false),
+  ('a384c88a-08b3-516a-9336-b08527a69b48', 'b0a12eca-0000-4000-8000-000000000001', 'PROTEÍNAS CLIENTE', '#921c7a', 17, false),
+  ('6092e2e5-88a9-5120-ac04-0caf7797bcf0', 'b0a12eca-0000-4000-8000-000000000001', 'PROTEÍNAS FUNCIONÁRIO', '#85144e', 18, false),
+  ('b1bec079-cca8-5e3a-8560-afd4f6add349', 'b0a12eca-0000-4000-8000-000000000001', 'SORVETES', '#8c2139', 19, false),
+  ('93d69735-36bd-572d-88d7-5c014cd81a02', 'b0a12eca-0000-4000-8000-000000000001', 'SUÍNOS', '#811f18', 20, false),
+  ('9618a2f7-9060-53c6-bedb-7bd318fad75a', 'b0a12eca-0000-4000-8000-000000000001', 'TEMPEROS E AFINS', '#974317', 21, false)
 on conflict (id) do update set
   nome = excluded.nome, cor = excluded.cor, ordem = excluded.ordem, ativo = true;
 
