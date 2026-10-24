@@ -616,6 +616,12 @@ export interface VendaItem {
   unidade: string | null
   /** Texto cru do PDV. É a chave do de-para e o rastro de onde a linha veio. */
   descricao_origem: string | null
+  /**
+   * O recibo da fusão (0036): a foto de cada linha absorvida e da própria linha
+   * antes de somar. Nulo quando nunca houve fusão — e é esse nulo que a tela lê
+   * para dizer se "Desfazer" vai recriar linhas ou só despender esta.
+   */
+  fundidas: unknown[] | null
   criado_em: string
 }
 

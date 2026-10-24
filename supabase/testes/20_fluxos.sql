@@ -2426,6 +2426,58 @@ begin
     (select count(*) from venda_itens where venda_id = v) = 1
     and (select descricao_origem from venda_itens where venda_id = v)
         = 'BATATA FRITA + PORCAO DE BATATA');
+
+  -- --------------------- 0036: desfazer, inclusive a fusao ----------------
+  -- Antes, a fusao era de mao unica: ela apaga a linha clicada e a 0028 nao
+  -- guardava o que apagou. No cenario do revisor, seis nomes do PDV viraram
+  -- uma linha de R$ 37.124,58 sem como voltar atras pela tela.
+  declare
+    sobrou uuid; houve boolean; v_antes numeric;
+  begin
+    select id, coalesce(valor_total_origem, total) into sobrou, v_antes
+      from venda_itens where venda_id = v;
+    perform conferir('0036: a fusao deixou recibo das duas fotos',
+      (select jsonb_array_length(fundidas) from venda_itens where id = sobrou) = 2);
+    perform conferir('0036: e os dois nomes ficaram aprendidos no de-para',
+      (select count(*) from venda_apelidos
+        where restaurante_id = r
+          and apelido in ('BATATA FRITA', 'PORCAO DE BATATA')) = 2);
+
+    perform mv_desfazer_item_de_venda(sobrou);
+
+    perform conferir('0036: desfazer separa a fusao em duas linhas de novo',
+      (select count(*) from venda_itens where venda_id = v) = 2);
+    perform conferir('0036: as duas voltam PENDENTES, sem alvo',
+      (select count(*) from venda_itens
+        where venda_id = v and alvo = 'pendente'
+          and ficha_id is null and produto_id is null) = 2);
+    perform conferir('0036: cada uma com o nome e a quantidade que tinha',
+      (select quantidade from venda_itens where venda_id = v and descricao_origem = 'BATATA FRITA') = 59
+      and (select quantidade from venda_itens where venda_id = v and descricao_origem = 'PORCAO DE BATATA') = 10);
+    perform conferir('0036: e o dinheiro nao se perdeu nem dobrou na volta',
+      (select sum(coalesce(valor_total_origem, total)) from venda_itens where venda_id = v)
+      = v_antes);
+    -- O que fazia desfazer valer uma vez so: o apelido continuava ensinado, e a
+    -- importacao do mes seguinte refazia o vinculo errado sozinha.
+    perform conferir('0036: desfazer ESQUECE o apelido dos dois nomes',
+      (select count(*) from venda_apelidos
+        where restaurante_id = r
+          and apelido in ('BATATA FRITA', 'PORCAO DE BATATA')) = 0);
+
+    houve := false;
+    begin perform mv_desfazer_item_de_venda(
+            (select id from venda_itens where venda_id = v limit 1));
+    exception when others then houve := true; end;
+    perform conferir('0036: desfazer o que ja esta pendente recusa, em vez de nao fazer nada',
+      houve);
+
+    houve := false;
+    begin perform mv_resolver_item_de_venda(
+            (select id from venda_itens where venda_id = v limit 1), 'pendente');
+    exception when others then houve := true; end;
+    perform conferir('0036: e resolver continua recusando "pendente", como a 0028 decidiu',
+      houve);
+  end;
 end $$;
 
 -- ============================================================================

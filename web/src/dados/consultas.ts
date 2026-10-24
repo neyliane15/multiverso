@@ -1786,6 +1786,31 @@ export function useResolverItemDaVenda(restauranteId: string, vendaId: string) {
 }
 
 /**
+ * Volta UMA linha de venda para "pendente", desfazendo a fusão se houve uma.
+ *
+ * Função própria no banco, e não `resolver` com `alvo = 'pendente'`: desfazer
+ * não é resolver ao contrário. Ela recria as linhas que a fusão absorveu (pelo
+ * recibo em `venda_itens.fundidas`, da 0036), devolve a linha sobrevivente aos
+ * números dela, e **esquece o apelido de cada nome envolvido** — sem isso,
+ * desfazer valeria uma vez só, porque a importação do mês seguinte refaria o
+ * vínculo errado sozinha e dessa vez sem ninguém clicar.
+ *
+ * Devolve VÁRIAS linhas: uma fusão de seis nomes volta a ser seis.
+ */
+export function useDesfazerItemDaVenda(restauranteId: string, vendaId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (itemId: string) =>
+      buscar<VendaItem[]>(supabase.rpc('mv_desfazer_item_de_venda', { p_item: itemId })),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: chaves.vendaItens(vendaId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendas(restauranteId) })
+      void qc.invalidateQueries({ queryKey: chaves.vendaApelidos(restauranteId) })
+    },
+  })
+}
+
+/**
  * O faturamento do período, para a tela que precisa só dele.
  *
  * `mv_cmv_periodo` já devolve os mesmos números, e é de lá que o dashboard de

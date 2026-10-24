@@ -25,6 +25,7 @@ import {
   Package,
   Search,
   Sparkles,
+  Undo2,
   UploadCloud,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -33,6 +34,7 @@ import {
   useFichas,
   useItensDaVenda,
   useProdutos,
+  useDesfazerItemDaVenda,
   useResolverItemDaVenda,
   useVendaApelidos,
   type ItemDeVenda,
@@ -389,6 +391,7 @@ export function ConferenciaDeVenda({
   const fichas = useFichas(restauranteId)
   const produtos = useProdutos(restauranteId)
   const resolver = useResolverItemDaVenda(restauranteId, venda.id)
+  const desfazer = useDesfazerItemDaVenda(restauranteId, venda.id)
   const [soPendentes, setSoPendentes] = useState(true)
 
   const lista = useMemo(() => itens.data ?? [], [itens.data])
@@ -440,6 +443,14 @@ export function ConferenciaDeVenda({
         fichaId: alvo === 'ficha' ? id : null,
         produtoId: alvo === 'produto' ? id : null,
       })
+    } catch (falha) {
+      aoFalhar(`${item.descricao_origem ?? 'linha'}: ${mensagemDoErro(falha)}`)
+    }
+  }
+
+  async function voltarAPendente(item: ItemDeVenda) {
+    try {
+      await desfazer.mutateAsync(item.id)
     } catch (falha) {
       aoFalhar(`${item.descricao_origem ?? 'linha'}: ${mensagemDoErro(falha)}`)
     }
@@ -555,8 +566,9 @@ export function ConferenciaDeVenda({
                     fichas={vendaveis}
                     produtos={catalogo}
                     jaOcupados={jaOcupados}
-                    bloqueado={trancado || resolver.isPending}
+                    bloqueado={trancado || resolver.isPending || desfazer.isPending}
                     aoAplicar={(alvo, id) => void aplicar(item, alvo, id)}
+                    aoDesfazer={() => void voltarAPendente(item)}
                   />
                 ))}
               </ul>
@@ -577,6 +589,7 @@ function LinhaDeVenda({
   jaOcupados,
   bloqueado,
   aoAplicar,
+  aoDesfazer,
 }: {
   item: ItemDeVenda
   fichas: FichaCompleta[]
@@ -585,11 +598,15 @@ function LinhaDeVenda({
   jaOcupados: Map<string, string>
   bloqueado: boolean
   aoAplicar: (alvo: AlvoDeVenda, id: string | null) => void
+  aoDesfazer: () => void
 }) {
   const pendente = item.alvo === 'pendente'
   const [busca, setBusca] = useState('')
   const valor = item.valor_total_origem ?? item.total
   const cheiroDeServico = pendente && pareceServico(item.descricao_origem ?? '')
+  // Quantos nomes do PDV esta linha carrega. `fundidas` é o recibo da fusão
+  // (0036); sem ele a linha é de um nome só.
+  const nomesFundidos = item.fundidas?.length ?? 1
 
   // A parecença custa 975 contas por linha e só serve para a linha pendente que
   // está na tela: calculada aqui, sob demanda, e não para as 136 de uma vez.
@@ -843,6 +860,23 @@ function LinhaDeVenda({
               </option>
             ))}
           </Selecao>
+
+          {/* Desfazer de verdade: volta a linha para "pendente", separa a fusão
+              pelo recibo da 0036 e ESQUECE o apelido. Sem o esquecimento,
+              desfazer valeria uma vez só — a importação do mês seguinte refaria
+              o vínculo errado sozinha, e dessa vez sem ninguém clicar.
+              O `<select>` acima só troca o alvo, e trocar por um alvo qualquer
+              para sair de onde se errou é pior que não ter clicado. */}
+          <Botao
+            tom="fantasma"
+            tamanho="p"
+            icone={<Undo2 className="size-3.5" aria-hidden />}
+            onClick={aoDesfazer}
+          >
+            {nomesFundidos > 1
+              ? `Desfazer: separa de novo os ${nomesFundidos} nomes do PDV`
+              : 'Desfazer: volta esta linha para pendente'}
+          </Botao>
         </div>
       )}
     </li>
