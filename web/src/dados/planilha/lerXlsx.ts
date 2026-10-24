@@ -625,7 +625,16 @@ async function lerAba(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaPlanilha>
   const cabecalho: string[] = []
   const linhas: LinhaDePlanilha[] = []
 
+  // A leitura roda na thread da interface, e a aba de vendas da cliente tem
+  // 11.198 linhas: medido a 390 px com a CPU freada 4x, a previa travava a aba
+  // 11,8 s em UM bloco — nenhum quadro, nenhum clique atendido. Soltar a thread
+  // a cada 2.000 linhas custa alguns milissegundos no total e devolve a aba a
+  // quem esta olhando (e abre o caminho para uma barra de progresso de verdade,
+  // que hoje nao existe porque nao havia onde atualizar).
+  let lidas = 0
   for (const bruta of fatiarXml(folha, 'row')) {
+    lidas += 1
+    if (lidas % 2_000 === 0) await new Promise((resolva) => setTimeout(resolva, 0))
     const numero = Number(/\br="(\d+)"/.exec(bruta.atributos)?.[1] ?? '0')
     const miolo = bruta.miolo
     if (miolo === null || miolo === '') continue

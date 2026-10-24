@@ -79,6 +79,10 @@ export function casarCompraDaPlanilha(
       produtos: contexto.produtos,
       apelidos: contexto.apelidos ?? [],
       confiancaMinima: SEM_SIMILARIDADE,
+      // Sem as parecenças de cortesia: elas custam uma comparação de texto por
+      // insumo do catálogo, esta função nunca as lê, e eram 628 mil comparações
+      // na prévia de 693 linhas — 28 s de interface congelada num telefone.
+      semSugestoes: true,
     },
   )
 
