@@ -1639,12 +1639,18 @@ export interface ItemDeVendaParaGravar {
 }
 
 /**
- * Grava as fichas de UM lançamento, por diferença.
+ * Grava as fichas de UM lançamento: insere e atualiza o que a tela mandou, e
+ * apaga só os ids que a tela mandou apagar.
  *
  * Mesma decisão de `useSalvarItensDaFicha`, e pelo mesmo motivo: apagar tudo e
  * reinserir seria uma linha menos de código e um `id` novo a cada salvamento —
  * e `descricao_origem` existe justamente para a importação de PDV um dia
  * casar a linha crua com a linha gravada. Perder o id é perder esse rastro.
+ *
+ * O que ela deixou de fazer: reconciliar por diferença. "Apague tudo o que não
+ * veio na lista" é uma frase que depende de a lista estar completa, e ela não
+ * está quando a consulta ainda não voltou nem quando o PostgREST truncou — ver
+ * o comentário dentro da mutação.
  */
 export function useSalvarItensDaVenda(restauranteId: string) {
   const qc = useQueryClient()
@@ -1652,27 +1658,45 @@ export function useSalvarItensDaVenda(restauranteId: string) {
     mutationFn: async ({
       vendaId,
       itens,
+      remover,
     }: {
       vendaId: string
       itens: ItemDeVendaParaGravar[]
+      /** Os ids que a tela TIROU da lista. Nada mais é apagado. */
+      remover: string[]
     }) => {
-      // `alvo = 'ficha'` no filtro, e nao e detalhe: desde a 0027 um lancamento
-      // importado do PDV tem linha de insumo direto, de servico e pendente, e
-      // todas elas tem `ficha_id` nulo. Sem este filtro, `querida.has(null)` e
-      // falso para todas e o formulario da mao APAGARIA as 100 linhas da
-      // planilha ao salvar uma ficha — sem aviso e sem desfazer.
-      const atuais = await buscar<{ id: string; ficha_id: string }[]>(
-        supabase
-          .from('venda_itens')
-          .select('id, ficha_id')
-          .eq('venda_id', vendaId)
-          .eq('alvo', 'ficha'),
-      )
-      const querida = new Set(itens.map((i) => i.ficha_id))
-      const sair = atuais.filter((a) => !querida.has(a.ficha_id)).map((a) => a.id)
-
-      if (sair.length > 0) {
-        await buscar(supabase.from('venda_itens').delete().in('id', sair).select('id'))
+      // Apaga só o que a tela NOMEOU, e não "tudo o que não veio na lista".
+      //
+      // A versão por diferença lia as linhas de ficha do lançamento e apagava
+      // as que não estavam na lista nova. Ela tinha o filtro `alvo = 'ficha'`,
+      // que protege insumo, serviço e pendente — mas continuava podendo apagar
+      // as OUTRAS fichas do mesmo lançamento, e por dois caminhos que não
+      // dependem de ninguém errar:
+      //
+      // · o formulário carrega as linhas num `useEffect` que só roda quando a
+      //   consulta volta. Salvar antes disso mandava lista vazia, e lista vazia
+      //   significava "apague todas";
+      // · `useItensDaVenda` usa `buscar`, não `buscarTudo`: num lançamento com
+      //   mais de 1000 linhas o PostgREST trunca calado (ver `buscarTudo`), o
+      //   formulário carregava 1000 e as demais saíam como "não estão na lista".
+      //
+      // Hoje nenhum dos dois acontece porque `Vendas.tsx` manda lançamento de
+      // PDV para a conferência e nunca para este formulário. Isso é um desvio
+      // numa tela protegendo um hook, e o próximo que reusar o hook não vai
+      // saber. Com a lista explícita, o hook não tem como apagar o que a tela
+      // não viu.
+      if (remover.length > 0) {
+        await buscar(
+          supabase
+            .from('venda_itens')
+            .delete()
+            .in('id', remover)
+            .eq('venda_id', vendaId)
+            // Cinto e suspensório: este hook só mexe em linha de ficha, mesmo
+            // que alguém lhe passe o id de uma linha de serviço por engano.
+            .eq('alvo', 'ficha')
+            .select('id'),
+        )
       }
       if (itens.length > 0) {
         await buscar(
@@ -1685,7 +1709,7 @@ export function useSalvarItensDaVenda(restauranteId: string) {
             .select('id'),
         )
       }
-      return { entraram: itens.length, sairam: sair.length }
+      return { entraram: itens.length, sairam: remover.length }
     },
     onSuccess: (_resultado, entrada) => {
       void qc.invalidateQueries({ queryKey: chaves.vendaItens(entrada.vendaId) })

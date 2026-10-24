@@ -80,7 +80,7 @@ import {
 } from '@/componentes/base'
 import { chaveBusca, data as formatarData, dataHora, dinheiro, quantidade as formatarQuantidade } from '@/util/formato'
 import { PainelLateral } from '../PainelLateral'
-import { hojeIso } from './logica'
+import { hojeIso, linhasDeVendaParaApagar } from './logica'
 import { ConferenciaDeVenda, PainelDaPlanilha } from './PlanilhaDeVendas'
 
 const TOM_DO_STATUS = { fechada: 'sucesso', aberta: 'marca', cancelada: 'erro' } as const
@@ -452,6 +452,8 @@ function VendasDoRestaurante({ restauranteId }: { restauranteId: string }) {
 /* ──────────────────────────────────────────── o formulário de um período ── */
 
 interface LinhaDoFormulario {
+  /** O id da linha JÁ gravada, para o salvamento poder nomear o que tirar. */
+  id: string | null
   fichaId: string
   nome: string
   quantidade: number
@@ -490,17 +492,22 @@ function PainelDoLancamento({
   // insumo direto, de serviço e pendente, e este formulário não sabe editá-las.
   // Elas continuam no banco — `useSalvarItensDaVenda` reconcilia apenas ficha —
   // e quem as resolve é a tela de conferência da planilha.
+  // Os ids que ESTE formulário carregou. O salvamento só pode apagar daqui:
+  // assim nenhuma linha que ele não viu entra na conta do que sai.
+  const [carregadas, setCarregadas] = useState<string[]>([])
+
   useEffect(() => {
     if (!itens.data) return
+    const deFicha = itens.data.filter((i) => i.alvo === 'ficha' && i.ficha_id !== null)
+    setCarregadas(deFicha.map((i) => i.id))
     setLinhas(
-      itens.data
-        .filter((i) => i.alvo === 'ficha' && i.ficha_id !== null)
-        .map((i) => ({
-          fichaId: i.ficha_id as string,
-          nome: i.ficha?.nome ?? 'Ficha apagada',
-          quantidade: i.quantidade,
-          precoUnitario: i.preco_unitario,
-        })),
+      deFicha.map((i) => ({
+        id: i.id,
+        fichaId: i.ficha_id as string,
+        nome: i.ficha?.nome ?? 'Ficha apagada',
+        quantidade: i.quantidade,
+        precoUnitario: i.preco_unitario,
+      })),
     )
   }, [itens.data])
 
@@ -540,7 +547,10 @@ function PainelDoLancamento({
           quantidade: l.quantidade,
           preco_unitario: l.precoUnitario,
         }))
-      await salvarItens.mutateAsync({ vendaId: salva.id, itens: paraGravar })
+      // Fica de fora o que a pessoa tirou da lista, e as linhas cuja quantidade
+      // ela zerou — zero é a forma de tirar uma linha neste formulário.
+      const remover = linhasDeVendaParaApagar(carregadas, linhas)
+      await salvarItens.mutateAsync({ vendaId: salva.id, itens: paraGravar, remover })
       aoFechar()
     } catch (erro) {
       aoFalhar(erro instanceof Error ? erro.message : String(erro))
@@ -661,6 +671,7 @@ function PainelDoLancamento({
                             setLinhas((atuais) => [
                               ...atuais,
                               {
+                                id: null,
                                 fichaId: f.id,
                                 nome: f.nome,
                                 quantidade: 0,
