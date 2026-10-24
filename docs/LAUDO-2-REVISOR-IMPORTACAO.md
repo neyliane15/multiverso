@@ -509,6 +509,16 @@ do hook — vale saber antes de alguém reusar o hook.
 
 ---
 
+### 21 · NOTA — os cinco defeitos que ele achou com a tela aberta, conferidos um a um
+
+| o defeito dele | o caso que o pegou, refeito por mim | resolve? |
+|---|---|---|
+| o cartão do período e a tabela por categoria discordavam | soma das 21 categorias = **R$ 89.137,8163**, igual ao cartão, **zero** categorias sem CMV enquanto o período tem | sim |
+| a carga nascia sem categoria marcada | banco do zero: `MATERIAL DE LIMPEZA` e `DESCARTÁVEIS` marcadas pela carga; a regra do gerador (`/LIMPEZA\|DESCARTAV\|HIGIENE/`) é a mesma da migração, e `npm run seed:conferir` fecha | sim |
+| sugestão de 13% virava botão de um clique | com o piso, "COUVE FLOR 13%" some de COUVERT ARTISTICO 20 REAIS; a maior linha do mês fica só com a busca (achado 15 diz o que o piso ainda deixa passar) | sim, em parte |
+| `useSalvarItensDaVenda` apagava as linhas da planilha | o filtro por `alvo = 'ficha'` protege insumo, serviço e pendente (achado 20 diz o que resta) | sim, em parte |
+| a 0005 morria na segunda passada | três passadas verdes com `ON_ERROR_STOP`, grants idênticos nas quatro fotos | sim |
+
 ## O que eu NÃO consegui provar
 
 - **Que o leitor é seguro.** Provei que ele resiste aos 27 arquivos hostis que
