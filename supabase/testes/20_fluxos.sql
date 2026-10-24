@@ -2223,8 +2223,13 @@ begin
   -- classifica, em vez de empurra-lo calado para uma das metades.
   insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
                           valor_unitario, valor_total, operacao)
-  values (n, null, 'DETERGENTE QUE NINGUEM VINCULOU','UND', 1, 30, 30,
+  values (n, p_cerveja, 'ITEM QUE PERDEU O INSUMO','UND', 1, 30, 30,
           '01 - COMPRAS DE LIMPEZAS E DESCARTAVEIS');
+  -- `on delete set null` da 0004: apagar o insumo do cadastro esvazia o vinculo
+  -- da nota lancada. E o caminho que a 0032 NAO tranca, de proposito, e e por
+  -- ele que `compras_sem_classificacao` tem razao de existir.
+  update nota_itens set produto_id = null
+   where nota_id = n and descricao = 'ITEM QUE PERDEU O INSUMO';
 
   select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
   perform conferir('item sem insumo vinculado nao vira limpeza pelo rotulo da nota',
@@ -2238,6 +2243,50 @@ begin
   update notas_fiscais set valor_total = 600 where id = n;
   select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
   perform conferir('desfeito o cenario, setembro volta ao CMV de 850', l.cmv = 850);
+
+  -- ------------- 0032: a trava do item pendente vale fora de mv_lancar_nota --
+  -- Medido pela API antes do gatilho: `PATCH {"status":"lancada"}` numa nota
+  -- com item pendente voltava HTTP 204, e os R$ 1.000 do item entravam no CMV.
+  declare
+    n2 uuid; i2 uuid; houve boolean;
+  begin
+    insert into notas_fiscais (restaurante_id, emitida_em, status, valor_total)
+    values (r, date '2026-09-20', 'importada', 1000) returning id into n2;
+    insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                            valor_unitario, valor_total)
+    values (n2, null, 'DETERGENTE QUE NINGUEM VINCULOU', 'UND', 10, 100, 1000);
+
+    houve := false;
+    begin update notas_fiscais set status = 'lancada' where id = n2;
+    exception when others then houve := true; end;
+    perform conferir('0032: update direto no status nao lanca nota com item pendente', houve);
+
+    update nota_itens set produto_id = p_cerveja where nota_id = n2;
+    update notas_fiscais set status = 'lancada' where id = n2;
+    perform conferir('0032: vinculado o insumo, o mesmo update passa',
+                     (select status from notas_fiscais where id = n2) = 'lancada');
+
+    houve := false;
+    begin
+      insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                              valor_unitario, valor_total)
+      values (n2, null, 'ITEM PENDURADO DEPOIS', 'UND', 1, 500, 500);
+    exception when others then houve := true; end;
+    perform conferir('0032: item pendente nao se pendura em nota ja lancada', houve);
+
+    -- E o caminho que fica aberto por desenho, com a conta dizendo o tamanho:
+    -- apagar o insumo do cadastro esvazia o vinculo (`on delete set null`), e
+    -- trancar isso trancaria apagar insumo com historico de compra.
+    select id into i2 from nota_itens where nota_id = n2 limit 1;
+    update nota_itens set produto_id = null where id = i2;
+    perform conferir('0032: desvincular continua possivel, e a conta diz quanto',
+      (select c.compras_sem_classificacao
+         from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30') c) = 1000);
+
+    perform conferir('0032: e a nota continua inteira depois das duas recusas',
+                     (select count(*) from nota_itens where nota_id = n2) = 1);
+    delete from notas_fiscais where id = n2;
+  end;
 
   -- --------------------------------------------- os dois percentuais ------
   perform conferir('sem venda fechada nao ha percentual: nao se divide por zero',
