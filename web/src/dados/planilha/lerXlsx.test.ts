@@ -331,6 +331,64 @@ describe('lerXlsx — arquivo hostil', () => {
   })
 
   /**
+   * ANTES, medido com um processo por arquivo e teto de 60 s:
+   *
+   *   uma célula em "AAAAAA1" (764 bytes) .... LEU, 928 ms, RSS 461 MB,
+   *                                            cabeçalho de 12.356.631 colunas
+   *   a mesma, com 200 linhas (1.988 bytes) .. LEU, 8.622 ms (43 ms por linha;
+   *                                            a aba da cliente tem 11.198)
+   *   uma célula em "FXSHRXW1" (752 bytes) ... 15.313 ms, RSS 2.128 MB, e no
+   *                                            fim "o arquivo está corrompido,
+   *                                            reabra no Excel" — que é mentira:
+   *                                            o motor ficou sem memória
+   *
+   * A posição da célula vem da referência, e a referência vem do arquivo.
+   * `indiceDaColuna` não tinha teto, e um índice ainda abaixo de 2^32 faz
+   * `porColuna.length` virar aquele número — o laço do cabeçalho anda até lá uma
+   * vez, e o de montar os valores anda até lá a cada linha.
+   */
+  it('recusa célula em coluna que não existe no Excel', async () => {
+    for (const coluna of ['AAAAAA', 'FXSHRXW', 'XFE']) {
+      const dados = planilha(
+        `<worksheet><sheetData><row r="1">${PRODUTO.slice(PRODUTO.indexOf('<c'), PRODUTO.indexOf('</row>'))}` +
+          `<c r="${coluna}1" t="inlineStr"><is><t>fim</t></is></c></row></sheetData></worksheet>`,
+      )
+      const comecou = Date.now()
+      await expect(lerXlsx(dados)).rejects.toMatchObject({ codigo: 'coluna_fora_da_faixa' })
+      expect(Date.now() - comecou, `${coluna} demorou demais`).toBeLessThan(1_000)
+    }
+  })
+
+  it('XFD, que é a última coluna de verdade, continua passando', async () => {
+    const dados = planilha(
+      '<worksheet><sheetData><row r="1">' +
+        '<c r="A1" t="inlineStr"><is><t>Produto</t></is></c>' +
+        '<c r="XFD1" t="inlineStr"><is><t>fim</t></is></c></row>' +
+        '<row r="2"><c r="A2" t="inlineStr"><is><t>CERVEJA</t></is></c></row>' +
+        '</sheetData></worksheet>',
+    )
+    const aba = await lerXlsx(dados)
+    expect(aba.cabecalho.length).toBe(16_384)
+    expect(aba.linhas).toHaveLength(1)
+  })
+
+  /**
+   * `indiceDaColuna('')` devolvia -1, e `porColuna[-1] = valor` em JavaScript
+   * não é posição de array: é um campo de texto. A célula sumia sem uma palavra.
+   */
+  it('célula com referência em minúscula entra pela ordem, em vez de sumir', async () => {
+    const dados = planilha(
+      '<worksheet><sheetData>' +
+        '<row r="1"><c r="A1" t="inlineStr"><is><t>Produto</t></is></c></row>' +
+        '<row r="2"><c r="a2" t="inlineStr"><is><t>CERVEJA</t></is></c></row>' +
+        '</sheetData></worksheet>',
+    )
+    const aba = await lerXlsx(dados)
+    expect(aba.linhas).toHaveLength(1)
+    expect(aba.linhas[0]?.valores['Produto']).toBe('CERVEJA')
+  })
+
+  /**
    * ANTES: mais de 60 s, sem terminar, com um arquivo de **663 bytes**. O `r:id`
    * do `<sheet>` vinha do arquivo e era interpolado em `new RegExp(...)`: quem
    * manda a planilha escolhia a expressão regular que o navegador ia rodar.

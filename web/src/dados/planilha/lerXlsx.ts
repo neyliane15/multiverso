@@ -51,6 +51,7 @@ export type CodigoErroPlanilha =
   | 'aba_vazia'
   | 'cabecalho_vazio'
   | 'coluna_ausente'
+  | 'coluna_fora_da_faixa'
   | 'grande_demais'
   | 'conteudo_corrompido'
   | 'entrada_repetida'
@@ -119,6 +120,34 @@ interface EntradaDeZip {
  * a mensagem manda fazer.
  */
 const TETO_DESCOMPACTADO = 64 * 1024 * 1024
+
+/**
+ * A ultima coluna que o Excel tem: XFD, a 16.384ª.
+ *
+ * Existe porque a posicao da celula vem da REFERENCIA (`A2`), e a referencia
+ * vem do arquivo. `indiceDaColuna` nao tinha teto, e um indice grande o
+ * bastante — mas ainda abaixo de 2^32, que e o limite do que o JavaScript
+ * trata como indice de array — faz `porColuna.length` virar aquele numero. O
+ * laco do cabecalho anda ate lá UMA vez; o de montar os valores anda ate lá a
+ * CADA linha.
+ *
+ * Medido, com um processo por arquivo e teto de 60 s:
+ *
+ *   coluna_sem_teto.xlsx (764 bytes, uma celula em "AAAAAA1")
+ *     antes: LEU em 928 ms, RSS 461 MB, cabecalho de 12.356.631 colunas
+ *   coluna_sem_teto_200_linhas.xlsx (1.988 bytes, a mesma celula + 200 linhas)
+ *     antes: LEU em 8.622 ms — 43 ms por linha. A aba de vendas da cliente tem
+ *            11.198 linhas: oito minutos de aba congelada.
+ *   coluna_no_limite.xlsx (752 bytes, uma celula em "FXSHRXW1")
+ *     antes: 15.313 ms, RSS 2.128 MB, e no fim uma recusa que MENTE — diz
+ *            "o arquivo esta corrompido... reabra no Excel e salve de novo",
+ *            quando o que houve foi o motor ficar sem memoria.
+ *
+ * Em aba de navegador, 2 GB e a aba morrendo. Planilha com coluna depois de
+ * XFD nao saiu do Excel, entao a resposta e recusa em voz alta — a mesma
+ * decisao do ZIP64 e do metodo de compressao desconhecido.
+ */
+const MAXIMO_COLUNAS = 16_384
 
 const ASSINATURA_FIM = 0x06054b50
 const ASSINATURA_CENTRAL = 0x02014b50
@@ -648,7 +677,19 @@ async function lerAba(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaPlanilha>
     const porColuna: ValorDeCelula[] = []
     for (const celula of celulas) {
       const referencia = texto(celula['@_r'])
-      const indice = referencia === '' ? porColuna.length : indiceDaColuna(colunaDaReferencia(referencia))
+      const letras = colunaDaReferencia(referencia)
+      // Sem letra nenhuma (`a1` em minuscula, `1`, vazio) a posicao e a ordem de
+      // aparicao, que e o que ja valia para a celula sem referencia. Sem isto,
+      // `indiceDaColuna('')` devolvia -1 e a celula sumia num campo de texto.
+      const indice = letras === '' ? porColuna.length : indiceDaColuna(letras)
+      if (indice >= MAXIMO_COLUNAS) {
+        throw new ErroDePlanilha(
+          'coluna_fora_da_faixa',
+          `A aba "${aba.nome}" tem uma célula na coluna "${letras}", e a última coluna que ` +
+            'existe no Excel é a XFD. Uma planilha com coluna além dessa não saiu do Excel: ' +
+            'reexporte o arquivo do sistema de origem.',
+        )
+      }
       porColuna[indice] = valorDaCelula(celula, textos, estilosDeData)
     }
 
