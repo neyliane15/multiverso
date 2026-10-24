@@ -164,6 +164,13 @@ end $$;
 
 -- ------------------------------------------ serie semanal / mensal ---------
 -- Alimenta os graficos 4.1 / 4.2 / 4.3 de uma vez so.
+--
+-- O `drop` e para a SEGUNDA passada, mesmo caso de `mv_cmv_periodo` acima: a
+-- 0035 acrescenta as datas das duas contagens a esta funcao, e `create or
+-- replace function` recusa mudar retorno. Quem depende do formato novo e a
+-- 0035, que roda depois desta na mesma passada.
+drop function if exists mv_cmv_serie(uuid, text, integer, date);
+
 create or replace function mv_cmv_serie(
   p_restaurante   uuid,
   p_granularidade text default 'mensal',   -- 'semanal' | 'mensal'

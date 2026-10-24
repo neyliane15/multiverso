@@ -80,6 +80,7 @@ import {
   quantidade,
 } from '@/util/formato'
 import {
+  estoqueCobreOutroIntervalo,
   explicarPendencia,
   ordenarCategorias,
   periodoSugerido,
@@ -483,6 +484,11 @@ function DetalheDoPeriodo({
               <option key={`${linha.inicio}|${linha.fim}`} value={`${linha.inicio}|${linha.fim}`}>
                 {linha.rotulo}
                 {linha.completo ? '' : ' · sem CMV'}
+                {/* A semana que CONTÉM a contagem fecha com a queda de estoque de
+                    um mês e as compras de sete dias. O número existe, e não é o
+                    consumo da semana: medido, Sem 28/09 dá R$ 11.758,02 com
+                    estoque de 31/08 a 01/10. O rótulo tem de dizer. */}
+                {estoqueCobreOutroIntervalo(linha) ? ' · outro intervalo' : ''}
               </option>
             ))}
           </Selecao>
@@ -572,6 +578,29 @@ function DetalheDoPeriodo({
                     {formatarData(dados.estoque_final_data)} entra neste CMV. Para o fechamento
                     mensal contado no dia 1º são algumas horas; se a contagem foi muito depois,
                     são dias de venda e de compra dentro do número.
+                  </p>
+                </Aviso>
+              )}
+
+              {estoqueCobreOutroIntervalo(dados) && (
+                <Aviso tom="alerta" titulo="Este CMV cobre um intervalo diferente da janela">
+                  <p className="mt-1">
+                    A janela escolhida é {formatarData(dados.inicio)} a {formatarData(dados.fim)},
+                    mas as duas contagens que fecharam a conta são de{' '}
+                    <strong className="mv-numero">
+                      {formatarData(dados.estoque_inicial_data ?? dados.inicio)}
+                    </strong>{' '}
+                    e{' '}
+                    <strong className="mv-numero">
+                      {formatarData(dados.estoque_final_data ?? dados.fim)}
+                    </strong>
+                    . A queda de estoque é desse intervalo; as compras somadas aqui são só as da
+                    janela. Onde os dois não coincidem, a subtração deixa de ser o consumo de um
+                    período — faltam (ou sobram) as compras dos dias de diferença.
+                  </p>
+                  <p className="mt-1">
+                    Para ler consumo, escolha a janela que vai de uma contagem à seguinte: no
+                    fechamento mensal, o mês civil inteiro.
                   </p>
                 </Aviso>
               )}

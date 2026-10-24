@@ -521,6 +521,13 @@ export interface CmvSerie {
   cmv: number | null
   completo: boolean
   pendencia: string | null
+  /**
+   * As datas das duas contagens que fecharam a janela. Existem na série porque
+   * a janela e o intervalo do estoque podem ser outros — ver
+   * `estoqueCobreOutroIntervalo`.
+   */
+  estoque_inicial_data: string | null
+  estoque_final_data: string | null
 }
 
 export interface CmvCategoria {
