@@ -11,6 +11,8 @@
  * cliente — e por isso o arquivo monta as suas. Mas quando estão, as somas
  * conferidas são as medidas de verdade, no centavo.
  */
+import { Buffer } from 'node:buffer'
+import { deflateRawSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
 import { ErroDePlanilha, dataDoSerial, exigirColunas, lerXlsx, numeroDaCelula } from './lerXlsx'
 
@@ -29,6 +31,16 @@ function crc32(dados: Uint8Array): number {
 interface ParteDoZip {
   nome: string
   texto: string
+  /** Conteúdo já compactado por fora, para o caso do método 8. */
+  bytes?: Uint8Array
+  /** Método desta parte, quando ele não é o do ZIP todo. */
+  metodo?: number
+  /** Tamanho cru DECLARADO no índice, que um arquivo hostil mente à vontade. */
+  cruDeclarado?: number
+  /** CRC-32 adulterado, para provar que o leitor confere. */
+  crcErrado?: boolean
+  /** 0xffffffff nos campos de tamanho: ZIP64 declarado nesta entrada. */
+  zip64NoCentral?: boolean
 }
 
 /**
@@ -38,7 +50,10 @@ interface ParteDoZip {
  * leitor, e o caminho do método 0 é justamente o que nenhuma planilha de verdade
  * usa — então ele só tem teste aqui.
  */
-function montarZip(partes: ParteDoZip[], opcoes: { metodo?: number; zip64?: boolean } = {}): Uint8Array {
+function montarZip(
+  partes: ParteDoZip[],
+  opcoes: { metodo?: number; zip64?: boolean; inicioCentralLouco?: boolean } = {},
+): Uint8Array {
   const pedacos: Uint8Array[] = []
   const central: Uint8Array[] = []
   let deslocamento = 0
@@ -46,17 +61,20 @@ function montarZip(partes: ParteDoZip[], opcoes: { metodo?: number; zip64?: bool
 
   for (const parte of partes) {
     const nome = codificador.encode(parte.nome)
-    const conteudo = codificador.encode(parte.texto)
-    const soma = crc32(conteudo)
+    const cru = codificador.encode(parte.texto)
+    // `bytes` é o conteúdo já compactado: o tamanho CRU continua sendo o do
+    // texto, que é o que o índice do ZIP declara.
+    const conteudo = parte.bytes ?? cru
+    const soma = parte.crcErrado ? crc32(cru) ^ 0xffffffff : crc32(cru)
 
     const local = new Uint8Array(30 + nome.length + conteudo.length)
     const dvLocal = new DataView(local.buffer)
     dvLocal.setUint32(0, 0x04034b50, true)
     dvLocal.setUint16(4, 20, true)
-    dvLocal.setUint16(8, opcoes.metodo ?? 0, true)
+    dvLocal.setUint16(8, parte.metodo ?? opcoes.metodo ?? 0, true)
     dvLocal.setUint32(14, soma, true)
     dvLocal.setUint32(18, conteudo.length, true)
-    dvLocal.setUint32(22, conteudo.length, true)
+    dvLocal.setUint32(22, cru.length, true)
     dvLocal.setUint16(26, nome.length, true)
     local.set(nome, 30)
     local.set(conteudo, 30 + nome.length)
@@ -65,10 +83,10 @@ function montarZip(partes: ParteDoZip[], opcoes: { metodo?: number; zip64?: bool
     const entrada = new Uint8Array(46 + nome.length)
     const dvEntrada = new DataView(entrada.buffer)
     dvEntrada.setUint32(0, 0x02014b50, true)
-    dvEntrada.setUint16(10, opcoes.metodo ?? 0, true)
+    dvEntrada.setUint16(10, parte.metodo ?? opcoes.metodo ?? 0, true)
     dvEntrada.setUint32(16, soma, true)
-    dvEntrada.setUint32(20, conteudo.length, true)
-    dvEntrada.setUint32(24, conteudo.length, true)
+    dvEntrada.setUint32(20, parte.zip64NoCentral ? 0xffffffff : conteudo.length, true)
+    dvEntrada.setUint32(24, parte.zip64NoCentral ? 0xffffffff : (parte.cruDeclarado ?? cru.length), true)
     dvEntrada.setUint16(28, nome.length, true)
     dvEntrada.setUint32(42, deslocamento, true)
     entrada.set(nome, 46)
@@ -86,7 +104,7 @@ function montarZip(partes: ParteDoZip[], opcoes: { metodo?: number; zip64?: bool
   dvFim.setUint16(localizador + 8, partes.length, true)
   dvFim.setUint16(localizador + 10, partes.length, true)
   dvFim.setUint32(localizador + 12, tamanhoCentral, true)
-  dvFim.setUint32(localizador + 16, deslocamento, true)
+  dvFim.setUint32(localizador + 16, opcoes.inicioCentralLouco ? 0xfffffff0 : deslocamento, true)
 
   const total = deslocamento + tamanhoCentral + fim.length
   const saida = new Uint8Array(total)
@@ -254,6 +272,254 @@ describe('lerXlsx', () => {
     await expect(lerXlsx(dados)).rejects.toSatisfy(
       (e: unknown) => e instanceof ErroDePlanilha && e.codigo === 'cabecalho_vazio',
     )
+  })
+})
+
+/**
+ * O leitor contra arquivo HOSTIL, que é o que ele de fato recebe: um .xlsx vem
+ * de fora, pela mão da cliente, e abre no navegador dela.
+ *
+ * Cada caso aqui foi medido ANTES de existir conserto, com o leitor da 0027 e
+ * com o arquivo montado por fora (Python, `zipfile` e `zlib`). Os tempos de
+ * "antes" estão no comentário de cada um, porque é o que diz o tamanho do
+ * defeito: dois quilobytes de arquivo que travam a aba não é um aviso feio, é
+ * a aba da cliente morta.
+ */
+describe('lerXlsx — arquivo hostil', () => {
+  const PRODUTO = '<row r="1"><c r="A1" t="inlineStr"><is><t>Produto</t></is></c></row>'
+  const UMA_LINHA = `<worksheet><sheetData>${PRODUTO}<row r="2"><c r="A2"><v>1</v></c></row></sheetData></worksheet>`
+
+  /**
+   * ANTES: 5,0 s com 50 mil tags, e mais de 60 s (sem terminar) com 200 mil —
+   * de um .xlsx de 2 KB. A expressão regular `<row\b([^>]*?)...` não casa nada
+   * quando a tag nunca fecha, e o motor recomeça um caractere adiante: custo
+   * N × tamanho. O `fatiarXml` anda por índice e visita cada caractere uma vez.
+   */
+  it('não trava com tag que nunca fecha, em nenhuma das partes', async () => {
+    const casos: { rotulo: string; dados: Uint8Array }[] = [
+      {
+        rotulo: 'aba',
+        dados: planilha(`<worksheet><sheetData>${'<row '.repeat(200_000)}</sheetData></worksheet>`),
+      },
+      {
+        rotulo: 'tabela de textos',
+        dados: planilha(UMA_LINHA, [
+          { nome: 'xl/sharedStrings.xml', texto: `<sst>${'<si '.repeat(200_000)}</sst>` },
+        ]),
+      },
+      {
+        rotulo: 'estilos',
+        dados: montarZip([
+          { nome: 'xl/workbook.xml', texto: WORKBOOK },
+          { nome: 'xl/_rels/workbook.xml.rels', texto: RELS },
+          {
+            nome: 'xl/styles.xml',
+            texto: `<styleSheet><cellXfs count="1">${'<xf '.repeat(200_000)}</cellXfs></styleSheet>`,
+          },
+          { nome: 'xl/worksheets/sheet1.xml', texto: UMA_LINHA },
+        ]),
+      },
+    ]
+    for (const caso of casos) {
+      const comecou = Date.now()
+      // Ler ou recusar, as duas coisas servem. O que não serve é não voltar.
+      await lerXlsx(caso.dados).catch((e: unknown) => {
+        if (!(e instanceof ErroDePlanilha)) throw e
+      })
+      expect(Date.now() - comecou, `${caso.rotulo} demorou demais`).toBeLessThan(5_000)
+    }
+  })
+
+  /**
+   * ANTES: mais de 60 s, sem terminar, com um arquivo de **663 bytes**. O `r:id`
+   * do `<sheet>` vinha do arquivo e era interpolado em `new RegExp(...)`: quem
+   * manda a planilha escolhia a expressão regular que o navegador ia rodar.
+   */
+  it('não deixa o r:id do arquivo virar expressão regular', async () => {
+    const dados = montarZip([
+      {
+        nome: 'xl/workbook.xml',
+        texto: `<workbook><sheets><sheet name="Aba" sheetId="1" r:id="(a+)+$"/></sheets></workbook>`,
+      },
+      {
+        nome: 'xl/_rels/workbook.xml.rels',
+        texto: `<Relationships><Relationship Id="${'a'.repeat(40)}" Target="worksheets/sheet1.xml"/></Relationships>`,
+      },
+      { nome: 'xl/worksheets/sheet1.xml', texto: UMA_LINHA },
+    ])
+    const comecou = Date.now()
+    const aba = await lerXlsx(dados)
+    expect(Date.now() - comecou).toBeLessThan(5_000)
+    // Sem relacionamento que casa, o palpite é o caminho que todo exportador usa.
+    expect(aba.linhas).toHaveLength(1)
+  })
+
+  /**
+   * A bomba de descompressão. ANTES, medido: um .xlsx de 9,2 MB cuja aba
+   * expande em 1,9 GB levava 38,3 s, chegava a 5,8 GB de memória e terminava
+   * com `Error: Cannot create a string longer than 0x1fffffe8 characters` —
+   * mensagem de motor, não de planilha. Na aba da cliente é a aba morrendo.
+   */
+  it('recusa parte que passa do teto pelo tamanho declarado', async () => {
+    const dados = planilha(UMA_LINHA)
+    const comTamanhoMentido = montarZip([
+      { nome: 'xl/workbook.xml', texto: WORKBOOK },
+      { nome: 'xl/_rels/workbook.xml.rels', texto: RELS },
+      { nome: 'xl/styles.xml', texto: ESTILOS },
+      { nome: 'xl/worksheets/sheet1.xml', texto: UMA_LINHA, cruDeclarado: 65 * 1024 * 1024 },
+    ])
+    await expect(lerXlsx(dados)).resolves.toBeTruthy()
+    await expect(lerXlsx(comTamanhoMentido)).rejects.toSatisfy(
+      (e: unknown) => e instanceof ErroDePlanilha && e.codigo === 'grande_demais',
+    )
+    await expect(lerXlsx(comTamanhoMentido)).rejects.toThrow(/período menor/)
+  })
+
+  /**
+   * E o tamanho declarado é declaração, não promessa: este arquivo diz 1 KB no
+   * índice e entrega 70 MiB. Quem recusa é a contagem de bytes DURANTE a
+   * descompressão — o teto declarado é só a recusa barata.
+   */
+  it('recusa parte que mente o tamanho e estoura descompactando', async () => {
+    const encheu = deflateRawSync(Buffer.alloc(70 * 1024 * 1024, 0x41))
+    const dados = montarZip(
+      [
+        { nome: 'xl/workbook.xml', texto: WORKBOOK },
+        { nome: 'xl/_rels/workbook.xml.rels', texto: RELS },
+        {
+          nome: 'xl/worksheets/sheet1.xml',
+          texto: 'A'.repeat(1024),
+          bytes: new Uint8Array(encheu),
+          cruDeclarado: 1024,
+          metodo: 8,
+        },
+      ],
+    )
+    await expect(lerXlsx(dados)).rejects.toSatisfy(
+      (e: unknown) => e instanceof ErroDePlanilha && e.codigo === 'grande_demais',
+    )
+  })
+
+  /**
+   * O CRC-32 está no formato para isto. ANTES: o leitor lia a planilha inteira
+   * de um arquivo com CRC adulterado, sem um pio — e byte trocado em célula de
+   * dinheiro é pior que arquivo recusado.
+   */
+  it('recusa parte cujo CRC não confere', async () => {
+    const dados = montarZip([
+      { nome: 'xl/workbook.xml', texto: WORKBOOK, crcErrado: true },
+      { nome: 'xl/_rels/workbook.xml.rels', texto: RELS },
+      { nome: 'xl/worksheets/sheet1.xml', texto: UMA_LINHA },
+    ])
+    await expect(lerXlsx(dados)).rejects.toSatisfy(
+      (e: unknown) => e instanceof ErroDePlanilha && e.codigo === 'conteudo_corrompido',
+    )
+  })
+
+  /**
+   * Duas partes com o mesmo nome: ANTES ficava com a ÚLTIMA, em silêncio. É o
+   * truque de confundir leitor de ZIP — a cópia que a pessoa confere num
+   * programa é uma, a que entra no banco é outra.
+   */
+  it('recusa .xlsx com nome de parte repetido', async () => {
+    const dados = montarZip([
+      { nome: 'xl/workbook.xml', texto: WORKBOOK },
+      { nome: 'xl/_rels/workbook.xml.rels', texto: RELS },
+      { nome: 'xl/worksheets/sheet1.xml', texto: UMA_LINHA },
+      {
+        nome: 'xl/worksheets/sheet1.xml',
+        texto: `<worksheet><sheetData>${PRODUTO}<row r="2"><c r="A2"><v>999</v></c></row></sheetData></worksheet>`,
+      },
+    ])
+    await expect(lerXlsx(dados)).rejects.toSatisfy(
+      (e: unknown) => e instanceof ErroDePlanilha && e.codigo === 'entrada_repetida',
+    )
+  })
+
+  /**
+   * ZIP64 também se declara entrada por entrada, com 0xffffffff no campo de
+   * tamanho. ANTES: o leitor lia esse arquivo — recortava até o fim do arquivo
+   * e o deflate parava sozinho, então o tamanho errado dava certo por sorte. A
+   * recusa valia para o rodapé; o laudo dizia que valia para o formato.
+   */
+  it('recusa ZIP64 declarado na entrada, e não só no rodapé', async () => {
+    const dados = montarZip([
+      { nome: 'xl/workbook.xml', texto: WORKBOOK },
+      { nome: 'xl/_rels/workbook.xml.rels', texto: RELS },
+      { nome: 'xl/worksheets/sheet1.xml', texto: UMA_LINHA, zip64NoCentral: true },
+    ])
+    await expect(lerXlsx(dados)).rejects.toSatisfy(
+      (e: unknown) => e instanceof ErroDePlanilha && e.codigo === 'zip64',
+    )
+  })
+
+  /**
+   * ANTES: `RangeError: Offset is outside the bounds of the DataView` — verdade,
+   * mas não é frase que se mostre para quem só escolheu o arquivo errado. A
+   * tela mostra a mensagem crua do erro que não é `ErroDePlanilha`.
+   */
+  it('traduz índice que aponta para fora do arquivo', async () => {
+    const dados = planilha(UMA_LINHA, [], { inicioCentralLouco: true })
+    await expect(lerXlsx(dados)).rejects.toSatisfy(
+      (e: unknown) => e instanceof ErroDePlanilha && e.codigo === 'nao_e_zip',
+    )
+    await expect(lerXlsx(dados)).rejects.toThrow(/não baixou inteiro/)
+  })
+
+  /** O que o leitor não previu ainda sai como ErroDePlanilha, com o detalhe no fim. */
+  it('embrulha erro técnico em ErroDePlanilha', async () => {
+    const dados = montarZip(
+      [
+        { nome: 'xl/workbook.xml', texto: WORKBOOK },
+        { nome: 'xl/_rels/workbook.xml.rels', texto: RELS },
+        {
+          nome: 'xl/worksheets/sheet1.xml',
+          texto: UMA_LINHA,
+          bytes: new TextEncoder().encode('isto nao e um fluxo deflate'),
+          metodo: 8,
+        },
+      ],
+    )
+    await expect(lerXlsx(dados)).rejects.toSatisfy(
+      (e: unknown) => e instanceof ErroDePlanilha && e.codigo === 'arquivo_corrompido',
+    )
+    await expect(lerXlsx(dados)).rejects.toThrow(/detalhe técnico/)
+  })
+
+  /**
+   * Zip slip não alcança este leitor, e vale dizer por quê: o nome da entrada
+   * só é usado como CHAVE de um `Map`, e as partes lidas são quatro nomes
+   * fixos. Nada no caminho toca disco. O teste existe para que ninguém
+   * transforme o nome em caminho de arquivo depois.
+   */
+  it('ignora entrada com nome de travessia de diretório', async () => {
+    const dados = montarZip([
+      { nome: '../../../../etc/passwd', texto: 'root:x:0:0:comprometido' },
+      { nome: 'xl/workbook.xml', texto: WORKBOOK },
+      { nome: 'xl/_rels/workbook.xml.rels', texto: RELS },
+      { nome: 'xl/worksheets/sheet1.xml', texto: UMA_LINHA },
+    ])
+    const aba = await lerXlsx(dados)
+    expect(aba.linhas).toHaveLength(1)
+  })
+
+  /**
+   * XXE e bilhão de risadas: a entidade chega LITERAL à célula, porque o
+   * DOCTYPE nunca vai para o parser — só o miolo de cada `<row>` e de cada
+   * `<si>` vai. O fatiamento, que existe por memória, também fecha esta porta.
+   */
+  it('não expande entidade de DOCTYPE', async () => {
+    const risadas =
+      '<!DOCTYPE worksheet [<!ENTITY a0 "ha">' +
+      Array.from({ length: 9 }, (_, i) => `<!ENTITY a${i + 1} "${`&a${i};`.repeat(10)}">`).join('') +
+      ']>'
+    const dados = planilha(
+      `<?xml version="1.0"?>${risadas}<worksheet><sheetData>${PRODUTO}` +
+        `<row r="2"><c r="A2" t="inlineStr"><is><t>&a9;</t></is></c></row>` +
+        `</sheetData></worksheet>`,
+    )
+    const aba = await lerXlsx(dados)
+    expect(aba.linhas[0]?.valores['Produto']).toBe('&a9;')
   })
 })
 

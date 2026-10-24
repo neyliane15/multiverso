@@ -20,9 +20,13 @@
  * caso de uso: sem fórmula, sem estilo, sem gráfico, sem escrita. O custo deste
  * arquivo é ~250 linhas testadas contra as duas planilhas de verdade.
  *
- * O que ele NÃO faz, e recusa dizendo: ZIP64, entrada compactada por método
- * que não seja "guardado" (0) ou "deflate" (8), e planilha sem aba. Recusar em
- * voz alta é melhor que devolver meia tabela.
+ * O que ele NÃO faz, e recusa dizendo: ZIP64 (no rodapé ou numa entrada só),
+ * entrada compactada por método que não seja "guardado" (0) ou "deflate" (8),
+ * parte que passa de 64 MiB descompactada, parte cujo CRC-32 não confere, nome
+ * de parte repetido, índice que aponta para fora do arquivo, e planilha sem
+ * aba. Recusar em voz alta é melhor que devolver meia tabela — e melhor que
+ * travar a aba, que é o que ele fazia com um arquivo de dois quilobytes antes
+ * de `fatiarXml` existir.
  *
  * Duas medidas que decidiram o desenho, na aba de 11.198 linhas × 29 colunas
  * (`xl/worksheets/sheet1.xml` com 11,5 MB crus, 324.703 células):
@@ -47,6 +51,10 @@ export type CodigoErroPlanilha =
   | 'aba_vazia'
   | 'cabecalho_vazio'
   | 'coluna_ausente'
+  | 'grande_demais'
+  | 'conteudo_corrompido'
+  | 'entrada_repetida'
+  | 'arquivo_corrompido'
 
 /** Erro de leitura com código estável — a tela escolhe o texto pelo código. */
 export class ErroDePlanilha extends Error {
@@ -90,8 +98,27 @@ interface EntradaDeZip {
   nome: string
   metodo: number
   tamanhoCompactado: number
+  /** Tamanho CRU declarado no diretorio central. Declaracao, nao promessa. */
+  tamanhoCru: number
+  crc: number
   deslocamento: number
 }
+
+/**
+ * Teto do que uma parte do .xlsx pode ocupar DESCOMPACTADA.
+ *
+ * Existe porque `DecompressionStream` descomprime o que mandarem: um .xlsx de
+ * 9 MB com uma aba que se expande em 1,9 GB e um arquivo legitimo pelo formato.
+ * Medido neste leitor, antes do teto: 38 s de aba travada, 5,8 GB de memoria, e
+ * no fim um `Error: Cannot create a string longer than 0x1fffffe8 characters`
+ * que nao e mensagem para ninguem. Na aba da cliente isso e a aba morrendo.
+ *
+ * O numero vem da medida: a aba de vendas de UM mes (11.198 linhas x 29
+ * colunas) sao 11,5 MB crus. 64 MiB sao cinco meses do mesmo arquivo, com
+ * folga — e quem precisar de mais que isso exporta em dois pedacos, que e o que
+ * a mensagem manda fazer.
+ */
+const TETO_DESCOMPACTADO = 64 * 1024 * 1024
 
 const ASSINATURA_FIM = 0x06054b50
 const ASSINATURA_CENTRAL = 0x02014b50
@@ -134,6 +161,16 @@ function abrirZip(dados: Uint8Array): Map<string, EntradaDeZip> {
 
   const entradas = new Map<string, EntradaDeZip>()
   for (let k = 0; k < total; k += 1) {
+    // O cabeçalho de 46 bytes tem de CABER antes de ser lido: sem esta conta, a
+    // entrada que aponta para fora do arquivo sai como `RangeError: Offset is
+    // outside the bounds of the DataView` — que é verdade, mas não é frase que
+    // se mostre para quem só escolheu um arquivo errado.
+    if (ponteiro < 0 || ponteiro + 46 > dados.length) {
+      throw new ErroDePlanilha(
+        'nao_e_zip',
+        `O índice do .xlsx aponta para fora do arquivo na entrada ${k + 1} de ${total}. O arquivo provavelmente não baixou inteiro.`,
+      )
+    }
     if (dv.getUint32(ponteiro, true) !== ASSINATURA_CENTRAL) {
       throw new ErroDePlanilha(
         'nao_e_zip',
@@ -141,7 +178,9 @@ function abrirZip(dados: Uint8Array): Map<string, EntradaDeZip> {
       )
     }
     const metodo = dv.getUint16(ponteiro + 10, true)
+    const crc = dv.getUint32(ponteiro + 16, true)
     const tamanhoCompactado = dv.getUint32(ponteiro + 20, true)
+    const tamanhoCru = dv.getUint32(ponteiro + 24, true)
     const tamanhoDoNome = dv.getUint16(ponteiro + 28, true)
     const tamanhoExtra = dv.getUint16(ponteiro + 30, true)
     const tamanhoComentario = dv.getUint16(ponteiro + 32, true)
@@ -149,7 +188,36 @@ function abrirZip(dados: Uint8Array): Map<string, EntradaDeZip> {
     const nome = new TextDecoder().decode(
       dados.subarray(ponteiro + 46, ponteiro + 46 + tamanhoDoNome),
     )
-    entradas.set(nome, { nome, metodo, tamanhoCompactado, deslocamento })
+    // ZIP64 também se declara ENTRADA POR ENTRADA, e não só no rodapé: o campo
+    // de 32 bits vem com 0xffffffff e o valor de verdade mora no campo extra.
+    // Medido: um .xlsx com uma entrada marcada assim atravessava o leitor
+    // inteiro — o `subarray` recortava até o fim do arquivo e o deflate parava
+    // sozinho no fim do fluxo, então o número errado dava certo por sorte. A
+    // recusa de ZIP64 só valia para o rodapé, e o laudo dizia que valia para o
+    // formato.
+    if (
+      tamanhoCompactado === 0xffffffff ||
+      tamanhoCru === 0xffffffff ||
+      deslocamento === 0xffffffff
+    ) {
+      throw new ErroDePlanilha(
+        'zip64',
+        `A parte "${nome}" do .xlsx está gravada em ZIP64, que este leitor não abre. ` +
+          'Reabra no Excel e salve de novo, ou exporte um período menor.',
+      )
+    }
+    // Duas entradas com o MESMO nome: o leitor anterior ficava com a última, em
+    // silêncio. É o truque clássico de confundir leitor de ZIP — a planilha que
+    // a pessoa confere num programa é a primeira cópia e a que entra no banco é
+    // a segunda. Não há .xlsx honesto com nome repetido.
+    if (entradas.has(nome)) {
+      throw new ErroDePlanilha(
+        'entrada_repetida',
+        `Este .xlsx tem duas partes chamadas "${nome}". Arquivo assim não é planilha confiável: ` +
+          'reabra no Excel e salve de novo.',
+      )
+    }
+    entradas.set(nome, { nome, metodo, tamanhoCompactado, tamanhoCru, crc, deslocamento })
     ponteiro += 46 + tamanhoDoNome + tamanhoExtra + tamanhoComentario
   }
   return entradas
@@ -166,8 +234,76 @@ function temRodapeZip64(dv: DataView, fim: number): boolean {
   return dv.getUint32(alvo, true) === ASSINATURA_FIM_ZIP64_LOCALIZADOR
 }
 
+/** CRC-32 do ZIP (polinômio 0xedb88320), por tabela para não custar caro. */
+const TABELA_CRC = (() => {
+  const tabela = new Uint32Array(256)
+  for (let n = 0; n < 256; n += 1) {
+    let c = n
+    for (let k = 0; k < 8; k += 1) c = c & 1 ? (c >>> 1) ^ 0xedb88320 : c >>> 1
+    tabela[n] = c >>> 0
+  }
+  return tabela
+})()
+
+function crc32(dados: Uint8Array): number {
+  let c = 0xffffffff
+  for (let i = 0; i < dados.length; i += 1) {
+    c = (TABELA_CRC[(c ^ dados[i]!) & 0xff] as number) ^ (c >>> 8)
+  }
+  return (c ^ 0xffffffff) >>> 0
+}
+
+/**
+ * Lê o fluxo descompactado contando os bytes, e PARA no teto.
+ *
+ * Contar aqui, e não confiar no tamanho declarado no índice, porque a
+ * declaração é do arquivo: um .xlsx hostil diz "1 MB" e entrega 2 GB. O teto
+ * declarado serve de recusa barata, antes de descomprimir; este serve de recusa
+ * verdadeira, enquanto descomprime.
+ */
+async function lerComTeto(
+  fluxo: ReadableStream<Uint8Array>,
+  entrada: EntradaDeZip,
+): Promise<Uint8Array> {
+  const leitor = fluxo.getReader()
+  const pedacos: Uint8Array[] = []
+  let total = 0
+  for (;;) {
+    const { done, value } = await leitor.read()
+    if (done) break
+    if (value === undefined) continue
+    total += value.byteLength
+    if (total > TETO_DESCOMPACTADO) {
+      await leitor.cancel().catch(() => {})
+      throw new ErroDePlanilha('grande_demais', mensagemDeTamanho(entrada.nome))
+    }
+    pedacos.push(value)
+  }
+  const saida = new Uint8Array(total)
+  let posicao = 0
+  for (const pedaco of pedacos) {
+    saida.set(pedaco, posicao)
+    posicao += pedaco.byteLength
+  }
+  return saida
+}
+
+function mensagemDeTamanho(nome: string): string {
+  return (
+    `A parte "${nome}" do .xlsx passa de ${Math.round(TETO_DESCOMPACTADO / 1024 / 1024)} MB ` +
+    'descompactada, e este leitor não abre arquivo desse tamanho no navegador. ' +
+    'Exporte um período menor — um mês de vendas do primeiro cliente são 11,5 MB.'
+  )
+}
+
 async function descompactar(dados: Uint8Array, entrada: EntradaDeZip): Promise<string> {
   const dv = new DataView(dados.buffer, dados.byteOffset, dados.byteLength)
+  if (entrada.deslocamento + 30 > dados.length) {
+    throw new ErroDePlanilha(
+      'nao_e_zip',
+      `A parte "${entrada.nome}" do .xlsx começa fora do arquivo. O arquivo provavelmente não baixou inteiro.`,
+    )
+  }
   // O cabeçalho local repete nome e extra, e os dois podem ter tamanho diferente
   // do que está no diretório central: o começo dos dados se mede aqui, não lá.
   const tamanhoDoNome = dv.getUint16(entrada.deslocamento + 26, true)
@@ -175,8 +311,11 @@ async function descompactar(dados: Uint8Array, entrada: EntradaDeZip): Promise<s
   const inicio = entrada.deslocamento + 30 + tamanhoDoNome + tamanhoExtra
   const bruto = dados.subarray(inicio, inicio + entrada.tamanhoCompactado)
 
-  if (entrada.metodo === 0) return new TextDecoder().decode(bruto)
-  if (entrada.metodo !== 8) {
+  // A recusa barata: o próprio índice do arquivo já diz que não cabe.
+  if (entrada.tamanhoCru > TETO_DESCOMPACTADO) {
+    throw new ErroDePlanilha('grande_demais', mensagemDeTamanho(entrada.nome))
+  }
+  if (entrada.metodo !== 0 && entrada.metodo !== 8) {
     throw new ErroDePlanilha(
       'metodo_desconhecido',
       `A parte "${entrada.nome}" do .xlsx está compactada pelo método ${entrada.metodo}, que este leitor não abre. ` +
@@ -184,10 +323,27 @@ async function descompactar(dados: Uint8Array, entrada: EntradaDeZip): Promise<s
     )
   }
 
-  const fluxo = new Blob([bruto as BlobPart])
-    .stream()
-    .pipeThrough(new DecompressionStream('deflate-raw'))
-  return new TextDecoder().decode(new Uint8Array(await new Response(fluxo).arrayBuffer()))
+  const cru =
+    entrada.metodo === 0
+      ? bruto
+      : await lerComTeto(
+          new Blob([bruto as BlobPart]).stream().pipeThrough(new DecompressionStream('deflate-raw')),
+          entrada,
+        )
+
+  // O CRC existe no formato para isto, e não conferi-lo era deixar passar dado
+  // trocado em silêncio: medido com um .xlsx de CRC adulterado, o leitor
+  // antigo lia a planilha inteira sem um pio. Byte trocado em célula de dinheiro
+  // é pior que arquivo recusado.
+  const soma = crc32(cru)
+  if (soma !== entrada.crc) {
+    throw new ErroDePlanilha(
+      'conteudo_corrompido',
+      `A parte "${entrada.nome}" do .xlsx não confere com a própria soma de verificação do arquivo ` +
+        '(CRC-32). O arquivo está corrompido ou foi alterado depois de salvo — baixe de novo.',
+    )
+  }
+  return new TextDecoder().decode(cru)
 }
 
 // -------------------------------------------------------------- xml --------
@@ -209,6 +365,67 @@ const LEITOR = new XMLParser({
 })
 
 type Registro = Record<string, unknown>
+
+/** Uma ocorrencia de `<tag ...>...</tag>` dentro de um XML. */
+interface FatiaDeXml {
+  /** O que estava dentro de `<tag` e `>`. */
+  atributos: string
+  /** O miolo, ou `null` quando a tag se fechou nela mesma (`<tag/>`). */
+  miolo: string | null
+}
+
+/**
+ * Fatia um XML pelas ocorrencias de UMA tag, andando por indice.
+ *
+ * Era uma expressao regular — `/<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row\s*>)/g` —
+ * e era o pior defeito deste arquivo. O `[^>]*?` preguicoso nao casa nada
+ * quando a tag nunca fecha, e o motor tenta de novo UM caractere adiante: com
+ * N tags abertas e nenhum `>`, o custo e N x tamanho. Medido, em arquivos que
+ * eu mesmo montei:
+ *
+ *   `<row ` repetido  50.000 vezes (974 B de .xlsx) .... 5,0 s
+ *   `<row ` repetido 200.000 vezes (2,0 KB de .xlsx) ... nao terminou em 60 s
+ *   `<row ` repetido   1 milhao de vezes (7,9 KB) ...... nao terminou em 60 s
+ *
+ * Dois quilobytes de arquivo matavam a aba da cliente, e a leitura roda na
+ * thread da interface. Andar por `indexOf` e linear e nao tem como voltar
+ * atras: cada caractere do XML e visitado uma vez.
+ *
+ * O limite herdado (e aceito): atributo com `>` dentro de aspas corta cedo. A
+ * regular tinha exatamente o mesmo limite, nenhum exportador escreve isso em
+ * `<row>`, `<si>` ou `<xf>`, e trocar por um varredor de aspas seria inventar
+ * um parser de XML — que e justamente o que este arquivo nao faz: o miolo da
+ * fatia continua indo para o `fast-xml-parser`.
+ */
+function* fatiarXml(xml: string, tag: string): Generator<FatiaDeXml> {
+  const abre = `<${tag}`
+  let i = xml.indexOf(abre)
+  while (i >= 0) {
+    const depois = xml.charCodeAt(i + abre.length)
+    // `<rows>` nao e `<row>`: o nome acaba em espaco, `>` ou `/`.
+    const fechaONome =
+      depois === 32 || depois === 9 || depois === 10 || depois === 13 || depois === 62 || depois === 47
+    if (!fechaONome) {
+      i = xml.indexOf(abre, i + abre.length)
+      continue
+    }
+    const fimDaAbertura = xml.indexOf('>', i + abre.length)
+    // Tag aberta e nunca fechada: o XML acaba aqui, e o que vier depois nao
+    // existe. Parar e o mesmo que a regular fazia — sem o custo quadratico.
+    if (fimDaAbertura < 0) return
+    const atributos = xml.slice(i + abre.length, fimDaAbertura)
+    if (xml.charCodeAt(fimDaAbertura - 1) === 47) {
+      yield { atributos: atributos.slice(0, -1), miolo: null }
+      i = xml.indexOf(abre, fimDaAbertura + 1)
+      continue
+    }
+    const fecha = xml.indexOf(`</${tag}`, fimDaAbertura + 1)
+    if (fecha < 0) return
+    yield { atributos, miolo: xml.slice(fimDaAbertura + 1, fecha) }
+    const fimDoFecha = xml.indexOf('>', fecha)
+    i = xml.indexOf(abre, fimDoFecha < 0 ? fecha + 1 : fimDoFecha + 1)
+  }
+}
 
 function comoLista(valor: unknown): Registro[] {
   if (valor === undefined || valor === null) return []
@@ -252,25 +469,27 @@ const FORMATOS_DE_DATA = new Set([14, 15, 16, 17, 18, 19, 20, 21, 22, 45, 46, 47
 function formatosDeData(estilos: string): Set<number> {
   const personalizados = new Set<number>()
   // numFmt personalizado: "dd/mm/yyyy" vira id 164+. Quem tem y/m/d ou h é data.
-  const RE_FORMATO = /<numFmt\b[^>]*\bnumFmtId="(\d+)"[^>]*\bformatCode="([^"]*)"/g
-  let achado: RegExpExecArray | null
-  while ((achado = RE_FORMATO.exec(estilos)) !== null) {
-    const id = Number(achado[1])
-    const codigo = (achado[2] ?? '').toLowerCase().replace(/\[[^\]]*\]/g, '')
-    if (/[ymdh]/.test(codigo)) personalizados.add(id)
+  // Pelo fatiador, e não por expressão regular: `styles.xml` vem do mesmo
+  // arquivo de terceiro que a aba, e o custo quadrático seria o mesmo.
+  for (const fatia of fatiarXml(estilos, 'numFmt')) {
+    const id = Number(/\bnumFmtId="(\d+)"/.exec(fatia.atributos)?.[1] ?? '-1')
+    const codigo = (/\bformatCode="([^"]*)"/.exec(fatia.atributos)?.[1] ?? '')
+      .toLowerCase()
+      .replace(/\[[^\]]*\]/g, '')
+    if (id >= 0 && /[ymdh]/.test(codigo)) personalizados.add(id)
   }
 
   // cellXfs é a lista de estilos de célula, na ordem: o índice é o `s` da célula.
-  const bloco = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/.exec(estilos)
   const comData = new Set<number>()
-  if (!bloco?.[1]) return comData
-  const RE_XF = /<xf\b[^>]*>|<xf\b[^>]*\/>/g
   let indice = 0
-  let xf: RegExpExecArray | null
-  while ((xf = RE_XF.exec(bloco[1])) !== null) {
-    const id = Number(/\bnumFmtId="(\d+)"/.exec(xf[0])?.[1] ?? '0')
-    if (FORMATOS_DE_DATA.has(id) || personalizados.has(id)) comData.add(indice)
-    indice += 1
+  for (const bloco of fatiarXml(estilos, 'cellXfs')) {
+    if (bloco.miolo === null) continue
+    for (const xf of fatiarXml(bloco.miolo, 'xf')) {
+      const id = Number(/\bnumFmtId="(\d+)"/.exec(xf.atributos)?.[1] ?? '0')
+      if (FORMATOS_DE_DATA.has(id) || personalizados.has(id)) comData.add(indice)
+      indice += 1
+    }
+    break
   }
   return comData
 }
@@ -317,15 +536,25 @@ function indiceDaColuna(letras: string): number {
 
 /** Caminho da primeira aba, lido do workbook e dos seus relacionamentos. */
 function primeiraAba(workbook: string, rels: string): { nome: string; caminho: string } {
-  const folha = /<sheet\b[^>]*\/>/.exec(workbook)?.[0] ?? /<sheet\b[^>]*>/.exec(workbook)?.[0]
-  if (!folha) {
+  const primeira = fatiarXml(workbook, 'sheet').next()
+  if (primeira.done === true) {
     throw new ErroDePlanilha('sem_aba', 'Esta planilha não tem aba nenhuma dentro.')
   }
+  const folha = primeira.value.atributos
   const nome = (/\bname="([^"]*)"/.exec(folha)?.[1] ?? 'Planilha1').replace(/&amp;/g, '&')
   const rid = /\br:id="([^"]*)"/.exec(folha)?.[1] ?? /\bid="([^"]*)"/.exec(folha)?.[1] ?? ''
 
-  const alvo = rid === '' ? null : new RegExp(`<Relationship\\b[^>]*\\bId="${rid}"[^>]*>`).exec(rels)
-  const destino = alvo ? /\bTarget="([^"]*)"/.exec(alvo[0])?.[1] : undefined
+  // O `Id` do relacionamento vem do arquivo, então ele não pode virar pedaço de
+  // expressão regular: `Id="(a+)+$"` montado por quem envia a planilha é ReDoS
+  // de graça. Comparação de texto, que é o que a busca sempre quis dizer.
+  let destino: string | undefined
+  if (rid !== '') {
+    for (const fatia of fatiarXml(rels, 'Relationship')) {
+      if (/\bId="([^"]*)"/.exec(fatia.atributos)?.[1] !== rid) continue
+      destino = /\bTarget="([^"]*)"/.exec(fatia.atributos)?.[1]
+      break
+    }
+  }
   // Sem o relacionamento, o palpite é o nome que 100% dos exportadores usam.
   const caminho = destino
     ? `xl/${destino.replace(/^\/?xl\//, '').replace(/^\//, '')}`
@@ -341,6 +570,27 @@ function primeiraAba(workbook: string, rels: string): { nome: string; caminho: s
  * aqui que o parâmetro entra.
  */
 export async function lerXlsx(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaPlanilha> {
+  try {
+    return await lerAba(arquivo)
+  } catch (falha) {
+    if (falha instanceof ErroDePlanilha) throw falha
+    // Tudo o que sobra aqui é defeito de arquivo que este leitor não previu, e
+    // a tela mostra a mensagem crua: `RangeError: Offset is outside the bounds
+    // of the DataView` foi medido, e é o que a cliente leria. O detalhe técnico
+    // continua na frase, no fim, porque é o que serve para quem for consertar.
+    // `DecompressionStream` rejeita com erro de mensagem VAZIA no Node, e
+    // "(detalhe técnico: )" não ajuda ninguém: o nome da classe fica.
+    const detalhe =
+      (falha instanceof Error ? falha.message || falha.name : String(falha)) || 'erro sem mensagem'
+    throw new ErroDePlanilha(
+      'arquivo_corrompido',
+      'Não consegui abrir este .xlsx: o arquivo está corrompido ou não é uma planilha do Excel. ' +
+        `Reabra no Excel e salve de novo. (detalhe técnico: ${detalhe})`,
+    )
+  }
+}
+
+async function lerAba(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaPlanilha> {
   const dados = arquivo instanceof Uint8Array ? arquivo : new Uint8Array(arquivo)
   const entradas = abrirZip(dados)
 
@@ -365,10 +615,8 @@ export async function lerXlsx(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaP
   const textosCrus = await pegar('xl/sharedStrings.xml', false)
   const textos: string[] = []
   if (textosCrus !== '') {
-    const RE_SI = /<si\b[^>]*?(?:\/>|>([\s\S]*?)<\/si\s*>)/g
-    let achado: RegExpExecArray | null
-    while ((achado = RE_SI.exec(textosCrus)) !== null) {
-      textos.push(achado[1] === undefined ? '' : textoRico(LEITOR.parse(`<si>${achado[1]}</si>`).si))
+    for (const fatia of fatiarXml(textosCrus, 'si')) {
+      textos.push(fatia.miolo === null ? '' : textoRico(LEITOR.parse(`<si>${fatia.miolo}</si>`).si))
     }
   }
 
@@ -377,12 +625,10 @@ export async function lerXlsx(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaP
   const cabecalho: string[] = []
   const linhas: LinhaDePlanilha[] = []
 
-  const RE_LINHA = /<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row\s*>)/g
-  let bruta: RegExpExecArray | null
-  while ((bruta = RE_LINHA.exec(folha)) !== null) {
-    const numero = Number(/\br="(\d+)"/.exec(bruta[1] ?? '')?.[1] ?? '0')
-    const miolo = bruta[2]
-    if (miolo === undefined || miolo === '') continue
+  for (const bruta of fatiarXml(folha, 'row')) {
+    const numero = Number(/\br="(\d+)"/.exec(bruta.atributos)?.[1] ?? '0')
+    const miolo = bruta.miolo
+    if (miolo === null || miolo === '') continue
 
     const celulas = comoLista((LEITOR.parse(`<linha>${miolo}</linha>`) as Registro)['linha'])
       .flatMap((linha) => comoLista(linha['c']))
