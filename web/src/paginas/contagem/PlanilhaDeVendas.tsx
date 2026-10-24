@@ -39,7 +39,13 @@ import {
 } from '@/dados/consultas'
 import { ErroDePlanilha, lerXlsx } from '@/dados/planilha/lerXlsx'
 import { lerVendasDaPlanilha, type PlanilhaDeVendas as Planilha } from '@/dados/planilha/vendas'
-import { pareceServico, sugerirAlvos, type AlvoDeVenda, type ApelidoDeVenda } from '@/dados/planilha/dePara'
+import {
+  fatorParaInsumo,
+  pareceServico,
+  sugerirAlvos,
+  type AlvoDeVenda,
+  type ApelidoDeVenda,
+} from '@/dados/planilha/dePara'
 import type { FichaCompleta, ProdutoCompleto, Venda } from '@/tipos/banco'
 import {
   importarVendasDaPlanilha,
@@ -581,6 +587,34 @@ function LinhaDeVenda({
     [pendente, item.descricao_origem, fichas, produtos],
   )
 
+  /**
+   * A conversão da unidade do PDV para a do insumo, para a linha já resolvida e
+   * para cada candidato a um clique.
+   *
+   * Nenhuma tela dizia isto antes, e com o catálogo do primeiro cliente são 362
+   * insumos contados em KG contra 476 em UND: `PASTEL DE CAMARAO UND` tem botão
+   * de 75% para o insumo `PASTEL DE CAMARÃO`, que é contado em KG. O clique
+   * parece inocente e cria uma linha sem conversão possível.
+   */
+  const fatorDeInsumo = useMemo(() => {
+    const porId = new Map<string, number | null>()
+    for (const p of produtos) porId.set(p.id, fatorParaInsumo(item.unidade, p))
+    return porId
+  }, [produtos, item.unidade])
+
+  const fatorDoItem =
+    item.alvo === 'produto' && item.produto_id !== null
+      ? (fatorDeInsumo.get(item.produto_id) ?? null)
+      : null
+
+  /** `KG ≠ UND`: o selo que o botão de um clique passa a carregar. */
+  function semConversao(tipo: 'ficha' | 'produto', id: string): string | null {
+    if (tipo !== 'produto') return null
+    if (fatorDeInsumo.get(id) !== null) return null
+    const alvo = produtos.find((p) => p.id === id)
+    return alvo ? `${item.unidade ?? alvo.unidade} ≠ ${alvo.unidade}` : null
+  }
+
   const candidatos = useMemo(() => {
     if (busca.trim() === '') return []
     const alvo = busca.toLowerCase()
@@ -623,10 +657,29 @@ function LinhaDeVenda({
           </p>
         )}
         {item.alvo === 'produto' && item.produto && (
-          <p className="flex items-center gap-1.5 text-micro text-primaria-legivel">
-            <Package className="size-3.5" aria-hidden />
-            Consome {quantidade(item.quantidade)} {item.produto.unidade} de {item.produto.nome}
-          </p>
+          /* O que esta linha vai CONSUMIR, convertido — ou o aviso de que não há
+             conversão. Antes dizia "Consome 59 UND de X" para uma venda em KG,
+             que é a frase errada de três jeitos: a unidade não é a da venda, o
+             número não é o consumo, e o relatório vai marcar a linha. */
+          fatorDoItem === null ? (
+            <p className="flex items-center gap-1.5 text-micro text-alerta-texto">
+              <AlertTriangle className="size-3.5" aria-hidden />
+              A venda está em {item.unidade} e {item.produto.nome} é contado em{' '}
+              {item.produto.unidade}: não há conversão entre as duas, e esta linha sai marcada no
+              relatório de contagem em vez de virar consumo.
+            </p>
+          ) : (
+            <p className="flex items-center gap-1.5 text-micro text-primaria-legivel">
+              <Package className="size-3.5" aria-hidden />
+              Consome {quantidade(item.quantidade * fatorDoItem)} {item.produto.unidade} de{' '}
+              {item.produto.nome}
+              {fatorDoItem !== 1 && (
+                <span className="text-texto-fraco">
+                  ({quantidade(item.quantidade)} {item.unidade})
+                </span>
+              )}
+            </p>
+          )
         )}
         {item.alvo === 'servico' && (
           <p className="flex items-center gap-1.5 text-micro text-texto-fraco">
@@ -652,6 +705,11 @@ function LinhaDeVenda({
                   <span className="mv-numero ml-1 text-micro text-texto-fraco">
                     {Math.round(s.confianca * 100)}%
                   </span>
+                  {semConversao(s.tipo, s.id) !== null && (
+                    <span className="mv-numero ml-1 text-micro text-alerta-texto">
+                      {semConversao(s.tipo, s.id)}
+                    </span>
+                  )}
                 </Botao>
               ))}
             </div>
@@ -681,9 +739,14 @@ function LinhaDeVenda({
                     className="flex min-h-toque w-full items-center justify-between gap-3 rounded-marca-p border border-borda bg-superficie-2 px-3 text-left transition-colors hover:border-borda-forte hover:bg-primaria-06 active:bg-primaria-16"
                   >
                     <span className="min-w-0 truncate text-corpo text-texto">{c.nome}</span>
-                    <Selo tom={c.tipo === 'ficha' ? 'sucesso' : 'marca'}>
-                      {c.tipo === 'ficha' ? 'ficha' : 'insumo'}
-                    </Selo>
+                    <span className="flex shrink-0 items-center gap-1.5">
+                      {semConversao(c.tipo, c.id) !== null && (
+                        <Selo tom="alerta">{semConversao(c.tipo, c.id)}</Selo>
+                      )}
+                      <Selo tom={c.tipo === 'ficha' ? 'sucesso' : 'marca'}>
+                        {c.tipo === 'ficha' ? 'ficha' : 'insumo'}
+                      </Selo>
+                    </span>
                   </button>
                 </li>
               ))}

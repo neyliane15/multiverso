@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   casarCompraDaPlanilha,
   casarVendaDaPlanilha,
+  fatorParaInsumo,
   pareceServico,
   sugerirAlvos,
   type FichaCandidata,
@@ -174,5 +175,43 @@ describe('sugerirAlvos', () => {
     const sugestoes = sugerirAlvos('XAROPE SIMPLES', { fichas, produtos })
     expect(sugestoes.find((s) => s.id === 'f4')).toBeUndefined()
     expect(sugestoes.find((s) => s.id === 'f5')).toBeUndefined()
+  })
+})
+
+/**
+ * O gêmeo em TypeScript de `mv_fator_para_produto`, que existe para a tela
+ * avisar ANTES do clique.
+ *
+ * Os dois primeiros casos são da planilha de setembro contra o catálogo do
+ * primeiro cliente, e são os dois botões de um clique que criavam linha sem
+ * conversão: `PASTEL DE CAMARAO UND` (vendido em UN) para o insumo contado em
+ * KG, e `CARNE SECA COM AIPIM` (em UN) para outro insumo em KG.
+ */
+describe('fatorParaInsumo', () => {
+  it('recusa converter UN para KG, que é o clique que estragava a conta', () => {
+    expect(fatorParaInsumo('UN', { unidade: 'KG' })).toBeNull()
+    expect(fatorParaInsumo('KG', { unidade: 'UND' })).toBeNull()
+  })
+
+  it('converte dentro da família, e aceita o sinônimo do PDV', () => {
+    expect(fatorParaInsumo('KG', { unidade: 'KG' })).toBe(1)
+    // "UN" do PDV e "UND" do cadastro são a mesma unidade.
+    expect(fatorParaInsumo('UN', { unidade: 'UND' })).toBe(1)
+    expect(fatorParaInsumo('G', { unidade: 'KG' })).toBe(0.001)
+  })
+
+  it('converte pela embalagem quando o insumo diz quanto cabe nela', () => {
+    expect(
+      fatorParaInsumo('KG', { unidade: 'UND', conteudo_quantidade: 5, conteudo_unidade: 'KG' }),
+    ).toBe(0.2)
+    expect(
+      fatorParaInsumo('ML', { unidade: 'UND', conteudo_quantidade: 965, conteudo_unidade: 'ML' }),
+    ).toBeCloseTo(1 / 965, 8)
+  })
+
+  it('sem unidade dita, a quantidade já está na unidade do insumo', () => {
+    // É o que o lançamento feito à mão sempre significou.
+    expect(fatorParaInsumo(null, { unidade: 'KG' })).toBe(1)
+    expect(fatorParaInsumo(undefined, { unidade: 'UND' })).toBe(1)
   })
 })

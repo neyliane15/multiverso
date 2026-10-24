@@ -28,6 +28,7 @@
  *   clique — nunca com o vínculo feito.
  */
 import { casarItem, similaridadeTexto, type ApelidoConhecido, type ProdutoCandidato } from '@/dados/nfe/casarProdutos'
+import { fatorEntreUnidades } from '@/dados/nfe/conversaoUnidade'
 import { chaveBusca } from '@/util/formato'
 
 /**
@@ -251,6 +252,42 @@ function porNomeIdentico<T extends { id: string; nome: string }>(
   // Não acontece com `fichas_nome_unico`, mas acontece com insumo que difere só
   // por pontuação ("COCA-COLA" e "COCA COLA").
   return iguais.length === 1 ? (iguais[0] as T) : null
+}
+
+/**
+ * O fator da unidade do PDV para a unidade de compra do insumo.
+ *
+ * É o gêmeo em TypeScript de `mv_fator_para_produto` (0017), e existe por um
+ * motivo só: a tela precisa avisar ANTES do clique. Quem decide continua sendo
+ * o banco — `mv_vendas_por_produto` (0028) marca a linha com o motivo escrito
+ * se a conversão não existir, e é esse número que o relatório mostra.
+ *
+ * Por que isto importa, medido na planilha de setembro contra o catálogo do
+ * primeiro cliente: `PASTEL DE CAMARAO UND` (R$ 2.184,30, vendido em UN) tem
+ * botão de um clique para o insumo `PASTEL DE CAMARÃO`, que é contado em **KG**.
+ * `CARNE SECA COM AIPIM` (R$ 4.060,35, em UN) tem botão para `CARNE SECA`,
+ * também em KG. São dois cliques inocentes que criam duas linhas sem conversão
+ * possível — e nenhuma tela dizia isso antes de clicar.
+ *
+ * Nulo = não há conversão. Nunca 1: chutar 1 aqui é o que a 0017 chama de "pôr
+ * 60 garrafas de cachaça numa caipirinha".
+ */
+export function fatorParaInsumo(
+  unidadeDaVenda: string | null | undefined,
+  produto: { unidade: string; conteudo_quantidade?: number | null; conteudo_unidade?: string | null },
+): number | null {
+  // Sem unidade dita, a quantidade já está na unidade do insumo — é o que o
+  // lançamento feito à mão sempre significou.
+  const de = unidadeDaVenda ?? produto.unidade
+  const direto = fatorEntreUnidades(de, produto.unidade)
+  if (direto !== null) return direto
+  // Pela embalagem: 60 ML numa garrafa de 965 ML. Nenhum dos 906 insumos do
+  // primeiro cliente tem conteúdo preenchido hoje, mas a regra é a do banco.
+  if (produto.conteudo_quantidade && produto.conteudo_quantidade > 0 && produto.conteudo_unidade) {
+    const ate = fatorEntreUnidades(de, produto.conteudo_unidade)
+    if (ate !== null) return ate / produto.conteudo_quantidade
+  }
+  return null
 }
 
 /**
