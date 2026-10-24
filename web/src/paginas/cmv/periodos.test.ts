@@ -254,6 +254,8 @@ describe('conferirFormula', () => {
       estoque_final_limpeza: 0,
       cmv_limpeza: 0,
       cmv_insumo: 32_000,
+      compras_divergencia_operacao: 0,
+      compras_sem_classificacao: 0,
       ...parcial,
     }
   }

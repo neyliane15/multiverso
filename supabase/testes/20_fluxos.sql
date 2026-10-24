@@ -2184,12 +2184,60 @@ begin
   select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
   perform conferir('o estoque de limpeza sai separado nas duas pontas',
                    l.estoque_inicial_limpeza = 200 and l.estoque_final_limpeza = 150);
-  perform conferir('a compra de limpeza sai pela operacao da nota',
+  perform conferir('a compra de limpeza sai pela CATEGORIA do insumo vinculado',
                    l.compras_limpeza = 100);
   perform conferir('CMV de limpeza = 200 + 100 - 150 = 150', l.cmv_limpeza = 150);
   perform conferir('CMV de insumo = 850 - 150 = 700', l.cmv_insumo = 700);
   perform conferir('as duas metades somam o CMV inteiro, sempre',
                    l.cmv_limpeza + l.cmv_insumo = l.cmv);
+  perform conferir('as tres pontas do insumo fecham o CMV de insumo',
+                   (l.estoque_inicial - l.estoque_inicial_limpeza)
+                   + (l.compras - l.compras_limpeza)
+                   - (l.estoque_final - l.estoque_final_limpeza) = l.cmv_insumo);
+
+  -- ------------------------- a operacao do ERP NAO classifica dinheiro ----
+  -- O defeito da 0031: o estoque saia pela categoria e a compra pela categoria
+  -- OU pela operacao. Duas bases nas duas pontas da mesma conta. Na planilha de
+  -- setembro da cliente o GUARDANAPO chega com as DUAS operacoes no mesmo mes
+  -- (R$ 217,98 como limpeza, R$ 110,36 como insumo), e e o mesmo insumo do
+  -- catalogo: a operacao nao e nem funcao do produto. Aqui o inverso, que e o
+  -- caso em que o `or` de antes movia dinheiro: cerveja faturada como limpeza.
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total, operacao)
+  values (n, p_cerveja, 'CERVEJA QUE O ERP FATUROU COMO LIMPEZA','UND', 7, 10, 70,
+          '01 - COMPRAS DE LIMPEZAS E DESCARTAVEIS');
+  update notas_fiscais set valor_total = 670 where id = n;
+
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('a operacao do ERP nao move a cerveja para a limpeza',
+                   l.compras_limpeza = 100);
+  perform conferir('ela entra no insumo, como manda a categoria do cadastro',
+                   l.compras = 670 and l.cmv_insumo = 770);
+  perform conferir('e a funcao DIZ onde as duas classificacoes discordam',
+                   l.compras_divergencia_operacao = 70);
+
+  -- ----------------- o que nao tem insumo vinculado nao tem categoria -----
+  -- Nota lancada com item pendente nao deveria existir (`mv_lancar_nota`
+  -- recusa, e a 0032 fecha o desvio pelo update). Enquanto houver qualquer
+  -- caminho, a resposta honesta e dizer o tamanho do que a conta nao
+  -- classifica, em vez de empurra-lo calado para uma das metades.
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total, operacao)
+  values (n, null, 'DETERGENTE QUE NINGUEM VINCULOU','UND', 1, 30, 30,
+          '01 - COMPRAS DE LIMPEZAS E DESCARTAVEIS');
+
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('item sem insumo vinculado nao vira limpeza pelo rotulo da nota',
+                   l.compras_limpeza = 100);
+  perform conferir('e a funcao DIZ quanto a divisao em duas metades nao alcanca',
+                   l.compras_sem_classificacao = 30);
+
+  delete from nota_itens where nota_id = n and produto_id is null;
+  delete from nota_itens where nota_id = n
+     and descricao = 'CERVEJA QUE O ERP FATUROU COMO LIMPEZA';
+  update notas_fiscais set valor_total = 600 where id = n;
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('desfeito o cenario, setembro volta ao CMV de 850', l.cmv = 850);
 
   -- --------------------------------------------- os dois percentuais ------
   perform conferir('sem venda fechada nao ha percentual: nao se divide por zero',

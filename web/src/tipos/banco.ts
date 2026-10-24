@@ -465,12 +465,30 @@ export interface CmvPeriodo {
   cmv_percentual: number | null
   /** `cmv / faturamento_produto`: o percentual sobre o que de fato consome insumo. */
   cmv_percentual_produto: number | null
+  /**
+   * Compra de limpeza/descartável pela CATEGORIA do insumo vinculado, que é a
+   * fonte única das três pontas desde a 0031. A operação do ERP não soma
+   * dinheiro: ela se contradiz dentro do mês (o GUARDANAPO de setembro entrou
+   * como limpeza numa nota e como insumo em outra) e não existe na contagem.
+   */
   compras_limpeza: number
   estoque_inicial_limpeza: number | null
   estoque_final_limpeza: number | null
   /** `cmv_limpeza + cmv_insumo = cmv`, por construção. */
   cmv_limpeza: number | null
   cmv_insumo: number | null
+  /**
+   * O dinheiro em que a categoria do cadastro e a operação do ERP discordam.
+   * Não muda número nenhum — a categoria decide. Existe para a tela poder
+   * dizer onde olhar: R$ 110,36 em setembro de 2026.
+   */
+  compras_divergencia_operacao: number
+  /**
+   * Compra de nota LANÇADA cujo item não tem insumo vinculado, e portanto não
+   * tem categoria. A divisão limpeza/insumo não alcança esse valor, e a tela
+   * tem de dizer em vez de empurrá-lo calado para uma das metades.
+   */
+  compras_sem_classificacao: number
 }
 
 /** Retorno de `mv_faturamento_periodo`. */

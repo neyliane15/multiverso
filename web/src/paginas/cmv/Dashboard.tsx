@@ -820,6 +820,39 @@ function FaturamentoELadoALado({ dados }: { dados: CmvPeriodo }) {
         />
       </div>
 
+      {dados.compras_sem_classificacao > 0 && (
+        /* A divisão em duas metades é feita pela CATEGORIA do insumo vinculado
+           (0031). Item de nota lançada sem insumo vinculado não tem categoria,
+           então ele está dentro do CMV total e fora das duas metades. Calar
+           isso seria escolher uma metade no lugar da casa. */
+        <p className="text-micro leading-snug text-texto-fraco">
+          <strong className="mv-numero">{dinheiro(dados.compras_sem_classificacao)}</strong> de
+          compra lançada está em item sem insumo vinculado. Esse valor entra no CMV inteiro e{' '}
+          <em>não</em> entra em nenhuma das duas metades acima — não há categoria para dizer de que
+          lado ele fica. Vincule os itens na conferência da nota.
+        </p>
+      )}
+
+      {dados.compras_divergencia_operacao > 0 && (
+        /* A operação do ERP não soma dinheiro nenhum desde a 0031, mas ela é o
+           único segundo olhar que existe sobre a classificação. Quando ela
+           discorda da categoria, quem decide é a casa — e a casa só decide o
+           que sabe que está em discussão. */
+        <p className="text-micro leading-snug text-texto-fraco">
+          Em <strong className="mv-numero">{dinheiro(dados.compras_divergencia_operacao)}</strong> de
+          compra, a categoria do cadastro e a operação da nota do fornecedor discordam sobre ser
+          limpeza. Vale o cadastro, que é o mesmo nas três pontas da conta; o aviso fica para a
+          casa conferir a categoria em{' '}
+          <Link
+            to="/cadastros/produtos"
+            className="text-primaria-legivel underline-offset-2 hover:underline"
+          >
+            Produtos
+          </Link>
+          .
+        </p>
+      )}
+
       {dados.compras > 0 && dados.compras_limpeza === 0 && (
         /* Zero aqui pode ser "não comprou limpeza" ou "ninguém marcou categoria
            nenhuma como fora do insumo" — coisas muito diferentes, e a tela não
