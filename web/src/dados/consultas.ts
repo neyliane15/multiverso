@@ -1705,13 +1705,22 @@ export function useVendaApelidos(restauranteId: string) {
 /**
  * Resolve UMA linha pendente de venda: ficha, insumo, ou serviço.
  *
- * O `alvo` vai junto na mesma gravação de propósito: o `check`
- * `venda_itens_alvo_unico` da 0027 amarra os três campos, então mandar o
- * `ficha_id` sem mudar o `alvo` seria uma linha que o banco recusa — e recusar
- * aqui é melhor que deixar passar meia decisão.
+ * Pela função do banco, e não por um `update` daqui, porque o caso que a 0027
+ * chama de rotina na planilha de verdade é justamente o que o `update` não
+ * sabe fazer: o PDV escreve "AMSTEL 600 ML" e "AMSTEL GF 600" para a mesma
+ * garrafa, e vincular a segunda bate no `unique (venda_id, ficha_id)` da 0023.
+ * O `update` devolvia o 23505 traduzido como "já existe um registro com esse
+ * nome ou código" — frase que não quer dizer nada para quem só clicou numa
+ * ficha. `mv_resolver_item_de_venda` FUNDE as duas linhas (soma quantidade,
+ * dinheiro e linhas de cupom, recalcula o preço como média ponderada, guarda os
+ * dois nomes do PDV e ensina o que desaparece ao de-para), e recusa fundir
+ * quando as unidades diferem.
  *
- * O aprendizado é do gatilho `mv_aprende_apelido_de_venda`, não desta mutação:
- * assim ele vale para quem gravar pela API, pelo script ou pela tela.
+ * O `alvo` vai junto na mesma chamada de propósito: o `check`
+ * `venda_itens_alvo_unico` da 0027 amarra os três campos.
+ *
+ * O aprendizado é do gatilho `mv_aprende_apelido_de_venda` e da própria função,
+ * não desta mutação: assim ele vale para quem gravar pela API ou por script.
  */
 export function useResolverItemDaVenda(restauranteId: string, vendaId: string) {
   const qc = useQueryClient()
@@ -1723,16 +1732,12 @@ export function useResolverItemDaVenda(restauranteId: string, vendaId: string) {
       produtoId?: string | null
     }) =>
       buscar<VendaItem>(
-        supabase
-          .from('venda_itens')
-          .update({
-            alvo: entrada.alvo,
-            ficha_id: entrada.alvo === 'ficha' ? entrada.fichaId : null,
-            produto_id: entrada.alvo === 'produto' ? entrada.produtoId : null,
-          })
-          .eq('id', entrada.itemId)
-          .select()
-          .single(),
+        supabase.rpc('mv_resolver_item_de_venda', {
+          p_item: entrada.itemId,
+          p_alvo: entrada.alvo,
+          p_ficha: entrada.alvo === 'ficha' ? (entrada.fichaId ?? null) : null,
+          p_produto: entrada.alvo === 'produto' ? (entrada.produtoId ?? null) : null,
+        }),
       ),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chaves.vendaItens(vendaId) })

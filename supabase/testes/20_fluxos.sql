@@ -2224,3 +2224,96 @@ begin
     round(l.cmv_percentual_produto / l.cmv_percentual, 4)
     = round(l.faturamento / l.faturamento_produto, 4));
 end $$;
+
+-- ============================================================================
+-- 0028 · A venda que aponta para o insumo converte a unidade
+-- ----------------------------------------------------------------------------
+-- O caso vem da planilha de setembro: 11.144 linhas em UN e 54 em KG — a
+-- BATATA FRITA, 59 KG. A 0027 somava a quantidade do PDV direto na do insumo,
+-- entao 59 KG vendidos entravam como 59 UNIDADES consumidas, e a caixa
+-- DIFERENCA do relatorio (vendas - consumo) mentia na mesma proporcao.
+-- ============================================================================
+do $$
+declare
+  r uuid; cat uuid; s uuid;
+  p_und uuid; p_saco uuid; p_kg uuid;
+  v uuid; i_kg uuid; i_outro uuid; v_erro text; l record;
+begin
+  insert into restaurantes (nome, slug) values ('Casa da Unidade','casa-unidade')
+  returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Cozinha') returning id into cat;
+  insert into setores (restaurante_id, nome) values (r,'Cozinha') returning id into s;
+
+  -- Tres cadastros do mesmo mundo real: o que se conta por unidade, o que se
+  -- conta por unidade MAS tem peso na embalagem, e o que se conta por quilo.
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Batata porcionada','UND',8,cat) returning id into p_und;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id,
+                        conteudo_quantidade, conteudo_unidade)
+  values (r,'Batata saco de 5 kg','UND',40,cat,5,'KG') returning id into p_saco;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Batata a granel','KG',9,cat) returning id into p_kg;
+
+  insert into vendas (restaurante_id, referencia, inicio, origem, origem_arquivo)
+  values (r, date '2026-09-30', date '2026-09-01','pdv','vendas_setembro.xlsx')
+  returning id into v;
+
+  -- A linha como o PDV manda: 59 KG de BATATA FRITA.
+  insert into venda_itens (venda_id, alvo, produto_id, quantidade, unidade,
+                           preco_unitario, valor_total_origem, linhas_de_origem,
+                           descricao_origem)
+  values (v,'produto',p_kg,59,'KG',41.76,2463.67,54,'BATATA FRITA')
+  returning id into i_kg;
+
+  perform conferir('0028: KG para KG continua 1 por 1',
+    (select quantidade from mv_vendas_por_produto(v) where produto_id = p_kg) = 59);
+
+  -- O mesmo KG apontando para o insumo contado em UNIDADE: nao converte, e a
+  -- linha sai MARCADA em vez de valer 59 unidades.
+  update venda_itens set produto_id = p_und where id = i_kg;
+  select * into l from mv_vendas_por_produto(v) where produto_id = p_und;
+  perform conferir('0028: KG contra UND nao converte, e a quantidade volta NULA',
+                   l.fator_ausente and l.quantidade is null);
+  perform conferir('0028: e o motivo diz as duas unidades e o nome do PDV',
+                   l.motivo like '%BATATA FRITA%' and l.motivo like '%KG%'
+                   and l.motivo like '%UND%');
+
+  -- E o caso que a 0017 resolveu para a ficha, valendo agora para a venda: o
+  -- saco de 5 kg. 59 KG sao 11,8 sacos.
+  update venda_itens set produto_id = p_saco where id = i_kg;
+  select * into l from mv_vendas_por_produto(v) where produto_id = p_saco;
+  perform conferir('0028: KG vira saco pela embalagem — 59 / 5 = 11,8',
+                   l.quantidade = 11.8 and not l.fator_ausente);
+
+  -- Lancamento da mao: sem unidade dita, a quantidade ja esta na unidade do
+  -- insumo. E o que "sem unidade" sempre quis dizer, e tem de continuar valendo.
+  update venda_itens set unidade = null, produto_id = p_und where id = i_kg;
+  perform conferir('0028: linha sem unidade (lancamento da mao) continua 1 por 1',
+    (select quantidade from mv_vendas_por_produto(v) where produto_id = p_und) = 59);
+
+  -- -------------------------------------- a fusao nao soma KG com unidade ---
+  update venda_itens set unidade = 'KG', produto_id = p_kg where id = i_kg;
+  insert into venda_itens (venda_id, alvo, quantidade, unidade, preco_unitario,
+                           valor_total_origem, descricao_origem)
+  values (v,'pendente',10,'UN',12,120,'PORCAO DE BATATA')
+  returning id into i_outro;
+  begin
+    perform mv_resolver_item_de_venda(i_outro, 'produto', null, p_kg);
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('0028: a fusao recusa somar quantidade de unidades diferentes',
+                   v_erro like '%unidades diferentes%');
+  perform conferir('0028: e nenhuma das duas linhas se perdeu na recusa',
+                   (select count(*) from venda_itens where venda_id = v) = 2);
+
+  -- Com a mesma unidade, funde como a 0027 desenhou.
+  update venda_itens set unidade = 'KG' where id = i_outro;
+  perform mv_resolver_item_de_venda(i_outro, 'produto', null, p_kg);
+  perform conferir('0028: com a mesma unidade a fusao soma as quantidades',
+    (select quantidade from venda_itens where venda_id = v and produto_id = p_kg) = 69);
+  perform conferir('0028: e sobra uma linha so, com os dois nomes do PDV',
+    (select count(*) from venda_itens where venda_id = v) = 1
+    and (select descricao_origem from venda_itens where venda_id = v)
+        = 'BATATA FRITA + PORCAO DE BATATA');
+end $$;

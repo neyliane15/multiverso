@@ -571,6 +571,14 @@ export interface VendaItem {
   valor_total_origem: number | null
   /** Quantas linhas de cupom foram somadas nesta. */
   linhas_de_origem: number | null
+  /**
+   * A unidade em que o PDV vendeu (`KG`, `UN`).
+   *
+   * Existe para a linha que aponta DIRETO para o insumo: `mv_vendas_por_produto`
+   * converte dela para a unidade de compra do cadastro (migração 0028). Nula no
+   * lançamento da mão, onde a quantidade já está na unidade do insumo.
+   */
+  unidade: string | null
   /** Texto cru do PDV. É a chave do de-para e o rastro de onde a linha veio. */
   descricao_origem: string | null
   criado_em: string

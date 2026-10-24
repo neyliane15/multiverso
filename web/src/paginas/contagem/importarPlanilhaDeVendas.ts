@@ -147,6 +147,9 @@ export async function importarVendasDaPlanilha(
     ficha_id: linha.fichaId,
     produto_id: linha.produtoId,
     quantidade: linha.quantidade,
+    // A unidade em que o PDV vendeu, que a 0028 usa para converter a linha de
+    // insumo direto. Sem ela, 59 KG de batata entravam como 59 unidades.
+    unidade: linha.unidade,
     // Média do período. A verdade do dinheiro é `valor_total_origem`: ver o
     // cabeçalho da 0027 e o de `dados/planilha/vendas.ts`.
     preco_unitario: linha.precoMedio,
