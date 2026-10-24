@@ -583,4 +583,98 @@ begin
   reset role;
 end $$;
 
+-- ============================================================================
+-- 0030 · O CMV recusa o acesso de setor, em vez de mostrar outro numero
+-- ----------------------------------------------------------------------------
+-- Medido no banco do revisor com a planilha de setembro dentro: pelo MESMO
+-- periodo, o admin via cmv_insumo R$ 83.548,56 e o operador preso a um setor
+-- via R$ 83.001,91, porque `estoque_inicial` e `cmv` saem de `contagens.total`
+-- (cabecalho, nao recortado) e as metades de limpeza somam `contagem_itens`
+-- (recortado por setor). Tres numeros diferentes para o mesmo mes, sem uma
+-- palavra dizendo por que. A decisao da 0026 vale aqui igual: recusa e a unica
+-- resposta que nao mente.
+-- ============================================================================
+do $$
+declare
+  r uuid; s1 uuid; s2 uuid; cat uuid; cat_limpeza uuid;
+  p1 uuid; p2 uuid; c1 uuid; c2 uuid; n uuid;
+  u_admin uuid; u_setor uuid; v_erro text; l record;
+begin
+  insert into restaurantes (nome, slug) values ('Casa do Setor Cego','casa-setor-cego')
+  returning id into r;
+  insert into categorias (restaurante_id, nome) values (r,'Bebidas') returning id into cat;
+  insert into categorias (restaurante_id, nome, fora_do_insumo)
+  values (r,'MATERIAL DE LIMPEZA', true) returning id into cat_limpeza;
+  insert into setores (restaurante_id, nome) values (r,'Bar') returning id into s1;
+  insert into setores (restaurante_id, nome) values (r,'Cozinha') returning id into s2;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Cerveja','UND',10,cat) returning id into p1;
+  insert into produtos (restaurante_id, nome, unidade, custo_medio, categoria_id)
+  values (r,'Detergente','UND',5,cat_limpeza) returning id into p2;
+  insert into produto_setores (produto_id, setor_id, unidade) values (p1,s1,'UND'), (p2,s2,'UND');
+
+  insert into contagens (restaurante_id, referencia) values (r, date '2026-08-31') returning id into c1;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario)
+  values (c1,p1,s1,100,'UND',10), (c1,p2,s2,20,'UND',5);
+  update contagens set status='fechada', fechada_em=now(), total=1100 where id=c1;
+  insert into contagens (restaurante_id, referencia) values (r, date '2026-10-01') returning id into c2;
+  insert into contagem_itens (contagem_id, produto_id, setor_id, quantidade, unidade, custo_unitario)
+  values (c2,p1,s1,80,'UND',10), (c2,p2,s2,10,'UND',5);
+  update contagens set status='fechada', fechada_em=now(), total=850 where id=c2;
+
+  insert into notas_fiscais (restaurante_id, emitida_em, status, valor_total)
+  values (r, date '2026-09-15','lancada', 300) returning id into n;
+  insert into nota_itens (nota_id, produto_id, descricao, unidade, quantidade,
+                          valor_unitario, valor_total, operacao)
+  values (n,p1,'CERVEJA','UND',20,10,200,'01 - COMPRAS INSUMOS'),
+         (n,p2,'DETERGENTE','UND',20,5,100,'01 - COMPRAS DE LIMPEZAS E DESCARTAVEIS');
+
+  insert into convites (email, nome, papel, restaurante_id) values
+    ('admin@setor-cego.com','Admin','admin', r),
+    ('setor@setor-cego.com','So do Bar','operador', r);
+  insert into auth.users (email, raw_user_meta_data) values
+    ('admin@setor-cego.com', jsonb_build_object('nome','Admin')) returning id into u_admin;
+  insert into auth.users (email, raw_user_meta_data) values
+    ('setor@setor-cego.com', jsonb_build_object('nome','So do Bar')) returning id into u_setor;
+  -- O que torna o operador "de setor": uma linha em perfil_setores (0018).
+  insert into perfil_setores (perfil_id, setor_id) values (u_setor, s1);
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_admin::text, true);
+  select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+  perform conferir('0030: o admin ve o CMV inteiro (1100 + 300 - 850 = 550)', l.cmv = 550);
+  perform conferir('0030: com a limpeza separada (100 + 100 - 50 = 150)', l.cmv_limpeza = 150);
+  reset role;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u_setor::text, true);
+  perform conferir('0030: e o operador de setor e, de fato, restrito',
+                   mv_restrito_a_setores());
+  begin
+    select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('0030: o CMV recusa o acesso de setor, com a frase da 0026',
+                   v_erro like '%acesso e de setor%');
+  begin
+    select count(*) into n from mv_cmv_por_categoria(r, date '2026-09-01', date '2026-09-30');
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('0030: a abertura por categoria tambem recusa',
+                   v_erro like '%acesso e de setor%');
+  begin
+    select * into l from mv_faturamento_periodo(r, date '2026-09-01', date '2026-09-30');
+    v_erro := 'passou';
+  exception when others then v_erro := SQLERRM;
+  end;
+  perform conferir('0030: e o faturamento recusa em vez de devolver zero',
+                   v_erro like '%acesso e de setor%');
+  -- O que ele continua podendo: a propria folha, que e o trabalho dele.
+  perform conferir('0030: o operador de setor continua vendo os itens do setor dele',
+                   (select count(*) from contagem_itens where contagem_id = c1) = 1);
+  reset role;
+end $$;
+
 \echo '  --- RLS: todos os casos passaram'
