@@ -633,3 +633,29 @@ describe('exigirColunas', () => {
     expect(() => exigirColunas(aba, ['Produto'])).not.toThrow()
   })
 })
+
+describe('lerXlsx — progresso', () => {
+  /**
+   * A leitura da aba de vendas da cliente leva 10,0 s a 390 px com a CPU freada
+   * 4x, e não vai deixar de levar sem Web Worker. O que é de graça é esses dez
+   * segundos não serem cegos: o laço já solta a thread a cada 2.000 linhas, e
+   * `aoProgresso` fala nos mesmos pontos.
+   */
+  it('avisa a cada 2.000 linhas, e não avisa em planilha pequena', async () => {
+    const linha = (n: number) =>
+      `<row r="${n}"><c r="A${n}" t="inlineStr"><is><t>x${n}</t></is></c></row>`
+    const corpo = Array.from({ length: 4_500 }, (_, i) => linha(i + 1)).join('')
+    const avisos: number[] = []
+    const aba = await lerXlsx(planilha(`<worksheet><sheetData>${corpo}</sheetData></worksheet>`), {
+      aoProgresso: (n) => avisos.push(n),
+    })
+    expect(aba.linhas).toHaveLength(4_499)
+    expect(avisos).toEqual([2_000, 4_000])
+
+    const curta = await lerXlsx(
+      planilha(`<worksheet><sheetData>${linha(1)}${linha(2)}</sheetData></worksheet>`),
+      { aoProgresso: () => expect.fail('planilha de 2 linhas não tem progresso a relatar') },
+    )
+    expect(curta.linhas).toHaveLength(1)
+  })
+})

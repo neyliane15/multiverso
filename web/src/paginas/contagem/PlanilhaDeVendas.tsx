@@ -130,6 +130,10 @@ export function PainelDaPlanilha({
   const apelidos = useVendaApelidos(restauranteId)
 
   const [lendo, setLendo] = useState(false)
+  // Quantas linhas o leitor ja passou. A leitura da aba de vendas leva 10,0 s
+  // a 390 px com a CPU freada 4x, e nao vai deixar de levar sem Web Worker —
+  // o que da para fazer de graca e esses segundos nao serem cegos.
+  const [linhasLidas, setLinhasLidas] = useState(0)
   const [gravando, setGravando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [previa, setPrevia] = useState<{ planilha: Planilha; nome: string } | null>(null)
@@ -162,9 +166,10 @@ export function PainelDaPlanilha({
     if (!arquivo) return
     setErro(null)
     setPrevia(null)
+    setLinhasLidas(0)
     setLendo(true)
     try {
-      const aba = await lerXlsx(await arquivo.arrayBuffer())
+      const aba = await lerXlsx(await arquivo.arrayBuffer(), { aoProgresso: setLinhasLidas })
       const planilha = lerVendasDaPlanilha(aba)
       setPrevia({ planilha, nome: arquivo.name })
       setReferencia(planilha.referencia)
@@ -262,6 +267,13 @@ export function PainelDaPlanilha({
           >
             {previa ? 'Escolher outra planilha' : 'Escolher planilha'}
           </Botao>
+          {lendo && (
+            <span className="ml-3 text-apoio text-texto-fraco" aria-live="polite">
+              {linhasLidas > 0
+                ? `Lendo — ${quantidade(linhasLidas)} linhas de cupom até agora.`
+                : 'Abrindo o arquivo…'}
+            </span>
+          )}
           {previa && (
             <span className="ml-3 text-apoio text-texto-fraco">
               {previa.nome} · aba "{previa.planilha.aba}"

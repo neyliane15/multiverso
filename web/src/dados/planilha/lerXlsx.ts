@@ -597,10 +597,20 @@ function primeiraAba(workbook: string, rels: string): { nome: string; caminho: s
  * Só a primeira: as duas planilhas do cliente têm uma aba cada, e escolher aba
  * é pergunta de tela, não de leitor. Quando houver planilha de duas abas, é
  * aqui que o parâmetro entra.
+ *
+ * `aoProgresso` é chamado a cada 2.000 linhas, nos mesmos pontos em que o laço
+ * já solta a thread. Ele existe porque a medida diz que a leitura é longa e não
+ * vai deixar de ser: a aba de vendas da cliente leva **10,0 s** a 390 px com a
+ * CPU freada 4x (maior pausa da interface 1,9 s, 52 quadros). O conserto da
+ * responsividade é Web Worker, e não é desta entrega; o que é de graça aqui é
+ * esses dez segundos deixarem de ser cegos.
  */
-export async function lerXlsx(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaPlanilha> {
+export async function lerXlsx(
+  arquivo: ArrayBuffer | Uint8Array,
+  opcoes: { aoProgresso?: (linhasLidas: number) => void } = {},
+): Promise<AbaDaPlanilha> {
   try {
-    return await lerAba(arquivo)
+    return await lerAba(arquivo, opcoes.aoProgresso)
   } catch (falha) {
     if (falha instanceof ErroDePlanilha) throw falha
     // Tudo o que sobra aqui é defeito de arquivo que este leitor não previu, e
@@ -619,7 +629,10 @@ export async function lerXlsx(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaP
   }
 }
 
-async function lerAba(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaPlanilha> {
+async function lerAba(
+  arquivo: ArrayBuffer | Uint8Array,
+  aoProgresso?: (linhasLidas: number) => void,
+): Promise<AbaDaPlanilha> {
   const dados = arquivo instanceof Uint8Array ? arquivo : new Uint8Array(arquivo)
   const entradas = abrirZip(dados)
 
@@ -663,7 +676,10 @@ async function lerAba(arquivo: ArrayBuffer | Uint8Array): Promise<AbaDaPlanilha>
   let lidas = 0
   for (const bruta of fatiarXml(folha, 'row')) {
     lidas += 1
-    if (lidas % 2_000 === 0) await new Promise((resolva) => setTimeout(resolva, 0))
+    if (lidas % 2_000 === 0) {
+      aoProgresso?.(lidas)
+      await new Promise((resolva) => setTimeout(resolva, 0))
+    }
     const numero = Number(/\br="(\d+)"/.exec(bruta.atributos)?.[1] ?? '0')
     const miolo = bruta.miolo
     if (miolo === null || miolo === '') continue

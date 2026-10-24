@@ -59,6 +59,10 @@ export function CaminhoDaPlanilha({ restauranteId }: { restauranteId: string }) 
 
   const [arrastando, setArrastando] = useState(false)
   const [lendo, setLendo] = useState(false)
+  // Quantas linhas o leitor ja passou. A leitura da aba de vendas leva 10,0 s
+  // a 390 px com a CPU freada 4x, e nao vai deixar de levar sem Web Worker —
+  // o que da para fazer de graca e esses segundos nao serem cegos.
+  const [linhasLidas, setLinhasLidas] = useState(0)
   const [previa, setPrevia] = useState<{ planilha: Planilha; nome: string } | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [gravando, setGravando] = useState<string | null>(null)
@@ -101,9 +105,10 @@ export function CaminhoDaPlanilha({ restauranteId }: { restauranteId: string }) 
     setErro(null)
     setPrevia(null)
     setResultado(null)
+    setLinhasLidas(0)
     setLendo(true)
     try {
-      const aba = await lerXlsx(await arquivo.arrayBuffer())
+      const aba = await lerXlsx(await arquivo.arrayBuffer(), { aoProgresso: setLinhasLidas })
       setPrevia({ planilha: lerComprasDaPlanilha(aba), nome: arquivo.name })
     } catch (falha) {
       setErro(
@@ -190,8 +195,12 @@ export function CaminhoDaPlanilha({ restauranteId }: { restauranteId: string }) 
             ) : (
               <UploadCloud className="size-7 text-texto-fraco" aria-hidden />
             )}
-            <p className="text-apoio text-texto-suave">
-              Solte o .xlsx aqui — nada é gravado antes de você conferir.
+            <p className="text-apoio text-texto-suave" aria-live="polite">
+              {lendo
+                ? linhasLidas > 0
+                  ? `Lendo a planilha — ${quantidade(linhasLidas)} linhas até agora.`
+                  : 'Abrindo o arquivo…'
+                : 'Solte o .xlsx aqui — nada é gravado antes de você conferir.'}
             </p>
             <input
               ref={entrada}
