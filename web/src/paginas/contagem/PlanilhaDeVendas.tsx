@@ -411,6 +411,24 @@ export function ConferenciaDeVenda({
     return { porAlvo, total, pendente }
   }, [lista])
 
+  /**
+   * Qual linha do PDV já ocupa cada ficha e cada insumo deste lançamento.
+   *
+   * Serve para avisar antes do clique: vincular a um alvo que já tem linha
+   * **funde as duas** (`mv_resolver_item_de_venda`) — soma quantidade, dinheiro
+   * e cupons, e apaga a linha clicada. É o certo a fazer, e é irreversível:
+   * depois da fusão não há como separar de novo, só os dois nomes guardados em
+   * `descricao_origem`. A tela dizia nada sobre isso.
+   */
+  const jaOcupados = useMemo(() => {
+    const porAlvo = new Map<string, string>()
+    for (const i of lista) {
+      const chave = i.ficha_id !== null ? `ficha:${i.ficha_id}` : i.produto_id !== null ? `produto:${i.produto_id}` : null
+      if (chave !== null) porAlvo.set(chave, i.descricao_origem ?? 'outra linha')
+    }
+    return porAlvo
+  }, [lista])
+
   const visiveis = soPendentes ? lista.filter((i) => i.alvo === 'pendente') : lista
   const trancado = venda.status === 'fechada'
 
@@ -536,6 +554,7 @@ export function ConferenciaDeVenda({
                     item={item}
                     fichas={vendaveis}
                     produtos={catalogo}
+                    jaOcupados={jaOcupados}
                     bloqueado={trancado || resolver.isPending}
                     aoAplicar={(alvo, id) => void aplicar(item, alvo, id)}
                   />
@@ -555,12 +574,15 @@ function LinhaDeVenda({
   item,
   fichas,
   produtos,
+  jaOcupados,
   bloqueado,
   aoAplicar,
 }: {
   item: ItemDeVenda
   fichas: FichaCompleta[]
   produtos: ProdutoCompleto[]
+  /** `ficha:<id>` ou `produto:<id>` -> o nome do PDV que já ocupa aquele alvo. */
+  jaOcupados: Map<string, string>
   bloqueado: boolean
   aoAplicar: (alvo: AlvoDeVenda, id: string | null) => void
 }) {
@@ -607,6 +629,12 @@ function LinhaDeVenda({
       ? (fatorDeInsumo.get(item.produto_id) ?? null)
       : null
 
+  /** Com quem este alvo vai FUNDIR, se já houver linha nele. */
+  function fundeCom(tipo: 'ficha' | 'produto', id: string): string | null {
+    const dono = jaOcupados.get(`${tipo}:${id}`)
+    return dono === undefined || dono === item.descricao_origem ? null : dono
+  }
+
   /** `KG ≠ UND`: o selo que o botão de um clique passa a carregar. */
   function semConversao(tipo: 'ficha' | 'produto', id: string): string | null {
     if (tipo !== 'produto') return null
@@ -648,6 +676,20 @@ function LinhaDeVenda({
           <span className="font-semibold text-texto-suave">{dinheiro(valor)}</span>
           {item.linhas_de_origem !== null && (
             <> · somado de {quantidade(item.linhas_de_origem)} {plural(item.linhas_de_origem, 'cupom', 'cupons')}</>
+          )}
+          {/* O " + " no nome é o rastro da fusão: duas ou mais linhas do PDV
+              viraram esta. Dizer em voz alta, e quantas, porque a fusão não se
+              desfaz — e porque um vínculo errado junta nomes que não têm nada a
+              ver um com o outro e some com a conferência por nome. */}
+          {(item.descricao_origem ?? '').includes(' + ') && (
+            <>
+              {' '}
+              ·{' '}
+              <span className="text-texto-suave">
+                {quantidade((item.descricao_origem ?? '').split(' + ').length)} nomes do PDV
+                juntados nesta linha
+              </span>
+            </>
           )}
         </div>
         {item.alvo === 'ficha' && item.ficha && (
@@ -710,6 +752,11 @@ function LinhaDeVenda({
                       {semConversao(s.tipo, s.id)}
                     </span>
                   )}
+                  {fundeCom(s.tipo, s.id) !== null && (
+                    <span className="ml-1 text-micro text-texto-fraco">
+                      · junta com &ldquo;{fundeCom(s.tipo, s.id)}&rdquo;
+                    </span>
+                  )}
                 </Botao>
               ))}
             </div>
@@ -740,6 +787,9 @@ function LinhaDeVenda({
                   >
                     <span className="min-w-0 truncate text-corpo text-texto">{c.nome}</span>
                     <span className="flex shrink-0 items-center gap-1.5">
+                      {fundeCom(c.tipo, c.id) !== null && (
+                        <Selo tom="info">junta com &ldquo;{fundeCom(c.tipo, c.id)}&rdquo;</Selo>
+                      )}
                       {semConversao(c.tipo, c.id) !== null && (
                         <Selo tom="alerta">{semConversao(c.tipo, c.id)}</Selo>
                       )}
