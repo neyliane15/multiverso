@@ -44,6 +44,7 @@ import { lerVendasDaPlanilha, type PlanilhaDeVendas as Planilha } from '@/dados/
 import {
   fatorParaInsumo,
   pareceServico,
+  nomesQuePodemSerOCortado,
   sugerirAlvos,
   type AlvoDeVenda,
   type ApelidoDeVenda,
@@ -627,6 +628,18 @@ function LinhaDeVenda({
   )
 
   /**
+   * Os nomes do cadastro que este nome do PDV poderia ser, se ele estiver
+   * cortado. Medido: `RED BULL C` recebe 100% para `RED BULL` e o catálogo tem
+   * `RED BULL CEREJA` e `RED BULL COCO` — e a diferença entre elas está na
+   * letra que o PDV cortou. Nenhum piso conserta isso, porque o problema não é
+   * a altura do piso: é um botão de 100% que não é identidade.
+   */
+  const podeSerCortado = useMemo(
+    () => (pendente ? nomesQuePodemSerOCortado(item.descricao_origem ?? '', { fichas, produtos }) : []),
+    [pendente, item.descricao_origem, fichas, produtos],
+  )
+
+  /**
    * A conversão da unidade do PDV para a do insumo, para a linha já resolvida e
    * para cada candidato a um clique.
    *
@@ -750,6 +763,22 @@ function LinhaDeVenda({
 
       {pendente && !bloqueado && (
         <div className="space-y-2">
+          {podeSerCortado.length > 1 && (
+            /* A tela já oferece os três (`sugerirAlvos` devolve três e o piso
+               deixa passar os três), e isso não basta: o primeiro vem com 100%
+               e os outros com 75%, o que lê como "tenho certeza do primeiro".
+               Então a frase vem ANTES dos botões, e nomeia os candidatos. */
+            <p className="rounded-marca-p border border-alerta/40 bg-alerta-suave/50 px-3 py-2 text-micro leading-snug text-texto-suave">
+              <AlertTriangle className="mr-1 inline size-3.5 text-alerta-texto" aria-hidden />O nome
+              do PDV pode estar <strong>cortado</strong>:{' '}
+              {quantidade(podeSerCortado.length)} nomes do cadastro começam com &ldquo;
+              {item.descricao_origem}&rdquo; — {podeSerCortado.slice(0, 4).join(', ')}
+              {podeSerCortado.length > 4 && ` e mais ${podeSerCortado.length - 4}`}. A parecença não
+              separa esses nomes, porque a diferença entre eles está justamente no que o PDV
+              cortou. Escolha na busca, conferindo no cardápio o que foi vendido.
+            </p>
+          )}
+
           {sugestoes.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               {sugestoes.map((s) => (
@@ -761,8 +790,13 @@ function LinhaDeVenda({
                   onClick={() => aoAplicar(s.tipo, s.id)}
                 >
                   {s.nome}{' '}
+                  {/* 100% aqui NÃO é identidade: `similaridadeTexto` devolve 1
+                      quando toda palavra do nome curto está no longo e ele é
+                      prefixo dele — a forma exata de um nome truncado. Nome
+                      igual nunca chega a esta lista (o casamento resolve antes),
+                      então nenhum botão daqui pode dizer "100%". */}
                   <span className="mv-numero ml-1 text-micro text-texto-fraco">
-                    {Math.round(s.confianca * 100)}%
+                    {Math.min(99, Math.round(s.confianca * 100))}% parecido
                   </span>
                   {semConversao(s.tipo, s.id) !== null && (
                     <span className="mv-numero ml-1 text-micro text-alerta-texto">

@@ -308,6 +308,54 @@ export function fatorParaInsumo(
  * guarda o resultado por nome: na planilha de compras são 140 nomes distintos
  * pendentes, não 342 linhas.
  */
+/**
+ * Os nomes do cadastro que COMEÇAM com o nome do PDV, quando há mais de um.
+ *
+ * O caso, medido com o catálogo do primeiro cliente e o piso de 72%:
+ *
+ *     RED BULL C   R$ 562,86
+ *       100,0%  RED BULL          <- e este botão é o primeiro da fila
+ *        75,0%  RED BULL CEREJA
+ *        75,0%  RED BULL COCO
+ *        72,5%  RED BULL AÇAI
+ *        72,5%  RED BULL ZERO
+ *
+ * Cinco candidatos passam o piso, e nenhum piso conserta isso — o problema não
+ * é a altura, é que `RED BULL C` é um nome **cortado pelo PDV** e a parecença
+ * não tem como saber do que. Os 100% não são identidade: `similaridadeTexto`
+ * devolve 1 quando toda palavra do nome curto está no longo E ele é prefixo
+ * dele, que é exatamente a forma de um nome truncado. Um botão de 100% lido
+ * como certeza, apontando para o nome mais curto, é o convite a errar.
+ *
+ * Esta função responde à pergunta que a tela tem de fazer antes de mostrar o
+ * botão: existe mais de um nome no cadastro que este nome cortado poderia ser?
+ * Dois ou mais, e a resposta honesta não é um botão, é a lista — porque a
+ * diferença entre RED BULL CEREJA e RED BULL COCO está justamente na letra que
+ * o PDV cortou.
+ *
+ * Só conta nome ESTRITAMENTE mais longo: nome idêntico é identidade, e quem
+ * resolve identidade é o degrau de cima do casamento, não a parecença.
+ */
+export function nomesQuePodemSerOCortado(
+  descricao: string,
+  contexto: { fichas?: readonly FichaCandidata[]; produtos: readonly ProdutoCandidato[] },
+): string[] {
+  const chave = chaveBusca(descricao)
+  // Um nome curtíssimo é prefixo de meio catálogo, e dizer isso não ajuda
+  // ninguém. Quatro caracteres é o mínimo para a pergunta fazer sentido.
+  if (chave.length < 4) return []
+  const todos = [
+    ...(contexto.fichas ?? []).filter((f) => f.ativo && !f.producao).map((f) => f.nome),
+    ...contexto.produtos.map((p) => p.nome),
+  ]
+  return todos
+    .filter((nome) => {
+      const outro = chaveBusca(nome)
+      return outro.length > chave.length && outro.startsWith(chave)
+    })
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+}
+
 export function sugerirAlvos(
   descricao: string,
   contexto: { fichas?: readonly FichaCandidata[]; produtos: readonly ProdutoCandidato[] },

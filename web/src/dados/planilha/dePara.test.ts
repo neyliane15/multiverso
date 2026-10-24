@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  nomesQuePodemSerOCortado,
   casarCompraDaPlanilha,
   casarVendaDaPlanilha,
   fatorParaInsumo,
@@ -175,6 +176,63 @@ describe('sugerirAlvos', () => {
     const sugestoes = sugerirAlvos('XAROPE SIMPLES', { fichas, produtos })
     expect(sugestoes.find((s) => s.id === 'f4')).toBeUndefined()
     expect(sugestoes.find((s) => s.id === 'f5')).toBeUndefined()
+  })
+})
+
+/**
+ * O caso que piso nenhum conserta, medido com o catálogo do primeiro cliente:
+ *
+ *     RED BULL C   R$ 562,86
+ *       100,0%  RED BULL          <- o primeiro botão da fila
+ *        75,0%  RED BULL CEREJA
+ *        75,0%  RED BULL COCO
+ *        72,5%  RED BULL AÇAI
+ *        72,5%  RED BULL ZERO
+ *
+ * Cinco passam o piso de 72%, e os 100% não são identidade:
+ * `similaridadeTexto` devolve 1 quando toda palavra do nome curto está no longo
+ * E ele é prefixo dele — a forma exata de um nome cortado pelo PDV.
+ */
+describe('nomesQuePodemSerOCortado', () => {
+  const redBull = [
+    { id: 'r1', nome: 'RED BULL' },
+    { id: 'r2', nome: 'RED BULL AÇAI' },
+    { id: 'r3', nome: 'RED BULL CEREJA' },
+    { id: 'r4', nome: 'RED BULL COCO' },
+    { id: 'r5', nome: 'RED BULL ZERO' },
+  ]
+
+  it('diz quais nomes o nome cortado poderia ser', () => {
+    expect(nomesQuePodemSerOCortado('RED BULL C', { produtos: redBull })).toEqual([
+      'RED BULL CEREJA',
+      'RED BULL COCO',
+    ])
+  })
+
+  it('não conta o nome idêntico: identidade é outro degrau do casamento', () => {
+    // 'RED BULL' é igual, não é continuação — quem resolve igualdade é
+    // `casarVendaDaPlanilha`, antes de qualquer parecença.
+    expect(nomesQuePodemSerOCortado('RED BULL C', { produtos: redBull })).not.toContain('RED BULL')
+  })
+
+  it('um nome completo não é um nome cortado', () => {
+    expect(nomesQuePodemSerOCortado('RED BULL CEREJA', { produtos: redBull })).toEqual([])
+  })
+
+  it('um candidato só não é ambiguidade: a tela não avisa do que é certo', () => {
+    expect(nomesQuePodemSerOCortado('RED BULL Z', { produtos: redBull })).toEqual(['RED BULL ZERO'])
+  })
+
+  it('nome curtíssimo não vira aviso: ele é prefixo de meio catálogo', () => {
+    expect(nomesQuePodemSerOCortado('RED', { produtos: redBull })).toEqual([])
+    expect(nomesQuePodemSerOCortado('', { produtos: redBull })).toEqual([])
+  })
+
+  it('olha ficha junto com insumo, e ignora produção e ficha arquivada', () => {
+    expect(nomesQuePodemSerOCortado('AMSTEL CHOPP 300 ML H', { fichas, produtos })).toEqual([
+      'AMSTEL CHOPP 300 ML HH',
+    ])
+    expect(nomesQuePodemSerOCortado('XAROPE SIMPLE', { fichas, produtos })).toEqual([])
   })
 })
 
