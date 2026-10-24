@@ -489,6 +489,16 @@ export interface CmvPeriodo {
    * tem de dizer em vez de empurrá-lo calado para uma das metades.
    */
   compras_sem_classificacao: number
+  /**
+   * Quando a compra mais recente deste período ENTROU no sistema
+   * (`notas_fiscais.criado_em`), que é outra coisa que a emissão.
+   *
+   * Existe porque um mês já lido muda de número: medido, o CMV de agosto de
+   * 2026 vai de R$ 0,00 para R$ 1.365,48 só porque a planilha de setembro foi
+   * importada, com cinco notas emitidas em agosto dentro dela. O número está
+   * certo; o que faltava era dizer que ele se mexeu. Nulo sem compra lançada.
+   */
+  compras_entrada_mais_recente: string | null
 }
 
 /** Retorno de `mv_faturamento_periodo`. */

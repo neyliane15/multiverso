@@ -256,6 +256,7 @@ describe('conferirFormula', () => {
       cmv_insumo: 32_000,
       compras_divergencia_operacao: 0,
       compras_sem_classificacao: 0,
+      compras_entrada_mais_recente: null,
       ...parcial,
     }
   }

@@ -576,6 +576,28 @@ function DetalheDoPeriodo({
                 </Aviso>
               )}
 
+              {dados.compras_entrada_mais_recente !== null &&
+                dados.compras_entrada_mais_recente > dados.fim && (
+                  /* O mes fechado que muda de numero. Medido: com a contagem de
+                     31/07 no banco, o CMV de agosto de 2026 vai de R$ 0,00 para
+                     R$ 1.365,48 so porque a planilha de SETEMBRO foi importada —
+                     cinco notas emitidas entre 26/08 e 31/08 vieram dentro dela, e
+                     o CMV soma a compra pela emissao. O numero esta certo; o que
+                     faltava era a tela dizer que ele se mexeu depois de ter sido
+                     legivel. */
+                  <Aviso tom="info" titulo="Compra deste período entrou depois que ele acabou">
+                    <p className="mt-1">
+                      A compra mais recente deste período entrou no sistema em{' '}
+                      <strong className="mv-numero">
+                        {formatarData(dados.compras_entrada_mais_recente)}
+                      </strong>
+                      , depois de {formatarData(dados.fim)}. Nota que chega atrasada é compra do mês
+                      em que foi <em>emitida</em>, e é assim que ela entra aqui — mas se alguém leu
+                      este número antes dessa data, ele mudou depois.
+                    </p>
+                  </Aviso>
+                )}
+
               <FaturamentoELadoALado dados={dados} />
 
               {explicada && (

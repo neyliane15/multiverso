@@ -2244,6 +2244,19 @@ begin
   select * into l from mv_cmv_periodo(r, date '2026-09-01', date '2026-09-30');
   perform conferir('desfeito o cenario, setembro volta ao CMV de 850', l.cmv = 850);
 
+  -- ---- 0034: o mes ja lido que muda de numero tem de ter como ser notado ---
+  -- Medido com a contagem de 31/07 no banco: o CMV de agosto de 2026 vai de
+  -- R$ 0,00 para R$ 1.365,48 so porque a planilha de SETEMBRO foi importada —
+  -- cinco notas emitidas entre 26/08 e 31/08 vieram dentro dela. O numero esta
+  -- certo (compra e do mes da EMISSAO); o silencio e que nao estava.
+  perform conferir('0034: a funcao diz quando a compra mais recente ENTROU',
+                   l.compras_entrada_mais_recente = current_date);
+  perform conferir('0034: e e depois do fim do periodo, que e o que a tela avisa',
+                   l.compras_entrada_mais_recente > l.fim);
+  perform conferir('0034: sem compra lancada no periodo, a data e nula',
+                   (select c.compras_entrada_mais_recente
+                      from mv_cmv_periodo(r, date '2026-07-01', date '2026-07-31') c) is null);
+
   -- ------------- 0032: a trava do item pendente vale fora de mv_lancar_nota --
   -- Medido pela API antes do gatilho: `PATCH {"status":"lancada"}` numa nota
   -- com item pendente voltava HTTP 204, e os R$ 1.000 do item entravam no CMV.
