@@ -1279,16 +1279,30 @@ export function useFornecedores(restauranteId: string) {
   })
 }
 
+/**
+ * O historico de compras do restaurante, inteiro.
+ *
+ * Com `buscarTudo`, e nao com uma consulta so, porque esta lista virou TRAVA: a
+ * importacao de planilha confere contra ela se a nota ja existe (numero +
+ * fornecedor + emissao), e nota de planilha nao tem chave de acesso para o
+ * indice unico da 0004 pegar. Medido com 1.001 notas no banco e
+ * `db-max-rows = 1000`, que e o que o Supabase hospedado usa: a resposta volta
+ * **200 com 1.000 linhas** e `content-range: 0-999/*`. Nenhum erro, nenhum
+ * aviso — a nota de fora da janela nao existe para a trava, e a mesma planilha
+ * entra duas vezes (medido no navegador: 133 notas gravadas nas DUAS vezes).
+ */
 export function useCompras(restauranteId: string) {
   return useQuery({
     queryKey: chaves.compras(restauranteId),
     queryFn: () =>
-      buscar<CompraHistorico[]>(
+      buscarTudo<CompraHistorico>((de, ate) =>
         supabase
           .from('vw_compras_historico')
           .select('*')
           .eq('restaurante_id', restauranteId)
-          .order('emitida_em', { ascending: false }),
+          .order('emitida_em', { ascending: false })
+          .order('id')
+          .range(de, ate),
       ),
   })
 }

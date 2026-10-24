@@ -115,6 +115,47 @@ async function garantirFornecedores(
   return { porChave, novos: faltam.size }
 }
 
+/**
+ * As notas que o banco JÁ tem na janela de emissão da planilha.
+ *
+ * Lida do servidor na hora de gravar, e paginada, porque a trava contra importar
+ * o mesmo mês duas vezes depende dela. Duas coisas davam errado antes, e as
+ * duas são silenciosas:
+ *
+ * - o histórico vinha do cache da tela (`useCompras`), que podia estar frio
+ *   desde antes de outra pessoa importar;
+ * - e vinha TRUNCADO: medido com 1.001 notas e `db-max-rows = 1000`, que é o
+ *   que o Supabase hospedado usa, a resposta é **200 com 1.000 linhas**. Sem
+ *   erro e sem aviso.
+ *
+ * A janela é a da própria planilha (primeira e última emissão), então a
+ * consulta é pequena mesmo numa casa com anos de histórico.
+ */
+async function notasQueJaExistem(
+  restauranteId: string,
+  de: string,
+  ate: string,
+): Promise<{ numero: string | null; emitida_em: string; fornecedor_id: string | null }[]> {
+  const achadas: { numero: string | null; emitida_em: string; fornecedor_id: string | null }[] = []
+  const PAGINA = 1000
+  for (let inicio = 0; inicio < 50_000; inicio += PAGINA) {
+    const { data, error } = await supabase
+      .from('notas_fiscais')
+      .select('numero, emitida_em, fornecedor_id')
+      .eq('restaurante_id', restauranteId)
+      .gte('emitida_em', de)
+      .lte('emitida_em', ate)
+      .order('emitida_em')
+      .order('id')
+      .range(inicio, inicio + PAGINA - 1)
+    falhar('não consegui conferir quais notas já estão no banco', error)
+    const lote = (data ?? []) as typeof achadas
+    achadas.push(...lote)
+    if (lote.length < PAGINA) break
+  }
+  return achadas
+}
+
 export async function importarComprasDaPlanilha(
   entrada: EntradaDaImportacaoDeCompras,
 ): Promise<ResultadoDaImportacaoDeCompras> {
@@ -124,8 +165,21 @@ export async function importarComprasDaPlanilha(
   // planilha não tem chave de acesso, então o índice único da 0004 não a pega —
   // a trava aqui é número + fornecedor + emissão, que é a mesma identidade do
   // agrupamento.
+  //
+  // As duas fontes entram juntas: o que a tela já tinha em mão e o que o banco
+  // responde AGORA para a janela de emissão da planilha. A segunda é a que vale
+  // — ela não depende de cache nem do teto de linhas do PostgREST.
+  const emissoes = entrada.planilha.notas.map((n) => n.emitidaEm).sort()
+  const doBanco =
+    emissoes.length === 0
+      ? []
+      : await notasQueJaExistem(
+          entrada.restauranteId,
+          emissoes[0] as string,
+          emissoes[emissoes.length - 1] as string,
+        )
   const jaExiste = new Set(
-    (entrada.jaImportadas ?? []).map(
+    [...(entrada.jaImportadas ?? []), ...doBanco].map(
       (n) => `${n.numero ?? ''}|${n.fornecedor_id ?? ''}|${n.emitida_em.slice(0, 10)}`,
     ),
   )
